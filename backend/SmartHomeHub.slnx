@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="SmartHomeHub.Api/SmartHomeHub.Api.csproj" />
+  <Project Path="SmartHomeHub.Application/SmartHomeHub.Application.csproj" />
+  <Project Path="SmartHomeHub.Domain/SmartHomeHub.Domain.csproj" />
+  <Project Path="SmartHomeHub.Infrastructure/SmartHomeHub.Infrastructure.csproj" />
+</Solution>
