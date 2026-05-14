@@ -1,11 +1,8 @@
-using Microsoft.EntityFrameworkCore;
-using SmartHomeHub.Infrastructure.Persistence;
+using SmartHomeHub.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
-
+builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddOpenApi();
 
 var app = builder.Build();
@@ -16,6 +13,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseAuthentication();
+app.UseAuthorization();
 
 // No futuro, nossos endpoints vão entrar aqui (ou via Controllers, ou Minimal APIs)
 
