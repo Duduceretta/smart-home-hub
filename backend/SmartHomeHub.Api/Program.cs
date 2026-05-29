@@ -1,4 +1,5 @@
 using SmartHomeHub.Infrastructure;
+using SmartHomeHub.Api.Endpoints;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -16,6 +17,6 @@ app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
 
-// No futuro, nossos endpoints vão entrar aqui (ou via Controllers, ou Minimal APIs)
+app.MapUserEndpoints();
 
 app.Run();
