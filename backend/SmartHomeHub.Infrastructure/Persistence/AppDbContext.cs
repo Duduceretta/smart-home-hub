@@ -1,9 +1,10 @@
 using Microsoft.EntityFrameworkCore;
 using SmartHomeHub.Domain.Entities;
+using SmartHomeHub.Application.Common.Interfaces;
 
 namespace SmartHomeHub.Infrastructure.Persistence;
 
-public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(options)
+public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(options), IAppDbContext
 {
     public DbSet<User> Users => Set<User>();
     public DbSet<Room> Rooms => Set<Room>();
