@@ -22,6 +22,9 @@ public class DeviceConfiguration : IEntityTypeConfiguration<Device>
             .IsRequired()
             .HasMaxLength(100);
 
+        builder.HasIndex(device => device.ExternalId)
+            .IsUnique();
+
         builder.Property(device => device.IsOn)
             .IsRequired()
             .HasDefaultValue(false);
