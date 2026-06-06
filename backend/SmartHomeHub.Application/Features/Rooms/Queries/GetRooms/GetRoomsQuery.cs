@@ -12,19 +12,10 @@ public class GetRoomsQueryHandler(IAppDbContext dbContext) : IQueryHandler<GetRo
 {
     public async ValueTask<List<RoomDto>> Handle(GetRoomsQuery request, CancellationToken cancellationToken)
     {
-        var user = await dbContext.Users
+        return await dbContext.Rooms
             .AsNoTracking()
-            .FirstOrDefaultAsync(user => user.ExternalAuthUid == request.FirebaseUid, cancellationToken);
-
-        if (user == null)
-            return [];
-
-        var rooms = await dbContext.Rooms
-            .AsNoTracking()
-            .Where(room => room.UserId == user.Id)
+            .Where(room => room.User.ExternalAuthUid == request.FirebaseUid)
             .Select(room => new RoomDto(room.Id, room.Name, room.Icon))
             .ToListAsync(cancellationToken);
-
-        return rooms;
     }
 }

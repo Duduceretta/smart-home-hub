@@ -8,6 +8,6 @@ public class Room
     public string? Icon { get; set; }
 
     // Relacionamentos
-    public User? User { get; set; }
+    public User User { get; set; } = null!;
     public ICollection<Device> Devices { get; set; } = [];
 }

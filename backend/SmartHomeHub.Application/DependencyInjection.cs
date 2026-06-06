@@ -1,4 +1,7 @@
+using FluentValidation;
+using Mediator;
 using Microsoft.Extensions.DependencyInjection;
+using SmartHomeHub.Application.Common.Behaviors;
 
 namespace SmartHomeHub.Application;
 
@@ -10,6 +13,10 @@ public static class DependencyInjection
         {
             options.ServiceLifetime = ServiceLifetime.Scoped;
         });
+
+        services.AddScoped(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
+
+        services.AddValidatorsFromAssembly(typeof(DependencyInjection).Assembly);
 
         return services;
     }

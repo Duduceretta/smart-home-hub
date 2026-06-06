@@ -22,7 +22,6 @@ public static class RoomEndpoints
                 return Results.Unauthorized();
 
             var query = new GetRoomsQuery(firebaseUid);
-
             var rooms = await mediator.Send(query, cancellationToken);
 
             return Results.Ok(rooms);
@@ -41,13 +40,17 @@ public static class RoomEndpoints
                 return Results.Unauthorized();
 
             var command = new CreateRoomCommand(request.Name, request.Icon, firebaseUid);
+            var result = await mediator.Send(command, cancellationToken);
 
-            var roomId = await mediator.Send(command, cancellationToken);
+            if (result.IsFailure)
+            {
+                return Results.BadRequest(new { error = result.Error.Code, detail = result.Error.Description });
+            }
 
-            return Results.Created($"/api/rooms/{roomId}", new
+            return Results.Created($"/api/rooms/{result.Value}", new
             {
                 message = "Ambiente criado com sucesso!",
-                roomId
+                roomId = result.Value
             });
         })
         .RequireAuthorization();
@@ -65,11 +68,11 @@ public static class RoomEndpoints
                 return Results.Unauthorized();
 
             var command = new UpdateRoomCommand(id, request.Name, request.Icon, firebaseUid);
-            var success = await mediator.Send(command, cancellationToken);
+            var result = await mediator.Send(command, cancellationToken);
 
-            if (!success)
+            if (result.IsFailure)
             {
-                return Results.NotFound(new { message = "Ambiente não encontrado ou sem permissão de acesso." });
+                return Results.NotFound(new { error = result.Error.Code, detail = result.Error.Description });
             }
 
             return Results.Ok(new
@@ -93,11 +96,11 @@ public static class RoomEndpoints
                 return Results.Unauthorized();
 
             var command = new DeleteRoomCommand(id, firebaseUid);
-            var success = await mediator.Send(command, cancellationToken);
+            var result = await mediator.Send(command, cancellationToken);
 
-            if (!success)
+            if (result.IsFailure)
             {
-                return Results.NotFound(new { message = "Ambiente não encontrado ou sem permissão de acesso." });
+                return Results.NotFound(new { error = result.Error.Code, detail = result.Error.Description });
             }
 
             return Results.NoContent();
