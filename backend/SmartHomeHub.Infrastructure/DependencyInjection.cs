@@ -4,6 +4,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using SmartHomeHub.Application.Common.Interfaces;
+using SmartHomeHub.Infrastructure.Messaging;
 using SmartHomeHub.Infrastructure.Persistence;
 
 namespace SmartHomeHub.Infrastructure;
@@ -16,6 +17,8 @@ public static class DependencyInjection
             options.UseNpgsql(configuration.GetConnectionString("DefaultConnection")));
         
         services.AddScoped<IAppDbContext>(provider => provider.GetRequiredService<AppDbContext>());
+
+        services.AddSingleton<IMqttService, MqttService>();
 
         var firebaseProjectId = configuration["Firebase:ProjectId"];
 
