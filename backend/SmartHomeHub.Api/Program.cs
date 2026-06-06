@@ -25,5 +25,6 @@ app.UseAuthorization();
 
 app.MapUserEndpoints();
 app.MapRoomEndpoints();
+app.MapDeviceEndpoints();
 
 app.Run();

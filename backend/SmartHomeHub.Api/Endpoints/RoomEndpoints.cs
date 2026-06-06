@@ -72,7 +72,12 @@ public static class RoomEndpoints
 
             if (result.IsFailure)
             {
-                return Results.NotFound(new { error = result.Error.Code, detail = result.Error.Description });
+                if (result.Error.Code.Contains("NotFound"))
+                {
+                    return Results.NotFound(new { error = result.Error.Code, detail = result.Error.Description });
+                }
+
+                return Results.BadRequest(new { error = result.Error.Code, detail = result.Error.Description });
             }
 
             return Results.Ok(new
