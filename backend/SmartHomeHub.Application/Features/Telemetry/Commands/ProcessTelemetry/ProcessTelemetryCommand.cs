@@ -8,7 +8,7 @@ namespace SmartHomeHub.Application.Features.Telemetry.Commands.ProcessTelemetry;
 
 public record ProcessTelemetryCommand(string Topic, string Payload) : ICommand<Result>;
 
-public record TelemetryPayload(string DeviceId, bool IsOn, int Voltage, string SignalStrength);
+public record TelemetryPayload(bool IsOn, int Voltage, string SignalStrength);
 
 public class ProcessTelemetryCommandHandler(IAppDbContext dbContext) : ICommandHandler<ProcessTelemetryCommand, Result>
 {
@@ -21,15 +21,24 @@ public class ProcessTelemetryCommandHandler(IAppDbContext dbContext) : ICommandH
     {
         try
         {
+            var topicParts = request.Topic.Split('/');
+            
+            if (topicParts.Length != 3 || topicParts[0] != "home" || topicParts[1] != "telemetry")
+            {
+                return Result.Failure(new Error("Mqtt.InvalidTopic", "Formato de tópico ignorado."));
+            }
+
+            var externalId = topicParts[2];
+
             var telemetry = JsonSerializer.Deserialize<TelemetryPayload>(
                 request.Payload, 
                 _jsonOptions);
 
-            if (telemetry == null || string.IsNullOrEmpty(telemetry.DeviceId))
-                return Result.Failure(new Error("Telemetry.Invalid", "Payload vazio ou sem DeviceId."));
+            if (telemetry == null)
+                return Result.Failure(new Error("Telemetry.Invalid", "Payload vazio ou corrompido."));
 
             var device = await dbContext.Devices
-                .FirstOrDefaultAsync(device => device.ExternalId == telemetry.DeviceId, cancellationToken);
+                .FirstOrDefaultAsync(device => device.ExternalId == externalId, cancellationToken);
 
             if (device == null)
             {

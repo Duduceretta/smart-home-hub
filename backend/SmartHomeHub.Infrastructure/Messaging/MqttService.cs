@@ -60,12 +60,12 @@ public sealed class MqttService(ILogger<MqttService> logger, IServiceScopeFactor
             logger.LogInformation("Conectado ao broker Mosquitto!");
 
             var subscribeOptions = new MqttClientSubscribeOptionsBuilder()
-                .WithTopicFilter(filter => filter.WithTopic("casa/#"))
+                .WithTopicFilter(filter => filter.WithTopic("home/#"))
                 .Build();
 
             await _client.SubscribeAsync(subscribeOptions, CancellationToken.None);
 
-            logger.LogInformation("Inscrito no tópico global 'casa/#'");
+            logger.LogInformation("Inscrito no tópico global 'home/#'");
         };
 
         _client.DisconnectedAsync += e =>

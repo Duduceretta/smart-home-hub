@@ -2,6 +2,7 @@ using System.Security.Claims;
 using Mediator;
 using SmartHomeHub.Application.Features.Devices.Commands.CreateDevice;
 using SmartHomeHub.Application.Features.Devices.Commands.DeleteDevice;
+using SmartHomeHub.Application.Features.Devices.Commands.ToggleDevice;
 using SmartHomeHub.Application.Features.Devices.Commands.UpdateDevice;
 using SmartHomeHub.Application.Features.Devices.Queries.GetDevices;
 using SmartHomeHub.Domain.Enums;
@@ -56,6 +57,30 @@ public static class DeviceEndpoints
                 message = "Dispositivo registado com sucesso!",
                 deviceId = result.Value
             });
+        })
+        .RequireAuthorization();
+
+        app.MapPost("/api/devices/{id:guid}/toggle", async (
+            Guid id,
+            ClaimsPrincipal userToken,
+            IMediator mediator,
+            CancellationToken cancellationToken) =>
+        {
+            var firebaseUid = userToken.FindFirst("user_id")?.Value;
+            if (string.IsNullOrEmpty(firebaseUid)) return Results.Unauthorized();
+
+            var command = new ToggleDeviceCommand(id, firebaseUid);
+            var result = await mediator.Send(command, cancellationToken);
+
+            if (result.IsFailure)
+            {
+                if (result.Error.Code.Contains("NotFound"))
+                    return Results.NotFound(new { error = result.Error.Code, detail = result.Error.Description });
+
+                return Results.BadRequest(new { error = result.Error.Code, detail = result.Error.Description });
+            }
+
+            return Results.Ok(new { message = "Comando enviado com sucesso." });
         })
         .RequireAuthorization();
 
