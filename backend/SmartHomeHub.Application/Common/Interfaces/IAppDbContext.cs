@@ -9,6 +9,7 @@ public interface IAppDbContext
     DbSet<Room> Rooms { get; }
     DbSet<Device> Devices { get; }
     DbSet<DeviceGroup> DeviceGroups { get; }
-    
+    DbSet<DeviceTelemetryLog> DeviceTelemetryLogs { get; }
+
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }
