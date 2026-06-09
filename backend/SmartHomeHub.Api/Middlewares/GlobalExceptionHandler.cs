@@ -8,18 +8,24 @@ public class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logger) : IE
     public async ValueTask<bool> TryHandleAsync(
         HttpContext httpContext,
         Exception exception,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         var traceId = httpContext.TraceIdentifier;
 
-        logger.LogError(exception, "Falha Crítica [{TraceId}]: {Message}", traceId, exception.Message);
+        logger.LogError(
+            exception,
+            "Falha Crítica [{TraceId}]: {Message}",
+            traceId,
+            exception.Message
+        );
 
         var problemDetails = new ProblemDetails
         {
             Status = StatusCodes.Status500InternalServerError,
             Title = "Erro Interno do Servidor",
             Detail = "Ocorreu um erro inesperado na aplicação. Nossa equipe foi notificada.",
-            Instance = traceId
+            Instance = traceId,
         };
 
         httpContext.Response.StatusCode = problemDetails.Status.Value;

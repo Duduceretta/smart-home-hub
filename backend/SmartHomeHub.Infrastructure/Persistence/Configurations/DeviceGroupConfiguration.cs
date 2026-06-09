@@ -13,13 +13,15 @@ public class DeviceGroupConfiguration : IEntityTypeConfiguration<DeviceGroup>
         builder.Property(group => group.Name).IsRequired().HasMaxLength(100);
         builder.Property(group => group.Icon).HasMaxLength(50);
 
-        builder.HasOne(group => group.User)
+        builder
+            .HasOne(group => group.User)
             .WithMany(user => user.DeviceGroups)
             .HasForeignKey(group => group.UserId)
             .OnDelete(DeleteBehavior.Cascade);
 
         // Um Grupo tem Muitos Dispositivos <-> Um Dispositivo tem Muitos Grupos
-        builder.HasMany(group => group.Devices)
+        builder
+            .HasMany(group => group.Devices)
             .WithMany(device => device.Groups)
             .UsingEntity(join => join.ToTable("DeviceGroup_Devices"));
     }

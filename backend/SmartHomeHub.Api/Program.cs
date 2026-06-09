@@ -1,8 +1,8 @@
-using SmartHomeHub.Infrastructure;
 using SmartHomeHub.Api.Endpoints;
-using SmartHomeHub.Application;
 using SmartHomeHub.Api.Middlewares;
 using SmartHomeHub.Api.Workers;
+using SmartHomeHub.Application;
+using SmartHomeHub.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
 

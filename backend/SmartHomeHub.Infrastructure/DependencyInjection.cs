@@ -11,18 +11,23 @@ namespace SmartHomeHub.Infrastructure;
 
 public static class DependencyInjection
 {
-    public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
+    public static IServiceCollection AddInfrastructure(
+        this IServiceCollection services,
+        IConfiguration configuration
+    )
     {
         services.AddDbContext<AppDbContext>(options =>
-            options.UseNpgsql(configuration.GetConnectionString("DefaultConnection")));
-        
+            options.UseNpgsql(configuration.GetConnectionString("DefaultConnection"))
+        );
+
         services.AddScoped<IAppDbContext>(provider => provider.GetRequiredService<AppDbContext>());
 
         services.AddSingleton<IMqttService, MqttService>();
 
         var firebaseProjectId = configuration["Firebase:ProjectId"];
 
-        services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+        services
+            .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             .AddJwtBearer(options =>
             {
                 options.Authority = $"https://securetoken.google.com/{firebaseProjectId}";
@@ -32,7 +37,7 @@ public static class DependencyInjection
                     ValidIssuer = $"https://securetoken.google.com/{firebaseProjectId}",
                     ValidateAudience = true,
                     ValidAudience = firebaseProjectId,
-                    ValidateLifetime = true
+                    ValidateLifetime = true,
                 };
             });
 

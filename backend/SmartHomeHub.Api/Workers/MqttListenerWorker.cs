@@ -2,9 +2,8 @@ using SmartHomeHub.Application.Common.Interfaces;
 
 namespace SmartHomeHub.Api.Workers;
 
-public sealed class MqttListenerWorker(
-    IMqttService mqttService, 
-    ILogger<MqttListenerWorker> logger) : BackgroundService
+public sealed class MqttListenerWorker(IMqttService mqttService, ILogger<MqttListenerWorker> logger)
+    : BackgroundService
 {
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
@@ -12,7 +11,7 @@ public sealed class MqttListenerWorker(
 
         await mqttService.StartAsync(stoppingToken);
 
-        try 
+        try
         {
             await Task.Delay(Timeout.Infinite, stoppingToken);
         }

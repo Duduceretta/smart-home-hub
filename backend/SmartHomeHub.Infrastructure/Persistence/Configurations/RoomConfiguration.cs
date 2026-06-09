@@ -10,14 +10,12 @@ public class RoomConfiguration : IEntityTypeConfiguration<Room>
     {
         builder.HasKey(room => room.Id);
 
-        builder.Property(room => room.Name)
-            .IsRequired()
-            .HasMaxLength(100);
+        builder.Property(room => room.Name).IsRequired().HasMaxLength(100);
 
-        builder.Property(room => room.Icon)
-            .HasMaxLength(50);
+        builder.Property(room => room.Icon).HasMaxLength(50);
 
-        builder.HasOne(room => room.User)
+        builder
+            .HasOne(room => room.User)
             .WithMany(user => user.Rooms)
             .HasForeignKey(room => room.UserId)
             .OnDelete(DeleteBehavior.Cascade);

@@ -9,7 +9,7 @@ public class DeviceGroup
 
     // Relacionamentos
     public User? User { get; set; }
-    
+
     //Uma coleção de dispositivos que pertencem a este grupo (N:M)
     public ICollection<Device> Devices { get; set; } = [];
 }

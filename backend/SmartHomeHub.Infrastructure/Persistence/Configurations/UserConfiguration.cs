@@ -14,6 +14,6 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         builder.Property(user => user.Email).IsRequired().HasMaxLength(150);
 
         builder.Property(user => user.ExternalAuthUid).IsRequired().HasMaxLength(128);
-        builder.HasIndex(user => user.ExternalAuthUid).IsUnique(); 
+        builder.HasIndex(user => user.ExternalAuthUid).IsUnique();
     }
 }

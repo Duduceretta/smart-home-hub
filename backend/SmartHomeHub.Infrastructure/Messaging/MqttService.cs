@@ -7,7 +7,8 @@ using SmartHomeHub.Application.Features.Telemetry.Commands.ProcessTelemetry;
 
 namespace SmartHomeHub.Infrastructure.Messaging;
 
-public sealed class MqttService(ILogger<MqttService> logger, IServiceScopeFactory scopeFactory) : IMqttService
+public sealed class MqttService(ILogger<MqttService> logger, IServiceScopeFactory scopeFactory)
+    : IMqttService
 {
     private IMqttClient _client = null!;
     private MqttClientOptions _options = null!;
@@ -78,10 +79,14 @@ public sealed class MqttService(ILogger<MqttService> logger, IServiceScopeFactor
         {
             var topic = e.ApplicationMessage.Topic;
             var payload = e.ApplicationMessage.ConvertPayloadToString() ?? string.Empty;
-                
+
             if (logger.IsEnabled(LogLevel.Information))
             {
-                logger.LogInformation("Sensor Report | Tópico: {Topic} | Dados: {Payload}", topic, payload);
+                logger.LogInformation(
+                    "Sensor Report | Tópico: {Topic} | Dados: {Payload}",
+                    topic,
+                    payload
+                );
             }
 
             using var scope = scopeFactory.CreateScope();
