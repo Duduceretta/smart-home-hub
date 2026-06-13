@@ -1,4 +1,4 @@
-namespace SmartHomeHub.Domain.Common;
+namespace SmartHomeHub.Domain.Common.Primitives;
 
 public record Error(string Code, string Description)
 {

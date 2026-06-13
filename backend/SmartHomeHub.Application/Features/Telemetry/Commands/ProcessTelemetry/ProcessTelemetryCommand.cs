@@ -2,7 +2,7 @@ using System.Text.Json;
 using Mediator;
 using Microsoft.EntityFrameworkCore;
 using SmartHomeHub.Application.Common.Interfaces;
-using SmartHomeHub.Domain.Common;
+using SmartHomeHub.Domain.Common.Primitives;
 using SmartHomeHub.Domain.Entities;
 
 namespace SmartHomeHub.Application.Features.Telemetry.Commands.ProcessTelemetry;

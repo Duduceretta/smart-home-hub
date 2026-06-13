@@ -1,7 +1,7 @@
 using Mediator;
 using Microsoft.EntityFrameworkCore;
 using SmartHomeHub.Application.Common.Interfaces;
-using SmartHomeHub.Domain.Common;
+using SmartHomeHub.Domain.Common.Primitives;
 
 namespace SmartHomeHub.Application.Features.Devices.Commands.DeleteDevice;
 

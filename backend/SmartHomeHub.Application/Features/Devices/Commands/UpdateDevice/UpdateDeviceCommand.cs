@@ -2,7 +2,7 @@ using FluentValidation;
 using Mediator;
 using Microsoft.EntityFrameworkCore;
 using SmartHomeHub.Application.Common.Interfaces;
-using SmartHomeHub.Domain.Common;
+using SmartHomeHub.Domain.Common.Primitives;
 using SmartHomeHub.Domain.Enums;
 
 namespace SmartHomeHub.Application.Features.Devices.Commands.UpdateDevice;

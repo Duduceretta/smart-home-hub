@@ -1,6 +1,6 @@
 using FluentValidation;
 using Mediator;
-using SmartHomeHub.Domain.Common;
+using SmartHomeHub.Domain.Common.Primitives;
 
 namespace SmartHomeHub.Application.Common.Behaviors;
 
