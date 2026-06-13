@@ -19,5 +19,7 @@ public class RoomConfiguration : IEntityTypeConfiguration<Room>
             .WithMany(user => user.Rooms)
             .HasForeignKey(room => room.UserId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        builder.HasQueryFilter(room => !room.IsDeleted);
     }
 }

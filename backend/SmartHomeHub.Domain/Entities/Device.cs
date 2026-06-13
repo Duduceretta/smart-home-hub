@@ -1,8 +1,9 @@
+using SmartHomeHub.Domain.Common.Interfaces;
 using SmartHomeHub.Domain.Enums;
 
 namespace SmartHomeHub.Domain.Entities;
 
-public class Device
+public class Device : ISoftDeletable
 {
     public Guid Id { get; set; } = Guid.NewGuid();
 
@@ -22,4 +23,7 @@ public class Device
     public Room? Room { get; set; }
 
     public ICollection<DeviceGroup> Groups { get; set; } = [];
+
+    public bool IsDeleted { get; set; }
+    public DateTimeOffset? DeletedAt { get; set; }
 }

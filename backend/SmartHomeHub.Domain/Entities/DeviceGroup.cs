@@ -1,6 +1,8 @@
+using SmartHomeHub.Domain.Common.Interfaces;
+
 namespace SmartHomeHub.Domain.Entities;
 
-public class DeviceGroup
+public class DeviceGroup : ISoftDeletable
 {
     public Guid Id { get; set; } = Guid.NewGuid();
     public Guid UserId { get; set; }
@@ -12,4 +14,7 @@ public class DeviceGroup
 
     //Uma coleção de dispositivos que pertencem a este grupo (N:M)
     public ICollection<Device> Devices { get; set; } = [];
+
+    public bool IsDeleted { get; set; }
+    public DateTimeOffset? DeletedAt { get; set; }
 }

@@ -1,6 +1,8 @@
+using SmartHomeHub.Domain.Common.Interfaces;
+
 namespace SmartHomeHub.Domain.Entities;
 
-public class User
+public class User : ISoftDeletable
 {
     public Guid Id { get; set; } = Guid.NewGuid();
     public string ExternalAuthUid { get; set; } = string.Empty;
@@ -12,4 +14,7 @@ public class User
     public ICollection<Room> Rooms { get; set; } = [];
     public ICollection<Device> Devices { get; set; } = [];
     public ICollection<DeviceGroup> DeviceGroups { get; set; } = [];
+
+    public bool IsDeleted { get; set; }
+    public DateTimeOffset? DeletedAt { get; set; }
 }

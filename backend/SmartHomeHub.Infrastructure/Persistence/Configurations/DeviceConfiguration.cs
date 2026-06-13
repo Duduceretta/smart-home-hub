@@ -16,7 +16,7 @@ public class DeviceConfiguration : IEntityTypeConfiguration<Device>
 
         builder.Property(device => device.ExternalId).IsRequired().HasMaxLength(100);
 
-        builder.HasIndex(device => device.ExternalId).IsUnique();
+        builder.HasIndex(device => device.ExternalId).IsUnique().HasFilter("\"IsDeleted\" = false");
 
         builder.Property(device => device.IsOn).IsRequired().HasDefaultValue(false);
 
@@ -33,5 +33,7 @@ public class DeviceConfiguration : IEntityTypeConfiguration<Device>
             .WithMany(room => room.Devices)
             .HasForeignKey(device => device.RoomId)
             .OnDelete(DeleteBehavior.SetNull);
+
+        builder.HasQueryFilter(device => !device.IsDeleted);
     }
 }

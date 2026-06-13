@@ -24,5 +24,7 @@ public class DeviceGroupConfiguration : IEntityTypeConfiguration<DeviceGroup>
             .HasMany(group => group.Devices)
             .WithMany(device => device.Groups)
             .UsingEntity(join => join.ToTable("DeviceGroup_Devices"));
+
+        builder.HasQueryFilter(group => !group.IsDeleted);
     }
 }
