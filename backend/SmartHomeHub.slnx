@@ -1,6 +1,12 @@
 <Solution>
-  <Project Path="SmartHomeHub.Api/SmartHomeHub.Api.csproj" />
-  <Project Path="SmartHomeHub.Application/SmartHomeHub.Application.csproj" />
-  <Project Path="SmartHomeHub.Domain/SmartHomeHub.Domain.csproj" />
-  <Project Path="SmartHomeHub.Infrastructure/SmartHomeHub.Infrastructure.csproj" />
+  <Folder Name="/src/">
+    <Project Path="src/SmartHomeHub.Api/SmartHomeHub.Api.csproj" />
+    <Project Path="src/SmartHomeHub.Application/SmartHomeHub.Application.csproj" />
+    <Project Path="src/SmartHomeHub.Domain/SmartHomeHub.Domain.csproj" />
+    <Project Path="src/SmartHomeHub.Infrastructure/SmartHomeHub.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/SmartHomeHub.IntegrationTests/SmartHomeHub.IntegrationTests.csproj" />
+    <Project Path="tests/SmartHomeHub.UnitTests/SmartHomeHub.UnitTests.csproj" />
+  </Folder>
 </Solution>
