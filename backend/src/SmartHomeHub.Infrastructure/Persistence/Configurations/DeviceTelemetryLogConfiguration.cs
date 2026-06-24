@@ -18,6 +18,7 @@ public class DeviceTelemetryLogConfiguration : IEntityTypeConfiguration<DeviceTe
             .HasOne(log => log.Device)
             .WithMany()
             .HasForeignKey(log => log.DeviceId)
-            .OnDelete(DeleteBehavior.Cascade); // Se deletar a lâmpada, apaga todo o histórico dela.
+            .IsRequired(false)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }
