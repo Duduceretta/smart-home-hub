@@ -25,3 +25,31 @@ Como a maior parte das falhas em sistemas IoT e CQRS reside na comunicação ent
 
 ### 1.4. Testes de Ponta a Ponta (E2E) e UI (~10% do esforço)
 Validam jornadas críticas do usuário do painel visual até o hardware através de automações de interface.
+
+---
+
+## 2. Padrões de Testes e Organização (O Padrão Ouro)
+
+Para manter o mais alto rigor corporativo e garantir que a suíte de testes seja legível, manutenível e atue como documentação viva do sistema, adotamos as seguintes regras definitivas de estrutura, nomenclatura e foco:
+
+### 2.1. Nomenclatura (Padrão Roy Osherove)
+O nome do teste deve contar uma história inteira e clara, dividida estritamente em três partes: `[NomeDoMetodo]_[CenarioDeTeste]_[ComportamentoEsperado]`.
+
+* ❌ **Ruim:** `TestDeleteRoom`
+* ✅ **Perfeito:** `DeleteRoom_ShouldSoftDelete_AndHideFromCommonQueries`
+
+### 2.2. A Ordem Estrutural: O Padrão AAA
+Dentro de cada método de teste, a separação visual deve ser sagrada. O código deve conter uma linha em branco obrigatória entre cada fase do AAA. (Comentários `// Arrange` explícitos são opcionais, desde que os blocos sejam visivelmente separados).
+
+1. **Arrange (Preparação):** Apenas configuração de variáveis estáticas, criação de mocks de dependências externas e inserção direta de estado no banco de dados.
+2. **Act (Ação):** Estritamente uma única linha de código. É o disparo do tiro contra o sistema (ex: `await Client.DeleteAsync(...)`).
+3. **Assert (Verificação):** As validações do resultado retornado pela ação e a verificação do estado final no banco de dados (ignorando filtros globais para atestar a persistência real).
+
+### 2.3. Foco de Cobertura (As Três Vias)
+Em classes de teste referentes a Casos de Uso ou *Commands* (ex: `DeleteRoomTests`), a ordem cronológica de desenvolvimento e disposição dos métodos no arquivo deve fluir do cenário mais otimista para o mais adverso:
+
+1. **O Happy Path (Caminho Feliz):** O teste primordial. Comprova que se todas as condições forem perfeitas, a infraestrutura altera o banco com sucesso e a API retorna sucesso HTTP (ex: `200 OK` ou `204 NoContent`).
+2. **O Sad Path (Regras de Domínio/Validação):** Validar a barreira de entrada. O que acontece com inputs malformados (ex: um Guid de deleção vazio)? Foca em garantir que o sistema de validação (FluentValidation) intercepta a requisição e devolve `400 Bad Request` sem onerar o banco de dados.
+3. **Os Edge Cases (Casos Extremos de Negócio):** Cenários anômalos lógicos. Exemplo: Se a entidade já estiver deletada logicamente (`IsDeleted = true`), o sistema deve devolver falha transacional ou erro de não encontrado?
+
+> **⚠️ Nota de Arquitetura (Aviso de Filtros Globais):** Ao lidar com *Soft Delete* em entidades que possuem cascata (ex: `Device` e `DeviceTelemetryLog`), o Entity Framework emitirá alertas sobre anomalias em consultas (`10622`). O uso ostensivo de `.IgnoreQueryFilters()` e `.AsNoTracking()` na camada de Assert é obrigatório para transpor essas abstrações e validar a integridade física referencial entre logs de IoT e dispositivos desativados.
