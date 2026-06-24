@@ -1,15 +1,18 @@
 using System.Net;
+using System.Net.Http.Json;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
 using SmartHomeHub.Domain.Entities;
 using SmartHomeHub.IntegrationTests.Setup;
 
-namespace SmartHomeHub.IntegrationTests.Features.Rooms.Commands.DeleteRoom;
+namespace SmartHomeHub.IntegrationTests.Features.Rooms.Commands.UpdateRoom;
 
-public class DeleteRoomTests(IntegrationTestWebAppFactory factory) : BaseIntegrationTest(factory)
+public class UpdateRoomTests(IntegrationTestWebAppFactory factory) : BaseIntegrationTest(factory)
 {
+    private record UpdateRoomRequest(string Name, string Icon);
+
     [Fact]
-    public async Task DeleteRoom_ShouldSoftDelete_AndHideFromCommonQueries()
+    public async Task UpdateRoom_WithValidData_ShouldUpdateAndReturnOk()
     {
         var userId = Guid.NewGuid();
         var user = new User
@@ -20,52 +23,42 @@ public class DeleteRoomTests(IntegrationTestWebAppFactory factory) : BaseIntegra
             ExternalAuthUid = "firebase-token-123",
             IsDeleted = false,
         };
-        DbContext.Users.Add(user);
 
         var roomId = Guid.NewGuid();
         var room = new Room
         {
             Id = roomId,
-            Name = "Laboratório de Eletrônica",
-            IsDeleted = false,
+            Name = "Nome Antigo",
+            Icon = "icone-velho",
             UserId = userId,
+            IsDeleted = false,
         };
-        DbContext.Rooms.Add(room);
 
+        DbContext.Users.Add(user);
+        DbContext.Rooms.Add(room);
         await DbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
-        var deleteResponse = await Client.DeleteAsync(
+        var request = new UpdateRoomRequest("Nome Atualizado", "icone-novo");
+
+        var response = await Client.PutAsJsonAsync(
             $"/api/rooms/{roomId}",
+            request,
             TestContext.Current.CancellationToken
         );
 
-        deleteResponse.StatusCode.Should().Be(HttpStatusCode.NoContent);
-
-        var getResponse = await Client.GetAsync(
-            $"/api/rooms/{roomId}",
-            TestContext.Current.CancellationToken
-        );
-        getResponse.StatusCode.Should().Be(HttpStatusCode.NotFound);
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
 
         var physicalRoom = await DbContext
             .Rooms.AsNoTracking()
-            .IgnoreQueryFilters()
-            .FirstOrDefaultAsync(
-                room => room.Id == roomId,
-                cancellationToken: TestContext.Current.CancellationToken
-            );
+            .FirstOrDefaultAsync(room => room.Id == roomId, TestContext.Current.CancellationToken);
 
-        physicalRoom
-            .Should()
-            .NotBeNull("O registro NÃO pode ser apagado fisicamente do banco de dados!");
-
-        physicalRoom
-            .IsDeleted.Should()
-            .BeTrue("A flag IsDeleted não foi alterada para true pelo Interceptador.");
+        physicalRoom.Should().NotBeNull();
+        physicalRoom.Name.Should().Be("Nome Atualizado");
+        physicalRoom.Icon.Should().Be("icone-novo");
     }
 
     [Fact]
-    public async Task DeleteRoom_OwnedByAnotherUser_ShouldReturnNotFound()
+    public async Task UpdateRoom_OwnedByAnotherUser_ShouldReturnNotFound()
     {
         var loggedUser = new User
         {
@@ -100,8 +93,11 @@ public class DeleteRoomTests(IntegrationTestWebAppFactory factory) : BaseIntegra
         DbContext.Rooms.Add(victimRoom);
         await DbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
-        var response = await Client.DeleteAsync(
+        var request = new UpdateRoomRequest("Hacked", "skull-icon");
+
+        var response = await Client.PutAsJsonAsync(
             $"/api/rooms/{victimRoomId}",
+            request,
             TestContext.Current.CancellationToken
         );
 
@@ -114,41 +110,21 @@ public class DeleteRoomTests(IntegrationTestWebAppFactory factory) : BaseIntegra
                 TestContext.Current.CancellationToken
             );
 
-        physicalRoom!.IsDeleted.Should().BeFalse("A sala não pode ser deletada por outro usuário.");
+        physicalRoom!.Name.Should().Be("Cofre", "A sala não pode ser alterada por outro usuário.");
     }
 
     [Fact]
-    public async Task DeleteRoom_WhenAlreadyDeleted_ShouldReturnNotFound()
+    public async Task UpdateRoom_WithMissingName_ShouldReturnBadRequest()
     {
-        var userId = Guid.NewGuid();
-        var user = new User
-        {
-            Id = userId,
-            Name = "Eduardo Ceretta",
-            Email = "eduardo@smarthome.com",
-            ExternalAuthUid = "firebase-token-123",
-            IsDeleted = false,
-        };
-
         var roomId = Guid.NewGuid();
-        var room = new Room
-        {
-            Id = roomId,
-            Name = "Sala Antiga",
-            UserId = userId,
-            IsDeleted = true,
-        };
+        var request = new UpdateRoomRequest("", "new-icon");
 
-        DbContext.Users.Add(user);
-
-        DbContext.Rooms.Add(room);
-        await DbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
-
-        var response = await Client.DeleteAsync(
+        var response = await Client.PutAsJsonAsync(
             $"/api/rooms/{roomId}",
+            request,
             TestContext.Current.CancellationToken
         );
 
-        response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
     }
 }
