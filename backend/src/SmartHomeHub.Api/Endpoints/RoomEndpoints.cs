@@ -3,6 +3,7 @@ using Mediator;
 using SmartHomeHub.Application.Features.Rooms.Commands.CreateRoom;
 using SmartHomeHub.Application.Features.Rooms.Commands.DeleteRoom;
 using SmartHomeHub.Application.Features.Rooms.Commands.UpdateRoom;
+using SmartHomeHub.Application.Features.Rooms.Queries.GetRoomById;
 using SmartHomeHub.Application.Features.Rooms.Queries.GetRooms;
 
 namespace SmartHomeHub.Api.Endpoints;
@@ -28,6 +29,28 @@ public static class RoomEndpoints
                     var rooms = await mediator.Send(query, cancellationToken);
 
                     return Results.Ok(rooms);
+                }
+            )
+            .RequireAuthorization();
+
+        app.MapGet(
+                "/api/rooms/{id:guid}",
+                async (
+                    Guid id,
+                    ClaimsPrincipal userToken,
+                    IMediator mediator,
+                    CancellationToken cancellationToken
+                ) =>
+                {
+                    var firebaseUid = userToken.FindFirst("user_id")?.Value;
+
+                    if (string.IsNullOrEmpty(firebaseUid))
+                        return Results.Unauthorized();
+
+                    var query = new GetRoomByIdQuery(id, firebaseUid);
+                    var room = await mediator.Send(query, cancellationToken);
+
+                    return room is not null ? Results.Ok(room) : Results.NotFound();
                 }
             )
             .RequireAuthorization();
