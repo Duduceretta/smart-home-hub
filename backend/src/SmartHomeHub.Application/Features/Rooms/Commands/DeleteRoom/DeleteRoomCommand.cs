@@ -35,6 +35,15 @@ public class DeleteRoomCommandHandler(IAppDbContext dbContext)
                 new Error("Room.NotFound", "Ambiente não encontrado ou sem permissão de acesso.")
             );
 
+        var devicesInRoom = await dbContext
+            .Devices.Where(device => device.RoomId == room.Id)
+            .ToListAsync(cancellationToken);
+
+        foreach (var device in devicesInRoom)
+        {
+            device.RoomId = null;
+        }
+
         dbContext.Rooms.Remove(room);
         await dbContext.SaveChangesAsync(cancellationToken);
 

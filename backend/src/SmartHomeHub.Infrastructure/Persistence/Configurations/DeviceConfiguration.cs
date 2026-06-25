@@ -20,19 +20,15 @@ public class DeviceConfiguration : IEntityTypeConfiguration<Device>
 
         builder.Property(device => device.IsOn).IsRequired().HasDefaultValue(false);
 
-        // Se o usuário for deletado, apaga os dispositivos físicos da conta dele.
         builder
             .HasOne(device => device.User)
             .WithMany(user => user.Devices)
-            .HasForeignKey(device => device.UserId)
-            .OnDelete(DeleteBehavior.Cascade);
+            .HasForeignKey(device => device.UserId);
 
-        // Se a sala for deletada, o RoomId vira NULL, mas o dispositivo não é apagado.
         builder
             .HasOne(device => device.Room)
             .WithMany(room => room.Devices)
-            .HasForeignKey(device => device.RoomId)
-            .OnDelete(DeleteBehavior.SetNull);
+            .HasForeignKey(device => device.RoomId);
 
         builder.HasQueryFilter(device => !device.IsDeleted);
     }
