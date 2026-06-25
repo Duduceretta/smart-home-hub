@@ -6,4 +6,5 @@ public enum DeviceType
     Switch = 2, // Tomadas/Relés (Apenas Ligar/Desligar)
     Sensor = 3, // Sensores (Apenas enviam dados, ex: Temperatura, Presença)
     Thermostat = 4, // Ar condicionado/Termostatos
+    Camera = 5, // Câmeras (Apenas enviam dados, ex: Vídeo, Áudio)
 }

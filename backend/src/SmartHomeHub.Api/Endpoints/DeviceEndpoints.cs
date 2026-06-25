@@ -1,9 +1,11 @@
 using System.Security.Claims;
 using Mediator;
+using SmartHomeHub.Api.Extensions;
 using SmartHomeHub.Application.Features.Devices.Commands.CreateDevice;
 using SmartHomeHub.Application.Features.Devices.Commands.DeleteDevice;
 using SmartHomeHub.Application.Features.Devices.Commands.ToggleDevice;
 using SmartHomeHub.Application.Features.Devices.Commands.UpdateDevice;
+using SmartHomeHub.Application.Features.Devices.Queries.GetDeviceById;
 using SmartHomeHub.Application.Features.Devices.Queries.GetDevices;
 using SmartHomeHub.Domain.Enums;
 
@@ -33,6 +35,28 @@ public static class DeviceEndpoints
             )
             .RequireAuthorization();
 
+        app.MapGet(
+                "/api/devices/{id:guid}",
+                async (
+                    Guid id,
+                    ClaimsPrincipal userToken,
+                    IMediator mediator,
+                    CancellationToken cancellationToken
+                ) =>
+                {
+                    var firebaseUid = userToken.FindFirst("user_id")?.Value;
+
+                    if (string.IsNullOrEmpty(firebaseUid))
+                        return Results.Unauthorized();
+
+                    var query = new GetDeviceByIdQuery(id, firebaseUid);
+                    var device = await mediator.Send(query, cancellationToken);
+
+                    return device is not null ? Results.Ok(device) : Results.NotFound();
+                }
+            )
+            .RequireAuthorization();
+
         app.MapPost(
                 "/api/devices",
                 async (
@@ -58,11 +82,7 @@ public static class DeviceEndpoints
                     var result = await mediator.Send(command, cancellationToken);
 
                     if (result.IsFailure)
-                    {
-                        return Results.BadRequest(
-                            new { error = result.Error.Code, detail = result.Error.Description }
-                        );
-                    }
+                        return result.ToProblemDetails();
 
                     return Results.Created(
                         $"/api/devices/{result.Value}",
@@ -93,16 +113,7 @@ public static class DeviceEndpoints
                     var result = await mediator.Send(command, cancellationToken);
 
                     if (result.IsFailure)
-                    {
-                        if (result.Error.Code.Contains("NotFound"))
-                            return Results.NotFound(
-                                new { error = result.Error.Code, detail = result.Error.Description }
-                            );
-
-                        return Results.BadRequest(
-                            new { error = result.Error.Code, detail = result.Error.Description }
-                        );
-                    }
+                        return result.ToProblemDetails();
 
                     return Results.Ok(new { message = "Comando enviado com sucesso." });
                 }
@@ -136,18 +147,7 @@ public static class DeviceEndpoints
                     var result = await mediator.Send(command, cancellationToken);
 
                     if (result.IsFailure)
-                    {
-                        if (result.Error.Code.Contains("NotFound"))
-                        {
-                            return Results.NotFound(
-                                new { error = result.Error.Code, detail = result.Error.Description }
-                            );
-                        }
-
-                        return Results.BadRequest(
-                            new { error = result.Error.Code, detail = result.Error.Description }
-                        );
-                    }
+                        return result.ToProblemDetails();
 
                     return Results.Ok(
                         new
@@ -181,11 +181,7 @@ public static class DeviceEndpoints
                     var result = await mediator.Send(command, cancellationToken);
 
                     if (result.IsFailure)
-                    {
-                        return Results.NotFound(
-                            new { error = result.Error.Code, detail = result.Error.Description }
-                        );
-                    }
+                        return result.ToProblemDetails();
 
                     return Results.NoContent();
                 }

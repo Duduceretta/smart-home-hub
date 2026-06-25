@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using Mediator;
+using SmartHomeHub.Api.Extensions;
 using SmartHomeHub.Application.Features.Rooms.Commands.CreateRoom;
 using SmartHomeHub.Application.Features.Rooms.Commands.DeleteRoom;
 using SmartHomeHub.Application.Features.Rooms.Commands.UpdateRoom;
@@ -73,11 +74,7 @@ public static class RoomEndpoints
                     var result = await mediator.Send(command, cancellationToken);
 
                     if (result.IsFailure)
-                    {
-                        return Results.BadRequest(
-                            new { error = result.Error.Code, detail = result.Error.Description }
-                        );
-                    }
+                        return result.ToProblemDetails();
 
                     return Results.Created(
                         $"/api/rooms/{result.Value}",
@@ -111,18 +108,7 @@ public static class RoomEndpoints
                     var result = await mediator.Send(command, cancellationToken);
 
                     if (result.IsFailure)
-                    {
-                        if (result.Error.Code.Contains("NotFound"))
-                        {
-                            return Results.NotFound(
-                                new { error = result.Error.Code, detail = result.Error.Description }
-                            );
-                        }
-
-                        return Results.BadRequest(
-                            new { error = result.Error.Code, detail = result.Error.Description }
-                        );
-                    }
+                        return result.ToProblemDetails();
 
                     return Results.Ok(
                         new
@@ -154,11 +140,7 @@ public static class RoomEndpoints
                     var result = await mediator.Send(command, cancellationToken);
 
                     if (result.IsFailure)
-                    {
-                        return Results.NotFound(
-                            new { error = result.Error.Code, detail = result.Error.Description }
-                        );
-                    }
+                        return result.ToProblemDetails();
 
                     return Results.NoContent();
                 }
