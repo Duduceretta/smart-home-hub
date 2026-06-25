@@ -23,6 +23,7 @@ Utilizamos o pacote Mediator (com Source Generators) em vez do MediatR tradicion
 ### 2.2. Tratamento de Erros Híbrido (70% Result / 30% Exceptions)
 * **Result Pattern:** Usado para falhas esperadas de negócio (validação falhou, dispositivo offline) através de records `Result` e `Error` alocados em `Domain.Common.Primitives`.
 * **Exceptions:** Lançadas estritamente para bugs lógicos ou falhas de infraestrutura catastróficas. Interceptadas pelo `GlobalExceptionHandler` devolvendo um `ProblemDetails` (RFC 7807) com `TraceId`.
+* Tanto as **Exceptions** (via GlobalExceptionHandler) quanto as **falhas de negócio** (Result Pattern via ResultExtensions) devolvem o mesmo formato padrão `ProblemDetails` (RFC 7807), garantindo que o front-end consuma um contrato de erro único e previsível (400, 403, 404, 409, 422 e 500)
 
 ### 2.3. Pipeline de Validação e Entrada de Dados
 * **FluentValidation:** Atua como Middleware (Pipeline Behavior) barrando comandos inválidos e retornando 400 Bad Request antes de alcançarem os Handlers.

@@ -28,14 +28,14 @@ Um orquestrador local de Casa Inteligente focado em alta performance e interoper
 * [X] Padronizar 100% dos Handlers e Endpoints de Rooms para a nova arquitetura.
 * [X] Criar o CRUD de Dispositivos (Devices) utilizando os mesmos padrões.
 
-### 🔄 Fase 3: A Comunicação IoT e Base de Testes (Fase Atual)
+### 🔄 Fase 3: A Comunicação IoT e Base de Testes 
 * [X] Criar Background Service no .NET conectado ao Mosquitto.
 * [X] Padronizar topologia MQTT: home/telemetry/{deviceId} e home/commands/{deviceId}.
 * [X] Criar script simulador (Python/Node) para disparar mensagens de teste.
 * [X] Processar payload JSON no C# e salvar logs no TimescaleDB.
-* [ ] Implementar a infraestrutura automatizada do Troféu de Testes (Testcontainers).
+* [X] Implementar a infraestrutura automatizada do Troféu de Testes (Testcontainers).
 
-### ⏳ Fase 4: O Painel de Controle (React + TS)
+### ⏳ Fase 4: O Painel de Controle (React + TS) (Fase Atual)
 * [ ] Configurar roteamento e tela de Login (Firebase Auth SDK).
 * [ ] Desenvolver Dashboard consumindo a API (Zustand para estado global granular).
 * [ ] Configurar SignalR para atualizar componentes específicos em tempo real.
