@@ -2,6 +2,7 @@ using System.Net;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
 using SmartHomeHub.Domain.Entities;
+using SmartHomeHub.Domain.Enums;
 using SmartHomeHub.IntegrationTests.Setup;
 
 namespace SmartHomeHub.IntegrationTests.Features.Rooms.Commands.DeleteRoom;
@@ -150,5 +151,74 @@ public class DeleteRoomTests(IntegrationTestWebAppFactory factory) : BaseIntegra
         );
 
         response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+    }
+
+    [Fact]
+    public async Task DeleteRoom_ShouldSetNull_OnAssociatedDevices()
+    {
+        var userId = Guid.NewGuid();
+        var user = new User
+        {
+            Id = userId,
+            Name = "Eduardo Ceretta",
+            Email = "eduardo@smarthome.com",
+            ExternalAuthUid = "firebase-token-123",
+            IsDeleted = false,
+        };
+
+        var roomId = Guid.NewGuid();
+        var room = new Room
+        {
+            Id = roomId,
+            UserId = userId,
+            Name = "Sala de Teste Cascade",
+            IsDeleted = false,
+        };
+
+        var deviceId = Guid.NewGuid();
+        var device = new Device
+        {
+            Id = deviceId,
+            UserId = userId,
+            RoomId = roomId,
+            Name = "Lâmpada da Sala",
+            Brand = "Philips",
+            ExternalId = "MAC-CASCADE-TEST",
+            Type = DeviceType.Light,
+            IsDeleted = false,
+        };
+
+        DbContext.Users.Add(user);
+        DbContext.Rooms.Add(room);
+        DbContext.Devices.Add(device);
+        await DbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+
+        var response = await Client.DeleteAsync(
+            $"/api/rooms/{roomId}",
+            TestContext.Current.CancellationToken
+        );
+
+        response.StatusCode.Should().Be(HttpStatusCode.NoContent);
+
+        DbContext.ChangeTracker.Clear();
+
+        var physicalDevice = await DbContext
+            .Devices.IgnoreQueryFilters()
+            .FirstOrDefaultAsync(
+                device => device.Id == deviceId,
+                TestContext.Current.CancellationToken
+            );
+
+        physicalDevice.Should().NotBeNull("O dispositivo não pode desaparecer do banco.");
+
+        physicalDevice!
+            .IsDeleted.Should()
+            .BeFalse(
+                "A exclusão da sala NÃO deve deletar o dispositivo fisicamente ou logicamente."
+            );
+
+        physicalDevice
+            .RoomId.Should()
+            .BeNull("Como a sala foi deletada, o RoomId do dispositivo deve ficar nulo.");
     }
 }

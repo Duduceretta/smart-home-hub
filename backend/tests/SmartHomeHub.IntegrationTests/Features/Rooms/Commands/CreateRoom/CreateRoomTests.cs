@@ -51,7 +51,7 @@ public class CreateRoomTests(IntegrationTestWebAppFactory factory) : BaseIntegra
     }
 
     [Fact]
-    public async Task CreateRoom_WithNonExistentUser_ShouldReturnBadRequest()
+    public async Task CreateRoom_WithNonExistentUser_ShouldReturnNotFound()
     {
         var request = new CreateRoomRequest("Garagem", "car-icon");
 
@@ -61,13 +61,13 @@ public class CreateRoomTests(IntegrationTestWebAppFactory factory) : BaseIntegra
             TestContext.Current.CancellationToken
         );
 
-        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        response.StatusCode.Should().Be(HttpStatusCode.NotFound);
 
         var errorResponse = await response.Content.ReadFromJsonAsync<dynamic>(
             cancellationToken: TestContext.Current.CancellationToken
         );
 
-        string errorCode = errorResponse!.GetProperty("error").GetString();
+        string errorCode = errorResponse!.GetProperty("title").GetString();
         errorCode.Should().Be("User.NotFound");
     }
 

@@ -7,4 +7,6 @@ public enum DeviceType
     Sensor = 3, // Sensores (Apenas enviam dados, ex: Temperatura, Presença)
     Thermostat = 4, // Ar condicionado/Termostatos
     Camera = 5, // Câmeras (Apenas enviam dados, ex: Vídeo, Áudio)
+    Lock = 6, // Fechaduras (Apenas Ligar/Desligar)
+    Alarm = 7, // Alarmes (Apenas Ligar/Desligar)
 }
