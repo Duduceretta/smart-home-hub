@@ -16,8 +16,7 @@ public class DeviceGroupConfiguration : IEntityTypeConfiguration<DeviceGroup>
         builder
             .HasOne(group => group.User)
             .WithMany(user => user.DeviceGroups)
-            .HasForeignKey(group => group.UserId)
-            .OnDelete(DeleteBehavior.Cascade);
+            .HasForeignKey(group => group.UserId);
 
         // Um Grupo tem Muitos Dispositivos <-> Um Dispositivo tem Muitos Grupos
         builder
