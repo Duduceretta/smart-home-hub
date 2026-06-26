@@ -126,6 +126,7 @@ public class DeleteDeviceGroupTests(IntegrationTestWebAppFactory factory)
                 TestContext.Current.CancellationToken
             );
 
-        physicalGroup!.IsDeleted.Should().BeFalse("O grupo de terceiros não pode ser alterado.");
+        physicalGroup.Should().NotBeNull("O grupo de terceiros não deve ser apagado fisicamente.");
+        physicalGroup.IsDeleted.Should().BeFalse("O grupo de terceiros não pode ser alterado.");
     }
 }
