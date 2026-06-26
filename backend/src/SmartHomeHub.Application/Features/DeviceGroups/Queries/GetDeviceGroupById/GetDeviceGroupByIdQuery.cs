@@ -18,7 +18,7 @@ public class GetDeviceGroupByIdQueryHandler(IAppDbContext dbContext)
         return await dbContext
             .DeviceGroups.AsNoTracking()
             .Where(group =>
-                group.Id == request.GroupId && group.User!.ExternalAuthUid == request.FirebaseUid
+                group.Id == request.GroupId && group.User.ExternalAuthUid == request.FirebaseUid
             )
             .Select(group => new DeviceGroupDto(
                 group.Id,

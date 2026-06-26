@@ -115,7 +115,8 @@ public class DeleteRoomTests(IntegrationTestWebAppFactory factory) : BaseIntegra
                 TestContext.Current.CancellationToken
             );
 
-        physicalRoom!.IsDeleted.Should().BeFalse("A sala não pode ser deletada por outro usuário.");
+        physicalRoom.Should().NotBeNull("A sala não pode ser deletada por outro usuário.");
+        physicalRoom.IsDeleted.Should().BeFalse("A sala não pode ser deletada por outro usuário.");
     }
 
     [Fact]
@@ -211,7 +212,7 @@ public class DeleteRoomTests(IntegrationTestWebAppFactory factory) : BaseIntegra
 
         physicalDevice.Should().NotBeNull("O dispositivo não pode desaparecer do banco.");
 
-        physicalDevice!
+        physicalDevice
             .IsDeleted.Should()
             .BeFalse(
                 "A exclusão da sala NÃO deve deletar o dispositivo fisicamente ou logicamente."

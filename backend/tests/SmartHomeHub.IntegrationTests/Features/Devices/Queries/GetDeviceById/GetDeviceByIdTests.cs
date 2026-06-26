@@ -57,7 +57,7 @@ public class GetDeviceByIdTests(IntegrationTestWebAppFactory factory) : BaseInte
         );
 
         deviceResponse.Should().NotBeNull();
-        deviceResponse!.Id.Should().Be(deviceId);
+        deviceResponse.Id.Should().Be(deviceId);
         deviceResponse.Name.Should().Be("Termostato");
         deviceResponse.ExternalId.Should().Be("MAC-NEST-1");
     }

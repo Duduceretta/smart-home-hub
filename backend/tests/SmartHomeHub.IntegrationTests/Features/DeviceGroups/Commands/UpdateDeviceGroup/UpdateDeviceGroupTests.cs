@@ -1,5 +1,6 @@
 using System.Net;
 using System.Net.Http.Json;
+using System.Text.Json;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
 using SmartHomeHub.Domain.Entities;
@@ -161,7 +162,9 @@ public class UpdateDeviceGroupTests(IntegrationTestWebAppFactory factory)
                 TestContext.Current.CancellationToken
             );
 
-        physicalGroup!
+        physicalGroup.Should().NotBeNull("O grupo deve continuar existindo após a atualização.");
+
+        physicalGroup
             .Devices.Should()
             .BeEmpty("O EF Core deve ter deletado todos os vínculos N:M.");
     }
@@ -251,10 +254,11 @@ public class UpdateDeviceGroupTests(IntegrationTestWebAppFactory factory)
 
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
 
-        var errorResponse = await response.Content.ReadFromJsonAsync<dynamic>(
+        var errorResponse = await response.Content.ReadFromJsonAsync<JsonElement>(
             cancellationToken: TestContext.Current.CancellationToken
         );
-        string errorCode = errorResponse!.GetProperty("title").GetString();
+
+        string? errorCode = errorResponse.GetProperty("title").GetString();
         errorCode.Should().Be("DeviceGroup.InvalidDevices");
     }
 }

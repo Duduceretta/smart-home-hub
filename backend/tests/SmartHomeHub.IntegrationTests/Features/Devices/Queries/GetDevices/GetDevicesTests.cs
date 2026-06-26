@@ -92,7 +92,7 @@ public class GetDevicesTests(IntegrationTestWebAppFactory factory) : BaseIntegra
 
         devices.Should().NotBeNull();
 
-        devices!.Should().HaveCount(2);
+        devices.Should().HaveCount(2);
 
         var returnedIds = devices.Select(device => device.Id).ToList();
         returnedIds.Should().Contain(myDevice1.Id);

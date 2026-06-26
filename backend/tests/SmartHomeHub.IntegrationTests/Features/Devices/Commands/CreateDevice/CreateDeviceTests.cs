@@ -1,5 +1,6 @@
 using System.Net;
 using System.Net.Http.Json;
+using System.Text.Json;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
 using SmartHomeHub.Domain.Entities;
@@ -163,11 +164,11 @@ public class CreateDeviceTests(IntegrationTestWebAppFactory factory) : BaseInteg
 
         response.StatusCode.Should().Be(HttpStatusCode.NotFound);
 
-        var errorResponse = await response.Content.ReadFromJsonAsync<dynamic>(
+        var errorResponse = await response.Content.ReadFromJsonAsync<JsonElement>(
             cancellationToken: TestContext.Current.CancellationToken
         );
 
-        string errorCode = errorResponse!.GetProperty("title").GetString();
+        string? errorCode = errorResponse.GetProperty("title").GetString();
         errorCode
             .Should()
             .Be(

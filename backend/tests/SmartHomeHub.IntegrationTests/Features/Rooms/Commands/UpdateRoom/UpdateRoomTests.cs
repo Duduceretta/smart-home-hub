@@ -110,7 +110,8 @@ public class UpdateRoomTests(IntegrationTestWebAppFactory factory) : BaseIntegra
                 TestContext.Current.CancellationToken
             );
 
-        physicalRoom!.Name.Should().Be("Cofre", "A sala não pode ser alterada por outro usuário.");
+        physicalRoom.Should().NotBeNull("A sala não pode ser alterada por outro usuário.");
+        physicalRoom.Name.Should().Be("Cofre", "A sala não pode ser alterada por outro usuário.");
     }
 
     [Fact]

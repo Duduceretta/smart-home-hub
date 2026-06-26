@@ -10,7 +10,7 @@ public class DeviceGroup : ISoftDeletable
     public string? Icon { get; set; }
 
     // Relacionamentos
-    public User? User { get; set; }
+    public User User { get; set; } = null!;
 
     //Uma coleção de dispositivos que pertencem a este grupo (N:M)
     public ICollection<Device> Devices { get; set; } = [];

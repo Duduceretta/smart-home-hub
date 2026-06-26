@@ -43,6 +43,18 @@ Record do Command na primeira linha do arquivo; Validator e Handler logo abaixo.
 ### 3.3. Rotas RESTful
 Idioma em inglês, kebab-case, substantivos no plural (Ex: `GET /api/device-groups`).
 
+### 3.4. Nulidade, Validação e Inicialização de Objetos (NRTs)
+O ecossistema utiliza Nullable Reference Types (NRT) habilitado. Para evitar conflitos entre a validação de domínio (FluentValidation) e as amarras do compilador, adotamos o seguinte padrão estrito:
+
+Nas **Entidades do EF Core (Propriedades de Navegação)**: Mantemos = null!. Elas indicam relacionamentos que o banco de dados e o Entity Framework (via Reflection) resolvem. O uso de required aqui é proibido, pois forçaria a inicialização manual da árvore de dependências nos Handlers.
+
+Nas **Entidades do EF Core (Propriedades Escalares/Campos Comuns)**: Para campos que compõem o estado inicial imutável do objeto puro (ex: um campo de texto crítico), é permitido o uso da palavra-chave required (C# 11+) para garantir a integridade logo na instanciação (ex: public required string ExternalId { get; set; }).
+
+Nos **DTOs e Requests de Entrada**: O uso de required é proibido. Mantemos propriedades normais ou anuláveis (?). A responsabilidade de barrar a ausência de dados (JSON malformado ou campos faltando) é 100% transferida para o FluentValidation. Isso garante que requisições inválidas caiam no nosso Result Pattern e retornem um ProblemDetails padronizado de negócio (422/400), evitando que o Model Binding do ASP.NET aborte a requisição prematuramente com um erro genérico de framework.
+
+**Records Posicionais (Commands e Queries)**: Utilizamos records para o transporte de dados imutáveis (CQRS). A declaração posicional na assinatura força a instanciação na ordem correta, garantindo que nenhum comando chegue ao Handler sem seu estado completo pré-definido.
+
+
 ## 4. Documentação e Qualidade de Código
 
 ### 4.1. Documentação da API (OpenAPI e Scalar)

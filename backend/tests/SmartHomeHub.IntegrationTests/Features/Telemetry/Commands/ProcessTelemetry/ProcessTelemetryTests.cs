@@ -68,7 +68,19 @@ public class ProcessTelemetryTests(IntegrationTestWebAppFactory factory)
             TestContext.Current.CancellationToken
         );
 
-        physicalDevice!
+        physicalDevice
+            .Should()
+            .NotBeNull(
+                "O dispositivo deve continuar existindo após o processamento da telemetria."
+            );
+
+        physicalDevice
+            .Should()
+            .NotBeNull(
+                "O dispositivo deve continuar existindo após o processamento da telemetria."
+            );
+
+        physicalDevice
             .IsOn.Should()
             .BeTrue("O handler deve espelhar o IsOn do payload para o Device.");
 
@@ -78,7 +90,7 @@ public class ProcessTelemetryTests(IntegrationTestWebAppFactory factory)
         );
 
         telemetryLog.Should().NotBeNull("O registro histórico de telemetria DEVE existir.");
-        telemetryLog!.IsOn.Should().BeTrue();
+        telemetryLog.IsOn.Should().BeTrue();
         telemetryLog.Voltage.Should().Be(220);
         telemetryLog.SignalStrength.Should().Be("-50dBm");
         telemetryLog

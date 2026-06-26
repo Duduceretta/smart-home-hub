@@ -51,7 +51,11 @@ public class ToggleDeviceTests(IntegrationTestWebAppFactory factory) : BaseInteg
                 TestContext.Current.CancellationToken
             );
 
-        physicalDeviceAfterFirstToggle!
+        physicalDeviceAfterFirstToggle
+            .Should()
+            .NotBeNull("O dispositivo deve continuar existindo após a primeira requisição.");
+
+        physicalDeviceAfterFirstToggle
             .IsOn.Should()
             .BeTrue("O dispositivo começou 'false', deve ser alterado para 'true'.");
 
@@ -70,7 +74,11 @@ public class ToggleDeviceTests(IntegrationTestWebAppFactory factory) : BaseInteg
                 TestContext.Current.CancellationToken
             );
 
-        physicalDeviceAfterSecondToggle!
+        physicalDeviceAfterSecondToggle
+            .Should()
+            .NotBeNull("O dispositivo deve continuar existindo após a segunda requisição.");
+
+        physicalDeviceAfterSecondToggle
             .IsOn.Should()
             .BeFalse("A segunda requisição deve inverter o 'true' de volta para 'false'.");
     }
@@ -123,6 +131,7 @@ public class ToggleDeviceTests(IntegrationTestWebAppFactory factory) : BaseInteg
                 TestContext.Current.CancellationToken
             );
 
-        physicalDevice!.IsOn.Should().BeFalse("O estado não pode ser alterado por terceiros.");
+        physicalDevice.Should().NotBeNull("O dispositivo do vizinho deve continuar existindo.");
+        physicalDevice.IsOn.Should().BeFalse("O estado não pode ser alterado por terceiros.");
     }
 }

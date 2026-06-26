@@ -65,7 +65,7 @@ public class DeleteDeviceTests(IntegrationTestWebAppFactory factory) : BaseInteg
             .Should()
             .NotBeNull("O registro não deve ser apagado com DELETE do banco relacional.");
 
-        physicalDevice!
+        physicalDevice
             .IsDeleted.Should()
             .BeTrue("O interceptador deve ter alterado a flag IsDeleted.");
     }
@@ -116,7 +116,9 @@ public class DeleteDeviceTests(IntegrationTestWebAppFactory factory) : BaseInteg
                 TestContext.Current.CancellationToken
             );
 
-        physicalDevice!
+        physicalDevice.Should().NotBeNull("O dispositivo do vizinho deve continuar existindo.");
+
+        physicalDevice
             .IsDeleted.Should()
             .BeFalse("Um dispositivo não pode ser deletado por quem não é o dono.");
     }
