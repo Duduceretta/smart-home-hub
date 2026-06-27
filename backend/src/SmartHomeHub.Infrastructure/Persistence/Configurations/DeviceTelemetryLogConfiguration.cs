@@ -19,5 +19,7 @@ public class DeviceTelemetryLogConfiguration : IEntityTypeConfiguration<DeviceTe
             .WithMany()
             .HasForeignKey(log => log.DeviceId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        builder.HasQueryFilter(log => !log.Device.IsDeleted);
     }
 }
