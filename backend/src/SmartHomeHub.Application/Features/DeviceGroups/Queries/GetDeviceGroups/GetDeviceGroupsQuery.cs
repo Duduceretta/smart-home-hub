@@ -1,6 +1,7 @@
 using Mediator;
 using Microsoft.EntityFrameworkCore;
 using SmartHomeHub.Application.Common.Interfaces;
+using SmartHomeHub.Application.Common.Pagination;
 using SmartHomeHub.Domain.Enums;
 
 namespace SmartHomeHub.Application.Features.DeviceGroups.Queries.GetDeviceGroups;
@@ -16,12 +17,14 @@ public record DeviceInGroupDto(
 
 public record DeviceGroupDto(Guid Id, string Name, string? Icon, List<DeviceInGroupDto> Devices);
 
-public record GetDeviceGroupsQuery(string FirebaseUid) : IQuery<List<DeviceGroupDto>>;
+public record GetDeviceGroupsQuery(string FirebaseUid, int Page = 1, int PageSize = 10)
+    : IQuery<PagedResult<DeviceGroupDto>>,
+        IPagedQuery;
 
 public class GetDeviceGroupsQueryHandler(IAppDbContext dbContext)
-    : IQueryHandler<GetDeviceGroupsQuery, List<DeviceGroupDto>>
+    : IQueryHandler<GetDeviceGroupsQuery, PagedResult<DeviceGroupDto>>
 {
-    public async ValueTask<List<DeviceGroupDto>> Handle(
+    public async ValueTask<PagedResult<DeviceGroupDto>> Handle(
         GetDeviceGroupsQuery request,
         CancellationToken cancellationToken
     )
@@ -29,6 +32,7 @@ public class GetDeviceGroupsQueryHandler(IAppDbContext dbContext)
         return await dbContext
             .DeviceGroups.AsNoTracking()
             .Where(group => group.User.ExternalAuthUid == request.FirebaseUid)
+            .OrderBy(group => group.Name)
             .Select(group => new DeviceGroupDto(
                 group.Id,
                 group.Name,
@@ -44,6 +48,6 @@ public class GetDeviceGroupsQueryHandler(IAppDbContext dbContext)
                     ))
                     .ToList()
             ))
-            .ToListAsync(cancellationToken);
+            .ToPagedResultAsync(request.Page, request.PageSize, cancellationToken);
     }
 }
