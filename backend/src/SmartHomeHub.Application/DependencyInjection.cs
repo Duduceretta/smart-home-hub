@@ -14,6 +14,8 @@ public static class DependencyInjection
             options.ServiceLifetime = ServiceLifetime.Scoped;
         });
 
+        services.AddScoped(typeof(IPipelineBehavior<,>), typeof(LoggingBehavior<,>));
+
         services.AddScoped(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
 
         services.AddValidatorsFromAssembly(typeof(DependencyInjection).Assembly);
