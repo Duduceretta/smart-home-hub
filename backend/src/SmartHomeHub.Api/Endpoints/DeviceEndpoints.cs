@@ -33,7 +33,13 @@ public static class DeviceEndpoints
                     return Results.Ok(devices);
                 }
             )
-            .RequireAuthorization();
+            .RequireAuthorization()
+            .WithTags("Devices")
+            .WithSummary("Lista todos os dispositivos")
+            .WithDescription(
+                "Retorna uma lista contendo todos os dispositivos ativos associados ao usuário autenticado."
+            )
+            .Produces<object>(StatusCodes.Status200OK);
 
         app.MapGet(
                 "/api/devices/{id:guid}",
@@ -55,7 +61,14 @@ public static class DeviceEndpoints
                     return device is not null ? Results.Ok(device) : Results.NotFound();
                 }
             )
-            .RequireAuthorization();
+            .RequireAuthorization()
+            .WithTags("Devices")
+            .WithSummary("Busca um dispositivo por ID")
+            .WithDescription(
+                "Retorna os detalhes completos de um dispositivo específico. Retorna **404 Not Found** se o dispositivo não existir ou não pertencer ao usuário."
+            )
+            .Produces<object>(StatusCodes.Status200OK)
+            .ProducesProblem(StatusCodes.Status404NotFound);
 
         app.MapPost(
                 "/api/devices",
@@ -94,7 +107,15 @@ public static class DeviceEndpoints
                     );
                 }
             )
-            .RequireAuthorization();
+            .RequireAuthorization()
+            .WithTags("Devices")
+            .WithSummary("Cria um novo dispositivo")
+            .WithDescription(
+                "Registra um novo hardware IoT no sistema e o vincula ao usuário autenticado. Pode ser opcionalmente alocado em um Ambiente (`RoomId`)."
+            )
+            .Produces<object>(StatusCodes.Status201Created)
+            .ProducesProblem(StatusCodes.Status400BadRequest)
+            .ProducesProblem(StatusCodes.Status422UnprocessableEntity);
 
         app.MapPost(
                 "/api/devices/{id:guid}/toggle",
@@ -118,7 +139,15 @@ public static class DeviceEndpoints
                     return Results.Ok(new { message = "Comando enviado com sucesso." });
                 }
             )
-            .RequireAuthorization();
+            .RequireAuthorization()
+            .WithTags("Devices")
+            .WithSummary("Alterna o estado do dispositivo (Toggle)")
+            .WithDescription(
+                "Inverte o estado atual (`IsOn`) do dispositivo no banco de dados e dispara automaticamente um comando via **MQTT** para atualizar o hardware físico."
+            )
+            .Produces<object>(StatusCodes.Status200OK)
+            .ProducesProblem(StatusCodes.Status400BadRequest)
+            .ProducesProblem(StatusCodes.Status404NotFound);
 
         app.MapPut(
                 "/api/devices/{id:guid}",
@@ -162,7 +191,16 @@ public static class DeviceEndpoints
                     );
                 }
             )
-            .RequireAuthorization();
+            .RequireAuthorization()
+            .WithTags("Devices")
+            .WithSummary("Atualiza um dispositivo existente")
+            .WithDescription(
+                "Substitui os dados cadastrais do dispositivo. A alteração de `RoomId` transfere o dispositivo de ambiente."
+            )
+            .Produces<object>(StatusCodes.Status200OK)
+            .ProducesProblem(StatusCodes.Status400BadRequest)
+            .ProducesProblem(StatusCodes.Status404NotFound)
+            .ProducesProblem(StatusCodes.Status422UnprocessableEntity);
 
         app.MapDelete(
                 "/api/devices/{id:guid}",
@@ -186,7 +224,14 @@ public static class DeviceEndpoints
                     return Results.NoContent();
                 }
             )
-            .RequireAuthorization();
+            .RequireAuthorization()
+            .WithTags("Devices")
+            .WithSummary("Deleta um dispositivo (Soft Delete)")
+            .WithDescription(
+                "Remove o dispositivo do acesso do usuário (Soft Delete). As telemetrias históricas e o registro físico são mantidos no banco para auditoria."
+            )
+            .Produces(StatusCodes.Status204NoContent)
+            .ProducesProblem(StatusCodes.Status404NotFound);
     }
 }
 

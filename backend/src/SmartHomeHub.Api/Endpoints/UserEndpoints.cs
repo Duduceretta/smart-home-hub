@@ -44,6 +44,14 @@ public static class UserEndpoints
                     );
                 }
             )
-            .RequireAuthorization();
+            .RequireAuthorization()
+            .WithTags("Users")
+            .WithSummary("Sincroniza um usuário do Firebase com o banco local")
+            .WithDescription(
+                "Deve ser chamado logo após o primeiro login no front-end. Verifica se o UID do token já existe no Postgres. Se existir, retorna os dados. Se não, cria o registro inicial do usuário no ecossistema."
+            )
+            .Produces<object>(StatusCodes.Status200OK)
+            .Produces<object>(StatusCodes.Status201Created)
+            .Produces(StatusCodes.Status401Unauthorized);
     }
 }

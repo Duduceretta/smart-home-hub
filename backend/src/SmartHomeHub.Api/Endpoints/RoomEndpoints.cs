@@ -32,7 +32,13 @@ public static class RoomEndpoints
                     return Results.Ok(rooms);
                 }
             )
-            .RequireAuthorization();
+            .RequireAuthorization()
+            .WithTags("Rooms")
+            .WithSummary("Lista todos os ambientes")
+            .WithDescription(
+                "Retorna a lista de todos os ambientes cadastrados pelo usuário autenticado."
+            )
+            .Produces<object>(StatusCodes.Status200OK);
 
         app.MapGet(
                 "/api/rooms/{id:guid}",
@@ -54,7 +60,14 @@ public static class RoomEndpoints
                     return room is not null ? Results.Ok(room) : Results.NotFound();
                 }
             )
-            .RequireAuthorization();
+            .RequireAuthorization()
+            .WithTags("Rooms")
+            .WithSummary("Busca um ambiente por ID")
+            .WithDescription(
+                "Retorna os detalhes de um ambiente específico. Retorna erro 404 caso o ambiente pertença a outro usuário ou não exista."
+            )
+            .Produces<object>(StatusCodes.Status200OK)
+            .ProducesProblem(StatusCodes.Status404NotFound);
 
         app.MapPost(
                 "/api/rooms",
@@ -82,7 +95,15 @@ public static class RoomEndpoints
                     );
                 }
             )
-            .RequireAuthorization();
+            .RequireAuthorization()
+            .WithTags("Rooms")
+            .WithSummary("Cria um novo ambiente")
+            .WithDescription(
+                "Criação de um novo ambiente físico (ex: 'Sala de Estar', 'Cozinha') para alocação futura de dispositivos."
+            )
+            .Produces<object>(StatusCodes.Status201Created)
+            .ProducesProblem(StatusCodes.Status400BadRequest)
+            .ProducesProblem(StatusCodes.Status422UnprocessableEntity);
 
         app.MapPut(
                 "/api/rooms/{id:guid}",
@@ -120,7 +141,14 @@ public static class RoomEndpoints
                     );
                 }
             )
-            .RequireAuthorization();
+            .RequireAuthorization()
+            .WithTags("Rooms")
+            .WithSummary("Atualiza um ambiente existente")
+            .WithDescription("Permite a alteração do nome e ícone de um ambiente já criado.")
+            .Produces<object>(StatusCodes.Status200OK)
+            .ProducesProblem(StatusCodes.Status400BadRequest)
+            .ProducesProblem(StatusCodes.Status404NotFound)
+            .ProducesProblem(StatusCodes.Status422UnprocessableEntity);
 
         app.MapDelete(
                 "/api/rooms/{id:guid}",
@@ -145,7 +173,14 @@ public static class RoomEndpoints
                     return Results.NoContent();
                 }
             )
-            .RequireAuthorization();
+            .RequireAuthorization()
+            .WithTags("Rooms")
+            .WithSummary("Deleta um ambiente (Soft Delete)")
+            .WithDescription(
+                "Realiza a exclusão lógica do ambiente. Dispositivos atrelados a ele terão a propriedade RoomId definida como nula automaticamente (se configurado)."
+            )
+            .Produces(StatusCodes.Status204NoContent)
+            .ProducesProblem(StatusCodes.Status404NotFound);
     }
 }
 
