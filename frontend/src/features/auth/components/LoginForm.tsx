@@ -39,6 +39,7 @@ export function LoginForm() {
 			</div>
 
 			<form onSubmit={handleFormSubmit} noValidate className="space-y-2.5">
+				{/* --- Campo de Email --- */}
 				<div
 					className="space-y-2 animate-fade-up delay-200 opacity-0-init"
 					style={{ animationFillMode: "forwards" }}
@@ -58,13 +59,13 @@ export function LoginForm() {
 						<Input
 							id="email"
 							type="email"
+							autoComplete="email"
 							placeholder="admin@smart.local"
 							className="border-0 bg-transparent pl-10 text-zinc-50 placeholder:text-zinc-600 focus-visible:ring-0 focus-visible:ring-offset-0"
 							{...register("email")}
 						/>
 					</div>
 
-					{/* Container invisível segurando o espaço exato do erro */}
 					<div className="min-h-5">
 						<AnimatePresence mode="wait">
 							{errors.email && (
@@ -108,6 +109,7 @@ export function LoginForm() {
 						<Input
 							id="password"
 							type={showPassword ? "text" : "password"}
+							autoComplete="current-password"
 							placeholder="••••••••"
 							className="border-0 bg-transparent pl-10 pr-10 text-zinc-50 focus-visible:ring-0 focus-visible:ring-offset-0"
 							{...register("password")}
@@ -128,7 +130,6 @@ export function LoginForm() {
 						</button>
 					</div>
 
-					{/* Container invisível segurando o espaço exato do erro */}
 					<div className="min-h-5">
 						<AnimatePresence mode="wait">
 							{errors.password && (
@@ -143,6 +144,7 @@ export function LoginForm() {
 					</div>
 				</div>
 
+				{/* --- Botão Principal --- */}
 				<div
 					className="pt-2 animate-fade-up delay-400 opacity-0-init"
 					style={{ animationFillMode: "forwards" }}
@@ -150,13 +152,34 @@ export function LoginForm() {
 					<Button
 						type="submit"
 						disabled={isSubmitting}
-						className="btn-primary w-full bg-indigo-600 text-white hover:bg-indigo-500 disabled:opacity-50"
+						className="btn-primary w-full bg-indigo-600 text-white hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
 					>
 						{isSubmitting ? "Autenticando..." : "Iniciar Sessão"}
 					</Button>
 				</div>
+
+				{/* --- Alerta de Erro Global (Root) --- */}
+				{/* Sem espaço reservado: expande para baixo apenas quando há erro */}
+				<AnimatePresence>
+					{errors.root && (
+						<motion.div
+							initial={{ opacity: 0, height: 0, marginTop: 0 }}
+							animate={{ opacity: 1, height: "auto", marginTop: 16 }}
+							exit={{ opacity: 0, height: 0, marginTop: 0 }}
+							transition={{ duration: 0.25, ease: "easeInOut" }}
+							className="overflow-hidden"
+						>
+							<div className="flex items-center justify-center rounded-lg border border-red-500/20 bg-red-500/10 p-3">
+								<p className="text-sm font-medium text-red-400">
+									{errors.root.message}
+								</p>
+							</div>
+						</motion.div>
+					)}
+				</AnimatePresence>
 			</form>
 
+			{/* --- Divisor e SSO --- */}
 			<div
 				className="mt-8 animate-fade-up delay-500 opacity-0-init"
 				style={{ animationFillMode: "forwards" }}

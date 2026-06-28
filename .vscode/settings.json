@@ -6,6 +6,8 @@
 		"source.organizeImports.biome": "explicit"
 	},
 
+	"css.lint.unknownAtRules": "ignore",
+
 	"biome.lsp.bin": "./frontend/node_modules/@biomejs/cli-win32-x64/biome.exe",
 
 	"[csharp]": {

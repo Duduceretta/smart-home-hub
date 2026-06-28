@@ -128,3 +128,10 @@
     @apply font-sans;
     }
 }
+
+/* src/index.css */
+.btn-primary:disabled {
+  transform: none;
+  box-shadow: none;
+  cursor: not-allowed;
+}
