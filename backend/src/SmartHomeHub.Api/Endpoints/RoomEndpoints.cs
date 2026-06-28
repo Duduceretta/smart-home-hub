@@ -18,7 +18,9 @@ public static class RoomEndpoints
                 async (
                     ClaimsPrincipal userToken,
                     IMediator mediator,
-                    CancellationToken cancellationToken
+                    CancellationToken cancellationToken,
+                    int page = 1,
+                    int pageSize = 10
                 ) =>
                 {
                     var firebaseUid = userToken.FindFirst("user_id")?.Value;
@@ -26,7 +28,7 @@ public static class RoomEndpoints
                     if (string.IsNullOrEmpty(firebaseUid))
                         return Results.Unauthorized();
 
-                    var query = new GetRoomsQuery(firebaseUid);
+                    var query = new GetRoomsQuery(firebaseUid, page, pageSize);
                     var rooms = await mediator.Send(query, cancellationToken);
 
                     return Results.Ok(rooms);

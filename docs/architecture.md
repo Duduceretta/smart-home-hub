@@ -30,6 +30,17 @@ Utilizamos o pacote Mediator (com Source Generators) em vez do MediatR tradicion
 * **Strict In, Tolerant Out:** Commands de entrada são rigorosos (propriedades obrigatórias), enquanto as queries e saídas aceitam nulos, mantendo o front-end ciente da realidade do banco.
 * **Atualizações (PUT vs PATCH):** Adotado PUT retornando o objeto atualizado (200 OK) para simplificar a manipulação de estado global do front-end.
 
+### 2.4. Observabilidade e Logs Estruturados (Serilog)
+* **Log Estruturado vs Texto:** A aplicação utiliza o Serilog como motor central. É estritamente proibido o uso de interpolação de strings (`$"{Variavel}"`) nos logs. Deve-se sempre utilizar Templates de Mensagem (`"Processando {DeviceName}", device.Name`) para que os agregadores (ex: Seq, Datadog) consigam indexar as variáveis.
+* **Interceptação Automática:** Logs de rastreio de entrada/saída e medição de performance (cronômetro) são aplicados globalmente a todos os Casos de Uso através do `LoggingBehavior` no pipeline do Mediator, mantendo os Handlers limpos apenas para logs específicos de regras de negócio.
+* **Telemetria Imutável:** Dados de sensores e logs de telemetria (`DeviceTelemetryLog`) seguem o padrão *Append-Only* (Apenas Inserção). Não utilizamos *Soft Delete* nessas tabelas para preservar a performance de leitura no banco de dados temporal.
+
+### 2.5. Padrão de Recuperação de Coleções (Paginação)
+Para proteger a memória do servidor (OOM) e a CPU do banco de dados, o sistema proíbe o retorno de coleções infinitas.
+* **O Contrato Genérico:** Qualquer requisição que retorne uma lista deve, obrigatoriamente, assinar a interface `IPagedQuery` (recebendo `Page` e `PageSize`) e retornar o envelope JSON padrão `PagedResult<T>`, que inclui os metadados para o Front-end (`TotalPages`, `TotalCount`, etc). Buscas por ID único são a única exceção e retornam o DTO puro.
+* **Segurança no EF Core:** Antes de invocar a paginação, a query no Entity Framework deve **sempre** possuir uma cláusula `.OrderBy()` explícita para garantir a estabilidade física da ordenação no SGBD.
+* **Centralização:** A matemática do Offset (`Skip`/`Take`) é delegada exclusivamente ao Extension Method `.ToPagedResultAsync()`, evitando repetição de código nos Handlers.
+
 ## 3. Padrões de Código e Convenções (C#)
 
 ### 3.1. Nomenclatura CQRS

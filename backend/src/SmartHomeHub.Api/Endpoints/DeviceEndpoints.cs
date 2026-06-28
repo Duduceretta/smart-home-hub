@@ -20,14 +20,16 @@ public static class DeviceEndpoints
                 async (
                     ClaimsPrincipal userToken,
                     IMediator mediator,
-                    CancellationToken cancellationToken
+                    CancellationToken cancellationToken,
+                    int page = 1,
+                    int pageSize = 10
                 ) =>
                 {
                     var firebaseUid = userToken.FindFirst("user_id")?.Value;
                     if (string.IsNullOrEmpty(firebaseUid))
                         return Results.Unauthorized();
 
-                    var query = new GetDevicesQuery(firebaseUid);
+                    var query = new GetDevicesQuery(firebaseUid, page, pageSize);
                     var devices = await mediator.Send(query, cancellationToken);
 
                     return Results.Ok(devices);
