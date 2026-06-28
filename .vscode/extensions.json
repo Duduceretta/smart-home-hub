@@ -1,0 +1,17 @@
+{
+  "recommendations": [
+    // --- ⚙️ BACK-END (C# & Infra) ---
+    "ms-dotnettools.csdevkit",
+    "ms-dotnettools.vscode-dotnet-runtime",
+    "ms-dotnettools.csharp",
+    "bela.csharpier",
+    "ms-azuretools.vscode-docker",
+    "eamodio.gitlens",
+
+    // --- 🎨 FRONT-END (React & UI) ---
+    "bradlc.vscode-tailwindcss",
+    "biomejs.biome",
+    "dsznajder.es7-react-js-snippets",
+    "wallabyjs.console-ninja"
+  ]
+}
