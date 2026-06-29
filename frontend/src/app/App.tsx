@@ -1,20 +1,26 @@
-import { onAuthStateChanged } from "firebase/auth";
-import { useEffect } from "react";
-import { Router } from "@/app/Router";
-import { auth } from "@/core/lib/firebase";
+import { Loader2 } from "lucide-react";
+import { Toaster } from "sonner";
+import { useAuthListener } from "@/features/auth/hooks/useAuthListener";
 import { useAuthStore } from "@/features/auth/store/useAuthStore";
+import { Router } from "./Router";
 
 export function App() {
-	const { setUser, setLoading } = useAuthStore();
+	useAuthListener();
 
-	useEffect(() => {
-		const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-			setUser(currentUser);
-			setLoading(false);
-		});
+	const isLoading = useAuthStore((state) => state.isLoading);
 
-		return () => unsubscribe();
-	}, [setUser, setLoading]);
+	if (isLoading) {
+		return (
+			<div className="flex h-screen w-full items-center justify-center bg-zinc-950">
+				<Loader2 className="h-8 w-8 animate-spin text-indigo-500" />
+			</div>
+		);
+	}
 
-	return <Router />;
+	return (
+		<>
+			<Router />
+			<Toaster theme="dark" position="bottom-right" richColors />
+		</>
+	);
 }

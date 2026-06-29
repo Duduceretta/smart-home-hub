@@ -1,10 +1,12 @@
 import {
 	createUserWithEmailAndPassword,
 	signInWithEmailAndPassword,
+	signOut,
 	type User,
 	updateProfile,
 } from "firebase/auth";
 import { auth } from "@/core/lib/firebase";
+import { Logger } from "@/core/lib/logger";
 import type { LoginFormData } from "@/features/auth/types/loginSchema";
 import type { RegisterFormData } from "@/features/auth/types/registerSchema";
 
@@ -67,5 +69,24 @@ export const registerWithEmail = async (
 		}
 
 		throw new Error("Erro ao criar a conta. Verifique sua conexão.");
+	}
+};
+
+export const logoutUser = async (): Promise<void> => {
+	try {
+		await signOut(auth);
+	} catch (error: unknown) {
+		if (error instanceof Error) {
+			Logger.error("Erro interno no Firebase ao tentar fazer signOut", error);
+		} else {
+			Logger.error(
+				"Falha desconhecida e crítica no signOut do Firebase",
+				error,
+			);
+		}
+
+		throw new Error(
+			"Não foi possível encerrar a sessão no momento. Verifique sua conexão.",
+		);
 	}
 };
