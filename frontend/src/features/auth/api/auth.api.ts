@@ -1,11 +1,14 @@
 import {
+	confirmPasswordReset,
 	createUserWithEmailAndPassword,
 	GoogleAuthProvider,
+	sendPasswordResetEmail,
 	signInWithEmailAndPassword,
 	signInWithPopup,
 	signOut,
 	type User,
 	updateProfile,
+	verifyPasswordResetCode,
 } from "firebase/auth";
 import { auth } from "@/core/lib/firebase";
 import { Logger } from "@/core/lib/logger";
@@ -13,8 +16,8 @@ import type { LoginFormData } from "@/features/auth/types/loginSchema";
 import type { RegisterFormData } from "@/features/auth/types/registerSchema";
 
 const CANCELLED_CODES = new Set([
-    "auth/popup-closed-by-user",
-    "auth/cancelled-popup-request",
+	"auth/popup-closed-by-user",
+	"auth/cancelled-popup-request",
 ]);
 
 export const loginWithEmail = async (
@@ -49,29 +52,29 @@ export const loginWithEmail = async (
 };
 
 export const loginWithGoogle = async (): Promise<User> => {
-    try {
-        const provider = new GoogleAuthProvider();
-        provider.setCustomParameters({ prompt: "select_account" });
+	try {
+		const provider = new GoogleAuthProvider();
+		provider.setCustomParameters({ prompt: "select_account" });
 
-        const userCredential = await signInWithPopup(auth, provider);
-        return userCredential.user;
-    } catch (error: unknown) {
-        if (error instanceof Error && "code" in error) {
-            const firebaseError = error as { code: string };
+		const userCredential = await signInWithPopup(auth, provider);
+		return userCredential.user;
+	} catch (error: unknown) {
+		if (error instanceof Error && "code" in error) {
+			const firebaseError = error as { code: string };
 
-            if (CANCELLED_CODES.has(firebaseError.code)) {
-                throw new Error("cancelado");
-            }
+			if (CANCELLED_CODES.has(firebaseError.code)) {
+				throw new Error("cancelado");
+			}
 
-            Logger.error("Erro interno do Firebase no Google Auth", error);
-        } else {
-            Logger.error("Falha crítica desconhecida no login com Google", error);
-        }
+			Logger.error("Erro interno do Firebase no Google Auth", error);
+		} else {
+			Logger.error("Falha crítica desconhecida no login com Google", error);
+		}
 
-        throw new Error(
-            "Falha ao autenticar com o Google. Verifique sua conexão e tente novamente.",
-        );
-    }
+		throw new Error(
+			"Falha ao autenticar com o Google. Verifique sua conexão e tente novamente.",
+		);
+	}
 };
 
 export const registerWithEmail = async (
@@ -120,6 +123,47 @@ export const logoutUser = async (): Promise<void> => {
 
 		throw new Error(
 			"Não foi possível encerrar a sessão no momento. Verifique sua conexão.",
+		);
+	}
+};
+
+export const resetPassword = async (email: string): Promise<void> => {
+	try {
+		await sendPasswordResetEmail(auth, email);
+	} catch (error: unknown) {
+		if (error instanceof Error && "code" in error) {
+			Logger.error("Erro no Firebase ao solicitar recuperação de senha", error);
+		} else {
+			Logger.error("Falha crítica desconhecida na recuperação de senha", error);
+		}
+
+		throw new Error(
+			"Não foi possível processar a solicitação. Tente novamente mais tarde.",
+		);
+	}
+};
+
+export const verifyResetToken = async (oobCode: string): Promise<string> => {
+	try {
+		return await verifyPasswordResetCode(auth, oobCode);
+	} catch (error: unknown) {
+		Logger.error("Código de reset inválido ou expirado", error);
+		throw new Error(
+			"O link de recuperação é inválido ou já expirou. Solicite um novo.",
+		);
+	}
+};
+
+export const submitNewPassword = async (
+	oobCode: string,
+	newPassword: string,
+): Promise<void> => {
+	try {
+		await confirmPasswordReset(auth, oobCode, newPassword);
+	} catch (error: unknown) {
+		Logger.error("Erro ao tentar redefinir a senha", error);
+		throw new Error(
+			"Não foi possível redefinir a senha. O link pode ter expirado.",
 		);
 	}
 };

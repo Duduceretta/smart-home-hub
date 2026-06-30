@@ -7,7 +7,9 @@ import { LogoutButton } from "@/features/auth/components/LogoutButton";
 import { ProtectedRoute } from "@/features/auth/components/ProtectedRoute";
 import { PublicRoute } from "@/features/auth/components/PublicRoute";
 import { LoginPage } from "@/pages/LoginPage";
+import { RecoveryPage } from "@/pages/RecoveryPage";
 import { RegisterPage } from "@/pages/RegisterPage";
+import { ResetPasswordPage } from "@/pages/ResetPasswordPage";
 
 const DashboardPage = () => (
 	<div className="flex h-screen flex-col items-center justify-center gap-6 bg-zinc-950 text-zinc-50">
@@ -33,6 +35,11 @@ const router = createBrowserRouter([
 			{
 				path: "/register",
 				element: <RegisterPage />,
+			},
+			{ path: "/forgot-password", element: <RecoveryPage /> },
+			{
+				path: "/reset-password",
+				element: <ResetPasswordPage />,
 			},
 		],
 	},

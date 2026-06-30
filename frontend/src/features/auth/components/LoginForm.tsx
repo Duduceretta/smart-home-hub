@@ -54,7 +54,7 @@ export function LoginForm() {
 					delayClass="delay-300"
 					labelRight={
 						<Link
-							to="/recuperar-senha"
+							to="/forgot-password"
 							className="text-xs text-indigo-400 transition-colors hover:text-indigo-300"
 							tabIndex={-1}
 						>
