@@ -11,7 +11,8 @@ export function RegisterPage() {
 	}, []);
 
 	return (
-		<main className="flex h-screen w-full flex-col overflow-hidden bg-zinc-950 selection:bg-indigo-500/30 md:flex-row antialiased">
+		// 👇 1. Mudamos h-screen para min-h-screen e tiramos o overflow-hidden geral
+		<main className="flex min-h-screen w-full flex-col bg-zinc-950 selection:bg-indigo-500/30 md:flex-row antialiased">
 			<style>{`
                 @keyframes fadeUp {
                     from { opacity: 0; transform: translateY(12px); }
@@ -36,6 +37,7 @@ export function RegisterPage() {
                 .delay-500 { animation-delay: 0.5s; }
                 .delay-600 { animation-delay: 0.6s; }
                 .delay-700 { animation-delay: 0.7s; }
+                .delay-800 { animation-delay: 0.8s; }
 
                 .opacity-0-init { opacity: 0; }
 
@@ -65,7 +67,8 @@ export function RegisterPage() {
                 }
             `}</style>
 
-			<section className="relative z-20 hidden h-full overflow-hidden border-r border-zinc-800/80 bg-zinc-950 shadow-[15px_0_50px_rgba(0,0,0,0.5)] md:flex md:w-1/2 lg:w-7/12">
+			{/* 👇 2. LADO ESQUERDO: Ganha 'sticky top-0 h-screen' para ficar cravado na tela e não subir no scroll */}
+			<section className="sticky top-0 z-20 hidden h-screen overflow-hidden border-r border-zinc-800/80 bg-zinc-950 shadow-[15px_0_50px_rgba(0,0,0,0.5)] md:flex md:w-1/2 lg:w-7/12">
 				<div className="absolute inset-0 z-0">
 					<img
 						src="/bg-login.jpg"
@@ -103,7 +106,9 @@ export function RegisterPage() {
 				</div>
 			</section>
 
-			<section className="relative z-10 flex h-full w-full flex-col items-center justify-center bg-zinc-950 p-6 md:w-1/2 md:p-12 lg:w-5/12">
+			{/* 👇 3. LADO DIREITO: Ganha 'min-h-screen overflow-y-auto py-12' */}
+			{/* O py-12 garante que quando der zoom, haverá um respiro nas bordas de cima e de baixo */}
+			<section className="relative z-10 flex min-h-screen w-full flex-col items-center justify-center overflow-y-auto bg-zinc-950 p-6 py-12 md:w-1/2 md:p-12 lg:w-5/12">
 				<RegisterForm />
 			</section>
 		</main>

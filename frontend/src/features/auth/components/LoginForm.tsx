@@ -5,6 +5,7 @@ import { FormInput } from "@/components/shared/forms/FormInput";
 import { PasswordInput } from "@/components/shared/forms/PasswordInput";
 import { Button } from "@/components/ui/button";
 import { useLoginForm } from "../hooks/useLoginForm";
+import { GoogleAuthButton } from "./GoogleAuthButton";
 
 export function LoginForm() {
 	const {
@@ -79,7 +80,29 @@ export function LoginForm() {
 			</form>
 
 			<div
-				className="mt-6 text-center animate-fade-up delay-500 opacity-0-init"
+				className="relative mt-6 animate-fade-up delay-600 opacity-0-init"
+				style={{ animationFillMode: "forwards" }}
+			>
+				<div className="absolute inset-0 flex items-center">
+					<span className="w-full border-t border-zinc-800/80" />
+				</div>
+				<div className="relative flex justify-center text-xs uppercase">
+					<span className="bg-[#121215] px-2 text-zinc-500">
+						Ou continue com
+					</span>
+				</div>
+			</div>
+
+			{/* --- Botão do Google --- */}
+			<div
+				className="mt-6 animate-fade-up delay-700 opacity-0-init"
+				style={{ animationFillMode: "forwards" }}
+			>
+				<GoogleAuthButton />
+			</div>
+
+			<div
+				className="mt-6 text-center animate-fade-up delay-800 opacity-0-init"
 				style={{ animationFillMode: "forwards" }}
 			>
 				<p className="text-sm text-zinc-400">

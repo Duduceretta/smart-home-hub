@@ -1,6 +1,6 @@
 import { Home } from "lucide-react";
 import { useEffect, useState } from "react";
-import { LoginForm } from "../features/auth/components/LoginForm";
+import { LoginForm } from "../features/auth/components/LoginForm"; // Ajuste o path conforme sua estrutura
 
 export function LoginPage() {
 	const [mounted, setMounted] = useState(false);
@@ -11,7 +11,8 @@ export function LoginPage() {
 	}, []);
 
 	return (
-		<main className="flex h-screen w-full flex-col overflow-hidden bg-zinc-950 selection:bg-indigo-500/30 md:flex-row antialiased">
+		// 👇 Mudança de h-screen para min-h-screen e remoção de overflow-hidden
+		<main className="flex min-h-screen w-full flex-col bg-zinc-950 selection:bg-indigo-500/30 md:flex-row antialiased">
 			<style>{`
                 @keyframes fadeUp {
                     from { opacity: 0; transform: translateY(12px); }
@@ -34,6 +35,8 @@ export function LoginPage() {
                 .delay-300 { animation-delay: 0.3s; }
                 .delay-400 { animation-delay: 0.4s; }
                 .delay-500 { animation-delay: 0.5s; }
+                .delay-600 { animation-delay: 0.6s; }
+                .delay-700 { animation-delay: 0.7s; }
 
                 .opacity-0-init { opacity: 0; }
 
@@ -69,7 +72,8 @@ export function LoginPage() {
                 }
             `}</style>
 
-			<section className="relative z-20 hidden h-full overflow-hidden border-r border-zinc-800/80 bg-zinc-950 shadow-[15px_0_50px_rgba(0,0,0,0.5)] md:flex md:w-1/2 lg:w-7/12">
+			{/* 👇 LADO ESQUERDO: Adicionado 'sticky top-0 h-screen' */}
+			<section className="sticky top-0 z-20 hidden h-screen overflow-hidden border-r border-zinc-800/80 bg-zinc-950 shadow-[15px_0_50px_rgba(0,0,0,0.5)] md:flex md:w-1/2 lg:w-7/12">
 				<div className="absolute inset-0 z-0">
 					<img
 						src="/bg-login.jpg"
@@ -107,7 +111,8 @@ export function LoginPage() {
 				</div>
 			</section>
 
-			<section className="relative z-10 flex h-full w-full flex-col items-center justify-center bg-zinc-950 p-6 md:w-1/2 md:p-12 lg:w-5/12">
+			{/* 👇 LADO DIREITO: Adicionado 'min-h-screen overflow-y-auto py-12' */}
+			<section className="relative z-10 flex min-h-screen w-full flex-col items-center justify-center overflow-y-auto bg-zinc-950 p-6 py-12 md:w-1/2 md:p-12 lg:w-5/12">
 				<LoginForm />
 			</section>
 		</main>

@@ -5,6 +5,7 @@ import { FormInput } from "@/components/shared/forms/FormInput";
 import { PasswordInput } from "@/components/shared/forms/PasswordInput";
 import { Button } from "@/components/ui/button";
 import { useRegisterForm } from "../hooks/useRegisterForm";
+import { GoogleAuthButton } from "./GoogleAuthButton";
 
 export function RegisterForm() {
 	const {
@@ -30,7 +31,11 @@ export function RegisterForm() {
 				</p>
 			</div>
 
-			<form onSubmit={handleFormSubmit} noValidate className="space-y-2.5">
+			<form
+				onSubmit={handleFormSubmit}
+				noValidate
+				className="flex flex-col gap-1"
+			>
 				<FormInput
 					id="name"
 					label="Nome Completo"
@@ -92,7 +97,34 @@ export function RegisterForm() {
 			</form>
 
 			<div
-				className="mt-6 text-center animate-fade-up delay-700 opacity-0-init"
+				className="relative mt-4 animate-fade-up delay-600 opacity-0-init"
+				style={{ animationFillMode: "forwards" }}
+			>
+				<div className="absolute inset-0 flex items-center">
+					<span className="w-full border-t border-zinc-800/80" />
+				</div>
+				{/* Removemos o 'uppercase' daqui 👇 */}
+				<div className="relative flex justify-center text-xs">
+					{/* Confirme se a cor de fundo do seu form é bg-zinc-900 ou bg-[#121215] para o texto não ficar com um quadrado esquisito atrás */}
+					<span className="bg-zinc-900/80 px-2 text-zinc-500 backdrop-blur-sm">
+						Ou continue com
+					</span>
+				</div>
+			</div>
+
+			{/* --- Botão do Google --- */}
+			{/* Reduzimos de mt-6 para mt-3 */}
+			<div
+				className="mt-3 animate-fade-up delay-700 opacity-0-init"
+				style={{ animationFillMode: "forwards" }}
+			>
+				<GoogleAuthButton actionText="Cadastrar com Google" />
+			</div>
+
+			{/* --- Rodapé (Link para Login) --- */}
+			{/* Reduzimos de mt-6 para mt-4 */}
+			<div
+				className="mt-4 text-center animate-fade-up delay-700 opacity-0-init"
 				style={{ animationFillMode: "forwards" }}
 			>
 				<p className="text-sm text-zinc-400">
