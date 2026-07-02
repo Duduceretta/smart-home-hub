@@ -3,13 +3,13 @@ import {
 	Navigate,
 	RouterProvider,
 } from "react-router-dom";
-import { ProtectedRoute } from "@/features/auth/components/ProtectedRoute";
-import { PublicRoute } from "@/features/auth/components/PublicRoute";
-import { DashboardPage } from "@/pages/DashboardPage";
-import { LoginPage } from "@/pages/LoginPage";
-import { RecoveryPage } from "@/pages/RecoveryPage";
-import { RegisterPage } from "@/pages/RegisterPage";
-import { ResetPasswordPage } from "@/pages/ResetPasswordPage";
+import { ProtectedRoute } from "@/features/auth/guards/ProtectedRoute";
+import { PublicRoute } from "@/features/auth/guards/PublicRoute";
+import { DashboardPage } from "@/pages/dashboard/DashboardPage";
+import { ForgotPasswordPage } from "@/pages/forgot-password/ForgotPasswordPage";
+import { LoginPage } from "@/pages/login/LoginPage";
+import { RegisterPage } from "@/pages/register/RegisterPage";
+import { ResetPasswordPage } from "@/pages/reset-password/ResetPasswordPage";
 import { DashboardLayout } from "@/widgets/layout/DashboardLayout";
 
 const router = createBrowserRouter([
@@ -24,7 +24,7 @@ const router = createBrowserRouter([
 				path: "/register",
 				element: <RegisterPage />,
 			},
-			{ path: "/forgot-password", element: <RecoveryPage /> },
+			{ path: "/forgot-password", element: <ForgotPasswordPage /> },
 			{
 				path: "/reset-password",
 				element: <ResetPasswordPage />,

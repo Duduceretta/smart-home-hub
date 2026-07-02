@@ -1,8 +1,8 @@
 import { Home } from "lucide-react";
 import { useEffect, useState } from "react";
-import { RecoveryForm } from "@/features/auth/components/RecoveryForm";
+import { LoginForm } from "../../features/auth/components/LoginForm"; // Ajuste o path conforme sua estrutura
 
-export function RecoveryPage() {
+export function LoginPage() {
 	const [mounted, setMounted] = useState(false);
 
 	useEffect(() => {
@@ -113,7 +113,7 @@ export function RecoveryPage() {
 
 			{/* 👇 LADO DIREITO: Adicionado 'min-h-screen overflow-y-auto py-12' */}
 			<section className="relative z-10 flex min-h-screen w-full flex-col items-center justify-center overflow-y-auto bg-zinc-950 p-6 py-12 md:w-1/2 md:p-12 lg:w-5/12">
-				<RecoveryForm />
+				<LoginForm />
 			</section>
 		</main>
 	);

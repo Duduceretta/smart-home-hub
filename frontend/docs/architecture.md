@@ -96,6 +96,41 @@ Quando a API retorna a interface `PagedResult<T>`:
 - O front-end tipa a resposta globalmente como `PagedResponse<T>` no diretório `core/types/`.
 - Para renderização de listas no JSX via `.map()`, a propriedade `key` deve obrigatoriamente receber um **identificador único e real** da entidade (ex: `item.id`). O uso do parâmetro `index` como chave é **proibido** para evitar falhas na reconciliação do Virtual DOM e queda de performance.
 
+### 3.4. Sintaxe Moderna e Limitações do Compilador (Vite/Biome)
+
+Para garantir a compatibilidade com empacotadores ultra velozes (que operam sob a flag `erasableSyntaxOnly`) e satisfazer o rigor do linter, as seguintes regras sintáticas são obrigatórias:
+
+**Construtores Clássicos**
+É proibido o uso de modificadores de acesso direto nos parâmetros do construtor. As propriedades devem ser declaradas de forma explícita no corpo da classe e atribuídas manualmente dentro do construtor, evitando que o Vite precise transcrever código extra.
+
+````typescript
+// ❌ Proibido
+class AppError {
+    constructor(public readonly message: string) {}
+}
+
+// ✅ Correto
+class AppError {
+    readonly message: string;
+
+    constructor(message: string) {
+        this.message = message;
+    }
+}
+\```
+
+**Optional Chaining**
+É proibido o uso de verificações condicionais redundantes para aninhamento de objetos. Deve-se utilizar estritamente o Optional Chaining nativo do TypeScript para manter o código limpo.
+
+```typescript
+// ❌ Proibido
+if (data && data.title) { ... }
+
+// ✅ Correto
+if (data?.title) { ... }
+\```
+```
+
 ---
 
 ## 4. Observabilidade e Performance
