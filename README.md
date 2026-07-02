@@ -86,8 +86,8 @@ docker-compose up -d
 
 ### ⏳ Fase 4: O Painel de Controle — React + TypeScript *(Fase Atual)*
 
-- [ ] Configurar ambiente do cliente (Vite + TypeScript + Tailwind CSS)
-- [ ] Instalar ecossistema de infraestrutura: React Router, TanStack Query e Zustand
+- [X] Configurar ambiente do cliente (Vite + TypeScript + Tailwind CSS)
+- [X] Instalar ecossistema de infraestrutura: React Router, TanStack Query e Zustand
 - [ ] Configurar framework de testes unitários e de componentes utilizando Vitest e React Testing Library
 - [ ] Configurar suíte de testes End-to-End (E2E) com o Playwright
 - [ ] Configurar i18n (`react-i18next`) para suporte nativo a Português e Inglês
