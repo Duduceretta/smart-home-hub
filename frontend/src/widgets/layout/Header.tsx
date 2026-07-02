@@ -1,20 +1,15 @@
 import { Bell, Menu } from "lucide-react";
 import { LogoutButton } from "@/features/auth/components/LogoutButton";
 import { useAuthStore } from "@/features/auth/store/useAuthStore";
-// import { LogoutButton } from "@/features/auth/components/LogoutButton";
 
 export function Header() {
-	// Puxa o usuário logado lá do Zustand!
 	const user = useAuthStore((state) => state.user);
-
-	// Extrai o primeiro nome ou usa "Visitante"
 	const firstName = user?.displayName?.split(" ")[0] || "Visitante";
 
 	return (
 		<header className="w-full h-16 bg-zinc-950/80 backdrop-blur-xl flex items-center justify-between px-4 md:px-8 border-b border-zinc-800/80 z-30 shrink-0">
 			{/* Lado Esquerdo */}
 			<div className="flex items-center gap-4">
-				{/* 👇 Adicione aqui */}
 				<button
 					type="button"
 					className="md:hidden p-2 text-zinc-400 hover:text-zinc-50 hover:bg-zinc-900 rounded-lg transition-colors"
@@ -33,7 +28,6 @@ export function Header() {
 
 			{/* Lado Direito */}
 			<div className="flex items-center gap-4 md:gap-6">
-				{/* 👇 Adicione aqui */}
 				<button
 					type="button"
 					className="relative p-2 text-zinc-400 hover:text-zinc-50 hover:bg-zinc-900 rounded-full transition-colors"

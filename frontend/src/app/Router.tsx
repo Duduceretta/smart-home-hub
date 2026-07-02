@@ -10,7 +10,7 @@ import { ForgotPasswordPage } from "@/pages/forgot-password/ForgotPasswordPage";
 import { LoginPage } from "@/pages/login/LoginPage";
 import { RegisterPage } from "@/pages/register/RegisterPage";
 import { ResetPasswordPage } from "@/pages/reset-password/ResetPasswordPage";
-import { DashboardLayout } from "@/widgets/layout/DashboardLayout";
+import { AppLayout } from "@/widgets/layout/AppLayout"; // 👈 Nome corrigido aqui!
 
 const router = createBrowserRouter([
 	{
@@ -35,7 +35,7 @@ const router = createBrowserRouter([
 		element: <ProtectedRoute />,
 		children: [
 			{
-				element: <DashboardLayout />,
+				element: <AppLayout />,
 				children: [
 					{
 						path: "/dashboard",
@@ -44,8 +44,6 @@ const router = createBrowserRouter([
 					// Futuras páginas: { path: "/devices", element: <DevicesPage /> }
 				],
 			},
-			// { path: "/dashboard/devices", element: <DevicesPage /> },
-			// { path: "/dashboard/settings", element: <SettingsPage /> },
 		],
 	},
 	{

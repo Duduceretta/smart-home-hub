@@ -1,9 +1,9 @@
 import { Bot, LayoutDashboard, Router, Settings } from "lucide-react";
 import { Link, Outlet } from "react-router-dom";
 import { Header } from "./Header";
-import { Sidebar } from "./sidebar";
+import { Sidebar } from "./Sidebar";
 
-export function DashboardLayout() {
+export function AppLayout() {
 	return (
 		<div className="flex w-full h-screen bg-zinc-950 text-zinc-50 overflow-hidden antialiased selection:bg-indigo-500/30">
 			{/* Menu Lateral (Desktop) */}
@@ -11,19 +11,17 @@ export function DashboardLayout() {
 
 			{/* Área Principal */}
 			<main className="flex-1 flex flex-col h-full min-w-0 relative">
-				{/* Cabeçalho Fixo */}
 				<Header />
 
-				{/* Área de Conteúdo Rolável (Onde os cards vão entrar) */}
+				{/* Área de Conteúdo Rolável */}
 				<div className="flex-1 overflow-y-auto w-full p-4 md:p-8">
 					<div className="max-w-7xl mx-auto pb-20 md:pb-0">
-						{/* O OUTLET INJETA AS PÁGINAS AQUI! */}
 						<Outlet />
 					</div>
 				</div>
 			</main>
 
-			{/* Menu Inferior (Mobile) - Ideia brilhante da IA mantida! */}
+			{/* Menu Inferior (Mobile) */}
 			<nav className="md:hidden fixed bottom-0 w-full h-16 bg-zinc-950/90 backdrop-blur-xl border-t border-zinc-800/80 flex justify-around items-center px-2 z-50">
 				<Link
 					to="/dashboard"
