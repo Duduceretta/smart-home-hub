@@ -3,7 +3,7 @@ import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import { registerWithEmail } from "../api/auth.api";
 import { useAuthStore } from "../store/useAuthStore";
-import { type RegisterFormData, registerSchema } from "../types/registerSchema";
+import { type RegisterFormData, registerSchema } from "../types/auth.schemas";
 
 export function useRegisterForm() {
 	const setUser = useAuthStore((state) => state.setUser);
@@ -11,6 +11,8 @@ export function useRegisterForm() {
 
 	const formMethods = useForm<RegisterFormData>({
 		resolver: zodResolver(registerSchema),
+		mode: "onSubmit",
+        reValidateMode: "onChange",
 	});
 
 	const handleFormSubmit = async (data: RegisterFormData) => {

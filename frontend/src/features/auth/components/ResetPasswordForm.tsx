@@ -1,8 +1,8 @@
 import { AlertCircle, ArrowLeft, Loader2 } from "lucide-react";
 import { Link } from "react-router-dom";
-import { FormGlobalError } from "@/components/shared/forms/FormGlobalError";
-import { PasswordInput } from "@/components/shared/forms/PasswordInput";
-import { Button } from "@/components/ui/button";
+import { FormGlobalError } from "@/core/components/forms/FormGlobalError";
+import { PasswordInput } from "@/core/components/forms/PasswordInput";
+import { Button } from "@/core/components/ui/button";
 import { useResetPasswordForm } from "../hooks/useResetPasswordForm";
 
 export function ResetPasswordForm() {
@@ -30,7 +30,6 @@ export function ResetPasswordForm() {
 				)}
 			</div>
 
-			{/* ESTADO 1: VERIFICANDO URL */}
 			{isVerifying ? (
 				<div className="flex flex-col items-center justify-center py-8">
 					<Loader2 className="h-8 w-8 animate-spin text-indigo-500" />
@@ -39,7 +38,6 @@ export function ResetPasswordForm() {
 					</p>
 				</div>
 			) : tokenError ? (
-				/* ESTADO 2: LINK EXPIRADO/INVÁLIDO */
 				<div className="flex flex-col items-center justify-center space-y-4 py-4 text-center">
 					<AlertCircle className="h-12 w-12 text-red-500" />
 					<p className="text-sm font-medium text-red-400">{tokenError}</p>
@@ -51,7 +49,6 @@ export function ResetPasswordForm() {
 					</Link>
 				</div>
 			) : (
-				/* ESTADO 3: FORMULÁRIO DE NOVA SENHA */
 				<form
 					onSubmit={handleFormSubmit}
 					noValidate
@@ -64,6 +61,7 @@ export function ResetPasswordForm() {
 						placeholder="••••••••"
 						registration={register("password")}
 						error={errors.password?.message}
+						delayClass="delay-200"
 					/>
 
 					<PasswordInput
@@ -73,9 +71,13 @@ export function ResetPasswordForm() {
 						placeholder="••••••••"
 						registration={register("confirmPassword")}
 						error={errors.confirmPassword?.message}
+						delayClass="delay-300"
 					/>
 
-					<div className="pt-2 mt-2">
+					<div
+						className="pt-2 mt-2 animate-fade-up delay-400 opacity-0-init"
+						style={{ animationFillMode: "forwards" }}
+					>
 						<Button
 							type="submit"
 							disabled={isSubmitting}
@@ -87,7 +89,10 @@ export function ResetPasswordForm() {
 
 					<FormGlobalError error={errors.root?.message} />
 
-					<div className="mt-6 text-center">
+					<div
+						className="mt-6 text-center animate-fade-up delay-500 opacity-0-init"
+						style={{ animationFillMode: "forwards" }}
+					>
 						<Link
 							to="/login"
 							className="flex items-center justify-center text-sm font-medium text-zinc-400 hover:text-indigo-300"

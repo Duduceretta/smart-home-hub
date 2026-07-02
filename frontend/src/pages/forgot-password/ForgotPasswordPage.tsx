@@ -1,6 +1,6 @@
 import { Home } from "lucide-react";
 import { useEffect, useState } from "react";
-import { RecoveryForm } from "@/features/auth/components/RecoveryForm";
+import { RecoveryForm } from "@/features/auth/components/ForgotPasswordForm";
 
 export function ForgotPasswordPage() {
 	const [mounted, setMounted] = useState(false);

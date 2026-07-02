@@ -11,9 +11,11 @@ import {
 	verifyPasswordResetCode,
 } from "firebase/auth";
 import { auth } from "@/core/lib/firebase";
-import { Logger } from "@/core/lib/logger";
-import type { LoginFormData } from "@/features/auth/types/loginSchema";
-import type { RegisterFormData } from "@/features/auth/types/registerSchema";
+import { Logger } from "@/core/logger/app.logger";
+import type {
+	LoginFormData,
+	RegisterFormData,
+} from "@/features/auth/types/auth.schemas";
 
 const CANCELLED_CODES = new Set([
 	"auth/popup-closed-by-user",
@@ -51,7 +53,7 @@ export const loginWithEmail = async (
 	}
 };
 
-export const loginWithGoogle = async (): Promise<User> => {
+export const loginWithGoogle = async (): Promise<User | null> => {
 	try {
 		const provider = new GoogleAuthProvider();
 		provider.setCustomParameters({ prompt: "select_account" });
@@ -63,7 +65,7 @@ export const loginWithGoogle = async (): Promise<User> => {
 			const firebaseError = error as { code: string };
 
 			if (CANCELLED_CODES.has(firebaseError.code)) {
-				throw new Error("cancelado");
+				return null;
 			}
 
 			Logger.error("Erro interno do Firebase no Google Auth", error);

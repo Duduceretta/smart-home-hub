@@ -7,7 +7,7 @@ import { submitNewPassword, verifyResetToken } from "../api/auth.api";
 import {
 	type ResetPasswordFormData,
 	resetPasswordSchema,
-} from "../types/resetPasswordSchema";
+} from "../types/auth.schemas";
 
 export function useResetPasswordForm() {
 	const [searchParams] = useSearchParams();
@@ -21,6 +21,8 @@ export function useResetPasswordForm() {
 
 	const formMethods = useForm<ResetPasswordFormData>({
 		resolver: zodResolver(resetPasswordSchema),
+		mode: "onSubmit",
+        reValidateMode: "onChange",
 	});
 
 	useEffect(() => {

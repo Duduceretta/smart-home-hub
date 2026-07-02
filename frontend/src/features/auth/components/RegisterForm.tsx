@@ -1,142 +1,136 @@
 import { Mail, User } from "lucide-react";
 import { Link } from "react-router-dom";
-import { FormGlobalError } from "@/components/shared/forms/FormGlobalError";
-import { FormInput } from "@/components/shared/forms/FormInput";
-import { PasswordInput } from "@/components/shared/forms/PasswordInput";
-import { Button } from "@/components/ui/button";
+import { FormGlobalError } from "@/core/components/forms/FormGlobalError";
+import { FormInput } from "@/core/components/forms/FormInput";
+import { PasswordInput } from "@/core/components/forms/PasswordInput";
+import { Button } from "@/core/components/ui/button";
 import { useRegisterForm } from "../hooks/useRegisterForm";
 import { GoogleAuthButton } from "./GoogleAuthButton";
 
 export function RegisterForm() {
-	const {
-		register,
-		handleFormSubmit,
-		formState: { errors },
-		isSubmitting,
-	} = useRegisterForm();
+    const {
+        register,
+        handleFormSubmit,
+        formState: { errors },
+        isSubmitting,
+    } = useRegisterForm();
 
-	return (
-		<div
-			className="relative w-full max-w-md overflow-hidden rounded-2xl border border-zinc-800/80 bg-zinc-900/50 p-8 shadow-2xl backdrop-blur-xl animate-fade-up delay-100 opacity-0-init"
-			style={{ animationFillMode: "forwards" }}
-		>
-			<div className="shimmer-line absolute left-0 right-0 top-0 h-px" />
+    return (
+        <div
+            className="relative w-full max-w-md overflow-hidden rounded-2xl border border-zinc-800/80 bg-zinc-900/50 p-8 shadow-2xl backdrop-blur-xl animate-fade-up delay-100 opacity-0-init"
+            style={{ animationFillMode: "forwards" }}
+        >
+            <div className="shimmer-line absolute left-0 right-0 top-0 h-px" />
 
-			<div className="mb-8">
-				<h2 className="mb-1 text-3xl font-semibold text-zinc-50">
-					Criar Conta
-				</h2>
-				<p className="text-sm text-zinc-400">
-					Preencha seus dados para ingressar no ecossistema.
-				</p>
-			</div>
+            <div className="mb-8">
+                <h2 className="mb-1 text-3xl font-semibold text-zinc-50">
+                    Criar Conta
+                </h2>
+                <p className="text-sm text-zinc-400">
+                    Preencha seus dados para ingressar no ecossistema.
+                </p>
+            </div>
 
-			<form
-				onSubmit={handleFormSubmit}
-				noValidate
-				className="flex flex-col gap-1"
-			>
-				<FormInput
-					id="name"
-					label="Nome Completo"
-					icon={<User className="h-4 w-4" />}
-					type="text"
-					autoComplete="name"
-					placeholder="Seu nome"
-					registration={register("name")}
-					error={errors.name?.message}
-					delayClass="delay-200"
-				/>
+            <form
+                onSubmit={handleFormSubmit}
+                noValidate
+                className="flex flex-col gap-1"
+            >
+                <FormInput
+                    id="name"
+                    label="Nome Completo"
+                    icon={<User className="h-4 w-4" />}
+                    type="text"
+                    autoComplete="name"
+                    placeholder="Seu nome"
+                    registration={register("name")}
+                    error={errors.name?.message}
+                    delayClass="delay-200"
+                />
 
-				<FormInput
-					id="email"
-					label="Email"
-					icon={<Mail className="h-4 w-4" />}
-					type="email"
-					autoComplete="email"
-					placeholder="admin@smart.local"
-					registration={register("email")}
-					error={errors.email?.message}
-					delayClass="delay-300"
-				/>
+                <FormInput
+                    id="email"
+                    label="Email"
+                    icon={<Mail className="h-4 w-4" />}
+                    type="email"
+                    autoComplete="email"
+                    placeholder="admin@smart.local"
+                    registration={register("email")}
+                    error={errors.email?.message}
+                    delayClass="delay-300"
+                />
 
-				<PasswordInput
-					id="password"
-					label="Senha"
-					autoComplete="new-password"
-					placeholder="••••••••"
-					registration={register("password")}
-					error={errors.password?.message}
-					delayClass="delay-400"
-				/>
+                <PasswordInput
+                    id="password"
+                    label="Senha"
+                    autoComplete="new-password"
+                    placeholder="••••••••"
+                    registration={register("password")}
+                    error={errors.password?.message}
+                    delayClass="delay-400"
+                />
 
-				<PasswordInput
-					id="confirmPassword"
-					label="Confirmar Senha"
-					autoComplete="new-password"
-					placeholder="••••••••"
-					registration={register("confirmPassword")}
-					error={errors.confirmPassword?.message}
-					delayClass="delay-500"
-				/>
+                <PasswordInput
+                    id="confirmPassword"
+                    label="Confirmar Senha"
+                    autoComplete="new-password"
+                    placeholder="••••••••"
+                    registration={register("confirmPassword")}
+                    error={errors.confirmPassword?.message}
+                    delayClass="delay-500"
+                />
 
-				<div
-					className="pt-2 animate-fade-up delay-600 opacity-0-init"
-					style={{ animationFillMode: "forwards" }}
-				>
-					<Button
-						type="submit"
-						disabled={isSubmitting}
-						className="btn-primary w-full bg-indigo-600 text-white hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
-					>
-						{isSubmitting ? "Criando conta..." : "Criar Conta"}
-					</Button>
-				</div>
+                <div
+                    className="pt-2 animate-fade-up delay-600 opacity-0-init"
+                    style={{ animationFillMode: "forwards" }}
+                >
+                    <Button
+                        type="submit"
+                        disabled={isSubmitting}
+                        className="btn-primary w-full bg-indigo-600 text-white hover:bg-indigo-500 disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                        {isSubmitting ? "Criando conta..." : "Criar Conta"}
+                    </Button>
+                </div>
 
-				<FormGlobalError error={errors.root?.message} />
-			</form>
+                <FormGlobalError error={errors.root?.message} />
+            </form>
 
-			<div
-				className="relative mt-4 animate-fade-up delay-600 opacity-0-init"
-				style={{ animationFillMode: "forwards" }}
-			>
-				<div className="absolute inset-0 flex items-center">
-					<span className="w-full border-t border-zinc-800/80" />
-				</div>
-				{/* Removemos o 'uppercase' daqui 👇 */}
-				<div className="relative flex justify-center text-xs">
-					{/* Confirme se a cor de fundo do seu form é bg-zinc-900 ou bg-[#121215] para o texto não ficar com um quadrado esquisito atrás */}
-					<span className="bg-zinc-900/80 px-2 text-zinc-500 backdrop-blur-sm">
-						Ou continue com
-					</span>
-				</div>
-			</div>
+            <div
+                className="relative mt-4 animate-fade-up delay-600 opacity-0-init"
+                style={{ animationFillMode: "forwards" }}
+            >
+                <div className="absolute inset-0 flex items-center">
+                    <span className="w-full border-t border-zinc-800/80" />
+                </div>
+                <div className="relative flex justify-center text-xs">
+                    <span className="bg-zinc-900/80 px-2 text-zinc-500 backdrop-blur-sm">
+                        Ou continue com
+                    </span>
+                </div>
+            </div>
 
-			{/* --- Botão do Google --- */}
-			{/* Reduzimos de mt-6 para mt-3 */}
-			<div
-				className="mt-3 animate-fade-up delay-700 opacity-0-init"
-				style={{ animationFillMode: "forwards" }}
-			>
-				<GoogleAuthButton actionText="Cadastrar com Google" />
-			</div>
+            <div
+                className="mt-3 animate-fade-up delay-700 opacity-0-init"
+                style={{ animationFillMode: "forwards" }}
+            >
+                <GoogleAuthButton actionText="Cadastrar com Google" />
+            </div>
 
-			{/* --- Rodapé (Link para Login) --- */}
-			{/* Reduzimos de mt-6 para mt-4 */}
-			<div
-				className="mt-4 text-center animate-fade-up delay-700 opacity-0-init"
-				style={{ animationFillMode: "forwards" }}
-			>
-				<p className="text-sm text-zinc-400">
-					Já possui uma conta?{" "}
-					<Link
-						to="/login"
-						className="font-medium text-indigo-400 transition-colors hover:text-indigo-300"
-					>
-						Faça login
-					</Link>
-				</p>
-			</div>
-		</div>
-	);
+            <div
+                className="mt-4 text-center animate-fade-up delay-700 opacity-0-init"
+                style={{ animationFillMode: "forwards" }}
+            >
+                <p className="text-sm text-zinc-400">
+                    Já possui uma conta?{" "}
+                    <Link
+                        to="/login"
+                        className="font-medium text-indigo-400 transition-colors hover:text-indigo-300"
+                    >
+                        Faça login
+                    </Link>
+                </p>
+            </div>
+        </div>
+    );
 }

@@ -2,7 +2,7 @@ import { Loader2 } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/core/components/ui/button";
 import { loginWithGoogle } from "../api/auth.api";
 import { useAuthStore } from "../store/useAuthStore";
 
@@ -21,11 +21,13 @@ export function GoogleAuthButton({
 		setIsLoading(true);
 		try {
 			const user = await loginWithGoogle();
+
+			if (!user) return;
+
 			setUser(user);
 			navigate("/dashboard");
 		} catch (error: unknown) {
 			if (error instanceof Error) {
-				if (error.message === "cancelado") return;
 				toast.error(error.message);
 			} else {
 				toast.error("Ocorreu um erro inesperado ao conectar com o Google.");
@@ -41,7 +43,7 @@ export function GoogleAuthButton({
 			variant="outline"
 			onClick={handleGoogleLogin}
 			disabled={isLoading}
-			className="btn-sso w-full border-zinc-800 bg-zinc-950/50 text-zinc-300 transition-colors hover:bg-zinc-900 hover:text-zinc-50"
+			className="btn-sso w-full border-zinc-800 bg-zinc-950/50 text-zinc-300 transition-colors hover:bg-zinc-900 hover:text-zinc-50 disabled:opacity-50"
 		>
 			{isLoading ? (
 				<Loader2 className="mr-2 h-4 w-4 animate-spin text-zinc-400" />

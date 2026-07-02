@@ -1,25 +1,22 @@
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { useNavigate } from "react-router-dom";
-import { loginWithEmail } from "../api/auth.api";
-import { useAuthStore } from "../store/useAuthStore";
-import { type LoginFormData, loginSchema } from "../types/auth.schemas"; 
+import { resetPassword } from "../api/auth.api";
+import { type ForgotPasswordFormData, forgotPasswordSchema } from "../types/auth.schemas";
 
-export function useLoginForm() {
-    const setUser = useAuthStore((state) => state.setUser);
-    const navigate = useNavigate();
+export function useForgotPasswordForm() {
+    const [isSuccess, setIsSuccess] = useState(false);
 
-    const formMethods = useForm<LoginFormData>({
-        resolver: zodResolver(loginSchema),
+    const formMethods = useForm<ForgotPasswordFormData>({
+        resolver: zodResolver(forgotPasswordSchema),
         mode: "onSubmit",
         reValidateMode: "onChange",
     });
 
-    const handleFormSubmit = async (data: LoginFormData) => {
+    const handleFormSubmit = async (data: ForgotPasswordFormData) => {
         try {
-            const user = await loginWithEmail(data);
-            setUser(user);
-            navigate("/dashboard");
+            await resetPassword(data.email);
+            setIsSuccess(true);
         } catch (error: unknown) {
             if (error instanceof Error) {
                 formMethods.setError("root", {
@@ -37,6 +34,7 @@ export function useLoginForm() {
 
     return {
         ...formMethods,
+        isSuccess,
         handleFormSubmit: formMethods.handleSubmit(handleFormSubmit),
         isSubmitting: formMethods.formState.isSubmitting,
     };

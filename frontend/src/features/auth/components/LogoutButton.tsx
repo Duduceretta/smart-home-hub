@@ -1,8 +1,8 @@
 import { LogOut } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
-import { Button } from "@/components/ui/button";
-import { Logger } from "@/core/lib/logger";
+import { Button } from "@/core/components/ui/button";
+import { Logger } from "@/core/logger/app.logger";
 import { logoutUser } from "../api/auth.api";
 
 export function LogoutButton() {
@@ -30,7 +30,7 @@ export function LogoutButton() {
 			variant="outline"
 			onClick={handleLogout}
 			disabled={isLoggingOut}
-			className="flex items-center gap-2 border-zinc-800 bg-zinc-950/50 text-zinc-300 transition-colors hover:bg-zinc-800 hover:text-zinc-50"
+			className="flex items-center gap-2 border-zinc-800 bg-zinc-950/50 text-zinc-300 transition-colors hover:bg-zinc-800 hover:text-zinc-50 disabled:opacity-50"
 		>
 			<LogOut className="h-4 w-4" />
 			{isLoggingOut ? "Saindo..." : "Sair"}
