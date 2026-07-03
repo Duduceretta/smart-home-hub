@@ -26,6 +26,22 @@ try
 
     builder.Host.UseSerilog();
 
+    // 1. REGISTRO DA POLÍTICA DE CORS
+    builder.Services.AddCors(options =>
+    {
+        options.AddPolicy(
+            "AllowFrontendLocal",
+            policy =>
+            {
+                policy
+                    .WithOrigins("http://localhost:5173", "http://127.0.0.1:5173")
+                    .AllowAnyMethod()
+                    .AllowAnyHeader()
+                    .AllowCredentials();
+            }
+        );
+    });
+
     builder.Services.AddHttpClient();
     builder.Services.AddInfrastructure(builder.Configuration);
     builder.Services.AddApplication();
@@ -66,6 +82,9 @@ try
 
     var app = builder.Build();
 
+    // 2. ATIVAÇÃO DO MIDDLEWARE DE CORS (Deve vir ANTES de Authentication/Authorization)
+    app.UseCors("AllowFrontendLocal");
+
     if (app.Environment.IsDevelopment())
     {
         app.MapOpenApi();
@@ -83,6 +102,7 @@ try
     app.UseAuthentication();
     app.UseAuthorization();
 
+    app.MapDashboardEndpoints();
     app.MapUserEndpoints();
     app.MapRoomEndpoints();
     app.MapDeviceEndpoints();

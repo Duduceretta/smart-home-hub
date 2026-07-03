@@ -10,6 +10,7 @@ public interface IAppDbContext
     DbSet<Device> Devices { get; }
     DbSet<DeviceGroup> DeviceGroups { get; }
     DbSet<DeviceTelemetryLog> DeviceTelemetryLogs { get; }
+    DbSet<SystemEvent> SystemEvents { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }

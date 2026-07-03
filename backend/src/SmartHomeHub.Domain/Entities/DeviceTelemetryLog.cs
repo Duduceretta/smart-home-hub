@@ -10,4 +10,7 @@ public class DeviceTelemetryLog
     public bool IsOn { get; set; }
     public int? Voltage { get; set; }
     public string? SignalStrength { get; set; }
+
+    public double? TemperatureCelsius { get; set; }
+    public double? PowerUsageWatts { get; set; }
 }
