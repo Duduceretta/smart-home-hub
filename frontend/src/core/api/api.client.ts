@@ -3,7 +3,7 @@ import { auth } from "../lib/firebase";
 import { Logger } from "../logger/app.logger";
 
 export const apiClient = axios.create({
-	baseURL: import.meta.env.VITE_API_URL || "http://localhost:5000/api",
+	baseURL: import.meta.env.VITE_API_URL || "http://localhost:5252/api",
 	headers: {
 		"Content-Type": "application/json",
 	},

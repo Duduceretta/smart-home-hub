@@ -16,9 +16,6 @@
 		"enabled": true,
 		"rules": {
 			"preset": "recommended",
-			"complexity": {
-				"noImportantStyles": "off"
-			},
 			"suspicious": {
 				"noUnknownAtRules": "off"
 			}

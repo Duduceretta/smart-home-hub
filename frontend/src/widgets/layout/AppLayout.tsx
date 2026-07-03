@@ -5,7 +5,8 @@ import { Sidebar } from "./Sidebar";
 
 export function AppLayout() {
 	return (
-		<div className="flex w-full h-screen bg-zinc-950 text-zinc-50 overflow-hidden antialiased selection:bg-indigo-500/30">
+		// Removemos o overflow-hidden daqui para não conflitar com o recalculo de zoom do navegador
+		<div className="flex w-full h-screen bg-zinc-950 text-zinc-50 antialiased selection:bg-indigo-500/30">
 			{/* Menu Lateral (Desktop) */}
 			<Sidebar />
 
@@ -13,9 +14,14 @@ export function AppLayout() {
 			<main className="flex-1 flex flex-col h-full min-w-0 relative">
 				<Header />
 
-				{/* Área de Conteúdo Rolável */}
+				{/* Área de Conteúdo Rolável (O scroll acontece aqui dentro) */}
 				<div className="flex-1 overflow-y-auto w-full p-4 md:p-8">
-					<div className="max-w-7xl mx-auto pb-20 md:pb-0">
+					{/* CONTÊINER DE VIEWPORT:
+                      Trocamos max-w-7xl (1280px) por max-w-[1600px].
+                      Isso garante que ao dar menos zoom, o layout aproveite melhor o espaço extra 
+                      antes de travar no centro da tela.
+                    */}
+					<div className="max-w-[1600px] w-full mx-auto pb-20 md:pb-0">
 						<Outlet />
 					</div>
 				</div>

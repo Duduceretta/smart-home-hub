@@ -1,29 +1,33 @@
-export interface EnergyDataPoint {
-    time: string;
-    value: number;
+export interface DashboardSummary {
+	totalDevicesCount: number;
+	onlineDevicesCount: number;
+	energyConsumptionKwh: number;
+	averageTemperatureCelsius: number;
+	temperatureTrend: number;
+	activeAlertsCount: number;
 }
 
-export interface RoomDataPoint {
-    name: string;
-    value: number;
+export interface EnergyChartPoint {
+	timestamp: string;
+	value: number;
 }
 
-export interface RecentActivity {
-    id: string;
-    type: "climate" | "lighting" | "security" | "cleaning";
-    title: string;
-    description: string;
-    timestamp: string;
+export interface RoomEnergyUsage {
+	name: string;
+	value: number;
 }
 
-export interface DashboardMetrics {
-    totalEnergyConsumption: number;
-    activeDevicesCount: number;
-    totalDevicesCount: number;
-    averageTemperature: number;
-    temperatureTrend: number;
-    securityAlerts: number;
-    energyChart: EnergyDataPoint[];
-    roomDistribution: RoomDataPoint[];
-    recentActivities: RecentActivity[];
+export interface RecentEvent {
+	id: string;
+	timestamp: string;
+	title: string;
+	description: string;
+	eventType: "Climate" | "Lighting" | "Security" | "System" | string;
+}
+
+export interface DashboardOverviewResponse {
+	summary: DashboardSummary;
+	energyChart: EnergyChartPoint[];
+	roomUsage: RoomEnergyUsage[];
+	recentActivities: RecentEvent[];
 }
