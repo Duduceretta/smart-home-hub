@@ -1,0 +1,39 @@
+.input-field {
+	transition:
+		border-color 0.3s ease,
+		box-shadow 0.3s ease;
+}
+
+.input-field:focus-within {
+	box-shadow:
+		0 0 0 1px rgba(99, 102, 241, 0.4),
+		0 0 12px rgba(99, 102, 241, 0.1);
+}
+
+.btn-primary {
+	transition: all 0.2s ease;
+}
+
+.btn-primary:hover {
+	transform: translateY(-1px);
+	box-shadow: 0 6px 20px rgba(99, 102, 241, 0.25);
+}
+
+.btn-primary:active {
+	transform: translateY(0);
+}
+
+.btn-primary:disabled {
+	transform: none;
+	box-shadow: none;
+	cursor: not-allowed;
+}
+
+.btn-sso {
+	transition: all 0.2s ease;
+}
+
+.btn-sso:hover {
+	border-color: rgba(99, 102, 241, 0.3);
+	color: rgb(165, 180, 252);
+}

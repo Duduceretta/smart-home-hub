@@ -1,0 +1,86 @@
+@keyframes fadeUp {
+	from {
+		opacity: 0;
+		transform: translateY(12px);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+@keyframes slideInLeft {
+	from {
+		opacity: 0;
+		transform: translateX(-16px);
+	}
+	to {
+		opacity: 1;
+		transform: translateX(0);
+	}
+}
+
+@keyframes shimmer {
+	0% {
+		background-position: -200% center;
+	}
+	100% {
+		background-position: 200% center;
+	}
+}
+
+@layer utilities {
+	.animate-fade-up {
+		animation: fadeUp 0.8s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+	}
+	.animate-slide-left {
+		animation: slideInLeft 0.8s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+	}
+
+	.delay-100 {
+		animation-delay: 0.1s;
+	}
+	.delay-200 {
+		animation-delay: 0.2s;
+	}
+	.delay-300 {
+		animation-delay: 0.3s;
+	}
+	.delay-400 {
+		animation-delay: 0.4s;
+	}
+	.delay-500 {
+		animation-delay: 0.5s;
+	}
+	.delay-600 {
+		animation-delay: 0.6s;
+	}
+	.delay-700 {
+		animation-delay: 0.7s;
+	}
+
+	.opacity-0-init {
+		opacity: 0;
+	}
+
+	.shimmer-line {
+		background: linear-gradient(
+			90deg,
+			transparent 0%,
+			rgba(99, 102, 241, 0.5) 50%,
+			transparent 100%
+		);
+		background-size: 200% 100%;
+		animation: shimmer 3s ease infinite;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	*,
+	*::before,
+	*::after {
+		animation-duration: 0.01ms;
+		animation-delay: 0.01ms;
+		transition-duration: 0.01ms;
+	}
+}

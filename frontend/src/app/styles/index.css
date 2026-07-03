@@ -2,6 +2,8 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 @import "@fontsource-variable/geist";
+@import "./animations.css";
+@import "./components.css";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -118,20 +120,14 @@
 }
 
 @layer base {
-  * {
-    @apply border-border outline-ring/50;
+    * {
+        @apply border-border outline-ring/50;
     }
-  body {
-    @apply bg-background text-foreground;
+    body {
+        @apply bg-background text-foreground;
     }
-  html {
-    @apply font-sans;
+    html {
+        @apply font-sans;
     }
 }
 
-/* src/index.css */
-.btn-primary:disabled {
-  transform: none;
-  box-shadow: none;
-  cursor: not-allowed;
-}
