@@ -10,12 +10,14 @@ import {
 	updateProfile,
 	verifyPasswordResetCode,
 } from "firebase/auth";
+import { apiClient } from "@/core/api/api.client";
 import { auth } from "@/core/lib/firebase";
 import { Logger } from "@/core/logger/app.logger";
 import type {
 	LoginFormData,
 	RegisterFormData,
 } from "@/features/auth/types/auth.schemas";
+import type { SyncUserResponse } from "../types/auth.types";
 
 const CANCELLED_CODES = new Set([
 	"auth/popup-closed-by-user",
@@ -169,3 +171,16 @@ export const submitNewPassword = async (
 		);
 	}
 };
+
+export const syncUserWithBackendRequest =
+	async (): Promise<SyncUserResponse> => {
+		try {
+			const { data } = await apiClient.post<SyncUserResponse>("/users/sync");
+			return data;
+		} catch (error: unknown) {
+			Logger.error("Falha ao sincronizar identidade com o backend C#", error);
+			throw new Error(
+				"Não foi possível sincronizar o usuário com o servidor local.",
+			);
+		}
+	};
