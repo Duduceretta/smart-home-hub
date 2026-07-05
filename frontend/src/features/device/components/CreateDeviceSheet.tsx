@@ -1,7 +1,20 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader2, X } from "lucide-react";
+import {
+	BadgeInfo,
+	Cpu,
+	Home,
+	Layers,
+	Loader2,
+	MapPin,
+	QrCode,
+	Router,
+	Sliders,
+} from "lucide-react";
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
+import { FormInput } from "@/core/components/forms/FormInput";
+import { FormSelect } from "@/core/components/forms/FormSelect";
+import { SheetLayout } from "@/core/components/layouts/SheetLayout";
 import { useCreateDevice } from "../hooks/useCreateDevice";
 import { useDevicesUIStore } from "../store/devices-ui.store";
 import {
@@ -12,243 +25,164 @@ import {
 import { DeviceTypeEnum } from "../types/devices.types";
 
 export const CreateDeviceSheet: React.FC = () => {
-    const { isCreateSheetOpen, closeCreateSheet } = useDevicesUIStore();
-    const { mutate: createDevice, isPending } = useCreateDevice();
+	const { isCreateSheetOpen, closeCreateSheet } = useDevicesUIStore();
+	const { mutate: createDevice, isPending } = useCreateDevice();
 
-    const {
-        register,
-        handleSubmit,
-        reset,
-        setFocus,
-        formState: { errors },
-    } = useForm<CreateDeviceFormInput, undefined, CreateDeviceFormOutput>({
-        resolver: zodResolver(createDeviceSchema),
-        mode: "onSubmit",
-        reValidateMode: "onChange",
-        defaultValues: {
-            name: "",
-            brand: "",
-            externalId: "",
-            type: 0,
-            roomId: "",
-        },
-    });
+	const {
+		register,
+		control,
+		handleSubmit,
+		reset,
+		setFocus,
+		formState: { errors },
+	} = useForm<CreateDeviceFormInput, undefined, CreateDeviceFormOutput>({
+		resolver: zodResolver(createDeviceSchema),
+		mode: "onSubmit",
+		reValidateMode: "onChange",
+		defaultValues: {
+			name: "",
+			brand: "",
+			externalId: "",
+			type: 0,
+			roomId: "",
+		},
+	});
 
-    useEffect(() => {
-        if (!isCreateSheetOpen) return;
+	useEffect(() => {
+		if (isCreateSheetOpen) {
+			setFocus("name");
+		} else {
+			reset();
+		}
+	}, [isCreateSheetOpen, reset, setFocus]);
 
-        const handleKeyDown = (e: KeyboardEvent) => {
-            if (e.key === "Escape") closeCreateSheet();
-        };
+	const onSubmit = (data: CreateDeviceFormOutput) => {
+		createDevice(data, {
+			onSuccess: () => {
+				reset();
+				closeCreateSheet();
+			},
+		});
+	};
 
-        document.addEventListener("keydown", handleKeyDown);
-        document.body.style.overflow = "hidden";
-        setFocus("name");
+	return (
+		<SheetLayout
+			isOpen={isCreateSheetOpen}
+			onClose={closeCreateSheet}
+			onSubmit={handleSubmit(onSubmit)}
+			title="Adicionar Novo Dispositivo"
+			description="Preencha as especificações técnicas para vincular ao Smart Hub."
+			footer={
+				<>
+					<button
+						type="button"
+						onClick={closeCreateSheet}
+						disabled={isPending}
+						className="rounded-md border border-[#27272a] bg-transparent px-4 py-2 text-xs font-medium text-[#d4d4d8] transition-colors hover:border-[#52525b] disabled:opacity-50 cursor-pointer"
+					>
+						Cancelar
+					</button>
+					<button
+						type="submit"
+						disabled={isPending}
+						className="relative inline-flex items-center gap-2 overflow-hidden rounded-md bg-[#6366f1] px-6 py-2 text-xs font-medium text-white transition-all hover:bg-[#4f46e5] hover:shadow-[0_0_12px_rgba(99,102,241,0.4)] disabled:opacity-50 cursor-pointer group"
+					>
+						{isPending && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
+						<span className="relative z-10">Registrar</span>
+						<div className="absolute inset-0 bg-white/20 translate-y-full transition-transform duration-300 ease-out group-hover:translate-y-0" />
+					</button>
+				</>
+			}
+		>
+			{/* Seção 1: Identificação (Delay 100ms) */}
+			<div className="space-y-4 animate-fade-up opacity-0-init delay-100">
+				<div className="flex items-center gap-2 border-b border-[#27272a]/50 pb-2 text-[#6366f1]">
+					<BadgeInfo className="h-4 w-4" />
+					<span className="text-xs font-bold uppercase tracking-wider">
+						Identificação
+					</span>
+				</div>
 
-        return () => {
-            document.removeEventListener("keydown", handleKeyDown);
-            document.body.style.overflow = "";
-            reset();
-        };
-    }, [isCreateSheetOpen, closeCreateSheet, reset, setFocus]);
+				<FormInput
+					id="name"
+					label="Nome do Dispositivo *"
+					placeholder="Ex: Luz Principal da Sala"
+					icon={<Cpu className="h-4 w-4" />}
+					error={errors.name?.message}
+					registration={register("name")}
+				/>
 
-    const onSubmit = (data: CreateDeviceFormOutput) => {
-        createDevice(
-            {
-                name: data.name,
-                brand: data.brand,
-                externalId: data.externalId,
-                type: data.type,
-                roomId: data.roomId,
-            },
-            {
-                onSuccess: () => {
-                    reset();
-                    closeCreateSheet();
-                },
-            },
-        );
-    };
+				<FormInput
+					id="brand"
+					label="Marca / Modelo"
+					placeholder="Ex: Philips Hue / Sonoff"
+					icon={<Layers className="h-4 w-4" />}
+					error={errors.brand?.message}
+					registration={register("brand")}
+				/>
+			</div>
 
-    if (!isCreateSheetOpen) return null;
+			{/* Seção 2: Rede & Conectividade (Delay 200ms) */}
+			<div className="space-y-4 pt-2 animate-fade-up opacity-0-init delay-200">
+				<div className="flex items-center gap-2 border-b border-[#27272a]/50 pb-2 text-[#6366f1]">
+					<Router className="h-4 w-4" />
+					<span className="text-xs font-bold uppercase tracking-wider">
+						Rede &amp; Conectividade
+					</span>
+				</div>
 
-    return (
-        <div className="fixed inset-0 z-50 overflow-hidden">
-            <button
-                type="button"
-                onClick={closeCreateSheet}
-                aria-label="Fechar painel clicando no fundo"
-                className="absolute inset-0 h-full w-full border-none bg-black/60 backdrop-blur-sm cursor-default animate-fade-in"
-            />
+				<FormInput
+					id="externalId"
+					label="Identificador Externo / MAC *"
+					placeholder="00:1B:44:11:3A:B7"
+					icon={<QrCode className="h-4 w-4" />}
+					error={errors.externalId?.message}
+					registration={register("externalId")}
+					className="font-mono"
+				/>
+			</div>
 
-            <div className="fixed inset-y-0 right-0 flex max-w-full pl-10">
-                <div
-                    role="dialog"
-                    aria-modal="true"
-                    aria-labelledby="sheet-title"
-                    className="w-full max-w-md border-l border-zinc-800/80 bg-zinc-900 shadow-2xl animate-slide-left"
-                >
-                    <form
-                        noValidate
-                        onSubmit={handleSubmit(onSubmit)}
-                        className="flex h-full flex-col justify-between"
-                    >
-                        <div>
-                            <div className="border-b border-zinc-800/80 bg-zinc-900/50 p-6">
-                                <div className="flex items-center justify-between">
-                                    <h3
-                                        id="sheet-title"
-                                        className="text-lg font-semibold text-zinc-50"
-                                    >
-                                        Adicionar Novo Dispositivo
-                                    </h3>
-                                    <button
-                                        type="button"
-                                        onClick={closeCreateSheet}
-                                        aria-label="Fechar painel"
-                                        className="rounded-lg p-1 text-zinc-400 transition-colors hover:bg-zinc-800 hover:text-zinc-100 cursor-pointer"
-                                    >
-                                        <X className="h-5 w-5" />
-                                    </button>
-                                </div>
-                                <p className="mt-1 text-xs text-zinc-400">
-                                    Preencha as especificações técnicas para vincular ao Smart Hub.
-                                </p>
-                            </div>
+			{/* Seção 3: Classificação (Delay 300ms) */}
+			<div className="space-y-4 pt-2 animate-fade-up opacity-0-init delay-300">
+				<div className="flex items-center gap-2 border-b border-[#27272a]/50 pb-2 text-[#6366f1]">
+					<MapPin className="h-4 w-4" />
+					<span className="text-xs font-bold uppercase tracking-wider">
+						Classificação
+					</span>
+				</div>
 
-                            <div className="p-6 space-y-4 text-sm">
-                                <div>
-                                    <label
-                                        htmlFor="name"
-                                        className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-zinc-400"
-                                    >
-                                        Nome do Dispositivo
-                                    </label>
-                                    <input
-                                        id="name"
-                                        {...register("name")}
-                                        type="text"
-                                        placeholder="Ex: Luz Principal"
-                                        className="w-full rounded-lg border border-zinc-800 bg-zinc-950 p-2.5 text-zinc-100 placeholder:text-zinc-600 focus:border-indigo-500 focus:outline-none"
-                                    />
-                                    {errors.name && (
-                                        <p className="mt-1 text-xs text-red-400">
-                                            {errors.name.message}
-                                        </p>
-                                    )}
-                                </div>
+				<div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+					<FormSelect
+						id="type"
+						name="type"
+						control={control}
+						label="Tipo de Atuador"
+						placeholder="Selecione..."
+						icon={<Sliders className="h-4 w-4" />}
+						error={errors.type?.message}
+						options={[
+							{ value: DeviceTypeEnum.Light, label: "Iluminação (1)" },
+							{ value: DeviceTypeEnum.Switch, label: "Tomada / Relé (2)" },
+							{ value: DeviceTypeEnum.Sensor, label: "Sensor (3)" },
+							{ value: DeviceTypeEnum.Thermostat, label: "Climatização (4)" },
+							{ value: DeviceTypeEnum.Camera, label: "Câmera Wi-Fi (5)" },
+							{ value: DeviceTypeEnum.Lock, label: "Fechadura (6)" },
+							{ value: DeviceTypeEnum.Alarm, label: "Alarme (7)" },
+						]}
+					/>
 
-                                <div>
-                                    <label
-                                        htmlFor="brand"
-                                        className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-zinc-400"
-                                    >
-                                        Marca / Modelo
-                                    </label>
-                                    <input
-                                        id="brand"
-                                        {...register("brand")}
-                                        type="text"
-                                        placeholder="Ex: Philips Hue"
-                                        className="w-full rounded-lg border border-zinc-800 bg-zinc-950 p-2.5 text-zinc-100 placeholder:text-zinc-600 focus:border-indigo-500 focus:outline-none"
-                                    />
-                                    {errors.brand && (
-                                        <p className="mt-1 text-xs text-red-400">
-                                            {errors.brand.message}
-                                        </p>
-                                    )}
-                                </div>
-
-                                <div>
-                                    <label
-                                        htmlFor="externalId"
-                                        className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-zinc-400"
-                                    >
-                                        Identificador Externo / MAC
-                                    </label>
-                                    <input
-                                        id="externalId"
-                                        {...register("externalId")}
-                                        type="text"
-                                        placeholder="00:1B:44:11:3A:B7"
-                                        className="w-full font-mono rounded-lg border border-zinc-800 bg-zinc-950 p-2.5 text-zinc-100 placeholder:text-zinc-600 focus:border-indigo-500 focus:outline-none"
-                                    />
-                                    {errors.externalId && (
-                                        <p className="mt-1 text-xs text-red-400">
-                                            {errors.externalId.message}
-                                        </p>
-                                    )}
-                                </div>
-
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div>
-                                        <label
-                                            htmlFor="type"
-                                            className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-zinc-400"
-                                        >
-                                            Tipo
-                                        </label>
-                                        <select
-                                            id="type"
-                                            {...register("type")}
-                                            className="w-full rounded-lg border border-zinc-800 bg-zinc-950 p-2.5 text-zinc-100 focus:border-indigo-500 focus:outline-none"
-                                        >
-                                            <option value={0}>Selecione...</option>
-                                            <option value={DeviceTypeEnum.Light}>Lâmpada (1)</option>
-                                            <option value={DeviceTypeEnum.Switch}>Tomada / Relé (2)</option>
-                                            <option value={DeviceTypeEnum.Sensor}>Sensor de Ambiente (3)</option>
-                                            <option value={DeviceTypeEnum.Thermostat}>Ar Condicionado / Termostato (4)</option>
-                                            <option value={DeviceTypeEnum.Camera}>Câmera de Monitoramento (5)</option>
-                                            <option value={DeviceTypeEnum.Lock}>Fechadura Inteligente (6)</option>
-                                            <option value={DeviceTypeEnum.Alarm}>Alarme de Segurança (7)</option>
-                                        </select>
-                                        {errors.type && (
-                                            <p className="mt-1 text-xs text-red-400">
-                                                {errors.type.message}
-                                            </p>
-                                        )}
-                                    </div>
-
-                                    <div>
-                                        <label
-                                            htmlFor="roomId"
-                                            className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-zinc-400"
-                                        >
-                                            Cômodo (Opcional)
-                                        </label>
-                                        <select
-                                            id="roomId"
-                                            {...register("roomId")}
-                                            className="w-full rounded-lg border border-zinc-800 bg-zinc-950 p-2.5 text-zinc-100 focus:border-indigo-500 focus:outline-none"
-                                        >
-                                            <option value="">Sem cômodo</option>
-                                        </select>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="flex justify-end gap-3 border-t border-zinc-800/80 bg-zinc-900/50 p-6">
-                            <button
-                                type="button"
-                                onClick={closeCreateSheet}
-                                disabled={isPending}
-                                className="rounded-lg border border-zinc-800 px-4 py-2 text-xs font-medium text-zinc-300 transition-colors hover:bg-zinc-800 cursor-pointer disabled:opacity-50"
-                            >
-                                Cancelar
-                            </button>
-                            <button
-                                type="submit"
-                                disabled={isPending}
-                                className="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-xs font-medium text-white transition-colors hover:bg-indigo-500 cursor-pointer shadow-lg shadow-indigo-600/20 disabled:opacity-50"
-                            >
-                                {isPending && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
-                                Registrar
-                            </button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-    );
+					<FormSelect
+						id="roomId"
+						name="roomId"
+						control={control}
+						label="Cômodo (Opcional)"
+						placeholder="Selecione..."
+						icon={<Home className="h-4 w-4" />}
+						error={errors.roomId?.message}
+						options={[{ value: "", label: "Sem cômodo" }]}
+					/>
+				</div>
+			</div>
+		</SheetLayout>
+	);
 };

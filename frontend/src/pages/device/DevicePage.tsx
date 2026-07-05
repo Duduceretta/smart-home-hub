@@ -4,6 +4,7 @@ import { DevicesGrid } from "@/features/device/components/DevicesGrid";
 import { DevicesHeader } from "@/features/device/components/DevicesHeader";
 import { DevicesMetrics } from "@/features/device/components/DevicesMetrics";
 import { DevicesToolbar } from "@/features/device/components/DevicesToolbar";
+import { EditDeviceSheet } from "@/features/device/components/EditDeviceSheet";
 
 export const DevicesPage: React.FC = () => {
 	return (
@@ -13,6 +14,7 @@ export const DevicesPage: React.FC = () => {
 			<DevicesToolbar />
 			<DevicesGrid />
 			<CreateDeviceSheet />
+			<EditDeviceSheet />
 		</div>
 	);
 };

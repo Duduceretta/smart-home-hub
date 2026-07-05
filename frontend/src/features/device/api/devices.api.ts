@@ -4,18 +4,14 @@ import type {
 	CreateDevicePayload,
 	CreateDeviceResponse,
 	Device,
+	UpdateDevicePayload,
 } from "../types/devices.types";
 
-/**
- * Busca a lista de dispositivos e desempacota o PagedResult do C#
- * GET /api/devices
- */
 export async function fetchDevices(): Promise<Device[]> {
 	const { data } = await apiClient.get<PagedResponse<Device> | Device[]>(
 		"/devices",
 	);
 
-	// Se o C# devolveu o objeto paginado { items: [...] }, extraímos o array:
 	if (
 		data &&
 		typeof data === "object" &&
@@ -25,7 +21,6 @@ export async function fetchDevices(): Promise<Device[]> {
 		return data.items;
 	}
 
-	// Se devolveu um array puro:
 	if (Array.isArray(data)) {
 		return data;
 	}
@@ -33,19 +28,11 @@ export async function fetchDevices(): Promise<Device[]> {
 	return [];
 }
 
-/**
- * Dispara o comando de inversão de estado (IsOn) via HTTP + MQTT
- * POST /api/devices/{id}/toggle
- */
-export async function toggleDeviceRequest(deviceId: string): Promise<unknown> {
-	const { data } = await apiClient.post(`/devices/${deviceId}/toggle`);
+export const fetchDeviceById = async (id: string): Promise<Device> => {
+	const { data } = await apiClient.get<Device>(`/devices/${id}`);
 	return data;
-}
+};
 
-/**
- * Registra um novo hardware IoT no banco de dados do .NET
- * POST /api/devices
- */
 export async function createDeviceRequest(
 	payload: CreateDevicePayload,
 ): Promise<CreateDeviceResponse> {
@@ -55,3 +42,27 @@ export async function createDeviceRequest(
 	);
 	return data;
 }
+
+export const toggleDeviceRequest = async (
+	deviceId: string,
+): Promise<{ message: string }> => {
+	const { data } = await apiClient.post<{ message: string }>(
+		`/devices/${deviceId}/toggle`,
+	);
+	return data;
+};
+
+export const updateDeviceRequest = async ({
+	id,
+	payload,
+}: {
+	id: string;
+	payload: UpdateDevicePayload;
+}): Promise<Device> => {
+	const { data } = await apiClient.put<Device>(`/devices/${id}`, payload);
+	return data;
+};
+
+export const deleteDeviceRequest = async (deviceId: string): Promise<void> => {
+	await apiClient.delete(`/devices/${deviceId}`);
+};

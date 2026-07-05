@@ -16,25 +16,26 @@ export function useToggleDevice() {
 				devicesKeys.lists(),
 			);
 
-			queryClient.setQueryData<Device[]>(devicesKeys.lists(), (old = []) =>
-				old.map((device) =>
-					device.id === deviceId ? { ...device, isOn: !device.isOn } : device,
-				),
-			);
+			if (previousDevices) {
+				queryClient.setQueryData<Device[]>(
+					devicesKeys.lists(),
+					previousDevices.map((d) =>
+						d.id === deviceId ? { ...d, isOn: !d.isOn } : d,
+					),
+				);
+			}
 
 			return { previousDevices };
 		},
 
-		onError: (_error, _deviceId, context) => {
+		onError: (_err, _deviceId, context) => {
 			if (context?.previousDevices) {
 				queryClient.setQueryData(devicesKeys.lists(), context.previousDevices);
 			}
 		},
 
-		onSettled: (_data, _error, deviceId) => {
+		onSettled: () => {
 			queryClient.invalidateQueries({ queryKey: devicesKeys.lists() });
-			queryClient.invalidateQueries({ queryKey: devicesKeys.detail(deviceId) });
-			queryClient.invalidateQueries({ queryKey: ["dashboard", "overview"] });
 		},
 	});
 }
