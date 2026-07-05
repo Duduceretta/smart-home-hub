@@ -6,6 +6,7 @@ import {
 import { ProtectedRoute } from "@/features/auth/guards/ProtectedRoute";
 import { PublicRoute } from "@/features/auth/guards/PublicRoute";
 import { DashboardPage } from "@/pages/dashboard/DashboardPage";
+import { DevicesPage } from "@/pages/device/DevicePage";
 import { ForgotPasswordPage } from "@/pages/forgot-password/ForgotPasswordPage";
 import { LoginPage } from "@/pages/login/LoginPage";
 import { RegisterPage } from "@/pages/register/RegisterPage";
@@ -41,7 +42,10 @@ const router = createBrowserRouter([
 						path: "/dashboard",
 						element: <DashboardPage />,
 					},
-					// Futuras páginas: { path: "/devices", element: <DevicesPage /> }
+					{
+						path: "devices",
+						element: <DevicesPage />,
+					},
 				],
 			},
 		],
