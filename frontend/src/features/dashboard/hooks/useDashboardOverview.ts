@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { apiClient } from "@/core/api/api.client";
 import type { DashboardOverviewResponse } from "../types/dashboard.types";
+import { dashboardKeys } from "./dashboard.keys";
 
 async function fetchDashboardOverview(): Promise<DashboardOverviewResponse> {
 	const { data } = await apiClient.get<DashboardOverviewResponse>(
@@ -10,11 +11,11 @@ async function fetchDashboardOverview(): Promise<DashboardOverviewResponse> {
 }
 
 export function useDashboardOverview() {
-	return useQuery({
-		queryKey: ["dashboard", "overview"],
-		queryFn: fetchDashboardOverview,
-		staleTime: 1000 * 60 * 5,
-		refetchInterval: 1000 * 60,
-		retry: 1,
-	});
+    return useQuery<DashboardOverviewResponse, Error>({
+        queryKey: dashboardKeys.overview(),
+        queryFn: fetchDashboardOverview,
+        staleTime: 1000 * 60 * 5,
+        refetchInterval: 1000 * 60,
+        retry: 1,
+    });
 }

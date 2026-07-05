@@ -1,14 +1,19 @@
 import { apiClient } from "@/core/api/api.client";
-import type { DashboardMetrics } from "../types/dashboard.types";
+import { Logger } from "@/core/logger/app.logger";
+import type { DashboardOverviewResponse } from "../types/dashboard.types";
 
-export const fetchDashboardMetrics = async (): Promise<DashboardMetrics> => {
-	try {
-		const response =
-			await apiClient.get<DashboardMetrics>("/dashboard/metrics");
+export const fetchDashboardOverview =
+	async (): Promise<DashboardOverviewResponse> => {
+		try {
+			const response = await apiClient.get<DashboardOverviewResponse>(
+				"/dashboard/overview",
+			);
 
-		return response.data;
-	} catch (error) {
-		console.error("Falha ao buscar métricas do dashboard", error);
-		throw new Error("Não foi possível carregar os dados do painel no momento.");
-	}
-};
+			return response.data;
+		} catch (error: unknown) {
+			Logger.error("Falha ao buscar os dados consolidados do dashboard", error);
+			throw new Error(
+				"Não foi possível carregar as informações do painel no momento.",
+			);
+		}
+	};
