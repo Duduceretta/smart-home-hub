@@ -1,7 +1,7 @@
 import { AnimatePresence, motion } from "framer-motion";
 import type { InputHTMLAttributes, ReactNode } from "react";
 import type { UseFormRegisterReturn } from "react-hook-form";
-import { cn } from "../../utils";
+import { cn } from "@/core/utils";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 
@@ -78,13 +78,13 @@ export function FormInput({
 				/>
 			</div>
 
-			<div className="min-h-5">
+			<div className="h-5 flex items-center">
 				<AnimatePresence mode="wait">
 					{error && (
 						<motion.p
 							id={errorId}
 							{...errorAnimation}
-							className="pl-1 text-xs text-red-400"
+							className="pl-1 text-xs text-red-400 truncate w-full"
 						>
 							{error}
 						</motion.p>
