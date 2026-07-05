@@ -8,25 +8,30 @@ public class SystemEventConfiguration : IEntityTypeConfiguration<SystemEvent>
 {
     public void Configure(EntityTypeBuilder<SystemEvent> builder)
     {
-        builder.HasKey(e => e.Id);
+        builder.HasKey(events => events.Id);
 
-        builder.Property(e => e.Title).IsRequired().HasMaxLength(100);
-        builder.Property(e => e.Description).HasMaxLength(255);
-        builder.Property(e => e.EventType).IsRequired().HasMaxLength(50);
-        builder.Property(e => e.Timestamp).IsRequired();
-
-        builder
-            .HasOne(e => e.User)
-            .WithMany()
-            .HasForeignKey(e => e.UserId)
-            .OnDelete(DeleteBehavior.Cascade);
+        builder.Property(events => events.Title).IsRequired().HasMaxLength(100);
+        builder.Property(events => events.Description).HasMaxLength(255);
+        builder.Property(events => events.EventType).IsRequired().HasMaxLength(50);
+        builder.Property(events => events.Timestamp).IsRequired();
 
         builder
-            .HasOne(e => e.Device)
+            .HasOne(events => events.User)
             .WithMany()
-            .HasForeignKey(e => e.DeviceId)
+            .HasForeignKey(events => events.UserId)
+            .OnDelete(DeleteBehavior.Cascade)
+            .IsRequired(false);
+
+        builder.Property(events => events.UserId).IsRequired();
+
+        builder
+            .HasOne(events => events.Device)
+            .WithMany()
+            .HasForeignKey(events => events.DeviceId)
             .OnDelete(DeleteBehavior.SetNull);
 
-        builder.HasIndex(e => new { e.UserId, e.Timestamp }).IsDescending(false, true);
+        builder
+            .HasIndex(events => new { events.UserId, events.Timestamp })
+            .IsDescending(false, true);
     }
 }

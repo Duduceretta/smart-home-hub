@@ -44,11 +44,18 @@ public sealed class GetDashboardOverviewQueryHandler(IAppDbContext dbContext)
         CancellationToken cancellationToken
     )
     {
-        var userDevicesQuery = dbContext
+        var userDevices = await dbContext
             .Devices.AsNoTracking()
-            .Where(device => device.User.ExternalAuthUid == request.FirebaseUid);
+            .Where(device => device.User.ExternalAuthUid == request.FirebaseUid)
+            .Select(device => new
+            {
+                device.Id,
+                device.IsOn,
+                RoomName = device.Room!.Name,
+            })
+            .ToListAsync(cancellationToken);
 
-        var totalDevicesCount = await userDevicesQuery.CountAsync(cancellationToken);
+        var totalDevicesCount = userDevices.Count;
 
         if (totalDevicesCount == 0)
         {
@@ -56,10 +63,8 @@ public sealed class GetDashboardOverviewQueryHandler(IAppDbContext dbContext)
             return Result.Success(new DashboardOverviewResponse(emptySummary, [], [], []));
         }
 
-        var onlineDevicesCount = await userDevicesQuery.CountAsync(
-            device => device.IsOn,
-            cancellationToken
-        );
+        var onlineDevicesCount = userDevices.Count(device => device.IsOn);
+        var userDeviceIds = userDevices.Select(d => d.Id).ToList();
 
         var activeAlertsCount = await dbContext
             .SystemEvents.AsNoTracking()
@@ -69,10 +74,10 @@ public sealed class GetDashboardOverviewQueryHandler(IAppDbContext dbContext)
         var startOfDayUtc = request.TargetDateUtc.Date;
         var endOfDayUtc = startOfDayUtc.AddDays(1);
 
-        var energyChartData = await dbContext
+        var rawEnergyQuery = await dbContext
             .DeviceTelemetryLogs.AsNoTracking()
             .Where(log =>
-                log.Device.User.ExternalAuthUid == request.FirebaseUid
+                userDeviceIds.Contains(log.DeviceId)
                 && log.Timestamp >= startOfDayUtc
                 && log.Timestamp < endOfDayUtc
                 && log.PowerUsageWatts.HasValue
@@ -84,31 +89,31 @@ public sealed class GetDashboardOverviewQueryHandler(IAppDbContext dbContext)
                 Day = log.Timestamp.Day,
                 Hour = log.Timestamp.Hour,
             })
-            .Select(group => new EnergyChartPointDto(
-                new DateTimeOffset(
-                    group.Key.Year,
-                    group.Key.Month,
-                    group.Key.Day,
-                    group.Key.Hour,
-                    0,
-                    0,
-                    TimeSpan.Zero
-                ),
-                Math.Round(group.Sum(x => x.PowerUsageWatts!.Value) / 1000.0, 2)
+            .Select(group => new
+            {
+                group.Key.Year,
+                group.Key.Month,
+                group.Key.Day,
+                group.Key.Hour,
+                TotalWatts = group.Sum(x => x.PowerUsageWatts!.Value),
+            })
+            .ToListAsync(cancellationToken);
+
+        var energyChartData = rawEnergyQuery
+            .Select(item => new EnergyChartPointDto(
+                new DateTimeOffset(item.Year, item.Month, item.Day, item.Hour, 0, 0, TimeSpan.Zero),
+                Math.Round(item.TotalWatts / 1000.0, 2)
             ))
             .OrderBy(point => point.Timestamp)
-            .ToListAsync(cancellationToken);
+            .ToList();
 
         var totalConsumptionKwh = energyChartData.Sum(point => point.Value);
 
-        var roomUsageData = await dbContext
-            .Devices.AsNoTracking()
-            .Where(device =>
-                device.User.ExternalAuthUid == request.FirebaseUid && device.RoomId != null
-            )
-            .GroupBy(device => device.Room!.Name)
+        var roomUsageData = userDevices
+            .Where(d => d.RoomName != null)
+            .GroupBy(d => d.RoomName!)
             .Select(group => new RoomEnergyUsageDto(group.Key, group.Count() * 15.0))
-            .ToListAsync(cancellationToken);
+            .ToList();
 
         var recentActivities = await dbContext
             .SystemEvents.AsNoTracking()

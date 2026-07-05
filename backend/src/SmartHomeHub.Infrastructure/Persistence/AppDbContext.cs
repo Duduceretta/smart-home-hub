@@ -36,4 +36,14 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
         base.OnModelCreating(modelBuilder);
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
     }
+
+    protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
+    {
+        configurationBuilder
+            .Properties<DateTimeOffset>()
+            .HaveConversion<Converters.UtcDateTimeOffsetConverter>();
+        configurationBuilder
+            .Properties<DateTimeOffset?>()
+            .HaveConversion<Converters.UtcDateTimeOffsetConverter>();
+    }
 }

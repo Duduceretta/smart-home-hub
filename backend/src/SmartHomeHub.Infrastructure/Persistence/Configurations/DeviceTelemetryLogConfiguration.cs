@@ -18,7 +18,10 @@ public class DeviceTelemetryLogConfiguration : IEntityTypeConfiguration<DeviceTe
             .HasOne(log => log.Device)
             .WithMany()
             .HasForeignKey(log => log.DeviceId)
-            .OnDelete(DeleteBehavior.Cascade);
+            .OnDelete(DeleteBehavior.Cascade)
+            .IsRequired(false);
+
+        builder.Property(log => log.DeviceId).IsRequired();
 
         builder.HasIndex(log => log.Timestamp).IsDescending();
     }
