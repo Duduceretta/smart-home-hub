@@ -15,6 +15,10 @@ public class Device : ISoftDeletable
 
     // O ID físico da placa (ex: MAC Address) usado no MQTT
     public string ExternalId { get; set; } = string.Empty;
+    public string? IpAddress { get; set; }
+
+    public bool IsOnline { get; set; } = false;
+    public DateTimeOffset? LastSeenAt { get; set; }
 
     public DeviceType Type { get; set; }
     public bool IsOn { get; set; } = false;

@@ -9,4 +9,5 @@ public enum DeviceType
     Camera = 5, // Câmeras (Apenas enviam dados, ex: Vídeo, Áudio)
     Lock = 6, // Fechaduras (Apenas Ligar/Desligar)
     Alarm = 7, // Alarmes (Apenas Ligar/Desligar)
+    Television = 8, // Televisores (Aceitam Ligar, Desligar, Mudar Canal/Volume)
 }

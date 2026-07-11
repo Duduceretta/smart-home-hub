@@ -16,6 +16,10 @@ public class DeviceConfiguration : IEntityTypeConfiguration<Device>
 
         builder.Property(device => device.ExternalId).IsRequired().HasMaxLength(100);
 
+        builder.Property(device => device.IpAddress).HasMaxLength(45);
+        builder.Property(device => device.IsOnline).IsRequired().HasDefaultValue(false);
+        builder.Property(device => device.LastSeenAt).IsRequired(false);
+
         builder.HasIndex(device => device.ExternalId).IsUnique().HasFilter("\"IsDeleted\" = false");
 
         builder.Property(device => device.IsOn).IsRequired().HasDefaultValue(false);
