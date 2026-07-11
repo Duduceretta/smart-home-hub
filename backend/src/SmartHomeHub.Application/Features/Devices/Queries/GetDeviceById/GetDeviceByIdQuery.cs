@@ -1,3 +1,4 @@
+using Mapster;
 using Mediator;
 using Microsoft.EntityFrameworkCore;
 using SmartHomeHub.Application.Common.Interfaces;
@@ -15,20 +16,14 @@ public class GetDeviceByIdQueryHandler(IAppDbContext dbContext)
         CancellationToken cancellationToken
     )
     {
-        return await dbContext
+        var device = await dbContext
             .Devices.AsNoTracking()
-            .Where(device =>
-                device.Id == request.DeviceId && device.User.ExternalAuthUid == request.FirebaseUid
-            )
-            .Select(device => new DeviceDto(
-                device.Id,
-                device.Name,
-                device.Brand,
-                device.ExternalId,
-                device.Type,
-                device.IsOn,
-                device.RoomId
-            ))
-            .FirstOrDefaultAsync(cancellationToken);
+            .Include(d => d.Room)
+            .FirstOrDefaultAsync(
+                d => d.Id == request.DeviceId && d.User.ExternalAuthUid == request.FirebaseUid,
+                cancellationToken
+            );
+
+        return device?.Adapt<DeviceDto>();
     }
 }

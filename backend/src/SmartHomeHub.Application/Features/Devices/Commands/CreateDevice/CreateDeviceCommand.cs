@@ -12,6 +12,7 @@ public record CreateDeviceCommand(
     string Name,
     string Brand,
     string ExternalId,
+    string? IpAddress,
     DeviceType Type,
     Guid? RoomId,
     string FirebaseUid
@@ -80,6 +81,7 @@ public class CreateDeviceCommandHandler(IAppDbContext dbContext)
             Name = request.Name,
             Brand = request.Brand,
             ExternalId = request.ExternalId,
+            IpAddress = request.IpAddress,
             Type = request.Type,
             RoomId = request.RoomId,
             UserId = user.Id,

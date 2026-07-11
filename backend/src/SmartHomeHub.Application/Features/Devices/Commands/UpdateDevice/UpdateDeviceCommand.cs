@@ -12,6 +12,7 @@ public record UpdateDeviceCommand(
     string Name,
     string Brand,
     string ExternalId,
+    string? IpAddress,
     DeviceType Type,
     Guid? RoomId,
     string FirebaseUid
@@ -92,6 +93,7 @@ public class UpdateDeviceCommandHandler(IAppDbContext dbContext)
         device.Name = request.Name;
         device.Brand = request.Brand;
         device.ExternalId = request.ExternalId;
+        device.IpAddress = request.IpAddress;
         device.Type = request.Type;
         device.RoomId = request.RoomId;
 

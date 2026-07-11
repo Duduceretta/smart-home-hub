@@ -1,3 +1,4 @@
+using Mapster;
 using Mediator;
 using Microsoft.EntityFrameworkCore;
 using SmartHomeHub.Application.Common.Interfaces;
@@ -11,9 +12,14 @@ public record DeviceDto(
     string Name,
     string Brand,
     string ExternalId,
+    string? IpAddress,
     DeviceType Type,
+    string Category,
+    string Room,
+    Guid? RoomId,
+    bool IsOnline,
     bool IsOn,
-    Guid? RoomId
+    int LastActivityMinutes
 );
 
 public record GetDevicesQuery(string FirebaseUid, int Page = 1, int PageSize = 10)
@@ -28,19 +34,21 @@ public class GetDevicesQueryHandler(IAppDbContext dbContext)
         CancellationToken cancellationToken
     )
     {
-        return await dbContext
+        var query = dbContext
             .Devices.AsNoTracking()
+            .Include(device => device.Room)
             .Where(device => device.User.ExternalAuthUid == request.FirebaseUid)
-            .OrderBy(device => device.Name)
-            .Select(device => new DeviceDto(
-                device.Id,
-                device.Name,
-                device.Brand,
-                device.ExternalId,
-                device.Type,
-                device.IsOn,
-                device.RoomId
-            ))
-            .ToPagedResultAsync(request.Page, request.PageSize, cancellationToken); // 3. Substituímos o ToListAsync
+            .OrderBy(device => device.Name);
+
+        var totalCount = await query.CountAsync(cancellationToken);
+
+        var rawDevices = await query
+            .Skip((request.Page - 1) * request.PageSize)
+            .Take(request.PageSize)
+            .ToListAsync(cancellationToken);
+
+        var items = rawDevices.Adapt<List<DeviceDto>>();
+
+        return PagedResult<DeviceDto>.Create(items, request.Page, request.PageSize, totalCount);
     }
 }

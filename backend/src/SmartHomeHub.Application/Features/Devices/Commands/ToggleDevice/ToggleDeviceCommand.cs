@@ -4,6 +4,7 @@ using Mediator;
 using Microsoft.EntityFrameworkCore;
 using SmartHomeHub.Application.Common.Interfaces;
 using SmartHomeHub.Domain.Common.Primitives;
+using SmartHomeHub.Domain.Enums;
 
 namespace SmartHomeHub.Application.Features.Devices.Commands.ToggleDevice;
 
@@ -23,8 +24,11 @@ public class ToggleDeviceCommandValidator : AbstractValidator<ToggleDeviceComman
     }
 }
 
-public class ToggleDeviceCommandHandler(IAppDbContext dbContext, IMqttService mqttService)
-    : ICommandHandler<ToggleDeviceCommand, Result>
+public class ToggleDeviceCommandHandler(
+    IAppDbContext dbContext,
+    IMqttService mqttService
+// IGoogleTvService googleTvService -> Adicionaremos na próxima etapa!
+) : ICommandHandler<ToggleDeviceCommand, Result>
 {
     public async ValueTask<Result> Handle(
         ToggleDeviceCommand request,
@@ -33,19 +37,14 @@ public class ToggleDeviceCommandHandler(IAppDbContext dbContext, IMqttService mq
     {
         var user = await dbContext
             .Users.AsNoTracking()
-            .FirstOrDefaultAsync(
-                user => user.ExternalAuthUid == request.FirebaseUid,
-                cancellationToken
-            );
-
+            .FirstOrDefaultAsync(u => u.ExternalAuthUid == request.FirebaseUid, cancellationToken);
         if (user == null)
             return Result.Failure(new Error("User.NotFound", "Usuário não encontrado."));
 
         var device = await dbContext.Devices.FirstOrDefaultAsync(
-            device => device.Id == request.DeviceId && device.UserId == user.Id,
+            d => d.Id == request.DeviceId && d.UserId == user.Id,
             cancellationToken
         );
-
         if (device == null)
             return Result.Failure(
                 new Error("Device.NotFound", "Dispositivo não encontrado ou sem permissão.")
@@ -53,13 +52,39 @@ public class ToggleDeviceCommandHandler(IAppDbContext dbContext, IMqttService mq
 
         var newState = !device.IsOn;
 
-        var commandPayload = JsonSerializer.Serialize(
-            new { action = newState ? "turn_on" : "turn_off" }
-        );
+        // 🚀 TRILHO DE TREM (ROTEAMENTO DE PROTOCOLOS)
+        if (device.Type == DeviceType.Television)
+        {
+            if (string.IsNullOrEmpty(device.IpAddress))
+                return Result.Failure(
+                    new Error(
+                        "Device.NoIpAddress",
+                        "A TV precisa de um IP configurado para receber comandos."
+                    )
+                );
 
-        var topic = $"casa/comandos/{device.ExternalId}";
-        await mqttService.PublishAsync(topic, commandPayload);
+            if (newState)
+            {
+                // TV estava desligada -> Envia Wake-on-LAN pelo MAC
+                // await googleTvService.WakeUpAsync(device.ExternalId, cancellationToken);
+            }
+            else
+            {
+                // TV estava ligada -> Envia Keycode Power pelo ADB via IP
+                // await googleTvService.SendKeycodeAsync(device.IpAddress, 26, cancellationToken);
+            }
+        }
+        else
+        {
+            // PADRÃO PARA DISPOSITIVOS MQTT (Sonoff, Lâmpadas, etc)
+            var commandPayload = JsonSerializer.Serialize(
+                new { action = newState ? "turn_on" : "turn_off" }
+            );
+            var topic = $"casa/comandos/{device.ExternalId}";
+            await mqttService.PublishAsync(topic, commandPayload);
+        }
 
+        // Salva o novo estado no banco
         device.IsOn = newState;
         await dbContext.SaveChangesAsync(cancellationToken);
 

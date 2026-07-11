@@ -89,6 +89,7 @@ public static class DeviceEndpoints
                         request.Name,
                         request.Brand,
                         request.ExternalId,
+                        request.IpAddress,
                         request.Type,
                         request.RoomId,
                         firebaseUid
@@ -170,6 +171,7 @@ public static class DeviceEndpoints
                         request.Name,
                         request.Brand,
                         request.ExternalId,
+                        request.IpAddress,
                         request.Type,
                         request.RoomId,
                         firebaseUid
@@ -241,6 +243,7 @@ public record CreateDeviceRequest(
     string Name,
     string Brand,
     string ExternalId,
+    string? IpAddress,
     DeviceType Type,
     Guid? RoomId
 );
@@ -249,6 +252,7 @@ public record UpdateDeviceRequest(
     string Name,
     string Brand,
     string ExternalId,
+    string? IpAddress,
     DeviceType Type,
     Guid? RoomId
 );
