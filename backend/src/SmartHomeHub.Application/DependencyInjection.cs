@@ -2,6 +2,7 @@ using FluentValidation;
 using Mediator;
 using Microsoft.Extensions.DependencyInjection;
 using SmartHomeHub.Application.Common.Behaviors;
+using SmartHomeHub.Application.Common.Mappings;
 
 namespace SmartHomeHub.Application;
 
@@ -19,6 +20,8 @@ public static class DependencyInjection
         services.AddScoped(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
 
         services.AddValidatorsFromAssembly(typeof(DependencyInjection).Assembly);
+
+        MapsterConfiguration.RegisterMappings();
 
         return services;
     }
