@@ -6,12 +6,13 @@ import {
 	Layers,
 	Loader2,
 	MapPin,
+	Network,
 	QrCode,
 	Router,
 	Sliders,
 } from "lucide-react";
 import { useEffect } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { FormInput } from "@/core/components/forms/FormInput";
 import { FormSelect } from "@/core/components/forms/FormSelect";
 import { SheetLayout } from "@/core/components/layouts/SheetLayout";
@@ -32,7 +33,6 @@ export const EditDeviceSheet: React.FC = () => {
 	const { data: device, isLoading } = useDevice(editingDevice?.id ?? "");
 	const { mutate: updateDevice, isPending: isUpdating } = useUpdateDevice();
 
-	// 🚀 CORREÇÃO AQUI: Passamos <Input, Context, Output> rigorosamente alinhados com o Zod
 	const {
 		register,
 		control,
@@ -48,10 +48,16 @@ export const EditDeviceSheet: React.FC = () => {
 					name: device.name,
 					brand: device.brand,
 					externalId: device.externalId,
+					ipAddress: device.ipAddress ?? null,
 					type: device.type,
 					roomId: device.roomId ?? "",
-				}
+			  }
 			: undefined,
+	});
+
+	const selectedType = useWatch({
+		control,
+		name: "type",
 	});
 
 	useEffect(() => {
@@ -60,7 +66,6 @@ export const EditDeviceSheet: React.FC = () => {
 		}
 	}, [isOpen, reset]);
 
-	// 🚀 O data aqui agora tem a tipagem exata e tratada (UpdateDeviceFormOutput)
 	const onSubmit = (data: UpdateDeviceFormOutput) => {
 		if (!editingDevice?.id) return;
 
@@ -71,6 +76,7 @@ export const EditDeviceSheet: React.FC = () => {
 					name: data.name,
 					brand: data.brand,
 					externalId: data.externalId,
+					ipAddress: data.ipAddress,
 					type: data.type,
 					roomId: data.roomId,
 				},
@@ -79,7 +85,7 @@ export const EditDeviceSheet: React.FC = () => {
 				onSuccess: () => {
 					closeEditSheet();
 				},
-			},
+			}
 		);
 	};
 
@@ -163,6 +169,18 @@ export const EditDeviceSheet: React.FC = () => {
 							registration={register("externalId")}
 							className="font-mono"
 						/>
+
+						{selectedType === DeviceTypeEnum.Television && (
+							<FormInput
+								id="ipAddress"
+								label="Endereço IP (Local) *"
+								placeholder="192.168.1.50"
+								icon={<Network className="h-4 w-4" />}
+								error={errors.ipAddress?.message}
+								registration={register("ipAddress")}
+								className="font-mono animate-fade-in"
+							/>
+						)}
 					</div>
 
 					<div className="space-y-4 pt-2 animate-fade-up opacity-0-init delay-300">
@@ -193,6 +211,7 @@ export const EditDeviceSheet: React.FC = () => {
 									{ value: DeviceTypeEnum.Camera, label: "Câmera Wi-Fi (5)" },
 									{ value: DeviceTypeEnum.Lock, label: "Fechadura (6)" },
 									{ value: DeviceTypeEnum.Alarm, label: "Alarme (7)" },
+									{ value: DeviceTypeEnum.Television, label: "Eletrodoméstico / TV (8)" },
 								]}
 							/>
 

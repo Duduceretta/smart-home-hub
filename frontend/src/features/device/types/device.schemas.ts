@@ -17,7 +17,11 @@ export const deviceBaseSchema = z.object({
 			/^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$|^[A-Za-z0-9-_]+$/,
 			"Digite um MAC ou ID válido",
 		),
-	// 🚀 CORREÇÃO AQUI: Forçamos a conversão e garantimos que o TS entenda como o Enum correto
+	ipAddress: z
+		.ipv4("Digite um endereço de IP válido (ex: 192.168.1.50)")
+		.nullable()
+		.optional()
+		.transform((val) => (val && val.trim() !== "" ? val : null)),
 	type: z.coerce
 		.number()
 		.refine(

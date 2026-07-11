@@ -6,12 +6,13 @@ import {
 	Layers,
 	Loader2,
 	MapPin,
+	Network,
 	QrCode,
 	Router,
 	Sliders,
 } from "lucide-react";
 import { useEffect } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { FormInput } from "@/core/components/forms/FormInput";
 import { FormSelect } from "@/core/components/forms/FormSelect";
 import { SheetLayout } from "@/core/components/layouts/SheetLayout";
@@ -46,6 +47,11 @@ export const CreateDeviceSheet: React.FC = () => {
 			type: 0,
 			roomId: "",
 		},
+	});
+
+	const selectedType = useWatch({
+		control,
+		name: "type",
 	});
 
 	useEffect(() => {
@@ -94,7 +100,6 @@ export const CreateDeviceSheet: React.FC = () => {
 				</>
 			}
 		>
-			{/* Seção 1: Identificação (Delay 100ms) */}
 			<div className="space-y-4 animate-fade-up opacity-0-init delay-100">
 				<div className="flex items-center gap-2 border-b border-[#27272a]/50 pb-2 text-[#6366f1]">
 					<BadgeInfo className="h-4 w-4" />
@@ -122,7 +127,6 @@ export const CreateDeviceSheet: React.FC = () => {
 				/>
 			</div>
 
-			{/* Seção 2: Rede & Conectividade (Delay 200ms) */}
 			<div className="space-y-4 pt-2 animate-fade-up opacity-0-init delay-200">
 				<div className="flex items-center gap-2 border-b border-[#27272a]/50 pb-2 text-[#6366f1]">
 					<Router className="h-4 w-4" />
@@ -140,9 +144,20 @@ export const CreateDeviceSheet: React.FC = () => {
 					registration={register("externalId")}
 					className="font-mono"
 				/>
+
+				{selectedType === DeviceTypeEnum.Television && (
+					<FormInput
+						id="ipAddress"
+						label="Endereço IP (Local) *"
+						placeholder="192.168.1.50"
+						icon={<Network className="h-4 w-4" />}
+						error={errors.ipAddress?.message}
+						registration={register("ipAddress")}
+						className="font-mono animate-fade-in"
+					/>
+				)}
 			</div>
 
-			{/* Seção 3: Classificação (Delay 300ms) */}
 			<div className="space-y-4 pt-2 animate-fade-up opacity-0-init delay-300">
 				<div className="flex items-center gap-2 border-b border-[#27272a]/50 pb-2 text-[#6366f1]">
 					<MapPin className="h-4 w-4" />
@@ -168,6 +183,10 @@ export const CreateDeviceSheet: React.FC = () => {
 							{ value: DeviceTypeEnum.Camera, label: "Câmera Wi-Fi (5)" },
 							{ value: DeviceTypeEnum.Lock, label: "Fechadura (6)" },
 							{ value: DeviceTypeEnum.Alarm, label: "Alarme (7)" },
+							{
+								value: DeviceTypeEnum.Television,
+								label: "Eletrodoméstico / TV (8)",
+							},
 						]}
 					/>
 

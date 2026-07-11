@@ -6,6 +6,7 @@ export enum DeviceTypeEnum {
 	Camera = 5,
 	Lock = 6,
 	Alarm = 7,
+	Television = 8,
 }
 
 export type StatusFilterType = "online" | "offline" | null;
@@ -15,6 +16,7 @@ export interface Device {
 	name: string;
 	brand: string;
 	externalId: string;
+	ipAddress?: string | null;
 	type: DeviceTypeEnum;
 	category: string;
 	room: string;
@@ -28,6 +30,7 @@ export interface CreateDevicePayload {
 	name: string;
 	brand: string;
 	externalId: string;
+	ipAddress?: string | null;
 	type: DeviceTypeEnum;
 	roomId: string | null;
 }
@@ -44,6 +47,7 @@ export function isActuatorDevice(type: DeviceTypeEnum): boolean {
 		DeviceTypeEnum.Thermostat,
 		DeviceTypeEnum.Lock,
 		DeviceTypeEnum.Alarm,
+		DeviceTypeEnum.Television,
 	].includes(type);
 }
 
@@ -51,6 +55,7 @@ export interface UpdateDevicePayload {
 	name: string;
 	brand: string;
 	externalId: string;
+	ipAddress?: string | null;
 	type: DeviceTypeEnum;
 	roomId?: string | null;
 }

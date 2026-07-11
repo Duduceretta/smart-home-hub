@@ -6,6 +6,7 @@ import {
 	Radar,
 	Siren,
 	Thermometer,
+	Tv,
 } from "lucide-react";
 import type { ComponentType } from "react";
 import { DeviceTypeEnum } from "../types/devices.types";
@@ -51,5 +52,10 @@ export const DEVICE_CONFIG: Record<DeviceTypeEnum, DeviceIconConfig> = {
 		icon: Siren,
 		bg: "bg-orange-500/10",
 		text: "text-orange-400",
+	},
+	[DeviceTypeEnum.Television]: {
+		icon: Tv,
+		bg: "bg-teal-500/10",
+		text: "text-teal-400",
 	},
 };
