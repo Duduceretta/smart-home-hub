@@ -51,7 +51,10 @@ export const DeviceCard: React.FC<DeviceCardProps> = ({ device }) => {
 
 	const handleToggle = (e: React.MouseEvent) => {
 		e.stopPropagation();
-		if (!device.isOnline || isToggling) return;
+		const isOfflineAndNotTv = !device.isOnline && device.type !== DeviceTypeEnum.Television;
+		
+		if (isOfflineAndNotTv || isToggling) return;
+		
 		toggleDevice(device.id);
 	};
 
@@ -165,7 +168,7 @@ export const DeviceCard: React.FC<DeviceCardProps> = ({ device }) => {
 					{showToggle ? (
 						<button
 							type="button"
-							disabled={!device.isOnline || isToggling}
+							disabled={!device.isOnline && device.type !== DeviceTypeEnum.Television || isToggling}
 							onClick={handleToggle}
 							role="switch"
 							aria-checked={device.isOn}
