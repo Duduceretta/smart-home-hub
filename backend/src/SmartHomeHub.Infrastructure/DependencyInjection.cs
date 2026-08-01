@@ -6,6 +6,7 @@ using Microsoft.IdentityModel.Tokens;
 using SmartHomeHub.Application.Common.Interfaces;
 using SmartHomeHub.Infrastructure.Messaging;
 using SmartHomeHub.Infrastructure.Persistence;
+using SmartHomeHub.Infrastructure.Services;
 
 namespace SmartHomeHub.Infrastructure;
 
@@ -23,6 +24,10 @@ public static class DependencyInjection
         services.AddScoped<IAppDbContext>(provider => provider.GetRequiredService<AppDbContext>());
 
         services.AddSingleton<IMqttService, MqttService>();
+
+        services.AddTransient<IGoogleTvService, GoogleTvNetworkService>();
+
+        services.AddScoped<IChromecastWakeService, Services.ChromecastWakeService>();
 
         var firebaseProjectId = configuration["Firebase:ProjectId"];
 

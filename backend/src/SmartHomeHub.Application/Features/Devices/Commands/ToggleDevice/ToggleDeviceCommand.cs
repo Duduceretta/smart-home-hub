@@ -26,8 +26,9 @@ public class ToggleDeviceCommandValidator : AbstractValidator<ToggleDeviceComman
 
 public class ToggleDeviceCommandHandler(
     IAppDbContext dbContext,
-    IMqttService mqttService
-// IGoogleTvService googleTvService -> Adicionaremos na próxima etapa!
+    IMqttService mqttService,
+    IGoogleTvService googleTvService,
+    IChromecastWakeService chromecastWakeService
 ) : ICommandHandler<ToggleDeviceCommand, Result>
 {
     public async ValueTask<Result> Handle(
@@ -37,14 +38,19 @@ public class ToggleDeviceCommandHandler(
     {
         var user = await dbContext
             .Users.AsNoTracking()
-            .FirstOrDefaultAsync(u => u.ExternalAuthUid == request.FirebaseUid, cancellationToken);
+            .FirstOrDefaultAsync(
+                user => user.ExternalAuthUid == request.FirebaseUid,
+                cancellationToken
+            );
+
         if (user == null)
             return Result.Failure(new Error("User.NotFound", "Usuário não encontrado."));
 
         var device = await dbContext.Devices.FirstOrDefaultAsync(
-            d => d.Id == request.DeviceId && d.UserId == user.Id,
+            device => device.Id == request.DeviceId && device.UserId == user.Id,
             cancellationToken
         );
+
         if (device == null)
             return Result.Failure(
                 new Error("Device.NotFound", "Dispositivo não encontrado ou sem permissão.")
@@ -52,7 +58,6 @@ public class ToggleDeviceCommandHandler(
 
         var newState = !device.IsOn;
 
-        // 🚀 TRILHO DE TREM (ROTEAMENTO DE PROTOCOLOS)
         if (device.Type == DeviceType.Television)
         {
             if (string.IsNullOrEmpty(device.IpAddress))
@@ -65,18 +70,19 @@ public class ToggleDeviceCommandHandler(
 
             if (newState)
             {
-                // TV estava desligada -> Envia Wake-on-LAN pelo MAC
-                // await googleTvService.WakeUpAsync(device.ExternalId, cancellationToken);
+                await chromecastWakeService.WakeUpAsync(device.IpAddress, cancellationToken);
+
+                await Task.Delay(2000, cancellationToken);
+
+                // 3. (Opcional) Se precisar mandar comandos logo após ligar (ex: abrir Netflix), o ADB assume aqui!
             }
             else
             {
-                // TV estava ligada -> Envia Keycode Power pelo ADB via IP
-                // await googleTvService.SendKeycodeAsync(device.IpAddress, 26, cancellationToken);
+                await googleTvService.SendKeycodeAsync(device.IpAddress, 26, cancellationToken);
             }
         }
         else
         {
-            // PADRÃO PARA DISPOSITIVOS MQTT (Sonoff, Lâmpadas, etc)
             var commandPayload = JsonSerializer.Serialize(
                 new { action = newState ? "turn_on" : "turn_off" }
             );
@@ -84,7 +90,6 @@ public class ToggleDeviceCommandHandler(
             await mqttService.PublishAsync(topic, commandPayload);
         }
 
-        // Salva o novo estado no banco
         device.IsOn = newState;
         await dbContext.SaveChangesAsync(cancellationToken);
 
