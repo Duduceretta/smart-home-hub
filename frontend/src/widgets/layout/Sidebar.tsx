@@ -1,5 +1,6 @@
 import {
 	Bot,
+	DoorOpen,
 	History,
 	Home,
 	LayoutDashboard,
@@ -17,6 +18,7 @@ export function Sidebar() {
 	const navItems = [
 		{ name: "Dashboard", path: "/dashboard", icon: LayoutDashboard },
 		{ name: "Dispositivos", path: "/devices", icon: Router },
+		{ name: "Ambientes", path: "/rooms", icon: DoorOpen },
 		{ name: "Automações", path: "/automations", icon: Bot },
 		{ name: "Histórico", path: "/history", icon: History },
 	];
@@ -56,7 +58,12 @@ export function Sidebar() {
 
 				<Link
 					to="/settings"
-					className="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-zinc-400 hover:text-zinc-50 hover:bg-zinc-900/50 transition-all duration-200 mt-auto"
+					className={cn(
+						"flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 mt-auto",
+						isActive("/settings")
+							? "bg-indigo-600/10 text-indigo-400 border border-indigo-500/20 shadow-[0_0_15px_rgba(79,70,229,0.1)]"
+							: "text-zinc-400 hover:text-zinc-50 hover:bg-zinc-900/50",
+					)}
 				>
 					<Settings className="w-5 h-5" />
 					Configurações
@@ -66,7 +73,7 @@ export function Sidebar() {
 			<div className="mt-6">
 				<button
 					type="button"
-					className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-lg bg-zinc-900 border border-zinc-800 text-zinc-300 font-medium text-sm transition-colors hover:bg-zinc-800 hover:text-zinc-50 group"
+					className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-lg bg-zinc-900 border border-zinc-800 text-zinc-300 font-medium text-sm transition-colors hover:bg-zinc-800 hover:text-zinc-50 group cursor-pointer"
 				>
 					<Plus className="w-4 h-4 group-hover:text-indigo-400 transition-colors" />
 					Adicionar

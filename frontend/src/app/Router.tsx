@@ -11,7 +11,8 @@ import { ForgotPasswordPage } from "@/pages/forgot-password/ForgotPasswordPage";
 import { LoginPage } from "@/pages/login/LoginPage";
 import { RegisterPage } from "@/pages/register/RegisterPage";
 import { ResetPasswordPage } from "@/pages/reset-password/ResetPasswordPage";
-import { AppLayout } from "@/widgets/layout/AppLayout"; // 👈 Nome corrigido aqui!
+import RoomsPage from "@/pages/rooms/RoomsPage";
+import { AppLayout } from "@/widgets/layout/AppLayout";
 
 const router = createBrowserRouter([
 	{
@@ -43,8 +44,12 @@ const router = createBrowserRouter([
 						element: <DashboardPage />,
 					},
 					{
-						path: "devices",
+						path: "/devices",
 						element: <DevicesPage />,
+					},
+					{
+						path: "/rooms",
+						element: <RoomsPage />,
 					},
 				],
 			},
