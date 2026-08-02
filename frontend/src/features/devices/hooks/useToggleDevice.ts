@@ -1,13 +1,19 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
+import { Logger } from "@/core/logger/app.logger";
 import { toggleDeviceRequest } from "../api/devices.api";
-import type { Device } from "../types/devices.types";
+import type { Device, ToggleDeviceResponse } from "../types/devices.types";
 import { devicesKeys } from "./devices.keys";
+
+interface ToggleContext {
+	previousDevices?: Device[];
+}
 
 export function useToggleDevice() {
 	const queryClient = useQueryClient();
 
-	return useMutation({
-		mutationFn: toggleDeviceRequest,
+	return useMutation<ToggleDeviceResponse, Error, string, ToggleContext>({
+		mutationFn: (deviceId: string) => toggleDeviceRequest(deviceId),
 
 		onMutate: async (deviceId: string) => {
 			await queryClient.cancelQueries({ queryKey: devicesKeys.lists() });
@@ -28,10 +34,14 @@ export function useToggleDevice() {
 			return { previousDevices };
 		},
 
-		onError: (_err, _deviceId, context) => {
+		onError: (error, _deviceId, context) => {
 			if (context?.previousDevices) {
 				queryClient.setQueryData(devicesKeys.lists(), context.previousDevices);
 			}
+			Logger.error("Falha ao alternar estado do dispositivo", error);
+			toast.error(
+				error.message || "Não foi possível alterar o estado do dispositivo.",
+			);
 		},
 
 		onSettled: () => {

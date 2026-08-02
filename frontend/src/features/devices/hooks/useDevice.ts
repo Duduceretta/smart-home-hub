@@ -11,7 +11,6 @@ export function useDevice(id: string) {
 		queryFn: () => fetchDeviceById(id),
 		enabled: Boolean(id),
 		staleTime: 1000 * 60 * 5,
-
 		initialData: () => {
 			const cachedLists = queryClient.getQueryData<Device[]>(
 				devicesKeys.lists(),
