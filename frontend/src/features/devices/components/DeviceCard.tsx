@@ -2,7 +2,7 @@ import {
 	Activity,
 	ChevronRight,
 	MoreVertical,
-	SlidersHorizontal,
+	Pencil,
 	Trash2,
 	Wifi,
 	WifiOff,
@@ -51,10 +51,11 @@ export const DeviceCard: React.FC<DeviceCardProps> = ({ device }) => {
 
 	const handleToggle = (e: React.MouseEvent) => {
 		e.stopPropagation();
-		const isOfflineAndNotTv = !device.isOnline && device.type !== DeviceTypeEnum.Television;
-		
+		const isOfflineAndNotTv =
+			!device.isOnline && device.type !== DeviceTypeEnum.Television;
+
 		if (isOfflineAndNotTv || isToggling) return;
-		
+
 		toggleDevice(device.id);
 	};
 
@@ -83,7 +84,7 @@ export const DeviceCard: React.FC<DeviceCardProps> = ({ device }) => {
 							<IconComponent className="h-5 w-5" />
 						</div>
 
-						{/* Status + Menu de Contexto (relative z-10 para ficar ACIMA do clique do card) */}
+						{/* Status + Menu de Contexto */}
 						<div className="relative z-10 flex items-center gap-1.5">
 							<div className="flex items-center gap-1.5 rounded-md border border-zinc-800 bg-zinc-900/80 px-2 py-1">
 								{device.isOnline ? (
@@ -96,7 +97,7 @@ export const DeviceCard: React.FC<DeviceCardProps> = ({ device }) => {
 								</span>
 							</div>
 
-							{/* 🚀 DROPDOWN SEM DIV ESTÁTICA EM VOLTA */}
+							{/* 🚀 DROPDOWN */}
 							<DropdownMenu>
 								<DropdownMenuTrigger asChild>
 									<button
@@ -114,10 +115,10 @@ export const DeviceCard: React.FC<DeviceCardProps> = ({ device }) => {
 								>
 									<DropdownMenuItem
 										onClick={() => openEditSheet(device)}
-										className="cursor-pointer gap-2 text-xs focus:bg-zinc-800 focus:text-white"
+										className="cursor-pointer gap-2 text-xs text-zinc-300 focus:bg-zinc-800 focus:text-white"
 									>
-										<SlidersHorizontal className="h-3.5 w-3.5" />
-										Configurar
+										<Pencil className="h-3.5 w-3.5" />
+										<span>Editar</span>
 									</DropdownMenuItem>
 
 									<DropdownMenuItem
@@ -135,7 +136,7 @@ export const DeviceCard: React.FC<DeviceCardProps> = ({ device }) => {
 					{/* Nome, Cômodo e Setinha */}
 					<div className="mt-4">
 						<div className="flex items-center justify-between">
-							{/* 🚀 BOTÃO INVISÍVEL COM STRETCHED LINK (before:absolute before:inset-0) */}
+							{/* 🚀 BOTÃO INVISÍVEL COM STRETCHED LINK  */}
 							<button
 								type="button"
 								onClick={handleInspectTelemetry}
@@ -159,7 +160,7 @@ export const DeviceCard: React.FC<DeviceCardProps> = ({ device }) => {
 					</div>
 				</div>
 
-				{/* Rodapé do Card (relative z-10 para o Switch ficar clicável acima do card) */}
+				{/* Rodapé do Card */}
 				<div className="relative z-10 mt-6 flex items-center justify-between border-t border-zinc-800/60 pt-3 w-full">
 					<span className="font-mono text-[11px] text-zinc-500">
 						ID: {device.externalId}
@@ -168,7 +169,11 @@ export const DeviceCard: React.FC<DeviceCardProps> = ({ device }) => {
 					{showToggle ? (
 						<button
 							type="button"
-							disabled={!device.isOnline && device.type !== DeviceTypeEnum.Television || isToggling}
+							disabled={
+								(!device.isOnline &&
+									device.type !== DeviceTypeEnum.Television) ||
+								isToggling
+							}
 							onClick={handleToggle}
 							role="switch"
 							aria-checked={device.isOn}

@@ -12,19 +12,21 @@ export function FormGlobalError({ error, className }: FormGlobalErrorProps) {
 		<AnimatePresence>
 			{error && (
 				<motion.div
-					initial={{ opacity: 0, height: 0, marginTop: 0 }}
-					animate={{ opacity: 1, height: "auto", marginTop: 16 }}
-					exit={{ opacity: 0, height: 0, marginTop: 0 }}
-					transition={{ duration: 0.25, ease: "easeInOut" }}
-					className={cn("overflow-hidden", className)}
+					initial={{ opacity: 0, height: 0, marginBottom: 0 }}
+					animate={{ opacity: 1, height: "auto", marginBottom: 12 }}
+					exit={{ opacity: 0, height: 0, marginBottom: 0 }}
+					transition={{ duration: 0.2, ease: "easeOut" }}
+					className={cn("overflow-hidden w-full", className)}
 				>
 					<div
 						role="alert"
 						aria-live="assertive"
-						className="flex items-center gap-3 rounded-lg border border-red-500/20 bg-red-500/10 p-3"
+						className="flex items-center gap-2.5 rounded-lg border border-red-500/25 bg-red-500/10 px-3 py-2.5 shadow-sm"
 					>
 						<AlertTriangle className="h-4 w-4 shrink-0 text-red-400" />
-						<p className="text-sm font-medium text-red-400">{error}</p>
+						<p className="text-xs font-medium text-red-300 leading-relaxed min-w-0 wrap-break-word">
+							{error}
+						</p>
 					</div>
 				</motion.div>
 			)}

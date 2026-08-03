@@ -1,36 +1,41 @@
+import { Cpu, ShieldAlert, Wifi, Zap } from "lucide-react";
 import type React from "react";
 import { useDevices } from "../hooks/useDevices";
 
 interface SummaryStatProps {
 	label: string;
 	value: number | string;
-	tone?: "emerald" | "indigo" | "default";
+	unit?: string;
+	icon: React.ReactNode;
 	isLoading?: boolean;
 }
 
 const SummaryStat: React.FC<SummaryStatProps> = ({
 	label,
 	value,
-	tone = "default",
+	unit,
+	icon,
 	isLoading,
 }) => {
-	const toneClass =
-		tone === "emerald"
-			? "text-emerald-400"
-			: tone === "indigo"
-				? "text-indigo-400"
-				: "text-zinc-100";
-
 	return (
-		<div className="rounded-xl border border-zinc-800/80 bg-zinc-900/30 px-4 py-3">
+		<div className="rounded-xl border border-zinc-800/80 bg-[#18181b] p-4 flex flex-col gap-2 shadow-sm">
+			<div className="flex items-center gap-2 text-zinc-400">
+				{icon}
+				<span className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">
+					{label}
+				</span>
+			</div>
+
 			{isLoading ? (
-				<div className="h-8 w-12 animate-pulse rounded bg-zinc-800" />
+				<div className="h-8 w-16 animate-pulse rounded bg-zinc-800 my-0.5" />
 			) : (
-				<p className={`text-2xl font-semibold tabular-nums ${toneClass}`}>
+				<div className="text-2xl font-bold tracking-tight text-zinc-50 flex items-baseline gap-1 tabular-nums">
 					{value}
-				</p>
+					{unit && (
+						<span className="text-xs font-normal text-zinc-400">{unit}</span>
+					)}
+				</div>
 			)}
-			<p className="mt-0.5 text-xs text-zinc-500">{label}</p>
 		</div>
 	);
 };
@@ -38,26 +43,37 @@ const SummaryStat: React.FC<SummaryStatProps> = ({
 export const DevicesMetrics: React.FC = () => {
 	const { data: devices = [], isLoading } = useDevices();
 
+	const totalCount = devices.length;
 	const onlineCount = devices.filter((d) => d.isOnline).length;
 	const activeCount = devices.filter((d) => d.isOn).length;
 
 	return (
-		<div className="grid grid-cols-3 gap-3 sm:max-w-md">
+		<div className="grid grid-cols-2 md:grid-cols-4 gap-4 w-full">
 			<SummaryStat
-				label="Dispositivos"
-				value={devices.length}
+				label="Total Dispositivos"
+				value={totalCount}
+				icon={<Cpu className="w-4 h-4 text-zinc-400" />}
 				isLoading={isLoading}
 			/>
+
 			<SummaryStat
 				label="Online"
 				value={onlineCount}
-				tone="emerald"
+				icon={<Wifi className="w-4 h-4 text-emerald-400" />}
 				isLoading={isLoading}
 			/>
+
 			<SummaryStat
-				label="Ativos"
+				label="Dispositivos Ativos"
 				value={activeCount}
-				tone="indigo"
+				icon={<Zap className="w-4 h-4 text-amber-400" />}
+				isLoading={isLoading}
+			/>
+
+			<SummaryStat
+				label="Alertas de Segurança"
+				value={0}
+				icon={<ShieldAlert className="w-4 h-4 text-rose-400" />}
 				isLoading={isLoading}
 			/>
 		</div>

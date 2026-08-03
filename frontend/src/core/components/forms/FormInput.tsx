@@ -1,5 +1,6 @@
 import { AnimatePresence, motion } from "framer-motion";
 import type { InputHTMLAttributes, ReactNode } from "react";
+import React from "react";
 import type { UseFormRegisterReturn } from "react-hook-form";
 import { cn } from "@/core/utils";
 import { Input } from "../ui/input";
@@ -11,6 +12,7 @@ interface FormInputProps extends InputHTMLAttributes<HTMLInputElement> {
 	icon: ReactNode;
 	error?: string;
 	registration: UseFormRegisterReturn;
+	mask?: (value: string, isDeleting?: boolean) => string;
 	delayClass?: string;
 }
 
@@ -20,15 +22,32 @@ export function FormInput({
 	icon,
 	error,
 	registration,
+	mask,
 	delayClass,
 	className,
 	...props
 }: FormInputProps) {
+	const isDeletingRef = React.useRef(false);
+
+	const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+		isDeletingRef.current = e.key === "Backspace" || e.key === "Delete";
+	};
+
+	const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+		if (mask) {
+			const formattedValue = mask(e.target.value, isDeletingRef.current);
+			e.target.value = formattedValue;
+		}
+
+		isDeletingRef.current = false;
+		registration.onChange(e);
+	};
+
 	const errorAnimation = {
-		initial: { opacity: 0, y: -4 },
+		initial: { opacity: 0, y: -2 },
 		animate: { opacity: 1, y: 0 },
-		exit: { opacity: 0, y: -4 },
-		transition: { duration: 0.2, ease: "easeOut" as const },
+		exit: { opacity: 0, y: -2 },
+		transition: { duration: 0.15, ease: "easeOut" as const },
 	};
 
 	const errorId = `${id}-error`;
@@ -36,7 +55,7 @@ export function FormInput({
 	return (
 		<div
 			className={cn(
-				"space-y-2 animate-fade-up opacity-0-init",
+				"space-y-1 animate-fade-up opacity-0-init w-full min-w-0",
 				delayClass,
 				className,
 			)}
@@ -45,7 +64,7 @@ export function FormInput({
 			<Label
 				htmlFor={id}
 				className={cn(
-					"text-xs font-medium uppercase tracking-wide text-zinc-400 transition-colors",
+					"block text-xs font-medium uppercase tracking-wide text-zinc-400 transition-colors truncate",
 					error && "text-red-400",
 				)}
 			>
@@ -75,16 +94,18 @@ export function FormInput({
 					aria-describedby={error ? errorId : undefined}
 					{...registration}
 					{...props}
+					onKeyDown={handleKeyDown}
+					onChange={handleChange}
 				/>
 			</div>
 
-			<div className="h-5 flex items-center">
+			<div className="min-h-4.5 flex items-start pt-0.5">
 				<AnimatePresence mode="wait">
 					{error && (
 						<motion.p
 							id={errorId}
 							{...errorAnimation}
-							className="pl-1 text-xs text-red-400 truncate w-full"
+							className="pl-1 text-[11px] font-medium text-red-400 truncate w-full leading-tight"
 						>
 							{error}
 						</motion.p>

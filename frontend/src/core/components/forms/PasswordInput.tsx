@@ -28,10 +28,10 @@ export function PasswordInput({
 	const [showPassword, setShowPassword] = useState(false);
 
 	const errorAnimation = {
-		initial: { opacity: 0, y: -4 },
+		initial: { opacity: 0, y: -2 },
 		animate: { opacity: 1, y: 0 },
-		exit: { opacity: 0, y: -4 },
-		transition: { duration: 0.2, ease: "easeOut" as const },
+		exit: { opacity: 0, y: -2 },
+		transition: { duration: 0.15, ease: "easeOut" as const },
 	};
 
 	const errorId = `${id}-error`;
@@ -39,23 +39,23 @@ export function PasswordInput({
 	return (
 		<div
 			className={cn(
-				"space-y-2 animate-fade-up opacity-0-init",
+				"space-y-1 animate-fade-up opacity-0-init w-full min-w-0", // 👈 Padronizado com space-y-1 (4px)
 				delayClass,
 				className,
 			)}
 			style={{ animationFillMode: "forwards" }}
 		>
-			<div className="flex items-center justify-between">
+			<div className="flex items-center justify-between gap-2">
 				<Label
 					htmlFor={id}
 					className={cn(
-						"text-xs font-medium uppercase tracking-wide text-zinc-400 transition-colors",
+						"block text-xs font-medium uppercase tracking-wide text-zinc-400 transition-colors truncate",
 						error && "text-red-400",
 					)}
 				>
 					{label}
 				</Label>
-				{labelRight && <div>{labelRight}</div>}
+				{labelRight && <div className="text-xs shrink-0">{labelRight}</div>}
 			</div>
 
 			<div
@@ -89,7 +89,7 @@ export function PasswordInput({
 					type="button"
 					onClick={() => setShowPassword(!showPassword)}
 					className={cn(
-						"absolute inset-y-0 right-0 flex items-center pr-3 transition-colors hover:text-zinc-300 focus:outline-none focus-visible:text-indigo-400",
+						"absolute inset-y-0 right-0 flex items-center pr-3 transition-colors hover:text-zinc-300 focus:outline-none focus-visible:text-indigo-400 cursor-pointer",
 						error ? "text-red-400/70" : "text-zinc-500",
 					)}
 					tabIndex={-1}
@@ -103,13 +103,14 @@ export function PasswordInput({
 				</button>
 			</div>
 
-			<div className="min-h-5">
+			{/* 🛡️ Reserva compacta (18px) padronizada sem Layout Shift */}
+			<div className="min-h-4.5 flex items-start pt-0.5">
 				<AnimatePresence mode="wait">
 					{error && (
 						<motion.p
 							id={errorId}
 							{...errorAnimation}
-							className="pl-1 text-xs text-red-400"
+							className="pl-1 text-[11px] font-medium text-red-400 truncate w-full leading-tight"
 						>
 							{error}
 						</motion.p>

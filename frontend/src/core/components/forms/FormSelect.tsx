@@ -27,6 +27,7 @@ interface FormSelectProps<T extends FieldValues> {
 	options: Array<{ value: string | number; label: string }>;
 	delayClass?: string;
 	className?: string;
+	disabled?: boolean;
 }
 
 export function FormSelect<T extends FieldValues>({
@@ -40,12 +41,13 @@ export function FormSelect<T extends FieldValues>({
 	options,
 	delayClass,
 	className,
+	disabled = false,
 }: FormSelectProps<T>) {
 	const errorAnimation = {
-		initial: { opacity: 0, y: -4 },
+		initial: { opacity: 0, y: -2 },
 		animate: { opacity: 1, y: 0 },
-		exit: { opacity: 0, y: -4 },
-		transition: { duration: 0.2, ease: "easeOut" as const },
+		exit: { opacity: 0, y: -2 },
+		transition: { duration: 0.15, ease: "easeOut" as const },
 	};
 
 	const errorId = `${id}-error`;
@@ -53,7 +55,7 @@ export function FormSelect<T extends FieldValues>({
 	return (
 		<div
 			className={cn(
-				"space-y-1.5 animate-fade-up opacity-0-init w-full min-w-0",
+				"space-y-1 animate-fade-up opacity-0-init w-full min-w-0",
 				delayClass,
 				className,
 			)}
@@ -64,6 +66,7 @@ export function FormSelect<T extends FieldValues>({
 				className={cn(
 					"block text-xs font-medium uppercase tracking-wide text-zinc-400 transition-colors truncate",
 					error && "text-red-400",
+					disabled && "opacity-50 cursor-not-allowed",
 				)}
 			>
 				{label}
@@ -73,7 +76,6 @@ export function FormSelect<T extends FieldValues>({
 				control={control}
 				name={name}
 				render={({ field }) => {
-					// 🛡️ Blindagem de Estado Vazio: Se for 0, nulo ou vazio, tratamos como "" para mostrar o placeholder!
 					const currentValue =
 						field.value !== undefined &&
 						field.value !== null &&
@@ -84,6 +86,7 @@ export function FormSelect<T extends FieldValues>({
 					return (
 						<Select
 							value={currentValue}
+							disabled={disabled}
 							onValueChange={(val) => {
 								const numericVal = Number(val);
 								field.onChange(
@@ -99,9 +102,9 @@ export function FormSelect<T extends FieldValues>({
 									error
 										? "border-red-500/50 focus-within:border-red-500 focus-within:ring-1 focus-within:ring-red-500"
 										: "border-zinc-800 focus-within:border-indigo-500/50 focus-within:ring-1 focus-within:ring-indigo-500/50",
+									disabled && "opacity-50 cursor-not-allowed bg-zinc-900/30",
 								)}
 							>
-								{/* Ícone alinhado vertical e horizontalmente no lado esquerdo */}
 								<div
 									className={cn(
 										"pointer-events-none absolute inset-y-0 left-0 z-10 flex items-center pl-3 transition-colors",
@@ -111,12 +114,11 @@ export function FormSelect<T extends FieldValues>({
 									{icon}
 								</div>
 
-								{/* Trigger com pl-10 (para o ícone) e pr-8 (para a setinha), além de truncate */}
 								<SelectTrigger
 									id={id}
 									aria-invalid={!!error}
 									aria-describedby={error ? errorId : undefined}
-									className="w-full border-0 bg-transparent py-2.5 pl-10 pr-8 text-sm text-zinc-100 shadow-none focus:ring-0 focus:ring-offset-0 data-placeholder:text-zinc-600 truncate text-left"
+									className="w-full border-0 bg-transparent py-2.5 pl-10 pr-8 text-sm text-zinc-100 shadow-none focus:ring-0 focus:ring-offset-0 data-placeholder:text-zinc-600 truncate text-left disabled:cursor-not-allowed cursor-pointer"
 								>
 									<SelectValue placeholder={placeholder} />
 								</SelectTrigger>
@@ -138,14 +140,13 @@ export function FormSelect<T extends FieldValues>({
 				}}
 			/>
 
-			{/* 🛡️ Altura fixa (h-5) garante que o erro apareça SEM empurrar o formulário para baixo */}
-			<div className="h-5 flex items-center">
+			<div className="min-h-4.5 flex items-start pt-0.5">
 				<AnimatePresence mode="wait">
 					{error && (
 						<motion.p
 							id={errorId}
 							{...errorAnimation}
-							className="pl-1 text-xs text-red-400 truncate w-full"
+							className="pl-1 text-[11px] font-medium text-red-400 truncate w-full leading-tight"
 						>
 							{error}
 						</motion.p>
