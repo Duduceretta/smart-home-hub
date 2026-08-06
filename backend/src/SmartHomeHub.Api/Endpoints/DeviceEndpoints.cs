@@ -1,6 +1,8 @@
 using System.Security.Claims;
 using Mediator;
+using Microsoft.AspNetCore.Mvc;
 using SmartHomeHub.Api.Extensions;
+using SmartHomeHub.Application.Common.Pagination;
 using SmartHomeHub.Application.Features.Devices.Commands.CreateDevice;
 using SmartHomeHub.Application.Features.Devices.Commands.DeleteDevice;
 using SmartHomeHub.Application.Features.Devices.Commands.ToggleDevice;
@@ -21,15 +23,26 @@ public static class DeviceEndpoints
                     ClaimsPrincipal userToken,
                     IMediator mediator,
                     CancellationToken cancellationToken,
-                    int page = 1,
-                    int pageSize = 10
+                    [FromQuery(Name = "q")] string? queryParam = null,
+                    [FromQuery] string? category = null,
+                    [FromQuery] string? status = null,
+                    [FromQuery] int page = 1,
+                    [FromQuery] int pageSize = 10
                 ) =>
                 {
                     var firebaseUid = userToken.FindFirst("user_id")?.Value;
                     if (string.IsNullOrEmpty(firebaseUid))
                         return Results.Unauthorized();
 
-                    var query = new GetDevicesQuery(firebaseUid, page, pageSize);
+                    var query = new GetDevicesQuery(
+                        firebaseUid,
+                        queryParam,
+                        category,
+                        status,
+                        page,
+                        pageSize
+                    );
+
                     var devices = await mediator.Send(query, cancellationToken);
 
                     return Results.Ok(devices);
@@ -37,11 +50,12 @@ public static class DeviceEndpoints
             )
             .RequireAuthorization()
             .WithTags("Devices")
-            .WithSummary("Lista todos os dispositivos")
+            .WithSummary("Lista todos os dispositivos com filtros e paginação")
             .WithDescription(
-                "Retorna uma lista contendo todos os dispositivos ativos associados ao usuário autenticado."
+                "Retorna uma lista paginada dos dispositivos ativos associados ao usuário autenticado, permitindo filtragem por busca textual (q), categoria e status (online/offline)."
             )
-            .Produces<object>(StatusCodes.Status200OK);
+            .Produces<PagedResult<DeviceDto>>(StatusCodes.Status200OK)
+            .ProducesProblem(StatusCodes.Status401Unauthorized);
 
         app.MapGet(
                 "/api/devices/{id:guid}",

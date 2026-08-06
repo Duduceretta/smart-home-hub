@@ -1,6 +1,7 @@
 using Mapster;
 using Mediator;
 using Microsoft.EntityFrameworkCore;
+using SmartHomeHub.Application.Common.Extensions;
 using SmartHomeHub.Application.Common.Interfaces;
 using SmartHomeHub.Application.Common.Pagination;
 using SmartHomeHub.Domain.Enums;
@@ -22,9 +23,14 @@ public record DeviceDto(
     int LastActivityMinutes
 );
 
-public record GetDevicesQuery(string FirebaseUid, int Page = 1, int PageSize = 10)
-    : IQuery<PagedResult<DeviceDto>>,
-        IPagedQuery;
+public record GetDevicesQuery(
+    string FirebaseUid,
+    string? Query = null,
+    string? Category = null,
+    string? Status = null,
+    int Page = 1,
+    int PageSize = 10
+) : IQuery<PagedResult<DeviceDto>>, IPagedQuery;
 
 public class GetDevicesQueryHandler(IAppDbContext dbContext)
     : IQueryHandler<GetDevicesQuery, PagedResult<DeviceDto>>
@@ -34,21 +40,23 @@ public class GetDevicesQueryHandler(IAppDbContext dbContext)
         CancellationToken cancellationToken
     )
     {
-        var query = dbContext
+        var rawDevices = await dbContext
             .Devices.AsNoTracking()
             .Include(device => device.Room)
             .Where(device => device.User.ExternalAuthUid == request.FirebaseUid)
-            .OrderBy(device => device.Name);
+            .FilterByCategory(request.Category)
+            .FilterByStatus(request.Status)
+            .FilterBySearchTerm(request.Query)
+            .OrderBy(device => device.Name)
+            .ToPagedResultAsync(request.Page, request.PageSize, cancellationToken);
 
-        var totalCount = await query.CountAsync(cancellationToken);
+        var items = rawDevices.Items.Adapt<List<DeviceDto>>();
 
-        var rawDevices = await query
-            .Skip((request.Page - 1) * request.PageSize)
-            .Take(request.PageSize)
-            .ToListAsync(cancellationToken);
-
-        var items = rawDevices.Adapt<List<DeviceDto>>();
-
-        return PagedResult<DeviceDto>.Create(items, request.Page, request.PageSize, totalCount);
+        return PagedResult<DeviceDto>.Create(
+            items,
+            rawDevices.Page,
+            rawDevices.PageSize,
+            rawDevices.TotalCount
+        );
     }
 }
