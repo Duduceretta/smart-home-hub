@@ -1,5 +1,5 @@
 import { Search } from "lucide-react";
-import { useMemo } from "react";
+import { useDebouncedValue } from "@/core/hooks/useDebouncedValue";
 import { useDevices } from "../hooks/useDevices";
 import { useDevicesUIStore } from "../store/devices-ui.store";
 import { DeviceCard } from "./DeviceCard";
@@ -54,38 +54,26 @@ const GridSkeleton: React.FC = () => (
 );
 
 export const DevicesGrid: React.FC = () => {
-	const { data: devices = [], isLoading } = useDevices();
 	const { query, activeTab, statusFilter, resetFilters } = useDevicesUIStore();
+	const debouncedQuery = useDebouncedValue(query, 300);
 
-	const filteredDevices = useMemo(() => {
-		return devices.filter((device) => {
-			const matchesTab = activeTab === "Todos" || device.category === activeTab;
-			const matchesStatus =
-				!statusFilter ||
-				(statusFilter === "online" && device.isOnline) ||
-				(statusFilter === "offline" && !device.isOnline);
-			const matchesQuery =
-				query.trim() === "" ||
-				[device.name, device.brand, device.room, device.category]
-					.join(" ")
-					.toLowerCase()
-					.includes(query.trim().toLowerCase());
-
-			return matchesTab && matchesStatus && matchesQuery;
-		});
-	}, [devices, activeTab, statusFilter, query]);
+	const { data: devices = [], isLoading } = useDevices({
+		query: debouncedQuery,
+		category: activeTab,
+		status: statusFilter,
+	});
 
 	if (isLoading) {
 		return <GridSkeleton />;
 	}
 
-	if (filteredDevices.length === 0) {
+	if (devices.length === 0) {
 		return <EmptyState onReset={resetFilters} />;
 	}
 
 	return (
 		<div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 auto-rows-max">
-			{filteredDevices.map((device) => (
+			{devices.map((device) => (
 				<DeviceCard key={device.id} device={device} />
 			))}
 		</div>

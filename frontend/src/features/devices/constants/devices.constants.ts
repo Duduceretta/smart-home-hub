@@ -11,6 +11,16 @@ import {
 import type { ComponentType } from "react";
 import { DeviceTypeEnum } from "../types/devices.types";
 
+export const DEVICE_CATEGORIES = [
+	"Todos",
+	"Iluminação",
+	"Climatização",
+	"Segurança",
+	"Eletrodomésticos",
+] as const;
+
+export type DeviceCategory = (typeof DEVICE_CATEGORIES)[number];
+
 export type DeviceIconConfig = {
 	icon: ComponentType<{ className?: string }>;
 	bg: string;

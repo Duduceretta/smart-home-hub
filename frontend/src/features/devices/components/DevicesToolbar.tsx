@@ -1,14 +1,7 @@
 import { Search, X } from "lucide-react";
 import type React from "react";
+import { DEVICE_CATEGORIES } from "../constants/devices.constants";
 import { useDevicesUIStore } from "../store/devices-ui.store";
-
-const CATEGORIES: string[] = [
-	"Todos",
-	"Iluminação",
-	"Climatização",
-	"Segurança",
-	"Eletrodomésticos",
-];
 
 export const DevicesToolbar: React.FC = () => {
 	const {
@@ -55,8 +48,8 @@ export const DevicesToolbar: React.FC = () => {
 
 			<div className="flex flex-wrap items-center gap-3">
 				{/* Categorias (Tabs) */}
-				<div className="flex items-center gap-2 overflow-x-auto pb-1 lg:pb-0 scrollbar-none">
-					{CATEGORIES.map((tab) => {
+				<div className="flex items-center gap-2 overflow-x-auto py-1 scrollbar-none">
+					{DEVICE_CATEGORIES.map((tab) => {
 						const isActive = activeTab === tab;
 						return (
 							<button

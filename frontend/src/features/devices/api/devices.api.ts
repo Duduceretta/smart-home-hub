@@ -1,6 +1,7 @@
 import { apiClient } from "@/core/api/api.client";
 import { handleApplicationError } from "@/core/errors/app.errors";
 import type { PagedResponse } from "@/core/types/pagination.types";
+import type { DevicesListFilters } from "../hooks/devices.keys";
 import type {
 	CreateDevicePayload,
 	CreateDeviceResponse,
@@ -9,16 +10,34 @@ import type {
 	UpdateDevicePayload,
 } from "../types/devices.types";
 
+export interface FetchDevicesParams extends DevicesListFilters {
+	page?: number;
+	pageSize?: number;
+}
+
 /**
- * Fetches all registered devices for the authenticated user.
- * Supports both paginated PagedResponse and direct Array responses.
+ * Fetches registered devices for the authenticated user, filtered and
+ * paginated server-side. Supports both paginated PagedResponse and
+ * direct Array responses.
  */
-export async function fetchDevices(page = 1, pageSize = 50): Promise<Device[]> {
+export async function fetchDevices({
+	query,
+	category,
+	status,
+	page = 1,
+	pageSize = 50,
+}: FetchDevicesParams = {}): Promise<Device[]> {
 	try {
 		const { data } = await apiClient.get<PagedResponse<Device> | Device[]>(
 			"/devices",
 			{
-				params: { page, pageSize },
+				params: {
+					q: query || undefined,
+					category: category && category !== "Todos" ? category : undefined,
+					status: status || undefined,
+					page,
+					pageSize,
+				},
 			},
 		);
 
