@@ -86,16 +86,45 @@ docker-compose up -d
 
 ### ⏳ Fase 4: O Painel de Controle — React + TypeScript *(Fase Atual)*
 
-- [X] Configurar ambiente do cliente (Vite + TypeScript + Tailwind CSS)
-- [X] Instalar ecossistema de infraestrutura: React Router, TanStack Query e Zustand
-- [ ] Configurar framework de testes unitários e de componentes utilizando Vitest e React Testing Library
-- [ ] Configurar suíte de testes End-to-End (E2E) com o Playwright
-- [ ] Configurar i18n (`react-i18next`) para suporte nativo a Português e Inglês
-- [ ] Adicionar e padronizar o Design System utilizando Shadcn UI
-- [ ] Implementar fluxo de Autenticação (Firebase Auth) e proteção de rotas (Private Routes)
-- [ ] Desenvolver Dashboard: consumir API paginada e validada via React Hook Form + Zod
-- [ ] Integrar WebSockets (`@microsoft/signalr`) para espelhar as mudanças de telemetria em tempo real
-- [ ] Plotar gráficos de consumo histórico de sensores utilizando Recharts
+#### 🚀 Fase 4.1: Consolidação da Base & Autenticação (Praticamente Concluída)
+ 
+- [x] Configurar ambiente do cliente (Vite + TypeScript + Tailwind CSS)
+- [x] Instalar ecossistema: React Router, TanStack Query e Zustand
+- [x] Adicionar e padronizar o Design System utilizando Shadcn UI / Radix
+- [x] Implementar fluxo de Autenticação (Firebase Auth) e proteção de rotas (`ProtectedRoute` e `PublicRoute`)
+- [x] Sincronização de usuário do Firebase com o banco PostgreSQL (`/users/sync`)
+
+#### Fase 4.2: Gestão de Dispositivos (Devices) (Concluída)
+ 
+- [x] Listagem de dispositivos com busca, abas de categoria e status online/offline
+- [x] Card de dispositivo com Toggle otimista (Soft Delete / Inversão de estado)
+- [x] Modais/Sheets para Criar, Editar e Excluir Dispositivo
+- [x] Mapeamento dos tipos de atuadores (incluindo `Television`)
+
+#### Fase 4.3: Gestão de Ambientes (Rooms) (Próximo Foco)
+ 
+- [X] Criar a `feature/rooms` (API, Hooks com TanStack Query, Store)
+- [X] Implementar a página/modal de listagem e cadastro de Cômodos (Sala, Cozinha, Garagem)
+- [X] Conectar os cômodos reais criados no backend aos dropdowns de seleção dos Dispositivos (substituindo a opção mocada "Sem cômodo")
+
+#### Fase 4.4: Grupos de Dispositivos (Device Groups) (A Seguir)
+ 
+- [ ] Criar a `feature/device-groups` no frontend
+- [ ] Implementar listagem paginada e cards de Grupos de Dispositivos (ex: "Todas as Luzes da Sala")
+- [ ] Interface para criar/editar grupos selecionando múltiplos dispositivos (Checkboxes)
+- [ ] Ação em massa (Ligar/Desligar todos os dispositivos do grupo com um único clique)
+
+#### Fase 4.5: Telemetria em Tempo Real & Métricas
+ 
+- [x] Consumo da rota `/dashboard/overview` no TanStack Query com gráficos do Recharts
+- [ ] Integrar WebSockets via `@microsoft/signalr` para ouvir eventos e atualizar a tela sem dar F5
+- [ ] Modal de detalhes do dispositivo exibindo gráficos históricos de consumo/temperatura
+
+#### Fase 4.6: Testes, Qualidade & i18n
+ 
+- [ ] Configurar i18n (`react-i18next`) para suporte a Português e Inglês
+- [ ] Configurar Vitest + React Testing Library para testes de componentes e hooks
+- [ ] Configurar Playwright para testes End-to-End (E2E) simulando login e criação de dispositivos
 
 ### ⏳ Fase 5: O Cérebro das Automações (Rules Engine)
 
