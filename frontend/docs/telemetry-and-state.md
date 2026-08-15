@@ -109,3 +109,34 @@ A arquitetura abandona o carregamento bloqueante (spinners gigantes a cada troca
 | Estado online/offline de devices | `0` (sempre fresco) | Gerenciado exclusivamente via SignalR, não por polling HTTP. |
 
 **Deduplicação de Pedidos:** Se 5 widgets diferentes no Dashboard requisitarem os dados do usuário simultaneamente na montagem, o TanStack Query intercepta e envia apenas **um único pedido HTTP** ao C#, compartilhando o resultado com todos os componentes — protegendo o servidor de flooding e economizando largura de banda.
+
+---
+
+## 5. Contratos de Filtros e Utilitários de Hardware
+
+### 5.1. Centralização de Filtros de Consulta
+Tipagens de filtros enviados via query string para o C# devem ser centralizadas no arquivo de tipos do domínio (`features/[feature]/types/[feature].types.ts`):
+
+```typescript
+// features/devices/types/devices.types.ts
+export interface DeviceFilters {
+  searchTerm?: string;
+  roomId?: string;
+  status?: "online" | "offline";
+  page?: number;
+  pageSize?: number;
+}
+
+### 5.2. Formatadores Puros de Hardware (core/utils/formatters.ts)
+
+Dados de dispositivos IoT exigem normalização estrita na camada de visualização:
+
+```typescript
+/**
+ * Normaliza e formata endereços MAC para o padrão visual XX:XX:XX:XX:XX:XX.
+ */
+export function formatMacAddress(value: string): string {
+  const cleaned = value.replace(/[^0-9A-Fa-f]/g, "").toUpperCase();
+  const matches = cleaned.match(/.{1,2}/g);
+  return matches ? matches.slice(0, 6).join(":") : cleaned;
+}

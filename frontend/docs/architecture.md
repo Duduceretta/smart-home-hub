@@ -37,6 +37,21 @@ A API trafega datas estritamente em **UTC Absoluto** (ex: `2026-06-09T01:24:00Z`
 - O front-end **nunca** envia datas com fuso horário manual para a API.
 - **Apresentação**: a conversão do UTC para o fuso horário do usuário ocorre exclusivamente na camada visual (JSX/Componentes), utilizando a API nativa `Intl.DateTimeFormat` ou funções utilitárias puras em `core/utils/date.ts`.
 
+### 1.3. O Fluxo Unidirecional de Implementação de Feature
+
+Ao construir qualquer nova fatia vertical (ex: `rooms`, `devices`), siga estritamente a esteira de 5 passos:
+
+1. CONTRATOS (`types/`)
+   └─► 2. REDE (`api/`)
+       └─► 3. ESTADO ASSÍNCRONO (`hooks/`)
+           └─► 4. ESTADO DE CLIENTE (`store/`)
+               └─► 5. INTERFACE (`components/` e `pages/`)
+
+#### Onde encontrar os contratos no C# (.NET):
+- **Response DTOs (Consulta):** `SmartHomeHub.Application/**/Queries/` (ex: `GetRoomsQuery.cs`, `RoomDto.cs`). Define o JSON em camelCase retornado para o front-end.
+- **Request DTOs (Criação/Edição):** `SmartHomeHub.Application/**/Commands/` (ex: `CreateRoomCommand.cs`, `UpdateRoomCommand.cs`).
+- **Espelhamento Zod ⇄ FluentValidation:** O Zod atua na camada visual como primeira linha de defesa (*UX First*). Se o backend possui validações estritas (ex: regex de MAC, unicidade ou tamanho mínimo), o schema Zod correspondente (`createRoomSchema`) deve espelhar essas restrições para evitar erros `400/422` desnecessários.
+
 ---
 
 ## 2. Padrões de Gerenciamento de Estado e Rede
@@ -96,6 +111,18 @@ useForm({
 ```
 
 - **`noValidate`**: é obrigatório o uso da tag `<form noValidate>` para suprimir os tooltips nativos dos navegadores e garantir que o Zod controle a UI de forma exclusiva.
+
+### 2.5. Boas Práticas da Camada de API (`[feature].api.ts`)
+
+1. **Funções Puras e Desacopladas de Hooks:** As funções em `.api.ts` são exclusivamente assíncronas puras (`async/await`). **É proibido importar hooks do React ou do TanStack Query** neste arquivo. A camada de rede deve ser consumível em workers, scripts ou testes sem depender do ciclo de vida da UI.
+2. **Mapeamento de Rotas C#:** Espelhe os atributos das Controllers ou Minimal APIs (`[Route("api/[controller]")]`, `[HttpGet]`, `[HttpPut("{id}")]`).
+3. **Desempacotamento de Paginação (`PagedResponse<T>`):** Em endpoints de listagem, trate tanto retornos diretos (`T[]`) quanto respostas paginadas (`PagedResponse<T>` contendo `{ items: T[], totalCount, page }`).
+
+### 2.6. Boas Práticas para Stores de UI (`[feature]-ui.store.ts`)
+
+- **Zero Estado Assíncrono:** Nunca realize `fetch`/HTTP nem armazene dados de banco dentro do Zustand.
+- **Ações Semânticas Declarativas:** Prefira métodos que expressem intenção (`openCreateSheet()`, `closeCreateSheet()`, `openEditSheet(entity)`) em vez de setters genéricos.
+- **Reset de Interface:** Sempre forneça uma função `resetFilters()` para facilitar botões de limpeza e trocas de rota sem retenção de lixo de estado.
 
 ---
 
@@ -160,6 +187,14 @@ if (data && data.title) { ... }
 // ✅ Correto
 if (data?.title) { ... }
 ```
+
+### 3.5. Comentários de Código e Documentação Viva em Inglês (JSDoc)
+
+A documentação no código deve explicar o **PORQUÊ** (a intenção e regra de negócio), nunca o **QUÊ** (o que a sintaxe já deixa óbvio).
+
+- **JSDoc em Interfaces/DTOs (`/** ... */`):** Obrigatório em contratos e utilitários para alimentar os Tooltips e o IntelliSense do TypeScript no editor.
+- **Regras Não-Óbvias / Hardware Quirks:** Documente comportamentos específicos de integração com IoT (ex: delays necessários para boot de dispositivos).
+- **Proibição de Código Morto e Comentários Redundantes:** Não comente nomes óbvios de variáveis (ex: `// Nome do usuário -> name: string`) e delete código não utilizado em vez de comentá-lo (use o Git para histórico).
 
 ---
 
