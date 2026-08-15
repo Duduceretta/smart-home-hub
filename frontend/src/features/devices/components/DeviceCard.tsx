@@ -8,7 +8,6 @@ import {
 	WifiOff,
 } from "lucide-react";
 import { useState } from "react";
-import { toast } from "sonner";
 import { DeleteDeviceModal } from "@/core/components/modals/DeleteDeviceModal";
 import {
 	DropdownMenu,
@@ -25,6 +24,7 @@ import {
 	DeviceTypeEnum,
 	isActuatorDevice,
 } from "../types/devices.types";
+import { DeviceTelemetrySheet } from "./DeviceTelemetrySheet";
 
 function formatLastActivity(minutes: number): string {
 	if (minutes < 1) return "agora";
@@ -40,6 +40,8 @@ interface DeviceCardProps {
 
 export const DeviceCard: React.FC<DeviceCardProps> = ({ device }) => {
 	const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+	const [isTelemetryModalOpen, setIsTelemetryModalOpen] = useState(false);
+
 	const { mutate: toggleDevice, isPending: isToggling } = useToggleDevice();
 	const { mutate: deleteDevice, isPending: isDeleting } = useDeleteDevice();
 	const openEditSheet = useDevicesUIStore((s) => s.openEditSheet);
@@ -60,7 +62,7 @@ export const DeviceCard: React.FC<DeviceCardProps> = ({ device }) => {
 	};
 
 	const handleInspectTelemetry = () => {
-		toast.info(`Abrindo telemetrias em tempo real para: ${device.name}`);
+		setIsTelemetryModalOpen(true);
 	};
 
 	return (
@@ -97,7 +99,7 @@ export const DeviceCard: React.FC<DeviceCardProps> = ({ device }) => {
 								</span>
 							</div>
 
-							{/* 🚀 DROPDOWN */}
+							{/* DROPDOWN */}
 							<DropdownMenu>
 								<DropdownMenuTrigger asChild>
 									<button
@@ -136,7 +138,7 @@ export const DeviceCard: React.FC<DeviceCardProps> = ({ device }) => {
 					{/* Nome, Cômodo e Setinha */}
 					<div className="mt-4">
 						<div className="flex items-center justify-between">
-							{/* 🚀 BOTÃO INVISÍVEL COM STRETCHED LINK  */}
+							{/* BOTÃO COM STRETCHED LINK (Abre o Histórico de Telemetria) */}
 							<button
 								type="button"
 								onClick={handleInspectTelemetry}
@@ -206,6 +208,13 @@ export const DeviceCard: React.FC<DeviceCardProps> = ({ device }) => {
 						onSuccess: () => setIsDeleteModalOpen(false),
 					});
 				}}
+			/>
+
+			{/* Modal de Histórico e Séries Temporais */}
+			<DeviceTelemetrySheet
+				device={device}
+				isOpen={isTelemetryModalOpen}
+				onClose={() => setIsTelemetryModalOpen(false)}
 			/>
 		</>
 	);
