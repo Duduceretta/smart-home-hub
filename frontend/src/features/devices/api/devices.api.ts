@@ -6,6 +6,8 @@ import type {
 	CreateDevicePayload,
 	CreateDeviceResponse,
 	Device,
+	DeviceTelemetryHistory,
+	TelemetryRange,
 	ToggleDeviceResponse,
 	UpdateDevicePayload,
 } from "../types/devices.types";
@@ -151,6 +153,32 @@ export async function deleteDeviceRequest(deviceId: string): Promise<void> {
 		throw handleApplicationError(
 			error,
 			"Não foi possível remover o dispositivo selecionado.",
+		);
+	}
+}
+
+/**
+ * Fetches historical telemetry data points (power usage, temperature, voltage) for a specific device.
+ */
+export async function getDeviceTelemetryHistoryRequest({
+	id,
+	range = "24h",
+}: {
+	id: string;
+	range?: TelemetryRange;
+}): Promise<DeviceTelemetryHistory> {
+	try {
+		const { data } = await apiClient.get<DeviceTelemetryHistory>(
+			`/devices/${id}/telemetry`,
+			{
+				params: { range },
+			},
+		);
+		return data;
+	} catch (error: unknown) {
+		throw handleApplicationError(
+			error,
+			"Não foi possível carregar o histórico de telemetria do dispositivo.",
 		);
 	}
 }

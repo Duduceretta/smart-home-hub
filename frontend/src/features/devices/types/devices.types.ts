@@ -101,3 +101,19 @@ export function isActuatorDevice(type: DeviceTypeEnum): boolean {
 		type === DeviceTypeEnum.Television
 	);
 }
+
+export type TelemetryRange = "24h" | "7d" | "30d";
+
+export interface DeviceTelemetryPoint {
+	timestamp: string;
+	powerUsageWatts: number | null;
+	temperatureCelsius: number | null;
+	voltage: number | null;
+	isOn: boolean;
+}
+
+export interface DeviceTelemetryHistory {
+	deviceId: string;
+	deviceName: string;
+	points: DeviceTelemetryPoint[];
+}

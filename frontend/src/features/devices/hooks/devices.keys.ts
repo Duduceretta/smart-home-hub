@@ -17,8 +17,11 @@ export interface DevicesListFilters {
 export const devicesKeys = {
 	all: ["devices"] as const,
 	lists: () => [...devicesKeys.all, "list"] as const,
-	list: (filters: DevicesListFilters = {}) =>
+	list: (filters: Record<string, unknown> = {}) =>
 		[...devicesKeys.lists(), { filters }] as const,
 	details: () => [...devicesKeys.all, "detail"] as const,
 	detail: (id: string) => [...devicesKeys.details(), id] as const,
+	telemetries: () => [...devicesKeys.all, "telemetry"] as const,
+	telemetry: (id: string, range = "24h") =>
+		[...devicesKeys.telemetries(), id, { range }] as const,
 };
