@@ -109,9 +109,9 @@ docker-compose up -d
 
 #### Fase 4.4: Grupos de Dispositivos (Device Groups) (A Seguir)
  
-- [ ] Criar a `feature/device-groups` no frontend
-- [ ] Implementar listagem paginada e cards de Grupos de Dispositivos (ex: "Todas as Luzes da Sala")
-- [ ] Interface para criar/editar grupos selecionando múltiplos dispositivos (Checkboxes)
+- [X] Criar a `feature/device-groups` no frontend
+- [X] Implementar listagem paginada e cards de Grupos de Dispositivos (ex: "Todas as Luzes da Sala")
+- [X] Interface para criar/editar grupos selecionando múltiplos dispositivos (Checkboxes)
 - [ ] Ação em massa (Ligar/Desligar todos os dispositivos do grupo com um único clique)
 
 #### Fase 4.5: Telemetria em Tempo Real & Métricas

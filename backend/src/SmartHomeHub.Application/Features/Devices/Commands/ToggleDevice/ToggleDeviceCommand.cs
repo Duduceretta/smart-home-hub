@@ -28,7 +28,8 @@ public class ToggleDeviceCommandHandler(
     IAppDbContext dbContext,
     IMqttService mqttService,
     IGoogleTvService googleTvService,
-    IChromecastWakeService chromecastWakeService
+    IChromecastWakeService chromecastWakeService,
+    IRealtimeNotificationService notificationService
 ) : ICommandHandler<ToggleDeviceCommand, Result>
 {
     public async ValueTask<Result> Handle(
@@ -73,8 +74,6 @@ public class ToggleDeviceCommandHandler(
                 await chromecastWakeService.WakeUpAsync(device.IpAddress, cancellationToken);
 
                 await Task.Delay(2000, cancellationToken);
-
-                // 3. (Opcional) Se precisar mandar comandos logo após ligar (ex: abrir Netflix), o ADB assume aqui!
             }
             else
             {
@@ -92,6 +91,14 @@ public class ToggleDeviceCommandHandler(
 
         device.IsOn = newState;
         await dbContext.SaveChangesAsync(cancellationToken);
+
+        await notificationService.NotifyDeviceStatusChangedAsync(
+            request.FirebaseUid,
+            device.Id,
+            device.IsOn,
+            device.IsOnline,
+            cancellationToken
+        );
 
         return Result.Success();
     }

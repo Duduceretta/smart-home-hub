@@ -102,6 +102,7 @@ try
     app.UseAuthentication();
     app.UseAuthorization();
 
+    app.MapHubEndpoints();
     app.MapDashboardEndpoints();
     app.MapUserEndpoints();
     app.MapRoomEndpoints();

@@ -9,10 +9,18 @@ namespace SmartHomeHub.Application.Features.Telemetry.Commands.ProcessTelemetry;
 
 public record ProcessTelemetryCommand(string Topic, string Payload) : ICommand<Result>;
 
-public record TelemetryPayload(bool IsOn, int Voltage, string SignalStrength);
+public record TelemetryPayload(
+    bool IsOn,
+    int? Voltage,
+    string? SignalStrength,
+    double? PowerUsageWatts,
+    double? TemperatureCelsius
+);
 
-public class ProcessTelemetryCommandHandler(IAppDbContext dbContext)
-    : ICommandHandler<ProcessTelemetryCommand, Result>
+public class ProcessTelemetryCommandHandler(
+    IAppDbContext dbContext,
+    IRealtimeNotificationService notificationService
+) : ICommandHandler<ProcessTelemetryCommand, Result>
 {
     private static readonly JsonSerializerOptions _jsonOptions = new()
     {
@@ -47,10 +55,9 @@ public class ProcessTelemetryCommandHandler(IAppDbContext dbContext)
                     new Error("Telemetry.Invalid", "Payload vazio ou corrompido.")
                 );
 
-            var device = await dbContext.Devices.FirstOrDefaultAsync(
-                device => device.ExternalId == externalId,
-                cancellationToken
-            );
+            var device = await dbContext
+                .Devices.Include(device => device.User)
+                .FirstOrDefaultAsync(device => device.ExternalId == externalId, cancellationToken);
 
             if (device == null)
             {
@@ -59,19 +66,42 @@ public class ProcessTelemetryCommandHandler(IAppDbContext dbContext)
                 );
             }
 
+            var nowUtc = DateTimeOffset.UtcNow;
+
             device.IsOn = telemetry.IsOn;
+            device.IsOnline = true;
+            device.LastSeenAt = nowUtc;
 
             var telemetryLog = new DeviceTelemetryLog
             {
                 DeviceId = device.Id,
-                Timestamp = DateTimeOffset.UtcNow,
+                Timestamp = nowUtc,
                 IsOn = telemetry.IsOn,
                 Voltage = telemetry.Voltage,
                 SignalStrength = telemetry.SignalStrength,
+                PowerUsageWatts = telemetry.PowerUsageWatts,
+                TemperatureCelsius = telemetry.TemperatureCelsius,
             };
 
             dbContext.DeviceTelemetryLogs.Add(telemetryLog);
             await dbContext.SaveChangesAsync(cancellationToken);
+
+            await notificationService.NotifyDeviceStatusChangedAsync(
+                device.User.ExternalAuthUid,
+                device.Id,
+                device.IsOn,
+                device.IsOnline,
+                cancellationToken
+            );
+
+            await notificationService.NotifyTelemetryReceivedAsync(
+                device.User.ExternalAuthUid,
+                device.Id,
+                telemetry.PowerUsageWatts,
+                telemetry.TemperatureCelsius,
+                nowUtc,
+                cancellationToken
+            );
 
             return Result.Success();
         }
