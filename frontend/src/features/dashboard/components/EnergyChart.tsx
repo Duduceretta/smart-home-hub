@@ -1,4 +1,5 @@
 import { Activity } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import {
 	Area,
 	AreaChart,
@@ -11,6 +12,7 @@ import {
 import { useDashboardOverview } from "../hooks/useDashboardOverview";
 
 export function EnergyChart() {
+	const { t, i18n } = useTranslation("dashboard");
 	const { data, isLoading } = useDashboardOverview();
 
 	if (isLoading || !data) {
@@ -25,7 +27,7 @@ export function EnergyChart() {
 	const chartData = data.energyChart.map((point) => {
 		const date = new Date(point.timestamp);
 		return {
-			time: date.toLocaleTimeString("pt-BR", {
+			time: date.toLocaleTimeString(i18n.language || "pt-BR", {
 				hour: "2-digit",
 				minute: "2-digit",
 			}),
@@ -36,7 +38,7 @@ export function EnergyChart() {
 	return (
 		<div className="lg:col-span-3 border border-zinc-800/80 rounded-2xl bg-zinc-900/50 backdrop-blur-sm p-6 flex flex-col">
 			<h3 className="text-sm font-medium text-zinc-50 mb-6">
-				Consumo de Energia (kW)
+				{t("energyChart.title")}
 			</h3>
 
 			<div className="flex-1 min-h-62.5 w-full flex flex-col justify-center">
@@ -47,11 +49,10 @@ export function EnergyChart() {
 							<Activity className="h-6 w-6" />
 						</div>
 						<p className="text-sm font-medium text-zinc-300">
-							Nenhum consumo registrado hoje
+							{t("energyChart.emptyTitle")}
 						</p>
 						<p className="max-w-xs text-xs text-zinc-500">
-							Assim que os sensores começarem a transmitir telemetria via MQTT,
-							o gráfico será desenhado em tempo real.
+							{t("energyChart.emptySubtitle")}
 						</p>
 					</div>
 				) : (

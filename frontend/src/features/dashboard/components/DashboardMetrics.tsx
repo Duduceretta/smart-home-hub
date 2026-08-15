@@ -1,7 +1,9 @@
 import { ShieldAlert, Thermometer, Zap } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { useDashboardOverview } from "../hooks/useDashboardOverview";
 
 export function DashboardMetrics() {
+	const { t } = useTranslation("dashboard");
 	const { data, isLoading } = useDashboardOverview();
 
 	// 1. Estado de Carregamento (Skeleton isolado respeitando exatamente o seu grid)
@@ -36,7 +38,7 @@ export function DashboardMetrics() {
 			<div className="border border-zinc-800/80 rounded-2xl bg-zinc-900/50 backdrop-blur-sm p-6 flex flex-col justify-between relative overflow-hidden group">
 				<div className="flex justify-between items-start relative z-10">
 					<span className="text-sm font-medium text-zinc-400">
-						Consumo de Energia
+						{t("metrics.energyConsumption")}
 					</span>
 					<Zap className="w-5 h-5 text-emerald-400" />
 				</div>
@@ -56,7 +58,7 @@ export function DashboardMetrics() {
 			<div className="border border-zinc-800/80 rounded-2xl bg-zinc-900/50 backdrop-blur-sm p-6 flex flex-col justify-between shadow-[0_0_20px_rgba(99,102,241,0.05)]">
 				<div className="flex justify-between items-start">
 					<span className="text-sm font-medium text-zinc-400">
-						Dispositivos Online
+						{t("metrics.onlineDevices")}
 					</span>
 					<div className="relative flex h-3 w-3 mt-1">
 						<span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75" />
@@ -68,7 +70,7 @@ export function DashboardMetrics() {
 						{summary.onlineDevicesCount}
 					</span>
 					<span className="text-sm text-zinc-400 ml-1">
-						/ {summary.totalDevicesCount} ativos
+						{t("metrics.activeOf", { total: summary.totalDevicesCount })}
 					</span>
 				</div>
 			</div>
@@ -77,7 +79,7 @@ export function DashboardMetrics() {
 			<div className="border border-zinc-800/80 rounded-2xl bg-zinc-900/50 backdrop-blur-sm p-6 flex flex-col justify-between">
 				<div className="flex justify-between items-start">
 					<span className="text-sm font-medium text-zinc-400">
-						Temperatura Média
+						{t("metrics.averageTemperature")}
 					</span>
 					<Thermometer className="w-5 h-5 text-orange-400" />
 				</div>
@@ -98,7 +100,7 @@ export function DashboardMetrics() {
 			<div className="border border-zinc-800/80 rounded-2xl bg-zinc-900/50 backdrop-blur-sm p-6 flex flex-col justify-between">
 				<div className="flex justify-between items-start">
 					<span className="text-sm font-medium text-zinc-400">
-						Alertas de Segurança
+						{t("metrics.securityAlerts")}
 					</span>
 					<ShieldAlert className="w-5 h-5 text-zinc-500" />
 				</div>
@@ -106,7 +108,9 @@ export function DashboardMetrics() {
 					<span className="text-3xl font-bold text-zinc-50">
 						{summary.activeAlertsCount}
 					</span>
-					<span className="text-sm text-zinc-400 ml-1">alertas</span>
+					<span className="text-sm text-zinc-400 ml-1">
+						{t("metrics.alertsUnit")}
+					</span>
 				</div>
 			</div>
 		</div>

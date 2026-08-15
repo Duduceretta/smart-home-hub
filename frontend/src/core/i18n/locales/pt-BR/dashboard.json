@@ -1,0 +1,36 @@
+{
+	"header": {
+		"title": "Visão Geral",
+		"subtitle": "Monitoramento do ecossistema em tempo real",
+		"periodFilter": "Últimas 24h"
+	},
+	"metrics": {
+		"energyConsumption": "Consumo de Energia",
+		"onlineDevices": "Dispositivos Online",
+		"activeOf": "/ {{total}} ativos",
+		"averageTemperature": "Temperatura Média",
+		"securityAlerts": "Alertas de Segurança",
+		"alertsUnit": "alertas"
+	},
+	"energyChart": {
+		"title": "Consumo de Energia (kW)",
+		"emptyTitle": "Nenhum consumo registrado hoje",
+		"emptySubtitle": "Assim que os sensores começarem a transmitir telemetria via MQTT, o gráfico será desenhado em tempo real."
+	},
+	"quickActions": {
+		"title": "Cenas Rápidas",
+		"movieMode": "Modo Filme",
+		"leaveHome": "Sair de Casa"
+	},
+	"recentActivities": {
+		"title": "Atividades Recentes",
+		"emptyTitle": "Nenhuma atividade recente registrada",
+		"emptySubtitle": "Ações de ligar/desligar, automações e alertas de segurança aparecerão neste histórico.",
+		"justNow": "Agora mesmo"
+	},
+	"roomChart": {
+		"title": "Uso por Cômodo",
+		"emptyTitle": "Sem dados por cômodo",
+		"emptySubtitle": "Aloque dispositivos em cômodos para medir."
+	}
+}

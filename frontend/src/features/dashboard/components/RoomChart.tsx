@@ -1,4 +1,5 @@
 import { LayoutGrid } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import {
 	Bar,
 	BarChart,
@@ -14,6 +15,7 @@ import { useDashboardOverview } from "../hooks/useDashboardOverview";
 const COLORS = ["#6366f1", "#a855f7", "#ec4899"];
 
 export function RoomChart() {
+	const { t } = useTranslation("dashboard");
 	const { data, isLoading } = useDashboardOverview();
 
 	if (isLoading || !data) {
@@ -27,7 +29,9 @@ export function RoomChart() {
 
 	return (
 		<div className="border border-zinc-800/80 rounded-2xl bg-zinc-900/50 backdrop-blur-sm p-5 flex-1 flex flex-col">
-			<h3 className="text-sm font-medium text-zinc-50 mb-4">Uso por Cômodo</h3>
+			<h3 className="text-sm font-medium text-zinc-50 mb-4">
+				{t("roomChart.title")}
+			</h3>
 
 			<div className="flex-1 min-h-30 w-full flex flex-col justify-center">
 				{/* ZERO DATA STATE */}
@@ -35,10 +39,10 @@ export function RoomChart() {
 					<div className="flex flex-col items-center justify-center gap-1.5 py-6 text-center">
 						<LayoutGrid className="h-6 w-6 text-zinc-600 mb-1" />
 						<p className="text-xs font-medium text-zinc-400">
-							Sem dados por cômodo
+							{t("roomChart.emptyTitle")}
 						</p>
 						<p className="text-[11px] text-zinc-600">
-							Aloque dispositivos em cômodos para medir.
+							{t("roomChart.emptySubtitle")}
 						</p>
 					</div>
 				) : (

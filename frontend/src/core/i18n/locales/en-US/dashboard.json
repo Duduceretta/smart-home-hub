@@ -1,0 +1,36 @@
+{
+	"header": {
+		"title": "Overview",
+		"subtitle": "Real-time ecosystem monitoring",
+		"periodFilter": "Last 24h"
+	},
+	"metrics": {
+		"energyConsumption": "Energy Consumption",
+		"onlineDevices": "Online Devices",
+		"activeOf": "/ {{total}} active",
+		"averageTemperature": "Average Temperature",
+		"securityAlerts": "Security Alerts",
+		"alertsUnit": "alerts"
+	},
+	"energyChart": {
+		"title": "Energy Consumption (kW)",
+		"emptyTitle": "No consumption recorded today",
+		"emptySubtitle": "As soon as sensors start streaming telemetry via MQTT, the chart will be drawn in real time."
+	},
+	"quickActions": {
+		"title": "Quick Scenes",
+		"movieMode": "Movie Mode",
+		"leaveHome": "Leave Home"
+	},
+	"recentActivities": {
+		"title": "Recent Activities",
+		"emptyTitle": "No recent activity recorded",
+		"emptySubtitle": "Toggle actions, automations and security alerts will show up in this history.",
+		"justNow": "Just now"
+	},
+	"roomChart": {
+		"title": "Usage by Room",
+		"emptyTitle": "No data by room",
+		"emptySubtitle": "Assign devices to rooms to measure."
+	}
+}

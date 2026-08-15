@@ -3,8 +3,10 @@ import LanguageDetector from "i18next-browser-languagedetector";
 import { initReactI18next } from "react-i18next";
 
 import enCommon from "./locales/en-US/common.json";
+import enDashboard from "./locales/en-US/dashboard.json";
 import enDevices from "./locales/en-US/devices.json";
 import ptCommon from "./locales/pt-BR/common.json";
+import ptDashboard from "./locales/pt-BR/dashboard.json";
 import ptDevices from "./locales/pt-BR/devices.json";
 
 export const defaultNS = "common";
@@ -13,10 +15,12 @@ export const resources = {
 	"pt-BR": {
 		common: ptCommon,
 		devices: ptDevices,
+		dashboard: ptDashboard,
 	},
 	"en-US": {
 		common: enCommon,
 		devices: enDevices,
+		dashboard: enDashboard,
 	},
 } as const;
 
@@ -27,7 +31,7 @@ i18n
 		resources,
 		fallbackLng: "pt-BR",
 		defaultNS,
-		ns: ["common", "devices"],
+		ns: ["common", "devices", "dashboard"],
 		interpolation: {
 			escapeValue: false,
 		},

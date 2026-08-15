@@ -1,11 +1,16 @@
 import { Bot, Clock, Lightbulb, Lock, Snowflake, Zap } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { useDashboardOverview } from "../hooks/useDashboardOverview";
 
-function getRelativeTime(utcTimestamp: string): string {
-	const rtf = new Intl.RelativeTimeFormat("pt-BR", { numeric: "auto" });
+function getRelativeTime(
+	utcTimestamp: string,
+	locale: string,
+	justNowLabel: string,
+): string {
+	const rtf = new Intl.RelativeTimeFormat(locale, { numeric: "auto" });
 	const elapsedSeconds = (new Date(utcTimestamp).getTime() - Date.now()) / 1000;
 
-	if (Math.abs(elapsedSeconds) < 60) return "Agora mesmo";
+	if (Math.abs(elapsedSeconds) < 60) return justNowLabel;
 	const elapsedMinutes = Math.round(elapsedSeconds / 60);
 	if (Math.abs(elapsedMinutes) < 60)
 		return rtf.format(elapsedMinutes, "minute");
@@ -34,6 +39,7 @@ const EVENT_STYLE_MAP: Record<
 };
 
 export function RecentActivities() {
+	const { t, i18n } = useTranslation("dashboard");
 	const { data, isLoading } = useDashboardOverview();
 
 	if (isLoading || !data) {
@@ -66,7 +72,7 @@ export function RecentActivities() {
 		<div className="border border-zinc-800/80 rounded-2xl bg-zinc-900/50 backdrop-blur-sm overflow-hidden">
 			<div className="p-6 border-b border-zinc-800/80">
 				<h3 className="text-sm font-medium text-zinc-50">
-					Atividades Recentes
+					{t("recentActivities.title")}
 				</h3>
 			</div>
 
@@ -75,11 +81,10 @@ export function RecentActivities() {
 				<div className="flex flex-col items-center justify-center gap-2 py-12 text-center">
 					<Clock className="h-8 w-8 text-zinc-600" />
 					<p className="text-sm font-medium text-zinc-400">
-						Nenhuma atividade recente registrada
+						{t("recentActivities.emptyTitle")}
 					</p>
 					<p className="max-w-sm text-xs text-zinc-600">
-						Ações de ligar/desligar, automações e alertas de segurança
-						aparecerão neste histórico.
+						{t("recentActivities.emptySubtitle")}
 					</p>
 				</div>
 			) : (
@@ -111,7 +116,11 @@ export function RecentActivities() {
 									</div>
 								</div>
 								<span className="text-xs text-zinc-500">
-									{getRelativeTime(item.timestamp)}
+									{getRelativeTime(
+										item.timestamp,
+										i18n.language || "pt-BR",
+										t("recentActivities.justNow"),
+									)}
 								</span>
 							</div>
 						);
