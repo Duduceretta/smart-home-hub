@@ -4,6 +4,7 @@ import {
 	DoorOpen,
 	History,
 	Home,
+	Layers,
 	LayoutDashboard,
 	Plus,
 	Router,
@@ -23,6 +24,7 @@ export function Sidebar() {
 		{ name: "Dashboard", path: "/dashboard", icon: LayoutDashboard },
 		{ name: "Dispositivos", path: "/devices", icon: Router },
 		{ name: "Ambientes", path: "/rooms", icon: DoorOpen },
+		{ name: "Grupos", path: "/device-groups", icon: Layers },
 		{ name: "Automações", path: "/automations", icon: Bot },
 		{ name: "Histórico", path: "/history", icon: History },
 	];

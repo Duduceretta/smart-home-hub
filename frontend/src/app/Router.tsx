@@ -6,6 +6,7 @@ import {
 import { ProtectedRoute } from "@/features/auth/guards/ProtectedRoute";
 import { PublicRoute } from "@/features/auth/guards/PublicRoute";
 import { DashboardPage } from "@/pages/dashboard/DashboardPage";
+import DeviceGroupsPage from "@/pages/device-groups/DeviceGroupsPage";
 import { DevicesPage } from "@/pages/devices/DevicesPage";
 import { ForgotPasswordPage } from "@/pages/forgot-password/ForgotPasswordPage";
 import { LoginPage } from "@/pages/login/LoginPage";
@@ -50,6 +51,10 @@ const router = createBrowserRouter([
 					{
 						path: "/rooms",
 						element: <RoomsPage />,
+					},
+					{
+						path: "/device-groups",
+						element: <DeviceGroupsPage />,
 					},
 				],
 			},
