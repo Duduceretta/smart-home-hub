@@ -9,6 +9,7 @@ using SmartHomeHub.Application.Features.Devices.Commands.ToggleDevice;
 using SmartHomeHub.Application.Features.Devices.Commands.UpdateDevice;
 using SmartHomeHub.Application.Features.Devices.Queries.GetDeviceById;
 using SmartHomeHub.Application.Features.Devices.Queries.GetDevices;
+using SmartHomeHub.Application.Features.Devices.Queries.GetDeviceTelemetryHistory;
 using SmartHomeHub.Domain.Enums;
 
 namespace SmartHomeHub.Api.Endpoints;
@@ -85,6 +86,43 @@ public static class DeviceEndpoints
             )
             .Produces<object>(StatusCodes.Status200OK)
             .ProducesProblem(StatusCodes.Status404NotFound);
+
+        app.MapGet(
+                "/api/devices/{id:guid}/telemetry",
+                async (
+                    Guid id,
+                    [FromQuery] string? range,
+                    IMediator mediator,
+                    ClaimsPrincipal claimsPrincipal,
+                    CancellationToken cancellationToken
+                ) =>
+                {
+                    var firebaseUid = claimsPrincipal.FindFirst("user_id")?.Value;
+
+                    if (string.IsNullOrEmpty(firebaseUid))
+                        return Results.Unauthorized();
+
+                    var query = new GetDeviceTelemetryHistoryQuery(id, firebaseUid, range);
+                    var result = await mediator.Send(query, cancellationToken);
+
+                    return result.IsSuccess
+                        ? Results.Ok(result.Value)
+                        : Results.Problem(
+                            statusCode: StatusCodes.Status404NotFound,
+                            title: result.Error.Code,
+                            detail: result.Error.Description
+                        );
+                }
+            )
+            .RequireAuthorization()
+            .WithTags("⚡ Dispositivos")
+            .WithSummary("Obtém histórico de telemetria do dispositivo")
+            .WithDescription(
+                "Retorna os pontos temporais de telemetria (Watts, Temperatura, Voltagem) filtrados pelo período (24h, 7d, 30d)."
+            )
+            .Produces<DeviceTelemetryHistoryDto>(StatusCodes.Status200OK)
+            .ProducesProblem(StatusCodes.Status404NotFound)
+            .ProducesProblem(StatusCodes.Status401Unauthorized);
 
         app.MapPost(
                 "/api/devices",
