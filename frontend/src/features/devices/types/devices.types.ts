@@ -16,18 +16,19 @@ export type DeviceTypeEnum =
 	(typeof DeviceTypeEnum)[keyof typeof DeviceTypeEnum];
 
 /**
- * Friendly portuguese labels for UI rendering.
+ * Maps each device type to its i18n key (under the `devices` namespace's
+ * `types` object) for UI rendering across supported locales.
  */
-export const DEVICE_TYPE_LABELS: Record<DeviceTypeEnum, string> = {
-	[DeviceTypeEnum.Light]: "Iluminação",
-	[DeviceTypeEnum.Switch]: "Interruptor",
-	[DeviceTypeEnum.Sensor]: "Sensor",
-	[DeviceTypeEnum.Thermostat]: "Termostato",
-	[DeviceTypeEnum.Camera]: "Câmera",
-	[DeviceTypeEnum.Lock]: "Fechadura Inteligente",
-	[DeviceTypeEnum.Alarm]: "Alarme",
-	[DeviceTypeEnum.Television]: "Televisão",
-};
+export const DEVICE_TYPE_LABEL_KEYS = {
+	[DeviceTypeEnum.Light]: "types.light",
+	[DeviceTypeEnum.Switch]: "types.switch",
+	[DeviceTypeEnum.Sensor]: "types.sensor",
+	[DeviceTypeEnum.Thermostat]: "types.thermostat",
+	[DeviceTypeEnum.Camera]: "types.camera",
+	[DeviceTypeEnum.Lock]: "types.lock",
+	[DeviceTypeEnum.Alarm]: "types.alarm",
+	[DeviceTypeEnum.Television]: "types.television",
+} as const satisfies Record<DeviceTypeEnum, string>;
 
 export type StatusFilterType = "online" | "offline" | null;
 

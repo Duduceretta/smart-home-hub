@@ -1,31 +1,34 @@
 import { Search } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { useDebouncedValue } from "@/core/hooks/useDebouncedValue";
 import { useDevices } from "../hooks/useDevices";
 import { useDevicesUIStore } from "../store/devices-ui.store";
 import { DeviceCard } from "./DeviceCard";
 
-const EmptyState: React.FC<{ onReset: () => void }> = ({ onReset }) => (
-	<div className="flex flex-col items-center justify-center gap-3 rounded-xl border border-dashed border-zinc-800 bg-zinc-900/20 py-16 text-center">
-		<div className="flex h-12 w-12 items-center justify-center rounded-full bg-zinc-900 border border-zinc-800 text-zinc-500">
-			<Search className="h-5 w-5 text-zinc-400" />
+const EmptyState: React.FC<{ onReset: () => void }> = ({ onReset }) => {
+	const { t } = useTranslation("devices");
+
+	return (
+		<div className="flex flex-col items-center justify-center gap-3 rounded-xl border border-dashed border-zinc-800 bg-zinc-900/20 py-16 text-center">
+			<div className="flex h-12 w-12 items-center justify-center rounded-full bg-zinc-900 border border-zinc-800 text-zinc-500">
+				<Search className="h-5 w-5 text-zinc-400" />
+			</div>
+			<div>
+				<p className="text-sm font-semibold text-zinc-200">
+					{t("grid.emptyTitle")}
+				</p>
+				<p className="mt-1 text-xs text-zinc-400">{t("grid.emptySubtitle")}</p>
+			</div>
+			<button
+				type="button"
+				onClick={onReset}
+				className="mt-2 rounded-lg border border-zinc-800 bg-zinc-900 px-3.5 py-1.5 text-xs font-medium text-zinc-300 transition-colors hover:bg-zinc-800 hover:text-zinc-50 cursor-pointer"
+			>
+				{t("grid.clearFilters")}
+			</button>
 		</div>
-		<div>
-			<p className="text-sm font-semibold text-zinc-200">
-				Nenhum dispositivo encontrado
-			</p>
-			<p className="mt-1 text-xs text-zinc-400">
-				Ajuste a busca ou os filtros para ver seus dispositivos.
-			</p>
-		</div>
-		<button
-			type="button"
-			onClick={onReset}
-			className="mt-2 rounded-lg border border-zinc-800 bg-zinc-900 px-3.5 py-1.5 text-xs font-medium text-zinc-300 transition-colors hover:bg-zinc-800 hover:text-zinc-50 cursor-pointer"
-		>
-			Limpar filtros
-		</button>
-	</div>
-);
+	);
+};
 
 const GridSkeleton: React.FC = () => (
 	<div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 animate-pulse">

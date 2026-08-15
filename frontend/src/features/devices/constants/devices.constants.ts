@@ -21,6 +21,19 @@ export const DEVICE_CATEGORIES = [
 
 export type DeviceCategory = (typeof DEVICE_CATEGORIES)[number];
 
+/**
+ * Maps each category filter value (also used as the API's `category` query
+ * param, kept stable across locales) to its i18n key under the `devices`
+ * namespace's `categories` object, for translated display labels.
+ */
+export const CATEGORY_LABEL_KEYS = {
+	Todos: "categories.all",
+	Iluminação: "categories.lighting",
+	Climatização: "categories.climate",
+	Segurança: "categories.security",
+	Eletrodomésticos: "categories.appliances",
+} as const satisfies Record<DeviceCategory, string>;
+
 export type DeviceIconConfig = {
 	icon: ComponentType<{ className?: string }>;
 	bg: string;

@@ -1,4 +1,5 @@
 import { Bell, Menu, Wifi } from "lucide-react";
+import { LanguageSelector } from "@/core/components/layouts/LanguageSelector";
 import { LogoutButton } from "@/features/auth/components/LogoutButton";
 import { useAuthStore } from "@/features/auth/store/useAuthStore";
 
@@ -28,7 +29,7 @@ export function Header() {
 						</span>
 					</div>
 
-					{/* Badge de Status do Hub (SaaS Touch) */}
+					{/* Badge de Status do Hub */}
 					<div className="hidden lg:flex items-center gap-1.5 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full text-[10px] font-medium text-emerald-400">
 						<span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
 						<Wifi className="w-3 h-3" />
@@ -37,8 +38,11 @@ export function Header() {
 				</div>
 			</div>
 
-			{/* Lado Direito: Notificações & Perfil */}
-			<div className="flex items-center gap-3 sm:gap-4">
+			{/* Lado Direito: Idioma, Notificações & Perfil */}
+			<div className="flex items-center gap-2.5 sm:gap-3.5">
+				{/* 🌐 Seletor de Idioma */}
+				<LanguageSelector />
+
 				{/* Botão de Notificações */}
 				<button
 					type="button"

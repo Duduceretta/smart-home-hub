@@ -17,7 +17,7 @@ export interface DevicesListFilters {
 export const devicesKeys = {
 	all: ["devices"] as const,
 	lists: () => [...devicesKeys.all, "list"] as const,
-	list: (filters: Record<string, unknown> = {}) =>
+	list: (filters: DevicesListFilters = {}) =>
 		[...devicesKeys.lists(), { filters }] as const,
 	details: () => [...devicesKeys.all, "detail"] as const,
 	detail: (id: string) => [...devicesKeys.details(), id] as const,

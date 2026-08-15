@@ -1,5 +1,99 @@
 {
 	"title": "Dispositivos",
+	"header": {
+		"subtitle": "Gerencie e monitore todos os seus sensores e atuadores.",
+		"addButton": "Novo Dispositivo"
+	},
+	"metrics": {
+		"total": "Total Dispositivos",
+		"online": "Online",
+		"active": "Dispositivos Ativos",
+		"securityAlerts": "Alertas de Segurança"
+	},
+	"toolbar": {
+		"searchPlaceholder": "Buscar dispositivo, ambiente ou tipo...",
+		"searchAriaLabel": "Buscar dispositivo",
+		"clearSearchAriaLabel": "Limpar busca"
+	},
+	"categories": {
+		"all": "Todos",
+		"lighting": "Iluminação",
+		"climate": "Climatização",
+		"security": "Segurança",
+		"appliances": "Eletrodomésticos"
+	},
+	"types": {
+		"light": "Iluminação",
+		"switch": "Interruptor",
+		"sensor": "Sensor",
+		"thermostat": "Termostato",
+		"camera": "Câmera",
+		"lock": "Fechadura Inteligente",
+		"alarm": "Alarme",
+		"television": "Televisão"
+	},
+	"grid": {
+		"emptyTitle": "Nenhum dispositivo encontrado",
+		"emptySubtitle": "Ajuste a busca ou os filtros para ver seus dispositivos.",
+		"clearFilters": "Limpar filtros"
+	},
+	"card": {
+		"noRoom": "Sem cômodo",
+		"activeAgo": "Ativo {{time}}",
+		"moreOptions": "Mais opções do dispositivo",
+		"toggleAriaLabel": "Alternar estado de {{name}}",
+		"idLabel": "ID: {{id}}"
+	},
+	"form": {
+		"sections": {
+			"identification": "Identificação",
+			"network": "Rede & Conectividade",
+			"classification": "Classificação"
+		},
+		"fields": {
+			"name": {
+				"label": "Nome do Dispositivo *",
+				"placeholder": "Ex: Luz Principal da Sala"
+			},
+			"brand": {
+				"label": "Marca / Modelo *",
+				"placeholder": "Ex: Philips Hue / Sonoff"
+			},
+			"externalId": {
+				"label": "Identificador Externo / MAC *",
+				"placeholder": "00:1B:44:11:3A:B7"
+			},
+			"ipAddress": {
+				"label": "Endereço IP (Local - Opcional)",
+				"labelRequired": "Endereço IP (Local) *",
+				"placeholder": "192.168.1.50"
+			},
+			"type": {
+				"label": "Tipo de Atuador",
+				"placeholder": "Selecione..."
+			},
+			"room": {
+				"label": "Cômodo",
+				"placeholder": "Selecione...",
+				"loading": "Carregando cômodos...",
+				"none": "Nenhum (Sem cômodo)"
+			}
+		},
+		"create": {
+			"title": "Adicionar Novo Dispositivo",
+			"description": "Preencha as especificações técnicas para vincular ao Smart Hub."
+		},
+		"edit": {
+			"title": "Editar Dispositivo",
+			"description": "Altere as informações cadastrais ou mude o cômodo do dispositivo.",
+			"loading": "Carregando especificações...",
+			"saveButton": "Salvar Alterações"
+		}
+	},
+	"deleteModal": {
+		"title": "Excluir dispositivo?",
+		"description": "Tem certeza que deseja remover <bold>\"{{name}}\"</bold>? Esta ação não poderá ser desfeita."
+	},
 	"telemetry": {
 		"title": "Histórico de telemetria",
 		"subtitle": "Histórico de telemetria e métricas operacionais do sensor.",
@@ -11,7 +105,8 @@
 		"currentConsumption": "Consumo",
 		"noRecords": "Sem registros para o período selecionado",
 		"mqttHint": "Eventos via MQTT preencherão o gráfico em tempo real.",
-		"errorLoading": "Não foi possível carregar os registros de telemetria."
+		"errorLoading": "Não foi possível carregar os registros de telemetria.",
+		"loading": "Carregando telemetria..."
 	},
 	"ranges": {
 		"24h": "24h",

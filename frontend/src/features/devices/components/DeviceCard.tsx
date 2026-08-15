@@ -8,6 +8,7 @@ import {
 	WifiOff,
 } from "lucide-react";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { DeleteDeviceModal } from "@/core/components/modals/DeleteDeviceModal";
 import {
 	DropdownMenu,
@@ -26,19 +27,23 @@ import {
 } from "../types/devices.types";
 import { DeviceTelemetrySheet } from "./DeviceTelemetrySheet";
 
-function formatLastActivity(minutes: number): string {
-	if (minutes < 1) return "agora";
-	if (minutes < 60) return `há ${minutes} min`;
-	const hours = Math.floor(minutes / 60);
-	if (hours < 24) return `há ${hours}h`;
-	return `há ${Math.floor(hours / 24)}d`;
-}
-
 interface DeviceCardProps {
 	device: Device;
 }
 
+function formatLastActivity(
+	minutes: number,
+	t: ReturnType<typeof useTranslation<["devices", "common"]>>["t"],
+): string {
+	if (minutes < 1) return t("common:time.now");
+	if (minutes < 60) return t("common:time.minutesAgo", { count: minutes });
+	const hours = Math.floor(minutes / 60);
+	if (hours < 24) return t("common:time.hoursAgo", { count: hours });
+	return t("common:time.daysAgo", { count: Math.floor(hours / 24) });
+}
+
 export const DeviceCard: React.FC<DeviceCardProps> = ({ device }) => {
+	const { t } = useTranslation(["devices", "common"]);
 	const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 	const [isTelemetryModalOpen, setIsTelemetryModalOpen] = useState(false);
 
@@ -95,7 +100,9 @@ export const DeviceCard: React.FC<DeviceCardProps> = ({ device }) => {
 									<WifiOff className="h-3 w-3 text-zinc-500" />
 								)}
 								<span className="text-[10px] font-medium uppercase tracking-wider text-zinc-400">
-									{device.isOnline ? "Online" : "Offline"}
+									{device.isOnline
+										? t("common:status.online")
+										: t("common:status.offline")}
 								</span>
 							</div>
 
@@ -104,7 +111,7 @@ export const DeviceCard: React.FC<DeviceCardProps> = ({ device }) => {
 								<DropdownMenuTrigger asChild>
 									<button
 										type="button"
-										aria-label="Mais opções do dispositivo"
+										aria-label={t("card.moreOptions")}
 										className="rounded-md p-1 text-zinc-500 transition-colors hover:bg-zinc-800 hover:text-zinc-200 cursor-pointer outline-none focus-visible:ring-1 focus-visible:ring-indigo-500"
 									>
 										<MoreVertical className="h-3.5 w-3.5" />
@@ -120,7 +127,7 @@ export const DeviceCard: React.FC<DeviceCardProps> = ({ device }) => {
 										className="cursor-pointer gap-2 text-xs text-zinc-300 focus:bg-zinc-800 focus:text-white"
 									>
 										<Pencil className="h-3.5 w-3.5" />
-										<span>Editar</span>
+										<span>{t("common:actions.edit")}</span>
 									</DropdownMenuItem>
 
 									<DropdownMenuItem
@@ -128,7 +135,7 @@ export const DeviceCard: React.FC<DeviceCardProps> = ({ device }) => {
 										className="cursor-pointer gap-2 text-xs text-red-400 focus:bg-red-500/10 focus:text-red-400"
 									>
 										<Trash2 className="h-3.5 w-3.5" />
-										Excluir
+										{t("common:actions.delete")}
 									</DropdownMenuItem>
 								</DropdownMenuContent>
 							</DropdownMenu>
@@ -151,12 +158,14 @@ export const DeviceCard: React.FC<DeviceCardProps> = ({ device }) => {
 						</div>
 
 						<p className="mt-0.5 truncate text-xs text-zinc-400">
-							{device.brand} • {device.room ?? "Sem cômodo"}
+							{device.brand} • {device.room ?? t("card.noRoom")}
 						</p>
 						<div className="mt-2 flex items-center gap-1.5 text-[11px] text-zinc-500">
 							<Activity className="h-3 w-3 text-zinc-600" />
 							<span>
-								Ativo {formatLastActivity(device.lastActivityMinutes || 0)}
+								{t("card.activeAgo", {
+									time: formatLastActivity(device.lastActivityMinutes || 0, t),
+								})}
 							</span>
 						</div>
 					</div>
@@ -165,7 +174,7 @@ export const DeviceCard: React.FC<DeviceCardProps> = ({ device }) => {
 				{/* Rodapé do Card */}
 				<div className="relative z-10 mt-6 flex items-center justify-between border-t border-zinc-800/60 pt-3 w-full">
 					<span className="font-mono text-[11px] text-zinc-500">
-						ID: {device.externalId}
+						{t("card.idLabel", { id: device.externalId })}
 					</span>
 
 					{showToggle ? (
@@ -179,7 +188,7 @@ export const DeviceCard: React.FC<DeviceCardProps> = ({ device }) => {
 							onClick={handleToggle}
 							role="switch"
 							aria-checked={device.isOn}
-							aria-label={`Alternar estado de ${device.name}`}
+							aria-label={t("card.toggleAriaLabel", { name: device.name })}
 							className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 disabled:cursor-not-allowed ${
 								device.isOn ? "bg-indigo-600" : "bg-zinc-800"
 							}`}
@@ -192,7 +201,7 @@ export const DeviceCard: React.FC<DeviceCardProps> = ({ device }) => {
 						</button>
 					) : (
 						<span className="text-[10px] uppercase tracking-wider text-zinc-600">
-							Somente leitura
+							{t("common:status.readOnly")}
 						</span>
 					)}
 				</div>

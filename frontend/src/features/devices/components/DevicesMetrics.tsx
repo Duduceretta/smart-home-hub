@@ -1,5 +1,6 @@
 import { Cpu, ShieldAlert, Wifi, Zap } from "lucide-react";
 import type React from "react";
+import { useTranslation } from "react-i18next";
 import { useDevices } from "../hooks/useDevices";
 
 interface SummaryStatProps {
@@ -41,6 +42,7 @@ const SummaryStat: React.FC<SummaryStatProps> = ({
 };
 
 export const DevicesMetrics: React.FC = () => {
+	const { t } = useTranslation("devices");
 	const { data: devices = [], isLoading } = useDevices();
 
 	const totalCount = devices.length;
@@ -50,28 +52,28 @@ export const DevicesMetrics: React.FC = () => {
 	return (
 		<div className="grid grid-cols-2 md:grid-cols-4 gap-4 w-full">
 			<SummaryStat
-				label="Total Dispositivos"
+				label={t("metrics.total")}
 				value={totalCount}
 				icon={<Cpu className="w-4 h-4 text-zinc-400" />}
 				isLoading={isLoading}
 			/>
 
 			<SummaryStat
-				label="Online"
+				label={t("metrics.online")}
 				value={onlineCount}
 				icon={<Wifi className="w-4 h-4 text-emerald-400" />}
 				isLoading={isLoading}
 			/>
 
 			<SummaryStat
-				label="Dispositivos Ativos"
+				label={t("metrics.active")}
 				value={activeCount}
 				icon={<Zap className="w-4 h-4 text-amber-400" />}
 				isLoading={isLoading}
 			/>
 
 			<SummaryStat
-				label="Alertas de Segurança"
+				label={t("metrics.securityAlerts")}
 				value={0}
 				icon={<ShieldAlert className="w-4 h-4 text-rose-400" />}
 				isLoading={isLoading}

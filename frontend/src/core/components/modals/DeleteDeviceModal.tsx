@@ -1,6 +1,7 @@
 import { Loader2, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
+import { Trans, useTranslation } from "react-i18next";
 
 interface DeleteDeviceModalProps {
 	isOpen: boolean;
@@ -17,6 +18,7 @@ export const DeleteDeviceModal: React.FC<DeleteDeviceModalProps> = ({
 	onConfirm,
 	isLoading = false,
 }) => {
+	const { t } = useTranslation(["devices", "common"]);
 	const [mounted, setMounted] = useState(false);
 
 	useEffect(() => {
@@ -61,12 +63,17 @@ export const DeleteDeviceModal: React.FC<DeleteDeviceModalProps> = ({
 
 					<div className="space-y-1 w-full">
 						<h3 className="text-base font-bold text-white tracking-tight">
-							Excluir dispositivo?
+							{t("deleteModal.title")}
 						</h3>
 						<p className="text-xs text-[#a1a1aa] leading-relaxed">
-							Tem certeza que deseja remover{" "}
-							<span className="text-red-400 font-semibold">"{deviceName}"</span>
-							? Esta ação não poderá ser desfeita.
+							<Trans
+								t={t}
+								i18nKey="deleteModal.description"
+								values={{ name: deviceName }}
+								components={{
+									bold: <span className="text-red-400 font-semibold" />,
+								}}
+							/>
 						</p>
 					</div>
 				</div>
@@ -78,7 +85,7 @@ export const DeleteDeviceModal: React.FC<DeleteDeviceModalProps> = ({
 						onClick={onClose}
 						className="w-full rounded-lg border border-[#27272a] bg-transparent py-2 text-xs font-medium text-[#d4d4d8] transition-colors hover:bg-[#27272a] disabled:opacity-50 cursor-pointer"
 					>
-						Cancelar
+						{t("common:actions.cancel")}
 					</button>
 
 					<button
@@ -92,7 +99,7 @@ export const DeleteDeviceModal: React.FC<DeleteDeviceModalProps> = ({
 						) : (
 							<Trash2 className="h-3.5 w-3.5" />
 						)}
-						<span>Excluir</span>
+						<span>{t("common:actions.delete")}</span>
 					</button>
 				</div>
 			</div>

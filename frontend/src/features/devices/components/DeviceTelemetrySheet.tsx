@@ -9,6 +9,7 @@ import {
 	Zap,
 } from "lucide-react";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
 	Area,
 	AreaChart,
@@ -35,6 +36,7 @@ export const DeviceTelemetrySheet: React.FC<DeviceTelemetrySheetProps> = ({
 	isOpen,
 	onClose,
 }) => {
+	const { t, i18n } = useTranslation("devices");
 	const [range, setRange] = useState<TelemetryRange>("24h");
 
 	const { data, isLoading, isError } = useDeviceTelemetryHistory({
@@ -47,9 +49,17 @@ export const DeviceTelemetrySheet: React.FC<DeviceTelemetrySheetProps> = ({
 
 	const formatTimestamp = (utcString: string): string => {
 		const date = new Date(utcString);
+		const currentLocale = i18n.language || "pt-BR";
+
 		return range === "24h"
-			? date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
-			: date.toLocaleDateString([], { month: "short", day: "numeric" });
+			? date.toLocaleTimeString(currentLocale, {
+					hour: "2-digit",
+					minute: "2-digit",
+				})
+			: date.toLocaleDateString(currentLocale, {
+					month: "short",
+					day: "numeric",
+				});
 	};
 
 	const chartData = (data?.points ?? []).map((point) => ({
@@ -64,7 +74,7 @@ export const DeviceTelemetrySheet: React.FC<DeviceTelemetrySheetProps> = ({
 			isOpen={isOpen}
 			onClose={onClose}
 			title={device.name}
-			description="Histórico de telemetria e métricas operacionais do sensor."
+			description={t("telemetry.subtitle")}
 			footer={
 				<div className="flex w-full items-center justify-between font-mono text-[11px] text-zinc-500">
 					<span>ID: {device.externalId}</span>
@@ -79,7 +89,7 @@ export const DeviceTelemetrySheet: React.FC<DeviceTelemetrySheetProps> = ({
 						<div className="flex items-center gap-2">
 							<Radio className="h-3.5 w-3.5" />
 							<span className="text-[11px] font-bold uppercase tracking-wider">
-								Status em Tempo Real
+								{t("telemetry.realtimeStatus")}
 							</span>
 						</div>
 
@@ -97,7 +107,7 @@ export const DeviceTelemetrySheet: React.FC<DeviceTelemetrySheetProps> = ({
 											: "text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200"
 									}`}
 								>
-									{r}
+									{t(`ranges.${r}`)}
 								</button>
 							))}
 						</div>
@@ -110,7 +120,7 @@ export const DeviceTelemetrySheet: React.FC<DeviceTelemetrySheetProps> = ({
 								<Zap className="h-3.5 w-3.5" />
 							</div>
 							<p className="text-[10px] font-medium uppercase tracking-wider text-zinc-500">
-								Consumo
+								{t("telemetry.currentConsumption")}
 							</p>
 							<p className="text-sm font-semibold text-zinc-100">
 								{latestPoint?.powerUsageWatts !== undefined &&
@@ -126,7 +136,7 @@ export const DeviceTelemetrySheet: React.FC<DeviceTelemetrySheetProps> = ({
 								<Thermometer className="h-3.5 w-3.5" />
 							</div>
 							<p className="text-[10px] font-medium uppercase tracking-wider text-zinc-500">
-								Temp.
+								{t("telemetry.temperature")}
 							</p>
 							<p className="text-sm font-semibold text-zinc-100">
 								{latestPoint?.temperatureCelsius !== undefined &&
@@ -142,7 +152,7 @@ export const DeviceTelemetrySheet: React.FC<DeviceTelemetrySheetProps> = ({
 								<Wifi className="h-3.5 w-3.5" />
 							</div>
 							<p className="text-[10px] font-medium uppercase tracking-wider text-zinc-500">
-								Tensão
+								{t("telemetry.voltage")}
 							</p>
 							<p className="text-sm font-semibold text-zinc-100">
 								{latestPoint?.voltage ? `${latestPoint.voltage} V` : "--"}
@@ -156,27 +166,27 @@ export const DeviceTelemetrySheet: React.FC<DeviceTelemetrySheetProps> = ({
 					<div className="flex items-center gap-2 border-b border-zinc-800/80 pb-1.5 text-indigo-400">
 						<Cpu className="h-3.5 w-3.5" />
 						<span className="text-[11px] font-bold uppercase tracking-wider">
-							Séries Temporais
+							{t("telemetry.timeSeries")}
 						</span>
 					</div>
 
 					{isLoading ? (
 						<div className="flex h-52 flex-col items-center justify-center gap-2 text-zinc-500">
 							<Loader2 className="h-5 w-5 animate-spin text-indigo-400" />
-							<p className="text-xs">Carregando telemetria...</p>
+							<p className="text-xs">{t("telemetry.loading")}</p>
 						</div>
 					) : isError ? (
 						<div className="rounded-lg border border-dashed border-rose-950/60 bg-rose-950/10 p-5 text-center text-xs text-rose-400">
-							Não foi possível carregar os registros de telemetria.
+							{t("telemetry.errorLoading")}
 						</div>
 					) : chartData.length === 0 ? (
 						<div className="flex h-52 flex-col items-center justify-center rounded-lg border border-dashed border-zinc-800 p-6 text-center text-zinc-500">
 							<Activity className="mb-2 h-6 w-6 stroke-1 text-zinc-600" />
 							<p className="text-xs font-medium text-zinc-300">
-								Sem registros para o período selecionado
+								{t("telemetry.noRecords")}
 							</p>
 							<p className="mt-0.5 text-[11px] text-zinc-500">
-								Eventos via MQTT preencherão o gráfico em tempo real.
+								{t("telemetry.mqttHint")}
 							</p>
 						</div>
 					) : (
@@ -184,7 +194,7 @@ export const DeviceTelemetrySheet: React.FC<DeviceTelemetrySheetProps> = ({
 							{/* Gráfico 1: Consumo Watts */}
 							<div className="space-y-1.5">
 								<span className="text-[11px] font-medium text-zinc-400">
-									Potência Ativa (Watts)
+									{t("telemetry.powerUsage")}
 								</span>
 								<div className="h-40 w-full rounded-lg border border-zinc-800/80 bg-zinc-900/30 p-2">
 									<ResponsiveContainer width="100%" height="100%">
@@ -242,7 +252,7 @@ export const DeviceTelemetrySheet: React.FC<DeviceTelemetrySheetProps> = ({
 												strokeWidth={2}
 												fillOpacity={1}
 												fill="url(#powerGrad)"
-												name="Potência (W)"
+												name={t("telemetry.powerUsage")}
 											/>
 										</AreaChart>
 									</ResponsiveContainer>
@@ -252,7 +262,7 @@ export const DeviceTelemetrySheet: React.FC<DeviceTelemetrySheetProps> = ({
 							{/* Gráfico 2: Temperatura */}
 							<div className="space-y-1.5">
 								<span className="text-[11px] font-medium text-zinc-400">
-									Temperatura (°C)
+									{t("telemetry.temperature")}
 								</span>
 								<div className="h-36 w-full rounded-lg border border-zinc-800/80 bg-zinc-900/30 p-2">
 									<ResponsiveContainer width="100%" height="100%">
@@ -289,7 +299,7 @@ export const DeviceTelemetrySheet: React.FC<DeviceTelemetrySheetProps> = ({
 												stroke="#06b6d4"
 												strokeWidth={2}
 												dot={false}
-												name="Temp (°C)"
+												name={t("telemetry.temperature")}
 											/>
 										</LineChart>
 									</ResponsiveContainer>

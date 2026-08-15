@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
+import { useTranslation } from "react-i18next";
 import { FormGlobalError } from "@/core/components/forms/FormGlobalError";
 import { FormInput } from "@/core/components/forms/FormInput";
 import { FormSelect } from "@/core/components/forms/FormSelect";
@@ -26,9 +27,10 @@ import {
 	type CreateDeviceFormOutput,
 	createDeviceSchema,
 } from "../types/device.schemas";
-import { DEVICE_TYPE_LABELS, DeviceTypeEnum } from "../types/devices.types";
+import { DEVICE_TYPE_LABEL_KEYS, DeviceTypeEnum } from "../types/devices.types";
 
 export const CreateDeviceSheet: React.FC = () => {
+	const { t } = useTranslation(["devices", "common"]);
 	const { isCreateSheetOpen, closeCreateSheet } = useDevicesUIStore();
 	const {
 		mutate: createDevice,
@@ -75,15 +77,15 @@ export const CreateDeviceSheet: React.FC = () => {
 		});
 	};
 
-	const deviceTypeOptions = Object.entries(DEVICE_TYPE_LABELS).map(
-		([value, label]) => ({
+	const deviceTypeOptions = Object.entries(DEVICE_TYPE_LABEL_KEYS).map(
+		([value, labelKey]) => ({
 			value: Number(value),
-			label,
+			label: t(labelKey),
 		}),
 	);
 
 	const roomOptions = [
-		{ value: "", label: "Nenhum (Sem cômodo)" },
+		{ value: "", label: t("form.fields.room.none") },
 		...rooms.map((room) => ({
 			value: room.id,
 			label: room.name,
@@ -95,8 +97,8 @@ export const CreateDeviceSheet: React.FC = () => {
 			isOpen={isCreateSheetOpen}
 			onClose={closeCreateSheet}
 			onSubmit={handleSubmit(onSubmit)}
-			title="Adicionar Novo Dispositivo"
-			description="Preencha as especificações técnicas para vincular ao Smart Hub."
+			title={t("form.create.title")}
+			description={t("form.create.description")}
 			footer={
 				<>
 					<button
@@ -105,7 +107,7 @@ export const CreateDeviceSheet: React.FC = () => {
 						disabled={isPending}
 						className="rounded-md border border-[#27272a] bg-transparent px-4 py-2 text-xs font-medium text-[#d4d4d8] transition-colors hover:border-[#52525b] disabled:opacity-50 cursor-pointer"
 					>
-						Cancelar
+						{t("common:actions.cancel")}
 					</button>
 					<button
 						type="submit"
@@ -113,7 +115,7 @@ export const CreateDeviceSheet: React.FC = () => {
 						className="relative inline-flex items-center gap-2 overflow-hidden rounded-md bg-[#6366f1] px-6 py-2 text-xs font-medium text-white transition-all hover:bg-[#4f46e5] hover:shadow-[0_0_12px_rgba(99,102,241,0.4)] disabled:opacity-50 cursor-pointer group"
 					>
 						{isPending && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
-						<span className="relative z-10">Registrar</span>
+						<span className="relative z-10">{t("common:actions.register")}</span>
 						<div className="absolute inset-0 bg-white/20 translate-y-full transition-transform duration-300 ease-out group-hover:translate-y-0" />
 					</button>
 				</>
@@ -128,14 +130,14 @@ export const CreateDeviceSheet: React.FC = () => {
 					<div className="flex items-center gap-2 border-b border-zinc-800/80 pb-1.5 text-indigo-400">
 						<BadgeInfo className="h-3.5 w-3.5" />
 						<span className="text-[11px] font-bold uppercase tracking-wider">
-							Identificação
+							{t("form.sections.identification")}
 						</span>
 					</div>
 
 					<FormInput
 						id="name"
-						label="Nome do Dispositivo *"
-						placeholder="Ex: Luz Principal da Sala"
+						label={t("form.fields.name.label")}
+						placeholder={t("form.fields.name.placeholder")}
 						icon={<Cpu className="h-4 w-4" />}
 						error={errors.name?.message}
 						registration={register("name")}
@@ -143,8 +145,8 @@ export const CreateDeviceSheet: React.FC = () => {
 
 					<FormInput
 						id="brand"
-						label="Marca / Modelo *"
-						placeholder="Ex: Philips Hue / Sonoff"
+						label={t("form.fields.brand.label")}
+						placeholder={t("form.fields.brand.placeholder")}
 						icon={<Layers className="h-4 w-4" />}
 						error={errors.brand?.message}
 						registration={register("brand")}
@@ -156,14 +158,14 @@ export const CreateDeviceSheet: React.FC = () => {
 					<div className="flex items-center gap-2 border-b border-zinc-800/80 pb-1.5 text-indigo-400">
 						<Router className="h-3.5 w-3.5" />
 						<span className="text-[11px] font-bold uppercase tracking-wider">
-							Rede &amp; Conectividade
+							{t("form.sections.network")}
 						</span>
 					</div>
 
 					<FormInput
 						id="externalId"
-						label="Identificador Externo / MAC *"
-						placeholder="00:1B:44:11:3A:B7"
+						label={t("form.fields.externalId.label")}
+						placeholder={t("form.fields.externalId.placeholder")}
 						icon={<QrCode className="h-4 w-4" />}
 						error={errors.externalId?.message}
 						registration={register("externalId")}
@@ -174,8 +176,8 @@ export const CreateDeviceSheet: React.FC = () => {
 
 					<FormInput
 						id="ipAddress"
-						label="Endereço IP (Local - Opcional)"
-						placeholder="192.168.1.50"
+						label={t("form.fields.ipAddress.label")}
+						placeholder={t("form.fields.ipAddress.placeholder")}
 						icon={<Network className="h-4 w-4" />}
 						error={errors.ipAddress?.message}
 						registration={register("ipAddress")}
@@ -190,7 +192,7 @@ export const CreateDeviceSheet: React.FC = () => {
 					<div className="flex items-center gap-2 border-b border-zinc-800/80 pb-1.5 text-indigo-400">
 						<MapPin className="h-3.5 w-3.5" />
 						<span className="text-[11px] font-bold uppercase tracking-wider">
-							Classificação
+							{t("form.sections.classification")}
 						</span>
 					</div>
 
@@ -199,8 +201,8 @@ export const CreateDeviceSheet: React.FC = () => {
 							id="type"
 							name="type"
 							control={control}
-							label="Tipo de Atuador"
-							placeholder="Selecione..."
+							label={t("form.fields.type.label")}
+							placeholder={t("form.fields.type.placeholder")}
 							icon={<Sliders className="h-4 w-4" />}
 							error={errors.type?.message}
 							options={deviceTypeOptions}
@@ -210,9 +212,11 @@ export const CreateDeviceSheet: React.FC = () => {
 							id="roomId"
 							name="roomId"
 							control={control}
-							label="Cômodo"
+							label={t("form.fields.room.label")}
 							placeholder={
-								isLoadingRooms ? "Carregando cômodos..." : "Selecione..."
+								isLoadingRooms
+									? t("form.fields.room.loading")
+									: t("form.fields.room.placeholder")
 							}
 							icon={<Home className="h-4 w-4" />}
 							error={errors.roomId?.message}

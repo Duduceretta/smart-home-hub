@@ -1,5 +1,99 @@
 {
 	"title": "Devices",
+	"header": {
+		"subtitle": "Manage and monitor all your sensors and actuators.",
+		"addButton": "New Device"
+	},
+	"metrics": {
+		"total": "Total Devices",
+		"online": "Online",
+		"active": "Active Devices",
+		"securityAlerts": "Security Alerts"
+	},
+	"toolbar": {
+		"searchPlaceholder": "Search device, room or type...",
+		"searchAriaLabel": "Search device",
+		"clearSearchAriaLabel": "Clear search"
+	},
+	"categories": {
+		"all": "All",
+		"lighting": "Lighting",
+		"climate": "Climate",
+		"security": "Security",
+		"appliances": "Appliances"
+	},
+	"types": {
+		"light": "Lighting",
+		"switch": "Switch",
+		"sensor": "Sensor",
+		"thermostat": "Thermostat",
+		"camera": "Camera",
+		"lock": "Smart Lock",
+		"alarm": "Alarm",
+		"television": "Television"
+	},
+	"grid": {
+		"emptyTitle": "No devices found",
+		"emptySubtitle": "Adjust the search or filters to see your devices.",
+		"clearFilters": "Clear filters"
+	},
+	"card": {
+		"noRoom": "No room",
+		"activeAgo": "Active {{time}}",
+		"moreOptions": "More device options",
+		"toggleAriaLabel": "Toggle {{name}} state",
+		"idLabel": "ID: {{id}}"
+	},
+	"form": {
+		"sections": {
+			"identification": "Identification",
+			"network": "Network & Connectivity",
+			"classification": "Classification"
+		},
+		"fields": {
+			"name": {
+				"label": "Device Name *",
+				"placeholder": "E.g.: Living Room Main Light"
+			},
+			"brand": {
+				"label": "Brand / Model *",
+				"placeholder": "E.g.: Philips Hue / Sonoff"
+			},
+			"externalId": {
+				"label": "External Identifier / MAC *",
+				"placeholder": "00:1B:44:11:3A:B7"
+			},
+			"ipAddress": {
+				"label": "IP Address (Local - Optional)",
+				"labelRequired": "IP Address (Local) *",
+				"placeholder": "192.168.1.50"
+			},
+			"type": {
+				"label": "Actuator Type",
+				"placeholder": "Select..."
+			},
+			"room": {
+				"label": "Room",
+				"placeholder": "Select...",
+				"loading": "Loading rooms...",
+				"none": "None (No room)"
+			}
+		},
+		"create": {
+			"title": "Add New Device",
+			"description": "Fill in the technical specifications to link it to the Smart Hub."
+		},
+		"edit": {
+			"title": "Edit Device",
+			"description": "Change the registration details or the device's room.",
+			"loading": "Loading specifications...",
+			"saveButton": "Save Changes"
+		}
+	},
+	"deleteModal": {
+		"title": "Delete device?",
+		"description": "Are you sure you want to remove <bold>\"{{name}}\"</bold>? This action cannot be undone."
+	},
 	"telemetry": {
 		"title": "Telemetry History",
 		"subtitle": "Sensor telemetry history and operational metrics.",
@@ -11,7 +105,8 @@
 		"currentConsumption": "Consumption",
 		"noRecords": "No records found for the selected period",
 		"mqttHint": "MQTT events will populate the chart in real time.",
-		"errorLoading": "Failed to load telemetry history logs."
+		"errorLoading": "Failed to load telemetry history logs.",
+		"loading": "Loading telemetry..."
 	},
 	"ranges": {
 		"24h": "24h",
