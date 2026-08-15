@@ -101,24 +101,24 @@ docker-compose up -d
 - [x] Modais/Sheets para Criar, Editar e Excluir Dispositivo
 - [x] Mapeamento dos tipos de atuadores (incluindo `Television`)
 
-#### Fase 4.3: Gestão de Ambientes (Rooms) (Próximo Foco)
+#### Fase 4.3: Gestão de Ambientes (Rooms) (Concluída)
  
 - [X] Criar a `feature/rooms` (API, Hooks com TanStack Query, Store)
 - [X] Implementar a página/modal de listagem e cadastro de Cômodos (Sala, Cozinha, Garagem)
 - [X] Conectar os cômodos reais criados no backend aos dropdowns de seleção dos Dispositivos (substituindo a opção mocada "Sem cômodo")
 
-#### Fase 4.4: Grupos de Dispositivos (Device Groups) (A Seguir)
+#### Fase 4.4: Grupos de Dispositivos (Device Groups) (Em andamento)
  
 - [X] Criar a `feature/device-groups` no frontend
 - [X] Implementar listagem paginada e cards de Grupos de Dispositivos (ex: "Todas as Luzes da Sala")
 - [X] Interface para criar/editar grupos selecionando múltiplos dispositivos (Checkboxes)
 - [ ] Ação em massa (Ligar/Desligar todos os dispositivos do grupo com um único clique)
 
-#### Fase 4.5: Telemetria em Tempo Real & Métricas
- 
+#### Fase 4.5: Telemetria em Tempo Real & Métricas (Concluída)
+    
 - [x] Consumo da rota `/dashboard/overview` no TanStack Query com gráficos do Recharts
-- [ ] Integrar WebSockets via `@microsoft/signalr` para ouvir eventos e atualizar a tela sem dar F5
-- [ ] Modal de detalhes do dispositivo exibindo gráficos históricos de consumo/temperatura
+- [X] Integrar WebSockets via `@microsoft/signalr` para ouvir eventos e atualizar a tela sem dar F5
+- [X] Modal de detalhes do dispositivo exibindo gráficos históricos de consumo/temperatura
 
 #### Fase 4.6: Testes, Qualidade & i18n
  

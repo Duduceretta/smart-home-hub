@@ -1,0 +1,21 @@
+{
+	"title": "Devices",
+	"telemetry": {
+		"title": "Telemetry History",
+		"subtitle": "Sensor telemetry history and operational metrics.",
+		"realtimeStatus": "Real-time Status",
+		"timeSeries": "Time Series",
+		"powerUsage": "Active Power (Watts)",
+		"temperature": "Temperature (°C)",
+		"voltage": "Voltage",
+		"currentConsumption": "Consumption",
+		"noRecords": "No records found for the selected period",
+		"mqttHint": "MQTT events will populate the chart in real time.",
+		"errorLoading": "Failed to load telemetry history logs."
+	},
+	"ranges": {
+		"24h": "24h",
+		"7d": "7d",
+		"30d": "30d"
+	}
+}

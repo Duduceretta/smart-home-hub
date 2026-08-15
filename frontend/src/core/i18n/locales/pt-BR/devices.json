@@ -1,0 +1,21 @@
+{
+	"title": "Dispositivos",
+	"telemetry": {
+		"title": "Histórico de telemetria",
+		"subtitle": "Histórico de telemetria e métricas operacionais do sensor.",
+		"realtimeStatus": "Status em Tempo Real",
+		"timeSeries": "Séries Temporais",
+		"powerUsage": "Potência Ativa (Watts)",
+		"temperature": "Temperatura (°C)",
+		"voltage": "Tensão / Voltagem",
+		"currentConsumption": "Consumo",
+		"noRecords": "Sem registros para o período selecionado",
+		"mqttHint": "Eventos via MQTT preencherão o gráfico em tempo real.",
+		"errorLoading": "Não foi possível carregar os registros de telemetria."
+	},
+	"ranges": {
+		"24h": "24h",
+		"7d": "7d",
+		"30d": "30d"
+	}
+}

@@ -1,0 +1,25 @@
+{
+	"actions": {
+		"save": "Salvar",
+		"cancel": "Cancelar",
+		"delete": "Excluir",
+		"edit": "Editar",
+		"close": "Fechar",
+		"register": "Registrar",
+		"confirm": "Confirmar"
+	},
+	"status": {
+		"online": "Online",
+		"offline": "Offline",
+		"on": "Ligado",
+		"off": "Desligado",
+		"loading": "Carregando...",
+		"readOnly": "Somente leitura"
+	},
+	"time": {
+		"now": "agora",
+		"minutesAgo": "há {{count}} min",
+		"hoursAgo": "há {{count}}h",
+		"daysAgo": "há {{count}}d"
+	}
+}
