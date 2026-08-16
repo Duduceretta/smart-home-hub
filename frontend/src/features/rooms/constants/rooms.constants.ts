@@ -1,23 +1,32 @@
 import { Armchair, Bath, Bed, Car, CookingPot, Home, Tv } from "lucide-react";
 import type { ComponentType } from "react";
 
+export type RoomIconLabelKey =
+	| "icons.livingRoom"
+	| "icons.bedroom"
+	| "icons.kitchen"
+	| "icons.media"
+	| "icons.garage"
+	| "icons.bathroom";
+
 export interface RoomIconOption {
 	id: string;
-	label: string;
+	labelKey: RoomIconLabelKey;
 	icon: ComponentType<{ className?: string }>;
 }
 
 /**
  * List of available icons for room visual assignment.
  * Used across forms (Create/Edit sheets) and room displays.
+ * `labelKey` points to a key under the `rooms` namespace's `icons` object.
  */
 export const ROOM_ICON_OPTIONS: RoomIconOption[] = [
-	{ id: "chair", label: "Sala", icon: Armchair },
-	{ id: "bed", label: "Quarto", icon: Bed },
-	{ id: "restaurant", label: "Cozinha", icon: CookingPot },
-	{ id: "tv", label: "Mídia/Eletro", icon: Tv },
-	{ id: "garage", label: "Garagem", icon: Car },
-	{ id: "bathtub", label: "Banheiro", icon: Bath },
+	{ id: "chair", labelKey: "icons.livingRoom", icon: Armchair },
+	{ id: "bed", labelKey: "icons.bedroom", icon: Bed },
+	{ id: "restaurant", labelKey: "icons.kitchen", icon: CookingPot },
+	{ id: "tv", labelKey: "icons.media", icon: Tv },
+	{ id: "garage", labelKey: "icons.garage", icon: Car },
+	{ id: "bathtub", labelKey: "icons.bathroom", icon: Bath },
 ];
 
 /**

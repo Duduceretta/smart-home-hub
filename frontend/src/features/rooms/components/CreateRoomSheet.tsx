@@ -2,6 +2,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Home, Loader2, Sparkles } from "lucide-react";
 import { useEffect } from "react";
 import { Controller, useForm } from "react-hook-form";
+import { useTranslation } from "react-i18next";
 import { FormInput } from "@/core/components/forms/FormInput";
 import { SheetLayout } from "@/core/components/layouts/SheetLayout";
 import { Label } from "@/core/components/ui/label";
@@ -15,6 +16,7 @@ import {
 } from "../types/room.schemas";
 
 export const CreateRoomSheet: React.FC = () => {
+	const { t } = useTranslation(["rooms", "common"]);
 	const { isCreateSheetOpen, closeCreateSheet } = useRoomsUIStore();
 	const { mutate: createRoom, isPending } = useCreateRoom();
 
@@ -63,8 +65,8 @@ export const CreateRoomSheet: React.FC = () => {
 			isOpen={isCreateSheetOpen}
 			onClose={closeCreateSheet}
 			onSubmit={handleSubmit(onSubmit)}
-			title="Adicionar Novo Ambiente"
-			description="Crie um novo cômodo físico para alocar e organizar seus dispositivos inteligentes."
+			title={t("form.create.title")}
+			description={t("form.create.description")}
 			footer={
 				<>
 					<button
@@ -73,7 +75,7 @@ export const CreateRoomSheet: React.FC = () => {
 						disabled={isPending}
 						className="rounded-md border border-zinc-800 bg-transparent px-4 py-2 text-xs font-medium text-zinc-300 transition-colors hover:border-zinc-700 disabled:opacity-50 cursor-pointer"
 					>
-						Cancelar
+						{t("common:actions.cancel")}
 					</button>
 					<button
 						type="submit"
@@ -81,7 +83,7 @@ export const CreateRoomSheet: React.FC = () => {
 						className="relative inline-flex items-center gap-2 overflow-hidden rounded-md bg-indigo-600 px-6 py-2 text-xs font-medium text-white transition-all hover:bg-indigo-500 hover:shadow-[0_0_12px_rgba(99,102,241,0.4)] disabled:opacity-50 cursor-pointer group"
 					>
 						{isPending && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
-						<span className="relative z-10">Registrar Ambiente</span>
+						<span className="relative z-10">{t("form.create.submitButton")}</span>
 						<div className="absolute inset-0 bg-white/20 translate-y-full transition-transform duration-300 ease-out group-hover:translate-y-0" />
 					</button>
 				</>
@@ -91,8 +93,8 @@ export const CreateRoomSheet: React.FC = () => {
 				{/* Campo: Nome do Ambiente */}
 				<FormInput
 					id="name"
-					label="Nome do Ambiente *"
-					placeholder="Ex: Sala de Estar, Cozinha, Escritório"
+					label={t("form.fields.name.label")}
+					placeholder={t("form.fields.name.placeholder")}
 					icon={<Home className="h-4 w-4" />}
 					error={errors.name?.message}
 					registration={register("name")}
@@ -101,7 +103,7 @@ export const CreateRoomSheet: React.FC = () => {
 				{/* Seletor Visual de Ícone */}
 				<div className="space-y-2">
 					<Label className="text-xs font-medium uppercase tracking-wide text-zinc-400">
-						Ícone do Ambiente
+						{t("form.fields.icon.label")}
 					</Label>
 
 					<Controller
@@ -126,7 +128,7 @@ export const CreateRoomSheet: React.FC = () => {
 										>
 											<IconComp className="h-6 w-6" />
 											<span className="text-[10px] font-medium">
-												{opt.label}
+												{t(opt.labelKey)}
 											</span>
 										</button>
 									);
@@ -141,12 +143,10 @@ export const CreateRoomSheet: React.FC = () => {
 					<div className="pointer-events-none absolute -right-4 -top-4 h-24 w-24 rounded-full bg-indigo-500/10 blur-xl" />
 					<div className="relative z-10 flex items-center gap-2 text-xs font-semibold text-indigo-400">
 						<Sparkles className="h-4 w-4" />
-						<span>Dica de Automação Espacial</span>
+						<span>{t("form.tip.title")}</span>
 					</div>
 					<p className="relative z-10 mt-1 text-xs text-zinc-400 leading-relaxed">
-						Ambientes criados ficam disponíveis imediatamente para vinculação na
-						aba de Dispositivos. Isso facilita a criação de rotinas como
-						"Desligar tudo na Sala".
+						{t("form.tip.description")}
 					</p>
 				</div>
 			</div>

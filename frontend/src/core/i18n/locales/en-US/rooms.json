@@ -1,0 +1,60 @@
+{
+	"title": "Physical Rooms",
+	"header": {
+		"subtitle": "Manage and organize your home's rooms to allocate smart devices.",
+		"addButton": "New Room"
+	},
+	"toolbar": {
+		"searchPlaceholder": "Search room by name..."
+	},
+	"grid": {
+		"errorTitle": "Error loading physical rooms.",
+		"errorSubtitle": "Check your connection or whether the C# API service is running.",
+		"searchEmptyTitle": "No room found",
+		"searchEmptySubtitle": "No room matches your search for \"{{query}}\".",
+		"clearSearch": "Clear search",
+		"emptyTitle": "No rooms registered",
+		"emptySubtitle": "You don't have any rooms registered yet. Create the first room to start organizing your devices.",
+		"emptyCta": "Register First Room"
+	},
+	"card": {
+		"optionsAriaLabel": "Room options",
+		"deleting": "Deleting...",
+		"confirmDelete": "Are you sure you want to delete the room \"{{name}}\"?",
+		"active": "Active Room",
+		"physicalTag": "Physical Room"
+	},
+	"icons": {
+		"livingRoom": "Living Room",
+		"bedroom": "Bedroom",
+		"kitchen": "Kitchen",
+		"media": "Media/Appliance",
+		"garage": "Garage",
+		"bathroom": "Bathroom"
+	},
+	"form": {
+		"fields": {
+			"name": {
+				"label": "Room Name *",
+				"placeholder": "E.g.: Living Room, Kitchen, Office"
+			},
+			"icon": {
+				"label": "Room Icon"
+			}
+		},
+		"create": {
+			"title": "Add New Room",
+			"description": "Create a new physical room to allocate and organize your smart devices.",
+			"submitButton": "Register Room"
+		},
+		"edit": {
+			"title": "Edit Room",
+			"description": "Change the name or the representative icon of this physical room.",
+			"submitButton": "Save Changes"
+		},
+		"tip": {
+			"title": "Spatial Automation Tip",
+			"description": "Newly created rooms are immediately available for linking on the Devices tab. This makes it easier to create routines like \"Turn off everything in the Living Room\"."
+		}
+	}
+}

@@ -1,5 +1,6 @@
 import { DoorOpen, Plus, SearchX } from "lucide-react";
 import { useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { useRooms } from "../hooks/useRooms";
 import { useRoomsUIStore } from "../store/rooms-ui.store";
 import { RoomCard } from "./RoomCard";
@@ -24,6 +25,7 @@ const RoomCardSkeleton = () => (
 );
 
 export const RoomsGrid: React.FC = () => {
+	const { t } = useTranslation("rooms");
 	const { data: rooms = [], isLoading, isError } = useRooms();
 	const { query, openCreateSheet, resetFilters } = useRoomsUIStore();
 
@@ -52,10 +54,10 @@ export const RoomsGrid: React.FC = () => {
 		return (
 			<div className="flex flex-col items-center justify-center rounded-xl border border-red-500/20 bg-red-500/5 p-12 text-center">
 				<p className="text-sm font-medium text-red-400">
-					Erro ao carregar os ambientes físicos.
+					{t("grid.errorTitle")}
 				</p>
 				<p className="mt-1 text-xs text-zinc-500">
-					Verifique sua conexão ou se o serviço de API C# está em execução.
+					{t("grid.errorSubtitle")}
 				</p>
 			</div>
 		);
@@ -69,17 +71,17 @@ export const RoomsGrid: React.FC = () => {
 					<SearchX className="h-6 w-6" />
 				</div>
 				<h3 className="mt-4 text-sm font-medium text-zinc-200">
-					Nenhum ambiente encontrado
+					{t("grid.searchEmptyTitle")}
 				</h3>
 				<p className="mt-1 text-xs text-zinc-400 max-w-sm">
-					Nenhum ambiente corresponde à sua busca por "{query}".
+					{t("grid.searchEmptySubtitle", { query })}
 				</p>
 				<button
 					type="button"
 					onClick={resetFilters}
 					className="mt-4 text-xs font-medium text-indigo-400 hover:text-indigo-300 underline cursor-pointer"
 				>
-					Limpar busca
+					{t("grid.clearSearch")}
 				</button>
 			</div>
 		);
@@ -93,11 +95,10 @@ export const RoomsGrid: React.FC = () => {
 					<DoorOpen className="h-6 w-6" />
 				</div>
 				<h3 className="mt-4 text-base font-semibold text-zinc-100">
-					Nenhum ambiente cadastrado
+					{t("grid.emptyTitle")}
 				</h3>
 				<p className="mt-1 text-xs text-zinc-400 max-w-md leading-relaxed">
-					Você ainda não possui cômodos cadastrados na sua casa inteligente.
-					Crie o primeiro ambiente para começar a organizar seus dispositivos.
+					{t("grid.emptySubtitle")}
 				</p>
 				<button
 					type="button"
@@ -105,7 +106,7 @@ export const RoomsGrid: React.FC = () => {
 					className="mt-6 inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2.5 text-xs font-medium text-white shadow-lg shadow-indigo-600/20 transition-all hover:bg-indigo-500 cursor-pointer"
 				>
 					<Plus className="h-4 w-4" />
-					Cadastrar Primeiro Ambiente
+					{t("grid.emptyCta")}
 				</button>
 			</div>
 		);

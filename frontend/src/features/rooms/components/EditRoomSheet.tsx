@@ -2,6 +2,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Home, Loader2 } from "lucide-react";
 import { useEffect } from "react";
 import { Controller, useForm } from "react-hook-form";
+import { useTranslation } from "react-i18next";
 import { FormInput } from "@/core/components/forms/FormInput";
 import { SheetLayout } from "@/core/components/layouts/SheetLayout";
 import { Label } from "@/core/components/ui/label";
@@ -15,6 +16,7 @@ import {
 } from "../types/room.schemas";
 
 export const EditRoomSheet: React.FC = () => {
+	const { t } = useTranslation(["rooms", "common"]);
 	const { editingRoom, closeEditSheet } = useRoomsUIStore();
 	const isOpen = Boolean(editingRoom);
 
@@ -68,8 +70,8 @@ export const EditRoomSheet: React.FC = () => {
 			isOpen={isOpen}
 			onClose={closeEditSheet}
 			onSubmit={handleSubmit(onSubmit)}
-			title="Editar Ambiente"
-			description="Altere o nome ou o ícone representativo deste ambiente físico."
+			title={t("form.edit.title")}
+			description={t("form.edit.description")}
 			footer={
 				<>
 					<button
@@ -78,7 +80,7 @@ export const EditRoomSheet: React.FC = () => {
 						disabled={isPending}
 						className="rounded-md border border-zinc-800 bg-transparent px-4 py-2 text-xs font-medium text-zinc-300 transition-colors hover:border-zinc-700 disabled:opacity-50 cursor-pointer"
 					>
-						Cancelar
+						{t("common:actions.cancel")}
 					</button>
 					<button
 						type="submit"
@@ -86,7 +88,7 @@ export const EditRoomSheet: React.FC = () => {
 						className="relative inline-flex items-center gap-2 overflow-hidden rounded-md bg-indigo-600 px-6 py-2 text-xs font-medium text-white transition-all hover:bg-indigo-500 hover:shadow-[0_0_12px_rgba(99,102,241,0.4)] disabled:opacity-50 cursor-pointer group"
 					>
 						{isPending && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
-						<span className="relative z-10">Salvar Alterações</span>
+						<span className="relative z-10">{t("form.edit.submitButton")}</span>
 						<div className="absolute inset-0 bg-white/20 translate-y-full transition-transform duration-300 ease-out group-hover:translate-y-0" />
 					</button>
 				</>
@@ -96,8 +98,8 @@ export const EditRoomSheet: React.FC = () => {
 				{/* Campo: Nome do Ambiente */}
 				<FormInput
 					id="name"
-					label="Nome do Ambiente *"
-					placeholder="Ex: Sala de Estar, Cozinha, Escritório"
+					label={t("form.fields.name.label")}
+					placeholder={t("form.fields.name.placeholder")}
 					icon={<Home className="h-4 w-4" />}
 					error={errors.name?.message}
 					registration={register("name")}
@@ -106,7 +108,7 @@ export const EditRoomSheet: React.FC = () => {
 				{/* Seletor Visual de Ícone */}
 				<div className="space-y-2">
 					<Label className="text-xs font-medium uppercase tracking-wide text-zinc-400">
-						Ícone do Ambiente
+						{t("form.fields.icon.label")}
 					</Label>
 
 					<Controller
@@ -131,7 +133,7 @@ export const EditRoomSheet: React.FC = () => {
 										>
 											<IconComp className="h-6 w-6" />
 											<span className="text-[10px] font-medium">
-												{opt.label}
+												{t(opt.labelKey)}
 											</span>
 										</button>
 									);

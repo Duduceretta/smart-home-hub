@@ -5,9 +5,11 @@ import { initReactI18next } from "react-i18next";
 import enCommon from "./locales/en-US/common.json";
 import enDashboard from "./locales/en-US/dashboard.json";
 import enDevices from "./locales/en-US/devices.json";
+import enRooms from "./locales/en-US/rooms.json";
 import ptCommon from "./locales/pt-BR/common.json";
 import ptDashboard from "./locales/pt-BR/dashboard.json";
 import ptDevices from "./locales/pt-BR/devices.json";
+import ptRooms from "./locales/pt-BR/rooms.json";
 
 export const defaultNS = "common";
 
@@ -16,11 +18,13 @@ export const resources = {
 		common: ptCommon,
 		devices: ptDevices,
 		dashboard: ptDashboard,
+		rooms: ptRooms,
 	},
 	"en-US": {
 		common: enCommon,
 		devices: enDevices,
 		dashboard: enDashboard,
+		rooms: enRooms,
 	},
 } as const;
 
@@ -31,7 +35,7 @@ i18n
 		resources,
 		fallbackLng: "pt-BR",
 		defaultNS,
-		ns: ["common", "devices", "dashboard"],
+		ns: ["common", "devices", "dashboard", "rooms"],
 		interpolation: {
 			escapeValue: false,
 		},

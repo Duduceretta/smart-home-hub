@@ -1,4 +1,5 @@
 import { MoreVertical, Pencil, Trash2 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -15,13 +16,14 @@ interface RoomCardProps {
 }
 
 export const RoomCard: React.FC<RoomCardProps> = ({ room }) => {
+	const { t } = useTranslation(["rooms", "common"]);
 	const openEditSheet = useRoomsUIStore((state) => state.openEditSheet);
 	const { mutate: deleteRoom, isPending } = useDeleteRoom();
 
 	const IconComponent = ROOM_ICON_MAP[room.icon || ""] || ROOM_ICON_MAP.default;
 
 	const handleDelete = () => {
-		if (confirm(`Tem certeza que deseja excluir o ambiente "${room.name}"?`)) {
+		if (confirm(t("card.confirmDelete", { name: room.name }))) {
 			deleteRoom(room.id);
 		}
 	};
@@ -41,7 +43,7 @@ export const RoomCard: React.FC<RoomCardProps> = ({ room }) => {
 					<DropdownMenuTrigger asChild>
 						<button
 							type="button"
-							aria-label="Opções do ambiente"
+							aria-label={t("card.optionsAriaLabel")}
 							className="rounded-full p-1.5 text-zinc-400 transition-colors hover:bg-zinc-800 hover:text-zinc-100 cursor-pointer outline-none"
 						>
 							<MoreVertical className="h-5 w-5" />
@@ -57,7 +59,7 @@ export const RoomCard: React.FC<RoomCardProps> = ({ room }) => {
 							className="cursor-pointer gap-2 text-xs focus:bg-zinc-800 focus:text-white"
 						>
 							<Pencil className="h-3.5 w-3.5" />
-							Editar
+							{t("common:actions.edit")}
 						</DropdownMenuItem>
 
 						<DropdownMenuItem
@@ -66,7 +68,7 @@ export const RoomCard: React.FC<RoomCardProps> = ({ room }) => {
 							className="cursor-pointer gap-2 text-xs text-red-400 focus:bg-red-500/10 focus:text-red-400"
 						>
 							<Trash2 className="h-3.5 w-3.5" />
-							{isPending ? "Excluindo..." : "Excluir"}
+							{isPending ? t("card.deleting") : t("common:actions.delete")}
 						</DropdownMenuItem>
 					</DropdownMenuContent>
 				</DropdownMenu>
@@ -79,14 +81,14 @@ export const RoomCard: React.FC<RoomCardProps> = ({ room }) => {
 				</h3>
 				<div className="flex items-center gap-2 text-xs text-zinc-400">
 					<span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
-					<span>Ambiente Ativo</span>
+					<span>{t("card.active")}</span>
 				</div>
 			</div>
 
 			{/* Rodapé Decorativo */}
 			<div className="relative z-10 mt-4 flex items-center gap-2 border-t border-zinc-800/60 pt-3">
 				<span className="rounded bg-zinc-800/80 px-2 py-0.5 font-mono text-[10px] uppercase tracking-wider text-zinc-400">
-					Ambiente Físico
+					{t("card.physicalTag")}
 				</span>
 			</div>
 		</div>

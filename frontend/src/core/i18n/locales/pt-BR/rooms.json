@@ -1,0 +1,60 @@
+{
+	"title": "Ambientes Físicos",
+	"header": {
+		"subtitle": "Gerencie e organize os cômodos da sua residência para alocação de dispositivos inteligentes.",
+		"addButton": "Novo Ambiente"
+	},
+	"toolbar": {
+		"searchPlaceholder": "Buscar ambiente por nome..."
+	},
+	"grid": {
+		"errorTitle": "Erro ao carregar os ambientes físicos.",
+		"errorSubtitle": "Verifique sua conexão ou se o serviço de API C# está em execução.",
+		"searchEmptyTitle": "Nenhum ambiente encontrado",
+		"searchEmptySubtitle": "Nenhum ambiente corresponde à sua busca por \"{{query}}\".",
+		"clearSearch": "Limpar busca",
+		"emptyTitle": "Nenhum ambiente cadastrado",
+		"emptySubtitle": "Você ainda não possui cômodos cadastrados na sua casa inteligente. Crie o primeiro ambiente para começar a organizar seus dispositivos.",
+		"emptyCta": "Cadastrar Primeiro Ambiente"
+	},
+	"card": {
+		"optionsAriaLabel": "Opções do ambiente",
+		"deleting": "Excluindo...",
+		"confirmDelete": "Tem certeza que deseja excluir o ambiente \"{{name}}\"?",
+		"active": "Ambiente Ativo",
+		"physicalTag": "Ambiente Físico"
+	},
+	"icons": {
+		"livingRoom": "Sala",
+		"bedroom": "Quarto",
+		"kitchen": "Cozinha",
+		"media": "Mídia/Eletro",
+		"garage": "Garagem",
+		"bathroom": "Banheiro"
+	},
+	"form": {
+		"fields": {
+			"name": {
+				"label": "Nome do Ambiente *",
+				"placeholder": "Ex: Sala de Estar, Cozinha, Escritório"
+			},
+			"icon": {
+				"label": "Ícone do Ambiente"
+			}
+		},
+		"create": {
+			"title": "Adicionar Novo Ambiente",
+			"description": "Crie um novo cômodo físico para alocar e organizar seus dispositivos inteligentes.",
+			"submitButton": "Registrar Ambiente"
+		},
+		"edit": {
+			"title": "Editar Ambiente",
+			"description": "Altere o nome ou o ícone representativo deste ambiente físico.",
+			"submitButton": "Salvar Alterações"
+		},
+		"tip": {
+			"title": "Dica de Automação Espacial",
+			"description": "Ambientes criados ficam disponíveis imediatamente para vinculação na aba de Dispositivos. Isso facilita a criação de rotinas como \"Desligar tudo na Sala\"."
+		}
+	}
+}
