@@ -485,7 +485,7 @@ $RECYCLE.BIN/
  
 
 # Playwright artifacts
-/playwright-report/
-/playwright/.cache/
-/test-results/
+playwright-report/
+playwright/.cache/
+test-results/
 blob-report/

@@ -12,6 +12,10 @@ export default defineConfig({
 		baseURL: "http://localhost:5173",
 		trace: "on-first-retry",
 		screenshot: "only-on-failure",
+		// Chromium defaults to en-US, which makes i18next's LanguageDetector
+		// pick English instead of the app's pt-BR fallback. Pin it so tests
+		// are deterministic regardless of the host machine's locale.
+		locale: "pt-BR",
 	},
 	projects: [
 		{
