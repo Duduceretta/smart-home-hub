@@ -15,7 +15,6 @@ export function useDashboardOverview() {
         queryKey: dashboardKeys.overview(),
         queryFn: fetchDashboardOverview,
         staleTime: 1000 * 60 * 5,
-        refetchInterval: 1000 * 60,
         retry: 1,
     });
 }

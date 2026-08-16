@@ -8,6 +8,5 @@ export function useDevices(filters: DevicesListFilters = {}) {
 		queryKey: devicesKeys.list(filters),
 		queryFn: () => fetchDevices(filters),
 		staleTime: 1000 * 30,
-		refetchInterval: 1000 * 15,
 	});
 }
