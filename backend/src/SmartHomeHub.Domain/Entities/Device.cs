@@ -1,9 +1,10 @@
 using SmartHomeHub.Domain.Common.Interfaces;
 using SmartHomeHub.Domain.Enums;
+using SmartHomeHub.Domain.ValueObjects;
 
 namespace SmartHomeHub.Domain.Entities;
 
-public class Device : ISoftDeletable
+public class Device : IAuditableEntity, ISoftDeletable
 {
     public Guid Id { get; set; } = Guid.NewGuid();
 
@@ -13,21 +14,25 @@ public class Device : ISoftDeletable
     public string Name { get; set; } = string.Empty;
     public string Brand { get; set; } = string.Empty;
 
-    // O ID físico da placa (ex: MAC Address) usado no MQTT
+    // Identificador físico no protocolo (MAC, ID Tuya, ou sufixo MQTT)
     public string ExternalId { get; set; } = string.Empty;
-    public string? IpAddress { get; set; }
 
+    public DeviceType Type { get; set; }
+    public IntegrationType IntegrationType { get; set; } = IntegrationType.NativeMqtt;
+
+    public bool IsOn { get; set; } = false;
     public bool IsOnline { get; set; } = false;
     public DateTimeOffset? LastSeenAt { get; set; }
 
-    public DeviceType Type { get; set; }
-    public bool IsOn { get; set; } = false;
+    public DeviceConfiguration Configuration { get; set; } = new();
 
-    public User User { get; set; } = null!;
-    public Room? Room { get; set; }
-
-    public ICollection<DeviceGroup> Groups { get; set; } = [];
+    public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
+    public DateTimeOffset? UpdatedAt { get; set; }
 
     public bool IsDeleted { get; set; }
     public DateTimeOffset? DeletedAt { get; set; }
+
+    public User User { get; set; } = null!;
+    public Room? Room { get; set; }
+    public ICollection<DeviceGroup> Groups { get; set; } = [];
 }

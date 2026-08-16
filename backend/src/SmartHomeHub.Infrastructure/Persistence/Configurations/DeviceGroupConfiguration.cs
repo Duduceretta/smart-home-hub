@@ -13,6 +13,9 @@ public class DeviceGroupConfiguration : IEntityTypeConfiguration<DeviceGroup>
         builder.Property(group => group.Name).IsRequired().HasMaxLength(100);
         builder.Property(group => group.Icon).HasMaxLength(50);
 
+        builder.Property(group => group.CreatedAt).IsRequired();
+        builder.Property(group => group.UpdatedAt).IsRequired(false);
+
         builder
             .HasOne(group => group.User)
             .WithMany(user => user.DeviceGroups)

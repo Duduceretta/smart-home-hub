@@ -14,6 +14,10 @@ public class RoomConfiguration : IEntityTypeConfiguration<Room>
 
         builder.Property(room => room.Icon).HasMaxLength(50);
 
+        builder.Property(room => room.CreatedAt).IsRequired();
+
+        builder.Property(room => room.UpdatedAt).IsRequired(false);
+
         builder
             .HasOne(room => room.User)
             .WithMany(user => user.Rooms)

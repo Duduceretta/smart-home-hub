@@ -16,6 +16,9 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         builder.Property(user => user.ExternalAuthUid).IsRequired().HasMaxLength(128);
         builder.HasIndex(user => user.ExternalAuthUid).IsUnique();
 
+        builder.Property(user => user.CreatedAt).IsRequired();
+        builder.Property(user => user.UpdatedAt).IsRequired(false);
+
         builder.HasQueryFilter(user => !user.IsDeleted);
     }
 }

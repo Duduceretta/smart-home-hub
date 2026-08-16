@@ -18,13 +18,27 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
 
     public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
+        var nowUtc = DateTimeOffset.UtcNow;
+
+        foreach (var entry in ChangeTracker.Entries<IAuditableEntity>())
+        {
+            if (entry.State == EntityState.Added)
+            {
+                entry.Entity.CreatedAt = nowUtc;
+            }
+            else if (entry.State == EntityState.Modified)
+            {
+                entry.Entity.UpdatedAt = nowUtc;
+            }
+        }
+
         foreach (var entry in ChangeTracker.Entries<ISoftDeletable>())
         {
             if (entry.State == EntityState.Deleted)
             {
                 entry.State = EntityState.Modified;
                 entry.Entity.IsDeleted = true;
-                entry.Entity.DeletedAt = DateTimeOffset.UtcNow;
+                entry.Entity.DeletedAt = nowUtc;
             }
         }
 
