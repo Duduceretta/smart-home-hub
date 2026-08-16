@@ -7,7 +7,7 @@ import { RoomChart } from "@/features/dashboard/components/RoomChart";
 
 export function DashboardPage() {
 	return (
-		<div className="flex flex-col gap-6 animate-fade-up">
+		<div className="flex flex-col gap-6">
 			<DashboardHeader />
 			<DashboardMetrics />
 			<div className="grid grid-cols-1 lg:grid-cols-4 gap-6">

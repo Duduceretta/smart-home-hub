@@ -7,7 +7,7 @@ import { EditDeviceSheet } from "./EditDeviceSheet";
 
 export const DevicesView: React.FC = () => {
 	return (
-		<div className="flex flex-col animate-fade-up">
+		<div className="flex flex-col">
 			{/* 1. Header */}
 			<div className="pb-5">
 				<DevicesHeader />
