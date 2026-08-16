@@ -122,7 +122,7 @@ docker-compose up -d
 
 #### Fase 4.6: Testes, Qualidade & i18n
  
-- [ ] Configurar i18n (`react-i18next`) para suporte a Português e Inglês
+- [X] Configurar i18n (`react-i18next`) para suporte a Português e Inglês
 - [ ] Configurar Vitest + React Testing Library para testes de componentes e hooks
 - [ ] Configurar Playwright para testes End-to-End (E2E) simulando login e criação de dispositivos
 
