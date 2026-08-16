@@ -480,5 +480,12 @@ $RECYCLE.BIN/
 
 # Vim temporary swap files
 *.swp
-. e n v  
+. e n v 
  
+ 
+
+# Playwright artifacts
+/playwright-report/
+/playwright/.cache/
+/test-results/
+blob-report/
