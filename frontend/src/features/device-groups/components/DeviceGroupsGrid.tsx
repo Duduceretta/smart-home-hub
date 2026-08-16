@@ -1,5 +1,6 @@
 import { Layers, Plus, SearchX } from "lucide-react";
 import { useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { useDeviceGroups } from "../hooks/useDeviceGroups";
 import { useDeviceGroupsUIStore } from "../store/device-groups-ui.store";
 import { DeviceGroupCard } from "./DeviceGroupCard";
@@ -27,6 +28,7 @@ const DeviceGroupCardSkeleton = () => (
 );
 
 export const DeviceGroupsGrid: React.FC = () => {
+	const { t } = useTranslation("device-groups");
 	const { data: groups = [], isLoading, isError } = useDeviceGroups();
 	const { query, openCreateSheet, resetFilters } = useDeviceGroupsUIStore();
 
@@ -55,10 +57,10 @@ export const DeviceGroupsGrid: React.FC = () => {
 		return (
 			<div className="flex flex-col items-center justify-center rounded-xl border border-red-500/20 bg-red-500/5 p-12 text-center">
 				<p className="text-sm font-medium text-red-400">
-					Erro ao carregar os grupos de dispositivos.
+					{t("grid.errorTitle")}
 				</p>
 				<p className="mt-1 text-xs text-zinc-500">
-					Verifique sua conexão ou se o serviço de API C# está em execução.
+					{t("grid.errorSubtitle")}
 				</p>
 			</div>
 		);
@@ -72,17 +74,17 @@ export const DeviceGroupsGrid: React.FC = () => {
 					<SearchX className="h-6 w-6" />
 				</div>
 				<h3 className="mt-4 text-sm font-medium text-zinc-200">
-					Nenhum grupo encontrado
+					{t("grid.searchEmptyTitle")}
 				</h3>
 				<p className="mt-1 text-xs text-zinc-400 max-w-sm">
-					Nenhum grupo corresponde à sua busca por "{query}".
+					{t("grid.searchEmptySubtitle", { query })}
 				</p>
 				<button
 					type="button"
 					onClick={resetFilters}
 					className="mt-4 text-xs font-medium text-indigo-400 hover:text-indigo-300 underline cursor-pointer"
 				>
-					Limpar busca
+					{t("grid.clearSearch")}
 				</button>
 			</div>
 		);
@@ -96,11 +98,10 @@ export const DeviceGroupsGrid: React.FC = () => {
 					<Layers className="h-6 w-6" />
 				</div>
 				<h3 className="mt-4 text-base font-semibold text-zinc-100">
-					Nenhum grupo cadastrado
+					{t("grid.emptyTitle")}
 				</h3>
 				<p className="mt-1 text-xs text-zinc-400 max-w-md leading-relaxed">
-					Você ainda não possui grupos de dispositivos. Crie o primeiro grupo
-					para organizar e controlar vários dispositivos de uma só vez.
+					{t("grid.emptySubtitle")}
 				</p>
 				<button
 					type="button"
@@ -108,7 +109,7 @@ export const DeviceGroupsGrid: React.FC = () => {
 					className="mt-6 inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2.5 text-xs font-medium text-white shadow-lg shadow-indigo-600/20 transition-all hover:bg-indigo-500 cursor-pointer"
 				>
 					<Plus className="h-4 w-4" />
-					Cadastrar Primeiro Grupo
+					{t("grid.emptyCta")}
 				</button>
 			</div>
 		);

@@ -4,10 +4,12 @@ import { initReactI18next } from "react-i18next";
 
 import enCommon from "./locales/en-US/common.json";
 import enDashboard from "./locales/en-US/dashboard.json";
+import enDeviceGroups from "./locales/en-US/device-groups.json";
 import enDevices from "./locales/en-US/devices.json";
 import enRooms from "./locales/en-US/rooms.json";
 import ptCommon from "./locales/pt-BR/common.json";
 import ptDashboard from "./locales/pt-BR/dashboard.json";
+import ptDeviceGroups from "./locales/pt-BR/device-groups.json";
 import ptDevices from "./locales/pt-BR/devices.json";
 import ptRooms from "./locales/pt-BR/rooms.json";
 
@@ -19,12 +21,14 @@ export const resources = {
 		devices: ptDevices,
 		dashboard: ptDashboard,
 		rooms: ptRooms,
+		"device-groups": ptDeviceGroups,
 	},
 	"en-US": {
 		common: enCommon,
 		devices: enDevices,
 		dashboard: enDashboard,
 		rooms: enRooms,
+		"device-groups": enDeviceGroups,
 	},
 } as const;
 
@@ -35,7 +39,7 @@ i18n
 		resources,
 		fallbackLng: "pt-BR",
 		defaultNS,
-		ns: ["common", "devices", "dashboard", "rooms"],
+		ns: ["common", "devices", "dashboard", "rooms", "device-groups"],
 		interpolation: {
 			escapeValue: false,
 		},

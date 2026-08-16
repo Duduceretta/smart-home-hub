@@ -1,6 +1,7 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { Search } from "lucide-react";
 import { useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Input } from "@/core/components/ui/input";
 import { Label } from "@/core/components/ui/label";
 import { cn } from "@/core/utils";
@@ -30,6 +31,7 @@ export function DeviceGroupMultiSelect({
 	error,
 	disabled,
 }: DeviceGroupMultiSelectProps) {
+	const { t } = useTranslation("device-groups");
 	const [searchTerm, setSearchTerm] = useState("");
 	const { data: devices = [], isLoading, isError } = usePickerDevices();
 
@@ -88,7 +90,7 @@ export function DeviceGroupMultiSelect({
 						type="text"
 						value={searchTerm}
 						onChange={(e) => setSearchTerm(e.target.value)}
-						placeholder="Buscar dispositivo por nome ou marca..."
+						placeholder={t("picker.searchPlaceholder")}
 						disabled={disabled}
 						aria-invalid={!!error}
 						aria-describedby={error ? errorId : undefined}
@@ -108,13 +110,13 @@ export function DeviceGroupMultiSelect({
 
 					{isError && (
 						<p className="px-3 py-4 text-center text-xs text-red-400">
-							Erro ao carregar os dispositivos disponíveis.
+							{t("picker.errorLoading")}
 						</p>
 					)}
 
 					{!isLoading && !isError && filteredDevices.length === 0 && (
 						<p className="px-3 py-4 text-center text-xs text-zinc-500">
-							Nenhum dispositivo encontrado.
+							{t("picker.emptySearch")}
 						</p>
 					)}
 
@@ -172,7 +174,7 @@ export function DeviceGroupMultiSelect({
 					</AnimatePresence>
 				</div>
 				<span className="pl-2 text-[11px] text-zinc-500 shrink-0">
-					{selectedIds.length} selecionado(s)
+					{t("picker.selectedCount", { count: selectedIds.length })}
 				</span>
 			</div>
 		</div>

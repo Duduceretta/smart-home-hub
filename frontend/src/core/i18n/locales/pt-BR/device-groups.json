@@ -1,0 +1,65 @@
+{
+	"title": "Grupos de Dispositivos",
+	"header": {
+		"subtitle": "Organize dispositivos em grupos lógicos para controlá-los em conjunto e simplificar suas automações.",
+		"addButton": "Novo Grupo"
+	},
+	"toolbar": {
+		"searchPlaceholder": "Buscar grupo por nome..."
+	},
+	"grid": {
+		"errorTitle": "Erro ao carregar os grupos de dispositivos.",
+		"errorSubtitle": "Verifique sua conexão ou se o serviço de API C# está em execução.",
+		"searchEmptyTitle": "Nenhum grupo encontrado",
+		"searchEmptySubtitle": "Nenhum grupo corresponde à sua busca por \"{{query}}\".",
+		"clearSearch": "Limpar busca",
+		"emptyTitle": "Nenhum grupo cadastrado",
+		"emptySubtitle": "Você ainda não possui grupos de dispositivos. Crie o primeiro grupo para organizar e controlar vários dispositivos de uma só vez.",
+		"emptyCta": "Cadastrar Primeiro Grupo"
+	},
+	"card": {
+		"optionsAriaLabel": "Opções do grupo",
+		"deleting": "Excluindo...",
+		"confirmDelete": "Tem certeza que deseja excluir o grupo \"{{name}}\"? Os dispositivos não serão apagados, apenas desvinculados.",
+		"noDevices": "Nenhum dispositivo vinculado",
+		"deviceCount": "{{count}} dispositivo(s)"
+	},
+	"picker": {
+		"searchPlaceholder": "Buscar dispositivo por nome ou marca...",
+		"errorLoading": "Erro ao carregar os dispositivos disponíveis.",
+		"emptySearch": "Nenhum dispositivo encontrado.",
+		"selectedCount": "{{count}} selecionado(s)"
+	},
+	"icons": {
+		"general": "Geral",
+		"group": "Grupo",
+		"lighting": "Iluminação",
+		"media": "Mídia",
+		"security": "Segurança",
+		"automation": "Automação"
+	},
+	"form": {
+		"fields": {
+			"name": {
+				"label": "Nome do Grupo *",
+				"placeholder": "Ex: Todas as Luzes, Home Theater, Segurança"
+			},
+			"icon": {
+				"label": "Ícone do Grupo"
+			},
+			"devices": {
+				"label": "Dispositivos do Grupo *"
+			}
+		},
+		"create": {
+			"title": "Adicionar Novo Grupo",
+			"description": "Crie um grupo de dispositivos para organizar e controlar vários equipamentos de uma só vez.",
+			"submitButton": "Registrar Grupo"
+		},
+		"edit": {
+			"title": "Editar Grupo",
+			"description": "Altere o nome, o ícone ou os dispositivos vinculados a este grupo.",
+			"submitButton": "Salvar Alterações"
+		}
+	}
+}

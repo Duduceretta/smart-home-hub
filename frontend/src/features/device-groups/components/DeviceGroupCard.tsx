@@ -1,4 +1,5 @@
 import { MoreVertical, Pencil, Trash2 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -19,6 +20,7 @@ const MAX_VISIBLE_DEVICE_CHIPS = 4;
 export const DeviceGroupCard: React.FC<DeviceGroupCardProps> = ({
 	group,
 }) => {
+	const { t } = useTranslation(["device-groups", "common"]);
 	const openEditSheet = useDeviceGroupsUIStore((state) => state.openEditSheet);
 	const { mutate: deleteGroup, isPending } = useDeleteDeviceGroup();
 
@@ -27,11 +29,7 @@ export const DeviceGroupCard: React.FC<DeviceGroupCardProps> = ({
 	const overflowCount = group.devices.length - visibleDevices.length;
 
 	const handleDelete = () => {
-		if (
-			confirm(
-				`Tem certeza que deseja excluir o grupo "${group.name}"? Os dispositivos não serão apagados, apenas desvinculados.`,
-			)
-		) {
+		if (confirm(t("card.confirmDelete", { name: group.name }))) {
 			deleteGroup(group.id);
 		}
 	};
@@ -51,7 +49,7 @@ export const DeviceGroupCard: React.FC<DeviceGroupCardProps> = ({
 					<DropdownMenuTrigger asChild>
 						<button
 							type="button"
-							aria-label="Opções do grupo"
+							aria-label={t("card.optionsAriaLabel")}
 							className="rounded-full p-1.5 text-zinc-400 transition-colors hover:bg-zinc-800 hover:text-zinc-100 cursor-pointer outline-none"
 						>
 							<MoreVertical className="h-5 w-5" />
@@ -67,7 +65,7 @@ export const DeviceGroupCard: React.FC<DeviceGroupCardProps> = ({
 							className="cursor-pointer gap-2 text-xs focus:bg-zinc-800 focus:text-white"
 						>
 							<Pencil className="h-3.5 w-3.5" />
-							Editar
+							{t("common:actions.edit")}
 						</DropdownMenuItem>
 
 						<DropdownMenuItem
@@ -76,7 +74,7 @@ export const DeviceGroupCard: React.FC<DeviceGroupCardProps> = ({
 							className="cursor-pointer gap-2 text-xs text-red-400 focus:bg-red-500/10 focus:text-red-400"
 						>
 							<Trash2 className="h-3.5 w-3.5" />
-							{isPending ? "Excluindo..." : "Excluir"}
+							{isPending ? t("card.deleting") : t("common:actions.delete")}
 						</DropdownMenuItem>
 					</DropdownMenuContent>
 				</DropdownMenu>
@@ -89,7 +87,7 @@ export const DeviceGroupCard: React.FC<DeviceGroupCardProps> = ({
 				</h3>
 
 				{group.devices.length === 0 ? (
-					<p className="text-xs text-zinc-500">Nenhum dispositivo vinculado</p>
+					<p className="text-xs text-zinc-500">{t("card.noDevices")}</p>
 				) : (
 					<div className="flex flex-wrap gap-1.5">
 						{visibleDevices.map((device) => (
@@ -112,7 +110,7 @@ export const DeviceGroupCard: React.FC<DeviceGroupCardProps> = ({
 			{/* Rodapé Decorativo */}
 			<div className="relative z-10 mt-4 flex items-center gap-2 border-t border-zinc-800/60 pt-3">
 				<span className="rounded bg-zinc-800/80 px-2 py-0.5 font-mono text-[10px] uppercase tracking-wider text-zinc-400">
-					{group.devices.length} dispositivo(s)
+					{t("card.deviceCount", { count: group.devices.length })}
 				</span>
 			</div>
 		</div>

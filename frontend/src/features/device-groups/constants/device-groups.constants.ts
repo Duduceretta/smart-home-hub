@@ -8,23 +8,32 @@ import {
 } from "lucide-react";
 import type { ComponentType } from "react";
 
+export type DeviceGroupIconLabelKey =
+	| "icons.general"
+	| "icons.group"
+	| "icons.lighting"
+	| "icons.media"
+	| "icons.security"
+	| "icons.automation";
+
 export interface DeviceGroupIconOption {
 	id: string;
-	label: string;
+	labelKey: DeviceGroupIconLabelKey;
 	icon: ComponentType<{ className?: string }>;
 }
 
 /**
  * List of available icons for device-group visual assignment.
  * Used across forms (Create/Edit sheets) and group displays.
+ * `labelKey` points to a key under the `device-groups` namespace's `icons` object.
  */
 export const GROUP_ICON_OPTIONS: DeviceGroupIconOption[] = [
-	{ id: "layers", label: "Geral", icon: Layers },
-	{ id: "boxes", label: "Grupo", icon: Boxes },
-	{ id: "lightbulb", label: "Iluminação", icon: Lightbulb },
-	{ id: "tv", label: "Mídia", icon: Tv },
-	{ id: "shield", label: "Segurança", icon: ShieldCheck },
-	{ id: "zap", label: "Automação", icon: Zap },
+	{ id: "layers", labelKey: "icons.general", icon: Layers },
+	{ id: "boxes", labelKey: "icons.group", icon: Boxes },
+	{ id: "lightbulb", labelKey: "icons.lighting", icon: Lightbulb },
+	{ id: "tv", labelKey: "icons.media", icon: Tv },
+	{ id: "shield", labelKey: "icons.security", icon: ShieldCheck },
+	{ id: "zap", labelKey: "icons.automation", icon: Zap },
 ];
 
 /**

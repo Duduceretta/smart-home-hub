@@ -2,6 +2,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Boxes, Loader2 } from "lucide-react";
 import { useEffect } from "react";
 import { Controller, useForm } from "react-hook-form";
+import { useTranslation } from "react-i18next";
 import { FormInput } from "@/core/components/forms/FormInput";
 import { SheetLayout } from "@/core/components/layouts/SheetLayout";
 import { Label } from "@/core/components/ui/label";
@@ -16,6 +17,7 @@ import {
 import { DeviceGroupMultiSelect } from "./DeviceGroupMultiSelect";
 
 export const EditDeviceGroupSheet: React.FC = () => {
+	const { t } = useTranslation(["device-groups", "common"]);
 	const { editingGroup, closeEditSheet } = useDeviceGroupsUIStore();
 	const isOpen = Boolean(editingGroup);
 
@@ -73,8 +75,8 @@ export const EditDeviceGroupSheet: React.FC = () => {
 			isOpen={isOpen}
 			onClose={closeEditSheet}
 			onSubmit={handleSubmit(onSubmit)}
-			title="Editar Grupo"
-			description="Altere o nome, o ícone ou os dispositivos vinculados a este grupo."
+			title={t("form.edit.title")}
+			description={t("form.edit.description")}
 			footer={
 				<>
 					<button
@@ -83,7 +85,7 @@ export const EditDeviceGroupSheet: React.FC = () => {
 						disabled={isPending}
 						className="rounded-md border border-zinc-800 bg-transparent px-4 py-2 text-xs font-medium text-zinc-300 transition-colors hover:border-zinc-700 disabled:opacity-50 cursor-pointer"
 					>
-						Cancelar
+						{t("common:actions.cancel")}
 					</button>
 					<button
 						type="submit"
@@ -91,7 +93,7 @@ export const EditDeviceGroupSheet: React.FC = () => {
 						className="relative inline-flex items-center gap-2 overflow-hidden rounded-md bg-indigo-600 px-6 py-2 text-xs font-medium text-white transition-all hover:bg-indigo-500 hover:shadow-[0_0_12px_rgba(99,102,241,0.4)] disabled:opacity-50 cursor-pointer group"
 					>
 						{isPending && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
-						<span className="relative z-10">Salvar Alterações</span>
+						<span className="relative z-10">{t("form.edit.submitButton")}</span>
 						<div className="absolute inset-0 bg-white/20 translate-y-full transition-transform duration-300 ease-out group-hover:translate-y-0" />
 					</button>
 				</>
@@ -101,8 +103,8 @@ export const EditDeviceGroupSheet: React.FC = () => {
 				{/* Campo: Nome do Grupo */}
 				<FormInput
 					id="name"
-					label="Nome do Grupo *"
-					placeholder="Ex: Todas as Luzes, Home Theater, Segurança"
+					label={t("form.fields.name.label")}
+					placeholder={t("form.fields.name.placeholder")}
 					icon={<Boxes className="h-4 w-4" />}
 					error={errors.name?.message}
 					registration={register("name")}
@@ -111,7 +113,7 @@ export const EditDeviceGroupSheet: React.FC = () => {
 				{/* Seletor Visual de Ícone */}
 				<div className="space-y-2">
 					<Label className="text-xs font-medium uppercase tracking-wide text-zinc-400">
-						Ícone do Grupo
+						{t("form.fields.icon.label")}
 					</Label>
 
 					<Controller
@@ -138,7 +140,7 @@ export const EditDeviceGroupSheet: React.FC = () => {
 										>
 											<IconComp className="h-6 w-6" />
 											<span className="text-[10px] font-medium">
-												{opt.label}
+												{t(opt.labelKey)}
 											</span>
 										</button>
 									);
@@ -155,7 +157,7 @@ export const EditDeviceGroupSheet: React.FC = () => {
 					render={({ field }) => (
 						<DeviceGroupMultiSelect
 							id="deviceIds"
-							label="Dispositivos do Grupo *"
+							label={t("form.fields.devices.label")}
 							selectedIds={field.value ?? []}
 							onChange={field.onChange}
 							error={errors.deviceIds?.message}

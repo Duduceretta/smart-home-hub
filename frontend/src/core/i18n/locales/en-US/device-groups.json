@@ -1,0 +1,65 @@
+{
+	"title": "Device Groups",
+	"header": {
+		"subtitle": "Organize devices into logical groups to control them together and simplify your automations.",
+		"addButton": "New Group"
+	},
+	"toolbar": {
+		"searchPlaceholder": "Search group by name..."
+	},
+	"grid": {
+		"errorTitle": "Error loading device groups.",
+		"errorSubtitle": "Check your connection or whether the C# API service is running.",
+		"searchEmptyTitle": "No group found",
+		"searchEmptySubtitle": "No group matches your search for \"{{query}}\".",
+		"clearSearch": "Clear search",
+		"emptyTitle": "No groups registered",
+		"emptySubtitle": "You don't have any device groups yet. Create the first group to organize and control several devices at once.",
+		"emptyCta": "Register First Group"
+	},
+	"card": {
+		"optionsAriaLabel": "Group options",
+		"deleting": "Deleting...",
+		"confirmDelete": "Are you sure you want to delete the group \"{{name}}\"? Devices will not be deleted, only unlinked.",
+		"noDevices": "No devices linked",
+		"deviceCount": "{{count}} device(s)"
+	},
+	"picker": {
+		"searchPlaceholder": "Search device by name or brand...",
+		"errorLoading": "Error loading available devices.",
+		"emptySearch": "No device found.",
+		"selectedCount": "{{count}} selected"
+	},
+	"icons": {
+		"general": "General",
+		"group": "Group",
+		"lighting": "Lighting",
+		"media": "Media",
+		"security": "Security",
+		"automation": "Automation"
+	},
+	"form": {
+		"fields": {
+			"name": {
+				"label": "Group Name *",
+				"placeholder": "E.g.: All Lights, Home Theater, Security"
+			},
+			"icon": {
+				"label": "Group Icon"
+			},
+			"devices": {
+				"label": "Group Devices *"
+			}
+		},
+		"create": {
+			"title": "Add New Group",
+			"description": "Create a device group to organize and control multiple equipment at once.",
+			"submitButton": "Register Group"
+		},
+		"edit": {
+			"title": "Edit Group",
+			"description": "Change the name, icon, or devices linked to this group.",
+			"submitButton": "Save Changes"
+		}
+	}
+}
