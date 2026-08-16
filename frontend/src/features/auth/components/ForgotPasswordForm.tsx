@@ -1,4 +1,5 @@
 import { ArrowLeft, CheckCircle2, Mail } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import { FormGlobalError } from "@/core/components/forms/FormGlobalError";
 import { FormInput } from "@/core/components/forms/FormInput";
@@ -6,6 +7,7 @@ import { Button } from "@/core/components/ui/button";
 import { useForgotPasswordForm } from "../hooks/useForgotPasswordForm";
 
 export function ForgotPasswordForm() {
+    const { t } = useTranslation("auth");
     const {
         register,
         handleFormSubmit,
@@ -23,10 +25,10 @@ export function ForgotPasswordForm() {
 
             <div className="mb-6">
                 <h2 className="mb-1 text-3xl font-semibold text-zinc-50">
-                    Recuperar Senha
+                    {t("forgotPassword.title")}
                 </h2>
                 <p className="text-sm text-zinc-400">
-                    Enviaremos um link seguro para você redefinir seu acesso.
+                    {t("forgotPassword.subtitle")}
                 </p>
             </div>
 
@@ -34,15 +36,14 @@ export function ForgotPasswordForm() {
                 <div className="flex flex-col items-center justify-center space-y-4 py-6 text-center animate-fade-up">
                     <CheckCircle2 className="h-12 w-12 text-emerald-500" />
                     <p className="text-sm font-medium text-zinc-300">
-                        Se o e-mail estiver cadastrado em nosso sistema, você receberá um
-                        link de recuperação em breve.
+                        {t("forgotPassword.successMessage")}
                     </p>
                     <Link
                         to="/login"
                         className="mt-4 flex items-center text-sm font-medium text-indigo-400 transition-colors hover:text-indigo-300"
                     >
                         <ArrowLeft className="mr-2 h-4 w-4" />
-                        Voltar para o login
+                        {t("forgotPassword.backToLogin")}
                     </Link>
                 </div>
             ) : (
@@ -53,11 +54,11 @@ export function ForgotPasswordForm() {
                 >
                     <FormInput
                         id="email"
-                        label="Email cadastrado"
+                        label={t("forgotPassword.emailLabel")}
                         icon={<Mail className="h-4 w-4" />}
                         type="email"
                         autoComplete="email"
-                        placeholder="admin@smart.local"
+                        placeholder={t("forgotPassword.emailPlaceholder")}
                         registration={register("email")}
                         error={errors.email?.message}
                         delayClass="delay-200"
@@ -72,7 +73,9 @@ export function ForgotPasswordForm() {
                             disabled={isSubmitting}
                             className="btn-primary w-full bg-indigo-600 text-white hover:bg-indigo-500 disabled:cursor-not-allowed disabled:opacity-50"
                         >
-                            {isSubmitting ? "Enviando..." : "Enviar link de recuperação"}
+                            {isSubmitting
+                                ? t("forgotPassword.submitting")
+                                : t("forgotPassword.submitButton")}
                         </Button>
                     </div>
 
@@ -87,7 +90,7 @@ export function ForgotPasswordForm() {
                             className="flex items-center justify-center text-sm font-medium text-zinc-400 transition-colors hover:text-indigo-300"
                         >
                             <ArrowLeft className="mr-2 h-4 w-4" />
-                            Lembrei minha senha
+                            {t("forgotPassword.rememberedPassword")}
                         </Link>
                     </div>
                 </form>

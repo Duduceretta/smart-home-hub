@@ -1,4 +1,5 @@
 import { Mail, User } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import { FormGlobalError } from "@/core/components/forms/FormGlobalError";
 import { FormInput } from "@/core/components/forms/FormInput";
@@ -8,6 +9,7 @@ import { useRegisterForm } from "../hooks/useRegisterForm";
 import { GoogleAuthButton } from "./GoogleAuthButton";
 
 export function RegisterForm() {
+    const { t } = useTranslation("auth");
     const {
         register,
         handleFormSubmit,
@@ -24,11 +26,9 @@ export function RegisterForm() {
 
             <div className="mb-8">
                 <h2 className="mb-1 text-3xl font-semibold text-zinc-50">
-                    Criar Conta
+                    {t("register.title")}
                 </h2>
-                <p className="text-sm text-zinc-400">
-                    Preencha seus dados para ingressar no ecossistema.
-                </p>
+                <p className="text-sm text-zinc-400">{t("register.subtitle")}</p>
             </div>
 
             <form
@@ -38,11 +38,11 @@ export function RegisterForm() {
             >
                 <FormInput
                     id="name"
-                    label="Nome Completo"
+                    label={t("register.nameLabel")}
                     icon={<User className="h-4 w-4" />}
                     type="text"
                     autoComplete="name"
-                    placeholder="Seu nome"
+                    placeholder={t("register.namePlaceholder")}
                     registration={register("name")}
                     error={errors.name?.message}
                     delayClass="delay-200"
@@ -50,11 +50,11 @@ export function RegisterForm() {
 
                 <FormInput
                     id="email"
-                    label="Email"
+                    label={t("register.emailLabel")}
                     icon={<Mail className="h-4 w-4" />}
                     type="email"
                     autoComplete="email"
-                    placeholder="admin@smart.local"
+                    placeholder={t("register.emailPlaceholder")}
                     registration={register("email")}
                     error={errors.email?.message}
                     delayClass="delay-300"
@@ -62,7 +62,7 @@ export function RegisterForm() {
 
                 <PasswordInput
                     id="password"
-                    label="Senha"
+                    label={t("register.passwordLabel")}
                     autoComplete="new-password"
                     placeholder="••••••••"
                     registration={register("password")}
@@ -72,7 +72,7 @@ export function RegisterForm() {
 
                 <PasswordInput
                     id="confirmPassword"
-                    label="Confirmar Senha"
+                    label={t("register.confirmPasswordLabel")}
                     autoComplete="new-password"
                     placeholder="••••••••"
                     registration={register("confirmPassword")}
@@ -89,7 +89,9 @@ export function RegisterForm() {
                         disabled={isSubmitting}
                         className="btn-primary w-full bg-indigo-600 text-white hover:bg-indigo-500 disabled:cursor-not-allowed disabled:opacity-50"
                     >
-                        {isSubmitting ? "Criando conta..." : "Criar Conta"}
+                        {isSubmitting
+                            ? t("register.submitting")
+                            : t("register.submitButton")}
                     </Button>
                 </div>
 
@@ -105,7 +107,7 @@ export function RegisterForm() {
                 </div>
                 <div className="relative flex justify-center text-xs">
                     <span className="bg-zinc-900/80 px-2 text-zinc-500 backdrop-blur-sm">
-                        Ou continue com
+                        {t("register.orContinueWith")}
                     </span>
                 </div>
             </div>
@@ -114,7 +116,7 @@ export function RegisterForm() {
                 className="mt-3 animate-fade-up delay-700 opacity-0-init"
                 style={{ animationFillMode: "forwards" }}
             >
-                <GoogleAuthButton actionText="Cadastrar com Google" />
+                <GoogleAuthButton actionText={t("register.googleButton")} />
             </div>
 
             <div
@@ -122,12 +124,12 @@ export function RegisterForm() {
                 style={{ animationFillMode: "forwards" }}
             >
                 <p className="text-sm text-zinc-400">
-                    Já possui uma conta?{" "}
+                    {t("register.hasAccount")}{" "}
                     <Link
                         to="/login"
                         className="font-medium text-indigo-400 transition-colors hover:text-indigo-300"
                     >
-                        Faça login
+                        {t("register.signIn")}
                     </Link>
                 </p>
             </div>

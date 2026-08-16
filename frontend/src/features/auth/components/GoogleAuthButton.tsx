@@ -1,5 +1,6 @@
 import { Loader2 } from "lucide-react";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { Button } from "@/core/components/ui/button";
@@ -10,9 +11,8 @@ interface GoogleAuthButtonProps {
 	actionText?: string;
 }
 
-export function GoogleAuthButton({
-	actionText = "Continuar com Google",
-}: GoogleAuthButtonProps) {
+export function GoogleAuthButton({ actionText }: GoogleAuthButtonProps) {
+	const { t } = useTranslation("auth");
 	const [isLoading, setIsLoading] = useState(false);
 	const setUser = useAuthStore((state) => state.setUser);
 	const navigate = useNavigate();
@@ -74,7 +74,7 @@ export function GoogleAuthButton({
 					/>
 				</svg>
 			)}
-			{isLoading ? "Aguardando Google..." : actionText}
+			{isLoading ? t("google.loading") : (actionText ?? t("google.continueButton"))}
 		</Button>
 	);
 }

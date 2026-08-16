@@ -1,4 +1,5 @@
 import { Mail } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import { FormGlobalError } from "@/core/components/forms/FormGlobalError";
 import { FormInput } from "@/core/components/forms/FormInput";
@@ -8,6 +9,7 @@ import { useLoginForm } from "../hooks/useLoginForm";
 import { GoogleAuthButton } from "./GoogleAuthButton";
 
 export function LoginForm() {
+    const { t } = useTranslation("auth");
     const {
         register,
         handleFormSubmit,
@@ -24,20 +26,18 @@ export function LoginForm() {
 
             <div className="mb-8">
                 <h2 className="mb-1 text-3xl font-semibold text-zinc-50">
-                    Bem-vindo(a)
+                    {t("login.title")}
                 </h2>
-                <p className="text-sm text-zinc-400">
-                    Insira suas credenciais para acessar o ecossistema.
-                </p>
+                <p className="text-sm text-zinc-400">{t("login.subtitle")}</p>
             </div>
 
             <form onSubmit={handleFormSubmit} noValidate className="space-y-2.5">
                 <FormInput
                     id="email"
-                    label="Email"
+                    label={t("login.emailLabel")}
                     type="email"
                     autoComplete="email"
-                    placeholder="admin@smart.local"
+                    placeholder={t("login.emailPlaceholder")}
                     icon={<Mail className="h-4 w-4" />}
                     registration={register("email")}
                     error={errors.email?.message}
@@ -46,7 +46,7 @@ export function LoginForm() {
 
                 <PasswordInput
                     id="password"
-                    label="Senha"
+                    label={t("login.passwordLabel")}
                     autoComplete="current-password"
                     placeholder="••••••••"
                     registration={register("password")}
@@ -58,7 +58,7 @@ export function LoginForm() {
                             className="text-xs text-indigo-400 transition-colors hover:text-indigo-300"
                             tabIndex={-1}
                         >
-                            Esqueceu a senha?
+                            {t("login.forgotPassword")}
                         </Link>
                     }
                 />
@@ -72,7 +72,7 @@ export function LoginForm() {
                         disabled={isSubmitting}
                         className="btn-primary w-full bg-indigo-600 text-white hover:bg-indigo-500 disabled:cursor-not-allowed disabled:opacity-50"
                     >
-                        {isSubmitting ? "Autenticando..." : "Iniciar Sessão"}
+                        {isSubmitting ? t("login.submitting") : t("login.submitButton")}
                     </Button>
                 </div>
 
@@ -88,7 +88,7 @@ export function LoginForm() {
                 </div>
                 <div className="relative flex justify-center text-xs uppercase">
                     <span className="bg-[#121215] px-2 text-zinc-500">
-                        Ou continue com
+                        {t("login.orContinueWith")}
                     </span>
                 </div>
             </div>
@@ -105,12 +105,12 @@ export function LoginForm() {
                 style={{ animationFillMode: "forwards" }}
             >
                 <p className="text-sm text-zinc-400">
-                    Não tem uma conta?{" "}
+                    {t("login.noAccount")}{" "}
                     <Link
                         to="/register"
                         className="font-medium text-indigo-400 transition-colors hover:text-indigo-300"
                     >
-                        Cadastre-se
+                        {t("login.signUp")}
                     </Link>
                 </p>
             </div>

@@ -1,6 +1,7 @@
 import { AlertTriangle, Loader2, LogOut } from "lucide-react";
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
+import { useTranslation } from "react-i18next";
 
 interface LogoutConfirmModalProps {
 	isOpen: boolean;
@@ -15,6 +16,7 @@ export const LogoutConfirmModal: React.FC<LogoutConfirmModalProps> = ({
 	onConfirm,
 	isLoading = false,
 }) => {
+	const { t } = useTranslation(["auth", "common"]);
 	const [mounted, setMounted] = useState(false);
 
 	useEffect(() => {
@@ -47,7 +49,7 @@ export const LogoutConfirmModal: React.FC<LogoutConfirmModalProps> = ({
 				type="button"
 				disabled={isLoading}
 				onClick={onClose}
-				aria-label="Cancelar e fechar modal"
+				aria-label={t("logout.closeAriaLabel")}
 				className="absolute inset-0 h-full w-full cursor-default border-none bg-black/60 backdrop-blur-sm"
 			/>
 
@@ -73,14 +75,13 @@ export const LogoutConfirmModal: React.FC<LogoutConfirmModalProps> = ({
 							id="logout-modal-title"
 							className="text-base font-bold text-white tracking-tight"
 						>
-							Encerrar sessão no Smart Hub?
+							{t("logout.confirmTitle")}
 						</h3>
 						<p
 							id="logout-modal-desc"
 							className="text-xs text-[#a1a1aa] leading-relaxed"
 						>
-							Você precisará fazer login novamente para monitorar ou controlar
-							os seus dispositivos.
+							{t("logout.confirmDescription")}
 						</p>
 					</div>
 				</div>
@@ -93,7 +94,7 @@ export const LogoutConfirmModal: React.FC<LogoutConfirmModalProps> = ({
 						onClick={onClose}
 						className="w-full rounded-lg border border-[#27272a] bg-transparent py-2 text-xs font-medium text-[#d4d4d8] transition-colors hover:bg-[#27272a] hover:text-white disabled:opacity-50 cursor-pointer"
 					>
-						Cancelar
+						{t("common:actions.cancel")}
 					</button>
 
 					<button
@@ -107,7 +108,7 @@ export const LogoutConfirmModal: React.FC<LogoutConfirmModalProps> = ({
 						) : (
 							<AlertTriangle className="h-3.5 w-3.5" />
 						)}
-						<span>Sim, Sair</span>
+						<span>{t("logout.confirmYes")}</span>
 					</button>
 				</div>
 			</div>

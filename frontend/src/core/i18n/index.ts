@@ -2,11 +2,13 @@ import i18n from "i18next";
 import LanguageDetector from "i18next-browser-languagedetector";
 import { initReactI18next } from "react-i18next";
 
+import enAuth from "./locales/en-US/auth.json";
 import enCommon from "./locales/en-US/common.json";
 import enDashboard from "./locales/en-US/dashboard.json";
 import enDeviceGroups from "./locales/en-US/device-groups.json";
 import enDevices from "./locales/en-US/devices.json";
 import enRooms from "./locales/en-US/rooms.json";
+import ptAuth from "./locales/pt-BR/auth.json";
 import ptCommon from "./locales/pt-BR/common.json";
 import ptDashboard from "./locales/pt-BR/dashboard.json";
 import ptDeviceGroups from "./locales/pt-BR/device-groups.json";
@@ -22,6 +24,7 @@ export const resources = {
 		dashboard: ptDashboard,
 		rooms: ptRooms,
 		"device-groups": ptDeviceGroups,
+		auth: ptAuth,
 	},
 	"en-US": {
 		common: enCommon,
@@ -29,6 +32,7 @@ export const resources = {
 		dashboard: enDashboard,
 		rooms: enRooms,
 		"device-groups": enDeviceGroups,
+		auth: enAuth,
 	},
 } as const;
 
@@ -39,7 +43,7 @@ i18n
 		resources,
 		fallbackLng: "pt-BR",
 		defaultNS,
-		ns: ["common", "devices", "dashboard", "rooms", "device-groups"],
+		ns: ["common", "devices", "dashboard", "rooms", "device-groups", "auth"],
 		interpolation: {
 			escapeValue: false,
 		},

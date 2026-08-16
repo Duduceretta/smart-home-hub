@@ -1,5 +1,6 @@
 import { LogOut } from "lucide-react";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { LogoutConfirmModal } from "@/core/components/modals/LogoutConfirmModal";
 import { Button } from "@/core/components/ui/button";
@@ -7,6 +8,7 @@ import { Logger } from "@/core/logger/app.logger";
 import { logoutUser } from "../api/auth.api";
 
 export function LogoutButton() {
+	const { t } = useTranslation("auth");
 	// 1. Estado para abrir/fechar o modal de confirmação
 	const [isModalOpen, setIsModalOpen] = useState(false);
 	// 2. Estado de loading da requisição no Firebase
@@ -39,7 +41,7 @@ export function LogoutButton() {
 				className="flex items-center gap-2 border-zinc-800 bg-zinc-950/50 text-zinc-300 transition-colors hover:bg-zinc-800 hover:text-zinc-50 disabled:opacity-50 cursor-pointer"
 			>
 				<LogOut className="h-4 w-4" />
-				{isLoggingOut ? "Saindo..." : "Sair"}
+				{isLoggingOut ? t("logout.loggingOut") : t("logout.button")}
 			</Button>
 
 			<LogoutConfirmModal
