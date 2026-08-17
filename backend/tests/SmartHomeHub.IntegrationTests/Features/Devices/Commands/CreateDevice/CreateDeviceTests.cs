@@ -17,6 +17,7 @@ public class CreateDeviceTests(IntegrationTestWebAppFactory factory) : BaseInteg
         string Brand,
         string ExternalId,
         DeviceType Type,
+        IntegrationType IntegrationType,
         Guid? RoomId
     );
 
@@ -40,6 +41,7 @@ public class CreateDeviceTests(IntegrationTestWebAppFactory factory) : BaseInteg
             "Philips Hue",
             "MAC-A1-B2-C3",
             DeviceType.Light,
+            IntegrationType.NativeMqtt,
             null
         );
 
@@ -94,6 +96,7 @@ public class CreateDeviceTests(IntegrationTestWebAppFactory factory) : BaseInteg
             "Intelbras",
             "MAC-REUSO-99",
             DeviceType.Light,
+            IntegrationType.NativeMqtt,
             null
         );
 
@@ -153,6 +156,7 @@ public class CreateDeviceTests(IntegrationTestWebAppFactory factory) : BaseInteg
             "Espiã",
             "MAC-HACKER-00",
             DeviceType.Camera,
+            IntegrationType.NativeMqtt,
             victimRoom.Id
         );
 

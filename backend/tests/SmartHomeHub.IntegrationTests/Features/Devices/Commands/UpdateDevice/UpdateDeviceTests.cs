@@ -16,6 +16,7 @@ public class UpdateDeviceTests(IntegrationTestWebAppFactory factory) : BaseInteg
         string Brand,
         string ExternalId,
         DeviceType Type,
+        IntegrationType IntegrationType,
         Guid? RoomId
     );
 
@@ -61,6 +62,7 @@ public class UpdateDeviceTests(IntegrationTestWebAppFactory factory) : BaseInteg
             "Philips",
             "MAC-NOVO",
             DeviceType.Light,
+            IntegrationType.NativeMqtt,
             roomId
         );
 
@@ -123,6 +125,7 @@ public class UpdateDeviceTests(IntegrationTestWebAppFactory factory) : BaseInteg
             "Intelbras",
             "MAC-FECHADURA",
             DeviceType.Lock,
+            IntegrationType.NativeMqtt,
             null
         );
 
@@ -187,6 +190,7 @@ public class UpdateDeviceTests(IntegrationTestWebAppFactory factory) : BaseInteg
             "Geral",
             "MAC-1",
             DeviceType.Camera,
+            IntegrationType.NativeMqtt,
             victimRoomId
         );
 
