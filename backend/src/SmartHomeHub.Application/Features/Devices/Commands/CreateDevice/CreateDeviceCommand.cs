@@ -5,6 +5,7 @@ using SmartHomeHub.Application.Common.Interfaces;
 using SmartHomeHub.Domain.Common.Primitives;
 using SmartHomeHub.Domain.Entities;
 using SmartHomeHub.Domain.Enums;
+using SmartHomeHub.Domain.ValueObjects;
 
 namespace SmartHomeHub.Application.Features.Devices.Commands.CreateDevice;
 
@@ -12,10 +13,15 @@ public record CreateDeviceCommand(
     string Name,
     string Brand,
     string ExternalId,
-    string? IpAddress,
     DeviceType Type,
+    IntegrationType IntegrationType,
     Guid? RoomId,
-    string FirebaseUid
+    string FirebaseUid,
+    string? IpAddress = null,
+    string? MacAddress = null,
+    string? LocalKey = null,
+    string? DpsPowerKey = null,
+    string? ClientKey = null
 ) : ICommand<Result<Guid>>;
 
 public class CreateDeviceCommandValidator : AbstractValidator<CreateDeviceCommand>
@@ -39,6 +45,10 @@ public class CreateDeviceCommandValidator : AbstractValidator<CreateDeviceComman
         RuleFor(command => command.Type)
             .IsInEnum()
             .WithMessage("O tipo de dispositivo fornecido é inválido.");
+
+        RuleFor(command => command.IntegrationType)
+            .IsInEnum()
+            .WithMessage("O tipo de integração fornecido é inválido.");
     }
 }
 
@@ -81,10 +91,18 @@ public class CreateDeviceCommandHandler(IAppDbContext dbContext)
             Name = request.Name,
             Brand = request.Brand,
             ExternalId = request.ExternalId,
-            IpAddress = request.IpAddress,
             Type = request.Type,
+            IntegrationType = request.IntegrationType,
             RoomId = request.RoomId,
             UserId = user.Id,
+            Configuration = new DeviceConfiguration
+            {
+                IpAddress = request.IpAddress,
+                MacAddress = request.MacAddress,
+                LocalKey = request.LocalKey,
+                DpsPowerKey = request.DpsPowerKey ?? "20",
+                ClientKey = request.ClientKey,
+            },
         };
 
         dbContext.Devices.Add(device);

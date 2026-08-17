@@ -61,7 +61,9 @@ public class ToggleDeviceCommandHandler(
 
         if (device.Type == DeviceType.Television)
         {
-            if (string.IsNullOrEmpty(device.IpAddress))
+            var ipAddress = device.Configuration.IpAddress;
+
+            if (string.IsNullOrEmpty(ipAddress))
                 return Result.Failure(
                     new Error(
                         "Device.NoIpAddress",
@@ -71,13 +73,12 @@ public class ToggleDeviceCommandHandler(
 
             if (newState)
             {
-                await chromecastWakeService.WakeUpAsync(device.IpAddress, cancellationToken);
-
+                await chromecastWakeService.WakeUpAsync(ipAddress, cancellationToken);
                 await Task.Delay(2000, cancellationToken);
             }
             else
             {
-                await googleTvService.SendKeycodeAsync(device.IpAddress, 26, cancellationToken);
+                await googleTvService.SendKeycodeAsync(ipAddress, 26, cancellationToken);
             }
         }
         else

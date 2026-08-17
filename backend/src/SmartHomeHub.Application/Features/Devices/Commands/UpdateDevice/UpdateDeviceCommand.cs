@@ -12,10 +12,15 @@ public record UpdateDeviceCommand(
     string Name,
     string Brand,
     string ExternalId,
-    string? IpAddress,
     DeviceType Type,
+    IntegrationType IntegrationType,
     Guid? RoomId,
-    string FirebaseUid
+    string FirebaseUid,
+    string? IpAddress = null,
+    string? MacAddress = null,
+    string? LocalKey = null,
+    string? DpsPowerKey = null,
+    string? ClientKey = null
 ) : ICommand<Result>;
 
 public class UpdateDeviceCommandValidator : AbstractValidator<UpdateDeviceCommand>
@@ -43,6 +48,10 @@ public class UpdateDeviceCommandValidator : AbstractValidator<UpdateDeviceComman
         RuleFor(command => command.Type)
             .IsInEnum()
             .WithMessage("O tipo de dispositivo fornecido é inválido.");
+
+        RuleFor(command => command.IntegrationType)
+            .IsInEnum()
+            .WithMessage("O tipo de integração fornecido é inválido.");
     }
 }
 
@@ -93,9 +102,16 @@ public class UpdateDeviceCommandHandler(IAppDbContext dbContext)
         device.Name = request.Name;
         device.Brand = request.Brand;
         device.ExternalId = request.ExternalId;
-        device.IpAddress = request.IpAddress;
         device.Type = request.Type;
+        device.IntegrationType = request.IntegrationType;
         device.RoomId = request.RoomId;
+
+        // Atualiza a configuração aninhada
+        device.Configuration.IpAddress = request.IpAddress;
+        device.Configuration.MacAddress = request.MacAddress;
+        device.Configuration.LocalKey = request.LocalKey;
+        device.Configuration.DpsPowerKey = request.DpsPowerKey ?? device.Configuration.DpsPowerKey;
+        device.Configuration.ClientKey = request.ClientKey;
 
         await dbContext.SaveChangesAsync(cancellationToken);
 

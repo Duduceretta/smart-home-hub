@@ -68,7 +68,6 @@ public static class DeviceEndpoints
                 ) =>
                 {
                     var firebaseUid = userToken.FindFirst("user_id")?.Value;
-
                     if (string.IsNullOrEmpty(firebaseUid))
                         return Results.Unauthorized();
 
@@ -98,7 +97,6 @@ public static class DeviceEndpoints
                 ) =>
                 {
                     var firebaseUid = claimsPrincipal.FindFirst("user_id")?.Value;
-
                     if (string.IsNullOrEmpty(firebaseUid))
                         return Results.Unauthorized();
 
@@ -141,10 +139,15 @@ public static class DeviceEndpoints
                         request.Name,
                         request.Brand,
                         request.ExternalId,
-                        request.IpAddress,
                         request.Type,
+                        request.IntegrationType,
                         request.RoomId,
-                        firebaseUid
+                        firebaseUid,
+                        request.IpAddress,
+                        request.MacAddress,
+                        request.LocalKey,
+                        request.DpsPowerKey,
+                        request.ClientKey
                     );
 
                     var result = await mediator.Send(command, cancellationToken);
@@ -156,7 +159,7 @@ public static class DeviceEndpoints
                         $"/api/devices/{result.Value}",
                         new
                         {
-                            message = "Dispositivo registado com sucesso!",
+                            message = "Dispositivo registrado com sucesso!",
                             deviceId = result.Value,
                         }
                     );
@@ -198,7 +201,7 @@ public static class DeviceEndpoints
             .WithTags("Devices")
             .WithSummary("Alterna o estado do dispositivo (Toggle)")
             .WithDescription(
-                "Inverte o estado atual (`IsOn`) do dispositivo no banco de dados e dispara automaticamente um comando via **MQTT** para atualizar o hardware físico."
+                "Inverte o estado atual (`IsOn`) do dispositivo no banco de dados e dispara automaticamente um comando para atualizar o hardware físico."
             )
             .Produces<object>(StatusCodes.Status200OK)
             .ProducesProblem(StatusCodes.Status400BadRequest)
@@ -223,10 +226,15 @@ public static class DeviceEndpoints
                         request.Name,
                         request.Brand,
                         request.ExternalId,
-                        request.IpAddress,
                         request.Type,
+                        request.IntegrationType,
                         request.RoomId,
-                        firebaseUid
+                        firebaseUid,
+                        request.IpAddress,
+                        request.MacAddress,
+                        request.LocalKey,
+                        request.DpsPowerKey,
+                        request.ClientKey
                     );
 
                     var result = await mediator.Send(command, cancellationToken);
@@ -242,6 +250,7 @@ public static class DeviceEndpoints
                             brand = request.Brand,
                             externalId = request.ExternalId,
                             type = request.Type,
+                            integrationType = request.IntegrationType,
                             roomId = request.RoomId,
                         }
                     );
@@ -295,16 +304,26 @@ public record CreateDeviceRequest(
     string Name,
     string Brand,
     string ExternalId,
-    string? IpAddress,
     DeviceType Type,
-    Guid? RoomId
+    IntegrationType IntegrationType,
+    Guid? RoomId = null,
+    string? IpAddress = null,
+    string? MacAddress = null,
+    string? LocalKey = null,
+    string? DpsPowerKey = null,
+    string? ClientKey = null
 );
 
 public record UpdateDeviceRequest(
     string Name,
     string Brand,
     string ExternalId,
-    string? IpAddress,
     DeviceType Type,
-    Guid? RoomId
+    IntegrationType IntegrationType,
+    Guid? RoomId = null,
+    string? IpAddress = null,
+    string? MacAddress = null,
+    string? LocalKey = null,
+    string? DpsPowerKey = null,
+    string? ClientKey = null
 );
