@@ -106,12 +106,23 @@ public class UpdateDeviceCommandHandler(IAppDbContext dbContext)
         device.IntegrationType = request.IntegrationType;
         device.RoomId = request.RoomId;
 
-        // Atualiza a configuração aninhada
-        device.Configuration.IpAddress = request.IpAddress;
-        device.Configuration.MacAddress = request.MacAddress;
-        device.Configuration.LocalKey = request.LocalKey;
-        device.Configuration.DpsPowerKey = request.DpsPowerKey ?? device.Configuration.DpsPowerKey;
-        device.Configuration.ClientKey = request.ClientKey;
+        // Atualiza a configuração aninhada apenas quando um novo valor é
+        // informado — o GET nunca devolve estes campos ao frontend, então
+        // "vazio" aqui significa "preservar o que já está salvo", não "apagar".
+        if (!string.IsNullOrWhiteSpace(request.IpAddress))
+            device.Configuration.IpAddress = request.IpAddress;
+
+        if (!string.IsNullOrWhiteSpace(request.MacAddress))
+            device.Configuration.MacAddress = request.MacAddress;
+
+        if (!string.IsNullOrWhiteSpace(request.LocalKey))
+            device.Configuration.LocalKey = request.LocalKey;
+
+        if (!string.IsNullOrWhiteSpace(request.DpsPowerKey))
+            device.Configuration.DpsPowerKey = request.DpsPowerKey;
+
+        if (!string.IsNullOrWhiteSpace(request.ClientKey))
+            device.Configuration.ClientKey = request.ClientKey;
 
         await dbContext.SaveChangesAsync(cancellationToken);
 

@@ -14,7 +14,8 @@ public record TelemetryPayload(
     int? Voltage,
     string? SignalStrength,
     double? PowerUsageWatts,
-    double? TemperatureCelsius
+    double? TemperatureCelsius,
+    string? IpAddress = null
 );
 
 public class ProcessTelemetryCommandHandler(
@@ -71,6 +72,11 @@ public class ProcessTelemetryCommandHandler(
             device.IsOn = telemetry.IsOn;
             device.IsOnline = true;
             device.LastSeenAt = nowUtc;
+
+            if (!string.IsNullOrWhiteSpace(telemetry.IpAddress))
+            {
+                device.Configuration.IpAddress = telemetry.IpAddress;
+            }
 
             var telemetryLog = new DeviceTelemetryLog
             {
