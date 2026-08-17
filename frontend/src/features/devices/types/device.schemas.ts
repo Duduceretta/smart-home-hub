@@ -1,10 +1,15 @@
 import { z } from "zod";
-import { DeviceTypeEnum } from "./devices.types";
+import { DeviceTypeEnum, IntegrationTypeEnum } from "./devices.types";
 
 /**
  * Array of valid device type integer values extracted from DeviceTypeEnum.
  */
 const VALID_DEVICE_TYPES = Object.values(DeviceTypeEnum) as number[];
+
+/**
+ * Array of valid integration type integer values extracted from IntegrationTypeEnum.
+ */
+const VALID_INTEGRATION_TYPES = Object.values(IntegrationTypeEnum) as number[];
 
 /**
  * Base schema definition matching C# CreateDeviceCommandValidator & UpdateDeviceCommandValidator.
@@ -45,14 +50,77 @@ export const deviceBaseSchema = z.object({
 		})
 		.transform((val) => val as DeviceTypeEnum),
 
+	integrationType: z.coerce
+		.number({ message: "Selecione um tipo de integração válido" })
+		.refine((val) => VALID_INTEGRATION_TYPES.includes(val), {
+			message: "O tipo de integração fornecido é inválido",
+		})
+		.transform((val) => val as IntegrationTypeEnum),
+
 	roomId: z
 		.string()
 		.nullable()
 		.optional()
 		.transform((val) => (val && val.trim() !== "" ? val : null)),
+
+	// Campos de configuração write-only (a leitura da API só devolve
+	// ipAddress). Ficam opcionais aqui — a obrigatoriedade condicional por
+	// integrationType é aplicada só no createDeviceSchema, via superRefine.
+	macAddress: z
+		.string()
+		.trim()
+		.optional()
+		.transform((val) => (val && val !== "" ? val : undefined)),
+
+	localKey: z
+		.string()
+		.trim()
+		.optional()
+		.transform((val) => (val && val !== "" ? val : undefined)),
+
+	dpsPowerKey: z
+		.string()
+		.trim()
+		.optional()
+		.transform((val) => (val && val !== "" ? val : undefined)),
+
+	clientKey: z
+		.string()
+		.trim()
+		.optional()
+		.transform((val) => (val && val !== "" ? val : undefined)),
 });
 
-export const createDeviceSchema = deviceBaseSchema;
+/**
+ * On create, enforce the network fields each integration type actually
+ * needs to function (see INTEGRATION_FIELD_VISIBILITY). The backend itself
+ * doesn't require these, so this is frontend-only UX guidance.
+ */
+export const createDeviceSchema = deviceBaseSchema.superRefine((data, ctx) => {
+	const requiresIp =
+		data.integrationType === IntegrationTypeEnum.TuyaBridge ||
+		data.integrationType === IntegrationTypeEnum.LgWebOs ||
+		data.integrationType === IntegrationTypeEnum.GoogleCast;
+
+	if (requiresIp && !data.ipAddress) {
+		ctx.addIssue({
+			code: "custom",
+			path: ["ipAddress"],
+			message: "O endereço IP é obrigatório para este tipo de integração.",
+		});
+	}
+
+	if (data.integrationType === IntegrationTypeEnum.TuyaBridge && !data.localKey) {
+		ctx.addIssue({
+			code: "custom",
+			path: ["localKey"],
+			message: "A Local Key é obrigatória para integração via Tuya Bridge.",
+		});
+	}
+});
+
+// Na edição, campos em branco preservam o valor já salvo no backend
+// (ver UpdateDeviceCommandHandler) — por isso nenhuma regra extra aqui.
 export const updateDeviceSchema = deviceBaseSchema;
 
 export type CreateDeviceFormInput = z.input<typeof createDeviceSchema>;

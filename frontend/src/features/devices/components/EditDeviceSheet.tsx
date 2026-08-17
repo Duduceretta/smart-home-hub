@@ -3,13 +3,16 @@ import {
 	BadgeInfo,
 	Cpu,
 	Home,
+	KeyRound,
 	Layers,
 	Loader2,
 	MapPin,
 	Network,
+	Plug,
 	QrCode,
 	Router,
 	Sliders,
+	Wifi,
 } from "lucide-react";
 import { useEffect } from "react";
 import { useForm, useWatch } from "react-hook-form";
@@ -18,8 +21,9 @@ import { FormGlobalError } from "@/core/components/forms/FormGlobalError";
 import { FormInput } from "@/core/components/forms/FormInput";
 import { FormSelect } from "@/core/components/forms/FormSelect";
 import { SheetLayout } from "@/core/components/layouts/SheetLayout";
-import { formatIpAddress } from "@/core/utils/formatters";
+import { formatIpAddress, formatMacAddress } from "@/core/utils/formatters";
 import { useRooms } from "@/features/rooms/hooks/useRooms";
+import { INTEGRATION_FIELD_VISIBILITY } from "../constants/devices.constants";
 import { useDevice } from "../hooks/useDevice";
 import { useUpdateDevice } from "../hooks/useUpdateDevice";
 import { useDevicesUIStore } from "../store/devices-ui.store";
@@ -28,7 +32,11 @@ import {
 	type UpdateDeviceFormOutput,
 	updateDeviceSchema,
 } from "../types/device.schemas";
-import { DEVICE_TYPE_LABEL_KEYS, DeviceTypeEnum } from "../types/devices.types";
+import {
+	DEVICE_TYPE_LABEL_KEYS,
+	INTEGRATION_TYPE_LABEL_KEYS,
+	IntegrationTypeEnum,
+} from "../types/devices.types";
 
 export const EditDeviceSheet: React.FC = () => {
 	const { t } = useTranslation(["devices", "common"]);
@@ -62,15 +70,23 @@ export const EditDeviceSheet: React.FC = () => {
 					externalId: device.externalId,
 					ipAddress: device.ipAddress ?? null,
 					type: device.type,
+					integrationType: device.integrationType,
 					roomId: device.roomId ?? "",
+					// Não vêm do GET (write-only no backend) — ficam em branco;
+					// deixar em branco no submit preserva o valor já salvo.
+					macAddress: "",
+					localKey: "",
+					dpsPowerKey: "",
+					clientKey: "",
 				}
 			: undefined,
 	});
 
-	const selectedType = useWatch({
-		control,
-		name: "type",
-	});
+	const selectedIntegration = useWatch({ control, name: "integrationType" }) as
+		| IntegrationTypeEnum
+		| undefined;
+	const fieldVisibility =
+		INTEGRATION_FIELD_VISIBILITY[selectedIntegration || IntegrationTypeEnum.NativeMqtt];
 
 	useEffect(() => {
 		if (!isOpen) {
@@ -90,7 +106,12 @@ export const EditDeviceSheet: React.FC = () => {
 					externalId: data.externalId,
 					ipAddress: data.ipAddress,
 					type: data.type,
+					integrationType: data.integrationType,
 					roomId: data.roomId,
+					macAddress: data.macAddress,
+					localKey: data.localKey,
+					dpsPowerKey: data.dpsPowerKey,
+					clientKey: data.clientKey,
 				},
 			},
 			{
@@ -103,6 +124,13 @@ export const EditDeviceSheet: React.FC = () => {
 
 	// Mapeia os tipos de dispositivo limpos
 	const deviceTypeOptions = Object.entries(DEVICE_TYPE_LABEL_KEYS).map(
+		([value, labelKey]) => ({
+			value: Number(value),
+			label: t(labelKey),
+		}),
+	);
+
+	const integrationTypeOptions = Object.entries(INTEGRATION_TYPE_LABEL_KEYS).map(
 		([value, labelKey]) => ({
 			value: Number(value),
 			label: t(labelKey),
@@ -208,11 +236,14 @@ export const EditDeviceSheet: React.FC = () => {
 							className="font-mono"
 						/>
 
-						{/* Exibe ou esconde o IP dependendo da lógica do dispositivo ou exibe como opcional */}
-						{selectedType === DeviceTypeEnum.Television ? (
+						{fieldVisibility.showIp && (
 							<FormInput
 								id="ipAddress"
-								label={t("form.fields.ipAddress.labelRequired")}
+								label={
+									fieldVisibility.requireIpOnCreate
+										? t("form.fields.ipAddress.labelRequired")
+										: t("form.fields.ipAddress.label")
+								}
 								placeholder={t("form.fields.ipAddress.placeholder")}
 								icon={<Network className="h-4 w-4" />}
 								error={errors.ipAddress?.message}
@@ -221,17 +252,52 @@ export const EditDeviceSheet: React.FC = () => {
 								maxLength={15}
 								className="font-mono"
 							/>
-						) : (
+						)}
+
+						{fieldVisibility.showMac && (
 							<FormInput
-								id="ipAddress"
-								label={t("form.fields.ipAddress.label")}
-								placeholder={t("form.fields.ipAddress.placeholder")}
-								icon={<Network className="h-4 w-4" />}
-								error={errors.ipAddress?.message}
-								registration={register("ipAddress")}
-								mask={formatIpAddress}
-								maxLength={15}
+								id="macAddress"
+								label={t("form.fields.macAddress.label")}
+								placeholder={t("form.fields.macAddress.placeholder")}
+								icon={<Wifi className="h-4 w-4" />}
+								error={errors.macAddress?.message}
+								registration={register("macAddress")}
+								mask={formatMacAddress}
+								maxLength={17}
 								className="font-mono"
+							/>
+						)}
+
+						{fieldVisibility.showLocalKey && (
+							<FormInput
+								id="localKey"
+								label={t("form.fields.localKey.label")}
+								placeholder={t("form.fields.localKey.editHint")}
+								icon={<KeyRound className="h-4 w-4" />}
+								error={errors.localKey?.message}
+								registration={register("localKey")}
+							/>
+						)}
+
+						{fieldVisibility.showDpsPowerKey && (
+							<FormInput
+								id="dpsPowerKey"
+								label={t("form.fields.dpsPowerKey.label")}
+								placeholder={t("form.fields.dpsPowerKey.placeholder")}
+								icon={<Plug className="h-4 w-4" />}
+								error={errors.dpsPowerKey?.message}
+								registration={register("dpsPowerKey")}
+							/>
+						)}
+
+						{fieldVisibility.showClientKey && (
+							<FormInput
+								id="clientKey"
+								label={t("form.fields.clientKey.label")}
+								placeholder={t("form.fields.clientKey.editHint")}
+								icon={<KeyRound className="h-4 w-4" />}
+								error={errors.clientKey?.message}
+								registration={register("clientKey")}
 							/>
 						)}
 					</div>
@@ -258,20 +324,33 @@ export const EditDeviceSheet: React.FC = () => {
 							/>
 
 							<FormSelect
-								id="roomId"
-								name="roomId"
+								id="integrationType"
+								name="integrationType"
 								control={control}
-								label={t("form.fields.room.label")}
-								placeholder={
-									isLoadingRooms
-										? t("form.fields.room.loading")
-										: t("form.fields.room.placeholder")
-								}
-								icon={<Home className="h-4 w-4" />}
-								error={errors.roomId?.message}
-								options={roomOptions}
-								disabled={isLoadingRooms}
+								label={t("form.fields.integrationType.label")}
+								placeholder={t("form.fields.integrationType.placeholder")}
+								icon={<Router className="h-4 w-4" />}
+								error={errors.integrationType?.message}
+								options={integrationTypeOptions}
 							/>
+
+							<div className="sm:col-span-2">
+								<FormSelect
+									id="roomId"
+									name="roomId"
+									control={control}
+									label={t("form.fields.room.label")}
+									placeholder={
+										isLoadingRooms
+											? t("form.fields.room.loading")
+											: t("form.fields.room.placeholder")
+									}
+									icon={<Home className="h-4 w-4" />}
+									error={errors.roomId?.message}
+									options={roomOptions}
+									disabled={isLoadingRooms}
+								/>
+							</div>
 						</div>
 					</div>
 				</div>

@@ -33,7 +33,37 @@ export const DEVICE_TYPE_LABEL_KEYS = {
 export type StatusFilterType = "online" | "offline" | null;
 
 /**
+ * IntegrationType mapping matching C# backend enum integers
+ * (backend/src/SmartHomeHub.Domain/Enums/IntegrationType.cs).
+ */
+export const IntegrationTypeEnum = {
+	NativeMqtt: 1,
+	TuyaBridge: 2,
+	LgWebOs: 3,
+	GoogleCast: 4,
+	Zigbee: 5,
+} as const;
+
+export type IntegrationTypeEnum =
+	(typeof IntegrationTypeEnum)[keyof typeof IntegrationTypeEnum];
+
+/**
+ * Maps each integration type to its i18n key (under the `devices` namespace's
+ * `types.integrationTypes` object) for UI rendering across supported locales.
+ */
+export const INTEGRATION_TYPE_LABEL_KEYS = {
+	[IntegrationTypeEnum.NativeMqtt]: "types.integrationTypes.nativeMqtt",
+	[IntegrationTypeEnum.TuyaBridge]: "types.integrationTypes.tuyaBridge",
+	[IntegrationTypeEnum.LgWebOs]: "types.integrationTypes.lgWebOs",
+	[IntegrationTypeEnum.GoogleCast]: "types.integrationTypes.googleCast",
+	[IntegrationTypeEnum.Zigbee]: "types.integrationTypes.zigbee",
+} as const satisfies Record<IntegrationTypeEnum, string>;
+
+/**
  * Represents the Device DTO returned by C# GetDevicesQuery / GetDeviceByIdQuery.
+ * Note: only `ipAddress` is exposed for reading out of the backend's
+ * `DeviceConfiguration` value object — `macAddress`/`localKey`/`dpsPowerKey`/
+ * `clientKey` are write-only (Create/Update requests only, never returned).
  */
 export interface Device {
 	id: string;
@@ -42,6 +72,7 @@ export interface Device {
 	externalId: string;
 	ipAddress: string | null;
 	type: DeviceTypeEnum;
+	integrationType: IntegrationTypeEnum;
 	category: string;
 	room: string;
 	roomId: string | null;
@@ -57,21 +88,33 @@ export interface CreateDevicePayload {
 	name: string;
 	brand: string;
 	externalId: string;
-	ipAddress?: string | null;
 	type: DeviceTypeEnum;
+	integrationType: IntegrationTypeEnum;
 	roomId?: string | null;
+	ipAddress?: string | null;
+	macAddress?: string | null;
+	localKey?: string | null;
+	dpsPowerKey?: string | null;
+	clientKey?: string | null;
 }
 
 /**
  * Payload sent to PUT /api/devices/{id} (UpdateDeviceRequest in C#).
+ * Sensitive/network fields left empty are preserved server-side, not wiped
+ * (the GET response never returns them, so the edit form can't pre-fill them).
  */
 export interface UpdateDevicePayload {
 	name: string;
 	brand: string;
 	externalId: string;
-	ipAddress?: string | null;
 	type: DeviceTypeEnum;
+	integrationType: IntegrationTypeEnum;
 	roomId?: string | null;
+	ipAddress?: string | null;
+	macAddress?: string | null;
+	localKey?: string | null;
+	dpsPowerKey?: string | null;
+	clientKey?: string | null;
 }
 
 /**

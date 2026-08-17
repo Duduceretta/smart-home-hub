@@ -1,15 +1,19 @@
 import {
 	Camera as CameraIcon,
+	Cast,
+	Cloud,
 	Lightbulb,
 	Lock,
 	Power,
 	Radar,
+	Radio,
 	Siren,
 	Thermometer,
 	Tv,
+	Zap,
 } from "lucide-react";
 import type { ComponentType } from "react";
-import { DeviceTypeEnum } from "../types/devices.types";
+import { DeviceTypeEnum, IntegrationTypeEnum } from "../types/devices.types";
 
 export const DEVICE_CATEGORIES = [
 	"Todos",
@@ -80,5 +84,85 @@ export const DEVICE_CONFIG: Record<DeviceTypeEnum, DeviceIconConfig> = {
 		icon: Tv,
 		bg: "bg-teal-500/10",
 		text: "text-teal-400",
+	},
+};
+
+export const INTEGRATION_ICON: Record<
+	IntegrationTypeEnum,
+	ComponentType<{ className?: string }>
+> = {
+	[IntegrationTypeEnum.NativeMqtt]: Radio,
+	[IntegrationTypeEnum.TuyaBridge]: Cloud,
+	[IntegrationTypeEnum.LgWebOs]: Tv,
+	[IntegrationTypeEnum.GoogleCast]: Cast,
+	[IntegrationTypeEnum.Zigbee]: Zap,
+};
+
+export interface IntegrationFieldVisibility {
+	showIp: boolean;
+	showMac: boolean;
+	showLocalKey: boolean;
+	showDpsPowerKey: boolean;
+	showClientKey: boolean;
+	/** Only enforced on create — the edit form treats every network field as optional. */
+	requireIpOnCreate: boolean;
+	requireLocalKeyOnCreate: boolean;
+}
+
+/**
+ * Drives which network/configuration fields the Create/Edit device forms
+ * show for each integration type, and which of those are required at
+ * creation time (backend validators don't enforce this — it's frontend UX
+ * guidance only, kept lenient on edit since blank fields there mean "keep
+ * the current value", not "clear it").
+ */
+export const INTEGRATION_FIELD_VISIBILITY: Record<
+	IntegrationTypeEnum,
+	IntegrationFieldVisibility
+> = {
+	[IntegrationTypeEnum.NativeMqtt]: {
+		showIp: true,
+		showMac: true,
+		showLocalKey: false,
+		showDpsPowerKey: false,
+		showClientKey: false,
+		requireIpOnCreate: false,
+		requireLocalKeyOnCreate: false,
+	},
+	[IntegrationTypeEnum.TuyaBridge]: {
+		showIp: true,
+		showMac: false,
+		showLocalKey: true,
+		showDpsPowerKey: true,
+		showClientKey: false,
+		requireIpOnCreate: true,
+		requireLocalKeyOnCreate: true,
+	},
+	[IntegrationTypeEnum.LgWebOs]: {
+		showIp: true,
+		showMac: false,
+		showLocalKey: false,
+		showDpsPowerKey: false,
+		showClientKey: false,
+		requireIpOnCreate: true,
+		requireLocalKeyOnCreate: false,
+	},
+	[IntegrationTypeEnum.GoogleCast]: {
+		showIp: true,
+		showMac: false,
+		showLocalKey: false,
+		showDpsPowerKey: false,
+		showClientKey: true,
+		requireIpOnCreate: true,
+		requireLocalKeyOnCreate: false,
+	},
+	[IntegrationTypeEnum.Zigbee]: {
+		showIp: false,
+		showMac: false,
+		showLocalKey: false,
+		showDpsPowerKey: false,
+		showClientKey: false,
+		requireIpOnCreate: false,
+		requireLocalKeyOnCreate: false,
 	},
 };

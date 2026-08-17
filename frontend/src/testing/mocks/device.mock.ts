@@ -1,6 +1,7 @@
 import {
 	type Device,
 	DeviceTypeEnum,
+	IntegrationTypeEnum,
 } from "@/features/devices/types/devices.types";
 
 export function createDeviceMock(overrides?: Partial<Device>): Device {
@@ -10,6 +11,7 @@ export function createDeviceMock(overrides?: Partial<Device>): Device {
 		externalId: "00:11:22:33:44:55",
 		brand: "Philips Hue",
 		type: DeviceTypeEnum.Light,
+		integrationType: IntegrationTypeEnum.NativeMqtt,
 		category: "Lighting",
 		room: "Sala de Estar",
 		roomId: "room-01",

@@ -30,7 +30,14 @@
 		"camera": "Camera",
 		"lock": "Smart Lock",
 		"alarm": "Alarm",
-		"television": "Television"
+		"television": "Television",
+		"integrationTypes": {
+			"nativeMqtt": "Native MQTT",
+			"tuyaBridge": "Tuya Bridge",
+			"lgWebOs": "LG WebOS",
+			"googleCast": "Google Cast",
+			"zigbee": "Zigbee"
+		}
 	},
 	"grid": {
 		"emptyTitle": "No devices found",
@@ -71,6 +78,28 @@
 			"type": {
 				"label": "Actuator Type",
 				"placeholder": "Select..."
+			},
+			"integrationType": {
+				"label": "Integration Type",
+				"placeholder": "Select..."
+			},
+			"macAddress": {
+				"label": "MAC Address (Optional)",
+				"placeholder": "AA:BB:CC:11:22:33"
+			},
+			"localKey": {
+				"label": "Local Key *",
+				"placeholder": "Tuya local key",
+				"editHint": "Leave blank to keep the currently saved key."
+			},
+			"dpsPowerKey": {
+				"label": "DPS Power Key",
+				"placeholder": "20"
+			},
+			"clientKey": {
+				"label": "Client Key (Optional)",
+				"placeholder": "Pairing token",
+				"editHint": "Leave blank to keep the currently saved key."
 			},
 			"room": {
 				"label": "Room",

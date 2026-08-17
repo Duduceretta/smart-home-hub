@@ -30,7 +30,14 @@
 		"camera": "Câmera",
 		"lock": "Fechadura Inteligente",
 		"alarm": "Alarme",
-		"television": "Televisão"
+		"television": "Televisão",
+		"integrationTypes": {
+			"nativeMqtt": "MQTT Nativo",
+			"tuyaBridge": "Tuya Bridge",
+			"lgWebOs": "LG WebOS",
+			"googleCast": "Google Cast",
+			"zigbee": "Zigbee"
+		}
 	},
 	"grid": {
 		"emptyTitle": "Nenhum dispositivo encontrado",
@@ -71,6 +78,28 @@
 			"type": {
 				"label": "Tipo de Atuador",
 				"placeholder": "Selecione..."
+			},
+			"integrationType": {
+				"label": "Tipo de Integração",
+				"placeholder": "Selecione..."
+			},
+			"macAddress": {
+				"label": "Endereço MAC (Opcional)",
+				"placeholder": "AA:BB:CC:11:22:33"
+			},
+			"localKey": {
+				"label": "Local Key *",
+				"placeholder": "Chave local da Tuya",
+				"editHint": "Deixe em branco para manter a chave já salva."
+			},
+			"dpsPowerKey": {
+				"label": "DPS Power Key",
+				"placeholder": "20"
+			},
+			"clientKey": {
+				"label": "Client Key (Opcional)",
+				"placeholder": "Token de pareamento",
+				"editHint": "Deixe em branco para manter a chave já salva."
 			},
 			"room": {
 				"label": "Cômodo",
