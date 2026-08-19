@@ -1,3 +1,5 @@
+using SmartHomeHub.Application.Features.Devices.Common;
+
 namespace SmartHomeHub.Application.Common.Interfaces;
 
 public interface IRealtimeNotificationService
@@ -16,6 +18,12 @@ public interface IRealtimeNotificationService
         double? powerUsageWatts,
         double? temperatureCelsius,
         DateTimeOffset timestamp,
+        CancellationToken cancellationToken = default
+    );
+
+    Task NotifyDeviceDiscoveredAsync(
+        string firebaseUid,
+        DiscoveredDeviceDto device,
         CancellationToken cancellationToken = default
     );
 }
