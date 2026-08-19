@@ -1,7 +1,7 @@
 {
 	"title": "Devices",
 	"header": {
-		"subtitle": "Manage and monitor all your sensors and actuators.",
+		"hubStatus": "Hub 01 Online",
 		"addButton": "New Device"
 	},
 	"metrics": {
@@ -10,10 +10,19 @@
 		"active": "Active Devices",
 		"securityAlerts": "Security Alerts"
 	},
+	"glanceBar": {
+		"ariaLabel": "Devices summary",
+		"total": "{{count}} Devices",
+		"lightsOn": "{{count}} Lights On",
+		"consumption": "{{watts}}W Usage",
+		"climate": "Climate",
+		"offline": "{{count}} Offline"
+	},
 	"toolbar": {
-		"searchPlaceholder": "Search device, room or type...",
+		"searchPlaceholder": "Search...",
 		"searchAriaLabel": "Search device",
-		"clearSearchAriaLabel": "Clear search"
+		"clearSearchAriaLabel": "Clear search",
+		"roomFilterEmpty": "Your room filters will appear here once you have rooms registered."
 	},
 	"categories": {
 		"all": "All",
@@ -42,14 +51,19 @@
 	"grid": {
 		"emptyTitle": "No devices found",
 		"emptySubtitle": "Adjust the search or filters to see your devices.",
-		"clearFilters": "Clear filters"
+		"clearFilters": "Clear filters",
+		"noDevicesTitle": "No devices registered yet",
+		"noDevicesSubtitle": "Register your first device to start monitoring your home.",
+		"createFirstDevice": "Register First Device"
 	},
 	"card": {
 		"noRoom": "No room",
 		"activeAgo": "Active {{time}}",
 		"moreOptions": "More device options",
 		"toggleAriaLabel": "Toggle {{name}} state",
-		"idLabel": "ID: {{id}}"
+		"idLabel": "ID: {{id}}",
+		"noPlayback": "No Playback",
+		"deviceOffline": "Device offline"
 	},
 	"form": {
 		"sections": {
