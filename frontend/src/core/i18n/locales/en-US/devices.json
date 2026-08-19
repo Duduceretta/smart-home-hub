@@ -1,7 +1,7 @@
 {
 	"title": "Devices",
 	"header": {
-		"hubStatus": "Hub 01 Online",
+		"subtitle": "Manage connections, consumption and states of your integrated peripherals.",
 		"addButton": "New Device"
 	},
 	"metrics": {
@@ -15,7 +15,7 @@
 		"total": "{{count}} Devices",
 		"lightsOn": "{{count}} Lights On",
 		"consumption": "{{watts}}W Usage",
-		"climate": "Climate",
+		"climate": "{{count}} Climate",
 		"offline": "{{count}} Offline"
 	},
 	"toolbar": {
@@ -54,7 +54,10 @@
 		"clearFilters": "Clear filters",
 		"noDevicesTitle": "No devices registered yet",
 		"noDevicesSubtitle": "Register your first device to start monitoring your home.",
-		"createFirstDevice": "Register First Device"
+		"createFirstDevice": "Register First Device",
+		"pageIndicator": "Page {{page}} of {{totalPages}}",
+		"previousPage": "Previous page",
+		"nextPage": "Next page"
 	},
 	"card": {
 		"noRoom": "No room",

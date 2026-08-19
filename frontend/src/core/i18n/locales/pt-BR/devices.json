@@ -1,7 +1,7 @@
 {
 	"title": "Dispositivos",
 	"header": {
-		"hubStatus": "Hub 01 Online",
+		"subtitle": "Gerencie conexões, consumo e estados dos periféricos integrados.",
 		"addButton": "Novo Dispositivo"
 	},
 	"metrics": {
@@ -15,7 +15,7 @@
 		"total": "{{count}} Dispositivos",
 		"lightsOn": "{{count}} Luzes Acesas",
 		"consumption": "{{watts}}W Consumo",
-		"climate": "Clima",
+		"climate": "{{count}} Clima",
 		"offline": "{{count}} Offline"
 	},
 	"toolbar": {
@@ -54,7 +54,10 @@
 		"clearFilters": "Limpar filtros",
 		"noDevicesTitle": "Nenhum dispositivo cadastrado",
 		"noDevicesSubtitle": "Cadastre seu primeiro dispositivo para começar a monitorar sua casa.",
-		"createFirstDevice": "Cadastrar Primeiro Dispositivo"
+		"createFirstDevice": "Cadastrar Primeiro Dispositivo",
+		"pageIndicator": "Página {{page}} de {{totalPages}}",
+		"previousPage": "Página anterior",
+		"nextPage": "Próxima página"
 	},
 	"card": {
 		"noRoom": "Sem cômodo",
