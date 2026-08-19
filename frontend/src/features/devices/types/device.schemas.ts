@@ -110,7 +110,10 @@ export const createDeviceSchema = deviceBaseSchema.superRefine((data, ctx) => {
 		});
 	}
 
-	if (data.integrationType === IntegrationTypeEnum.TuyaBridge && !data.localKey) {
+	if (
+		data.integrationType === IntegrationTypeEnum.TuyaBridge &&
+		!data.localKey
+	) {
 		ctx.addIssue({
 			code: "custom",
 			path: ["localKey"],

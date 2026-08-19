@@ -86,7 +86,9 @@ export const EditDeviceSheet: React.FC = () => {
 		| IntegrationTypeEnum
 		| undefined;
 	const fieldVisibility =
-		INTEGRATION_FIELD_VISIBILITY[selectedIntegration || IntegrationTypeEnum.NativeMqtt];
+		INTEGRATION_FIELD_VISIBILITY[
+			selectedIntegration || IntegrationTypeEnum.NativeMqtt
+		];
 
 	useEffect(() => {
 		if (!isOpen) {
@@ -130,12 +132,12 @@ export const EditDeviceSheet: React.FC = () => {
 		}),
 	);
 
-	const integrationTypeOptions = Object.entries(INTEGRATION_TYPE_LABEL_KEYS).map(
-		([value, labelKey]) => ({
-			value: Number(value),
-			label: t(labelKey),
-		}),
-	);
+	const integrationTypeOptions = Object.entries(
+		INTEGRATION_TYPE_LABEL_KEYS,
+	).map(([value, labelKey]) => ({
+		value: Number(value),
+		label: t(labelKey),
+	}));
 
 	// Mapeia os cômodos vindos da API
 	const roomOptions = [
@@ -171,9 +173,7 @@ export const EditDeviceSheet: React.FC = () => {
 						className="relative inline-flex items-center gap-2 overflow-hidden rounded-md bg-indigo-600 px-6 py-2 text-xs font-medium text-white transition-all hover:bg-indigo-500 hover:shadow-[0_0_12px_rgba(99,102,241,0.4)] disabled:opacity-50 cursor-pointer group"
 					>
 						{isUpdating && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
-						<span className="relative z-10">
-							{t("form.edit.saveButton")}
-						</span>
+						<span className="relative z-10">{t("form.edit.saveButton")}</span>
 						<div className="absolute inset-0 bg-white/20 translate-y-full transition-transform duration-300 ease-out group-hover:translate-y-0" />
 					</button>
 				</>

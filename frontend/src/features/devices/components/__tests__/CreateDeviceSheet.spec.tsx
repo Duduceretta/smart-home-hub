@@ -2,7 +2,12 @@ import { HttpResponse, http } from "msw";
 import { beforeEach, describe, expect, it } from "vitest";
 import type { Room } from "@/features/rooms/types/rooms.types";
 import { server } from "@/testing/mocks/server";
-import { renderWithProviders, screen, userEvent, waitFor } from "@/testing/test-utils";
+import {
+	renderWithProviders,
+	screen,
+	userEvent,
+	waitFor,
+} from "@/testing/test-utils";
 import { useDevicesUIStore } from "../../store/devices-ui.store";
 import { CreateDeviceSheet } from "../CreateDeviceSheet";
 
@@ -46,9 +51,7 @@ describe("CreateDeviceSheet Integration Tests", () => {
 		expect(
 			await screen.findByText(/O nome deve ter pelo menos 2 caracteres/i),
 		).toBeInTheDocument();
-		expect(
-			screen.getByText(/A marca é obrigatória/i),
-		).toBeInTheDocument();
+		expect(screen.getByText(/A marca é obrigatória/i)).toBeInTheDocument();
 		expect(
 			screen.getByText(/O identificador físico \(MAC\/ID\) é obrigatório/i),
 		).toBeInTheDocument();
@@ -82,10 +85,10 @@ describe("CreateDeviceSheet Integration Tests", () => {
 			"AABBCC112233",
 		);
 
+		await user.click(screen.getByRole("combobox", { name: /Cômodo/i }));
 		await user.click(
-			screen.getByRole("combobox", { name: /Cômodo/i }),
+			await screen.findByRole("option", { name: /Sala de Estar/i }),
 		);
-		await user.click(await screen.findByRole("option", { name: /Sala de Estar/i }));
 
 		await user.click(screen.getByRole("button", { name: "Registrar" }));
 
@@ -144,8 +147,6 @@ describe("CreateDeviceSheet Integration Tests", () => {
 				/Já existe um dispositivo cadastrado com este identificador externo/i,
 			),
 		).toBeInTheDocument();
-		expect(
-			screen.getByText("Adicionar Novo Dispositivo"),
-		).toBeInTheDocument();
+		expect(screen.getByText("Adicionar Novo Dispositivo")).toBeInTheDocument();
 	});
 });
