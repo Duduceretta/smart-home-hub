@@ -4,6 +4,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using SmartHomeHub.Application.Common.Interfaces;
+using SmartHomeHub.Infrastructure.Discovery;
+using SmartHomeHub.Infrastructure.Discovery.Scanners;
 using SmartHomeHub.Infrastructure.Messaging;
 using SmartHomeHub.Infrastructure.Persistence;
 using SmartHomeHub.Infrastructure.Realtime.Services;
@@ -29,6 +31,12 @@ public static class DependencyInjection
         services.AddTransient<IGoogleTvService, GoogleTvNetworkService>();
 
         services.AddScoped<IChromecastWakeService, ChromecastWakeService>();
+
+        services.AddTransient<IDeviceDiscoveryScanner, MdnsDiscoveryScanner>();
+        services.AddTransient<IDeviceDiscoveryScanner, SsdpDiscoveryScanner>();
+        services.AddTransient<IDeviceDiscoveryScanner, TuyaUdpDiscoveryScanner>();
+        services.AddTransient<IDeviceDiscoveryScanner, MqttDiscoveryScanner>();
+        services.AddSingleton<IDeviceDiscoveryManager, DeviceDiscoveryManager>();
 
         services.AddSignalR();
         services.AddScoped<IRealtimeNotificationService, RealtimeNotificationService>();

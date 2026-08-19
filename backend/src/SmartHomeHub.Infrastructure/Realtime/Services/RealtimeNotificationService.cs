@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.SignalR;
 using SmartHomeHub.Application.Common.Interfaces;
+using SmartHomeHub.Application.Features.Devices.Common;
 using SmartHomeHub.Infrastructure.Realtime.Hubs;
 
 namespace SmartHomeHub.Infrastructure.Realtime.Services;
@@ -51,5 +52,16 @@ public class RealtimeNotificationService(IHubContext<TelemetryHub> hubContext)
                 },
                 cancellationToken
             );
+    }
+
+    public async Task NotifyDeviceDiscoveredAsync(
+        string firebaseUid,
+        DiscoveredDeviceDto device,
+        CancellationToken cancellationToken = default
+    )
+    {
+        await hubContext
+            .Clients.Group($"user_{firebaseUid}")
+            .SendAsync("DeviceDiscovered", device, cancellationToken);
     }
 }
