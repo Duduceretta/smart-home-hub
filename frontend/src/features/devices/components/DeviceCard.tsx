@@ -1,4 +1,5 @@
 import {
+	Disc3,
 	Minus,
 	MoreVertical,
 	Pause,
@@ -28,6 +29,7 @@ import { useDevicesUIStore } from "../store/devices-ui.store";
 import {
 	type Device,
 	DeviceTypeEnum,
+	INTEGRATION_TYPE_LABEL_KEYS,
 	isActuatorDevice,
 } from "../types/devices.types";
 import { DeviceTelemetrySheet } from "./DeviceTelemetrySheet";
@@ -43,6 +45,7 @@ export const DeviceCard: React.FC<DeviceCardProps> = ({ device }) => {
 
 	// Estados locais para controles interativos embutidos
 	const [brightness, setBrightness] = useState(80);
+	const [isDraggingBrightness, setIsDraggingBrightness] = useState(false);
 	const [isPlaying, setIsPlaying] = useState(true);
 	const [volume, setVolume] = useState(45);
 	const [temperature, setTemperature] = useState(22);
@@ -93,22 +96,44 @@ export const DeviceCard: React.FC<DeviceCardProps> = ({ device }) => {
 						type="button"
 						disabled={!isOnline}
 						aria-label={t("card.brightness", "Brilho")}
-						className="relative z-20 block w-full h-2 rounded-full bg-[#1c1b1c] overflow-hidden cursor-pointer group/slider disabled:cursor-not-allowed"
-						onClick={(e) => {
+						className="relative z-20 block w-full h-2 rounded-full bg-[#1c1b1c] overflow-visible cursor-pointer group/slider disabled:cursor-not-allowed touch-none"
+						onPointerDown={(e) => {
 							e.stopPropagation();
 							if (!isOnline) return;
+							e.currentTarget.setPointerCapture(e.pointerId);
+							setIsDraggingBrightness(true);
 							const rect = e.currentTarget.getBoundingClientRect();
 							const pct = Math.round(
 								((e.clientX - rect.left) / rect.width) * 100,
 							);
 							setBrightness(Math.max(0, Math.min(100, pct)));
 						}}
+						onPointerMove={(e) => {
+							if (!isOnline || e.buttons !== 1) return;
+							const rect = e.currentTarget.getBoundingClientRect();
+							const pct = Math.round(
+								((e.clientX - rect.left) / rect.width) * 100,
+							);
+							setBrightness(Math.max(0, Math.min(100, pct)));
+						}}
+						onPointerUp={(e) => {
+							if (e.currentTarget.hasPointerCapture(e.pointerId)) {
+								e.currentTarget.releasePointerCapture(e.pointerId);
+							}
+							setIsDraggingBrightness(false);
+						}}
 					>
 						<div
-							className="h-full bg-[#d3c4b8] rounded-full relative transition-all"
+							className={`h-full bg-[#d3c4b8] rounded-full relative ${isDraggingBrightness ? "" : "transition-all"}`}
 							style={{ width: isOn ? `${brightness}%` : "0%" }}
 						>
-							<div className="absolute right-0 top-1/2 -translate-y-1/2 w-3 h-3 bg-[#382f27] rounded-full opacity-0 group-hover/slider:opacity-100 transition-opacity shadow-sm" />
+							<div
+								className={`absolute right-0 top-1/2 -translate-y-1/2 w-3 h-3 bg-[#382f27] rounded-full shadow-sm transition-opacity ${
+									isDraggingBrightness
+										? "opacity-100"
+										: "opacity-0 group-hover/slider:opacity-100"
+								}`}
+							/>
 						</div>
 					</button>
 				</div>
@@ -149,7 +174,7 @@ export const DeviceCard: React.FC<DeviceCardProps> = ({ device }) => {
 					<div className="flex items-center gap-3 bg-[#0e0e0f] rounded-lg p-2 border border-[#46464b]/20">
 						<div className="w-10 h-10 rounded bg-[#201f20] flex items-center justify-center overflow-hidden shrink-0">
 							<div className="w-full h-full bg-linear-to-tr from-indigo-950 to-zinc-800 flex items-center justify-center">
-								<IconComponent className="w-5 h-5 text-zinc-300 opacity-60" />
+								<Disc3 className="w-5 h-5 text-zinc-300 opacity-60" />
 							</div>
 						</div>
 						<div className="flex flex-col flex-1 min-w-0">
@@ -383,7 +408,12 @@ export const DeviceCard: React.FC<DeviceCardProps> = ({ device }) => {
 								{device.name}
 							</button>
 							<span className="text-[10px] font-semibold tracking-wider text-[#c7c6cb] uppercase mt-1 truncate">
-								{(device.room ?? t("card.noRoom")).toUpperCase()} •{" "}
+								{(
+									device.roomId
+										? device.room
+										: t(INTEGRATION_TYPE_LABEL_KEYS[device.integrationType])
+								).toUpperCase()}{" "}
+								•{" "}
 								{isOnline
 									? device.brand.toUpperCase()
 									: t("common:status.offline", "OFFLINE")}
@@ -395,8 +425,8 @@ export const DeviceCard: React.FC<DeviceCardProps> = ({ device }) => {
 					<div className="relative z-20 flex items-center gap-1">
 						{!isOnline ? (
 							<div className="flex items-center gap-1.5 mr-1">
-								<span className="h-2 w-2 rounded-full bg-[#6e6e75]" />
-								<span className="text-[9px] font-bold tracking-wider text-[#c7c6cb]">
+								<span className="h-1.5 w-1.5 rounded-full bg-[#ffb4ab] shadow-[0_0_6px_rgba(255,180,171,0.5)]" />
+								<span className="text-[9px] font-bold tracking-wider text-[#ffb4ab]">
 									{t("common:status.offline", "OFFLINE")}
 								</span>
 							</div>

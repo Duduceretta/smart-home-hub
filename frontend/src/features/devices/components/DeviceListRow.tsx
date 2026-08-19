@@ -15,6 +15,7 @@ import { useDevicesUIStore } from "../store/devices-ui.store";
 import {
 	type Device,
 	DeviceTypeEnum,
+	INTEGRATION_TYPE_LABEL_KEYS,
 	isActuatorDevice,
 } from "../types/devices.types";
 import { DeviceTelemetrySheet } from "./DeviceTelemetrySheet";
@@ -36,10 +37,9 @@ export const DeviceListRow: React.FC<DeviceListRowProps> = ({ device }) => {
 		DEVICE_CONFIG[device.type] ?? DEVICE_CONFIG[DeviceTypeEnum.Light];
 	const IconComponent = config.icon;
 	const showToggle = isActuatorDevice(device.type);
-	const isTv = device.type === DeviceTypeEnum.Television;
 	const isOnline = device.isOnline;
-	const isOn = device.isOn && (isOnline || isTv);
-	const isToggleDisabled = (!isOnline && !isTv) || isToggling;
+	const isOn = device.isOn && isOnline;
+	const isToggleDisabled = !isOnline || isToggling;
 
 	const handleToggle = (e: React.MouseEvent) => {
 		e.stopPropagation();
@@ -51,9 +51,7 @@ export const DeviceListRow: React.FC<DeviceListRowProps> = ({ device }) => {
 		<>
 			<div
 				className={`relative group flex items-center gap-3.5 rounded-xl p-3.5 transition-all bg-gradient-to-br from-[#1c1b1c] to-[#1c1b1c]/70 ${
-					!isOnline && !isTv
-						? "opacity-70"
-						: "hover:from-[#201f20] hover:to-[#1c1b1c]"
+					!isOnline ? "opacity-70" : "hover:from-[#201f20] hover:to-[#1c1b1c]"
 				}`}
 			>
 				{showToggle ? (
@@ -65,7 +63,7 @@ export const DeviceListRow: React.FC<DeviceListRowProps> = ({ device }) => {
 						disabled={isToggleDisabled}
 						onClick={handleToggle}
 						className={`relative z-10 flex h-9 w-9 shrink-0 items-center justify-center rounded-full transition-all cursor-pointer ${
-							!isOnline && !isTv
+							!isOnline
 								? "bg-[#201f20] border border-[#46464b]/30 text-zinc-600 cursor-not-allowed"
 								: isOn
 									? "bg-[#c5c6cf] text-[#2e3037]"
@@ -89,13 +87,17 @@ export const DeviceListRow: React.FC<DeviceListRowProps> = ({ device }) => {
 						{device.name}
 					</p>
 					<p className="truncate text-[11px] font-semibold uppercase tracking-wider text-[#c7c6cb]">
-						{(device.room ?? t("card.noRoom")).toUpperCase()} •{" "}
-						{device.brand.toUpperCase()}
+						{(
+							device.roomId
+								? device.room
+								: t(INTEGRATION_TYPE_LABEL_KEYS[device.integrationType])
+						).toUpperCase()}{" "}
+						• {device.brand.toUpperCase()}
 					</p>
 				</button>
 
 				<div className="relative z-10 flex shrink-0 items-center gap-2">
-					{!isOnline && !isTv && (
+					{!isOnline && (
 						<span className="flex items-center gap-1 rounded-full bg-[#93000a]/20 px-2 py-1 text-[10px] font-bold tracking-wider text-[#ffb4ab]">
 							<WifiOff className="h-3 w-3" />
 							{t("common:status.offline")}
