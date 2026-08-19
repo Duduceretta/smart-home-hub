@@ -5,6 +5,8 @@ using Microsoft.AspNetCore.TestHost;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using NSubstitute;
+using SmartHomeHub.Application.Common.Interfaces;
 using SmartHomeHub.Infrastructure.Persistence;
 using Testcontainers.PostgreSql;
 
@@ -68,6 +70,18 @@ public class IntegrationTestWebAppFactory : WebApplicationFactory<Program>, IAsy
             {
                 options.UseNpgsql(_dbContainer.GetConnectionString());
             });
+
+            // Descoberta de dispositivos: substitui os scanners reais (rede/UDP/MQTT) por um
+            // scanner controlável pelos testes, e o notificador SignalR por um spy NSubstitute
+            // (Singleton, para ser visível a todos os IServiceScope abertos pelo DeviceDiscoveryManager).
+            services.RemoveAll<IDeviceDiscoveryScanner>();
+            services.AddSingleton<TestDiscoveryScanner>();
+            services.AddSingleton<IDeviceDiscoveryScanner>(sp =>
+                sp.GetRequiredService<TestDiscoveryScanner>()
+            );
+
+            services.RemoveAll<IRealtimeNotificationService>();
+            services.AddSingleton(_ => Substitute.For<IRealtimeNotificationService>());
 
             var serviceProvider = services.BuildServiceProvider();
             using var scope = serviceProvider.CreateScope();
