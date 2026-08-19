@@ -1,11 +1,16 @@
 import {
-	Activity,
-	ChevronRight,
+	Minus,
 	MoreVertical,
+	Pause,
 	Pencil,
+	Play,
+	Plus,
+	SkipBack,
+	SkipForward,
+	Snowflake,
 	Trash2,
-	Wifi,
-	WifiOff,
+	Volume2,
+	Wind,
 } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -31,21 +36,17 @@ interface DeviceCardProps {
 	device: Device;
 }
 
-function formatLastActivity(
-	minutes: number,
-	t: ReturnType<typeof useTranslation<["devices", "common"]>>["t"],
-): string {
-	if (minutes < 1) return t("common:time.now");
-	if (minutes < 60) return t("common:time.minutesAgo", { count: minutes });
-	const hours = Math.floor(minutes / 60);
-	if (hours < 24) return t("common:time.hoursAgo", { count: hours });
-	return t("common:time.daysAgo", { count: Math.floor(hours / 24) });
-}
-
 export const DeviceCard: React.FC<DeviceCardProps> = ({ device }) => {
 	const { t } = useTranslation(["devices", "common"]);
 	const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 	const [isTelemetryModalOpen, setIsTelemetryModalOpen] = useState(false);
+
+	// Estados locais para controles interativos embutidos
+	const [brightness, setBrightness] = useState(80);
+	const [isPlaying, setIsPlaying] = useState(true);
+	const [volume, setVolume] = useState(45);
+	const [temperature, setTemperature] = useState(22);
+	const [climateMode, setClimateMode] = useState<"cool" | "fan">("cool");
 
 	const { mutate: toggleDevice, isPending: isToggling } = useToggleDevice();
 	const { mutate: deleteDevice, isPending: isDeleting } = useDeleteDevice();
@@ -56,13 +57,19 @@ export const DeviceCard: React.FC<DeviceCardProps> = ({ device }) => {
 	const IconComponent = config.icon;
 	const showToggle = isActuatorDevice(device.type);
 
+	const isTv = device.type === DeviceTypeEnum.Television;
+	const isAc = device.type === DeviceTypeEnum.Thermostat;
+	const isLight = device.type === DeviceTypeEnum.Light;
+	const isSocket = device.type === DeviceTypeEnum.Switch;
+
+	// TV e Climatização ocupam 2 colunas no grid no desktop
+	const isWide = isTv || isAc;
+	const isOnline = device.isOnline;
+	const isOn = device.isOn && isOnline;
+
 	const handleToggle = (e: React.MouseEvent) => {
 		e.stopPropagation();
-		const isOfflineAndNotTv =
-			!device.isOnline && device.type !== DeviceTypeEnum.Television;
-
-		if (isOfflineAndNotTv || isToggling) return;
-
+		if (!isOnline || isToggling) return;
 		toggleDevice(device.id);
 	};
 
@@ -70,141 +77,381 @@ export const DeviceCard: React.FC<DeviceCardProps> = ({ device }) => {
 		setIsTelemetryModalOpen(true);
 	};
 
-	return (
-		<>
-			{/* 1. Card principal: Apenas um container visual (relative) */}
-			<div
-				className={`group relative flex w-full flex-col justify-between rounded-xl border p-5 text-left font-normal backdrop-blur-sm transition-all select-none ${
-					!device.isOnline
-						? "border-zinc-800/60 bg-zinc-900/20 opacity-60"
-						: device.isOn
-							? "border-indigo-500/80 bg-zinc-900/50 shadow-[0_0_20px_rgba(99,102,241,0.05)] hover:border-indigo-400"
-							: "border-zinc-800/80 bg-zinc-900/40 hover:border-zinc-700 hover:bg-zinc-900/60"
-				}`}
-			>
-				<div>
-					<div className="flex items-start justify-between">
-						{/* Ícone Redondo */}
-						<div
-							className={`flex h-10 w-10 items-center justify-center rounded-full ${config.bg} ${config.text} transition-transform group-hover:scale-110`}
-						>
-							<IconComponent className="h-5 w-5" />
-						</div>
-
-						{/* Status + Menu de Contexto */}
-						<div className="relative z-10 flex items-center gap-1.5">
-							<div className="flex items-center gap-1.5 rounded-md border border-zinc-800 bg-zinc-900/80 px-2 py-1">
-								{device.isOnline ? (
-									<Wifi className="h-3 w-3 text-emerald-400" />
-								) : (
-									<WifiOff className="h-3 w-3 text-zinc-500" />
-								)}
-								<span className="text-[10px] font-medium uppercase tracking-wider text-zinc-400">
-									{device.isOnline
-										? t("common:status.online")
-										: t("common:status.offline")}
-								</span>
-							</div>
-
-							{/* DROPDOWN */}
-							<DropdownMenu>
-								<DropdownMenuTrigger asChild>
-									<button
-										type="button"
-										aria-label={t("card.moreOptions")}
-										className="rounded-md p-1 text-zinc-500 transition-colors hover:bg-zinc-800 hover:text-zinc-200 cursor-pointer outline-none focus-visible:ring-1 focus-visible:ring-indigo-500"
-									>
-										<MoreVertical className="h-3.5 w-3.5" />
-									</button>
-								</DropdownMenuTrigger>
-
-								<DropdownMenuContent
-									align="end"
-									className="w-36 border-zinc-800 bg-zinc-900 text-zinc-200 shadow-xl z-50"
-								>
-									<DropdownMenuItem
-										onClick={() => openEditSheet(device)}
-										className="cursor-pointer gap-2 text-xs text-zinc-300 focus:bg-zinc-800 focus:text-white"
-									>
-										<Pencil className="h-3.5 w-3.5" />
-										<span>{t("common:actions.edit")}</span>
-									</DropdownMenuItem>
-
-									<DropdownMenuItem
-										onClick={() => setIsDeleteModalOpen(true)}
-										className="cursor-pointer gap-2 text-xs text-red-400 focus:bg-red-500/10 focus:text-red-400"
-									>
-										<Trash2 className="h-3.5 w-3.5" />
-										{t("common:actions.delete")}
-									</DropdownMenuItem>
-								</DropdownMenuContent>
-							</DropdownMenu>
-						</div>
+	// Renderiza o corpo do card conforme o tipo de dispositivo
+	const renderCardBody = () => {
+		// 1. Lâmpada (Slider de Brilho)
+		if (isLight) {
+			return (
+				<div className="flex flex-col gap-2 mt-auto pt-2">
+					<div className="flex items-center justify-between text-xs text-[#c7c6cb]">
+						<span>{t("card.brightness", "Brilho")}</span>
+						<span className="font-bold text-[#e5e2e2]">
+							{isOn ? `${brightness}%` : "0%"}
+						</span>
 					</div>
-
-					{/* Nome, Cômodo e Setinha */}
-					<div className="mt-4">
-						<div className="flex items-center justify-between">
-							{/* BOTÃO COM STRETCHED LINK (Abre o Histórico de Telemetria) */}
-							<button
-								type="button"
-								onClick={handleInspectTelemetry}
-								className="truncate font-semibold text-zinc-50 group-hover:text-indigo-300 transition-colors text-left before:absolute before:inset-0 before:z-0 focus:outline-none cursor-pointer"
-							>
-								{device.name}
-							</button>
-
-							<ChevronRight className="h-4 w-4 text-zinc-500 opacity-0 transition-all group-hover:opacity-100 group-hover:translate-x-0.5" />
+					<button
+						type="button"
+						disabled={!isOnline}
+						aria-label={t("card.brightness", "Brilho")}
+						className="relative z-20 block w-full h-2 rounded-full bg-[#1c1b1c] overflow-hidden cursor-pointer group/slider disabled:cursor-not-allowed"
+						onClick={(e) => {
+							e.stopPropagation();
+							if (!isOnline) return;
+							const rect = e.currentTarget.getBoundingClientRect();
+							const pct = Math.round(
+								((e.clientX - rect.left) / rect.width) * 100,
+							);
+							setBrightness(Math.max(0, Math.min(100, pct)));
+						}}
+					>
+						<div
+							className="h-full bg-[#d3c4b8] rounded-full relative transition-all"
+							style={{ width: isOn ? `${brightness}%` : "0%" }}
+						>
+							<div className="absolute right-0 top-1/2 -translate-y-1/2 w-3 h-3 bg-[#382f27] rounded-full opacity-0 group-hover/slider:opacity-100 transition-opacity shadow-sm" />
 						</div>
+					</button>
+				</div>
+			);
+		}
 
-						<p className="mt-0.5 truncate text-xs text-zinc-400">
-							{device.brand} • {device.room ?? t("card.noRoom")}
-						</p>
-						<div className="mt-2 flex items-center gap-1.5 text-[11px] text-zinc-500">
-							<Activity className="h-3 w-3 text-zinc-600" />
-							<span>
-								{t("card.activeAgo", {
-									time: formatLastActivity(device.lastActivityMinutes || 0, t),
-								})}
+		// 3. Tomada (Consumo W + Tensão)
+		if (isSocket) {
+			return (
+				<div className="flex flex-col gap-2 mt-auto">
+					<div className="flex items-center justify-between text-xs">
+						<span className="text-[#c7c6cb]">
+							{t("card.powerUsage", "Consumo")}
+						</span>
+						<div className="flex items-baseline gap-1">
+							<span className="text-xl font-bold text-[#e5e2e2] tracking-tight">
+								{isOn ? 120 : 0}
+							</span>
+							<span className="text-[10px] font-semibold text-[#c5c6cf]">
+								W
 							</span>
 						</div>
 					</div>
+					<div className="flex items-center justify-between text-xs border-t border-[#46464b]/20 pt-2">
+						<span className="text-[#c7c6cb]">
+							{t("card.voltage", "Tensão")}
+						</span>
+						<span className="font-semibold text-[#e5e2e2]">127V</span>
+					</div>
 				</div>
+			);
+		}
 
-				{/* Rodapé do Card */}
-				<div className="relative z-10 mt-6 flex items-center justify-between border-t border-zinc-800/60 pt-3 w-full">
-					<span className="font-mono text-[11px] text-zinc-500">
-						{t("card.idLabel", { id: device.externalId })}
-					</span>
+		// 4. Smart TV (Now Playing + Controles de Mídia + Volume)
+		if (isTv) {
+			return (
+				<div className="flex-1 flex flex-col justify-end gap-3 mt-3">
+					<div className="flex items-center gap-3 bg-[#0e0e0f] rounded-lg p-2 border border-[#46464b]/20">
+						<div className="w-10 h-10 rounded bg-[#201f20] flex items-center justify-center overflow-hidden shrink-0">
+							<div className="w-full h-full bg-linear-to-tr from-indigo-950 to-zinc-800 flex items-center justify-center">
+								<IconComponent className="w-5 h-5 text-zinc-300 opacity-60" />
+							</div>
+						</div>
+						<div className="flex flex-col flex-1 min-w-0">
+							<span className="text-xs font-semibold text-[#e5e2e2] truncate">
+								{isOnline
+									? "Blade Runner 2049"
+									: t("card.noPlayback", "Sem Reprodução")}
+							</span>
+							<span className="text-[11px] text-[#c7c6cb] truncate">
+								{isOnline
+									? "Plex Media Server"
+									: t("card.deviceOffline", "Dispositivo offline")}
+							</span>
+						</div>
+						<div className="flex items-center gap-1 relative z-20">
+							<button
+								type="button"
+								disabled={!isOnline}
+								onClick={(e) => e.stopPropagation()}
+								className="w-7 h-7 rounded-full bg-[#201f20] flex items-center justify-center text-[#e5e2e2] hover:bg-[#3a3939] transition-colors disabled:cursor-not-allowed disabled:hover:bg-[#201f20]"
+							>
+								<SkipBack className="w-3.5 h-3.5" />
+							</button>
+							<button
+								type="button"
+								disabled={!isOnline}
+								onClick={(e) => {
+									e.stopPropagation();
+									if (!isOnline) return;
+									setIsPlaying(!isPlaying);
+								}}
+								className="w-8 h-8 rounded-full bg-[#c5c6cf] text-[#2e3037] flex items-center justify-center shadow-sm hover:scale-105 transition-transform disabled:cursor-not-allowed disabled:hover:scale-100"
+							>
+								{isOnline && isPlaying ? (
+									<Pause className="w-4 h-4 fill-current" />
+								) : (
+									<Play className="w-4 h-4 fill-current ml-0.5" />
+								)}
+							</button>
+							<button
+								type="button"
+								disabled={!isOnline}
+								onClick={(e) => e.stopPropagation()}
+								className="w-7 h-7 rounded-full bg-[#201f20] flex items-center justify-center text-[#e5e2e2] hover:bg-[#3a3939] transition-colors disabled:cursor-not-allowed disabled:hover:bg-[#201f20]"
+							>
+								<SkipForward className="w-3.5 h-3.5" />
+							</button>
+						</div>
+					</div>
 
-					{showToggle ? (
+					<div className="flex items-center gap-2 relative z-20">
+						<Volume2 className="w-4 h-4 text-[#c7c6cb]" />
 						<button
 							type="button"
-							disabled={
-								(!device.isOnline &&
-									device.type !== DeviceTypeEnum.Television) ||
-								isToggling
-							}
-							onClick={handleToggle}
-							role="switch"
-							aria-checked={device.isOn}
-							aria-label={t("card.toggleAriaLabel", { name: device.name })}
-							className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 disabled:cursor-not-allowed ${
-								device.isOn ? "bg-indigo-600" : "bg-zinc-800"
-							}`}
+							disabled={!isOnline}
+							aria-label={t("card.volume", "Volume")}
+							className="relative block flex-1 h-1.5 rounded-full bg-[#0e0e0f] overflow-hidden cursor-pointer disabled:cursor-not-allowed"
+							onClick={(e) => {
+								e.stopPropagation();
+								if (!isOnline) return;
+								const rect = e.currentTarget.getBoundingClientRect();
+								const pct = Math.round(
+									((e.clientX - rect.left) / rect.width) * 100,
+								);
+								setVolume(Math.max(0, Math.min(100, pct)));
+							}}
 						>
-							<span
-								className={`inline-block h-4 w-4 transform rounded-full bg-white shadow-lg ring-0 transition duration-200 ease-in-out ${
-									device.isOn ? "translate-x-4" : "translate-x-0"
-								}`}
+							<div
+								className="h-full bg-[#c5c6cf] rounded-full"
+								style={{ width: `${volume}%` }}
 							/>
 						</button>
-					) : (
-						<span className="text-[10px] uppercase tracking-wider text-zinc-600">
-							{t("common:status.readOnly")}
-						</span>
-					)}
+					</div>
 				</div>
+			);
+		}
+
+		// 5. Ar-Condicionado (Temperatura + Botões + Modos)
+		if (isAc) {
+			return (
+				<div className="flex-1 flex items-center justify-between mt-3">
+					<div className="flex flex-col">
+						<span className="text-[10px] font-semibold tracking-wider text-[#c7c6cb] uppercase mb-0.5">
+							{t("card.targetTemperature", "TEMPERATURA ALVO")}
+						</span>
+						<div className="flex items-start">
+							<span className="text-3xl font-bold tracking-tight text-[#e5e2e2]">
+								{temperature}
+							</span>
+							<span className="text-sm font-semibold text-[#c4c6d2] mt-0.5 ml-0.5">
+								°C
+							</span>
+						</div>
+					</div>
+					<div className="flex gap-2.5 relative z-20">
+						<div className="flex flex-col gap-1.5">
+							<button
+								type="button"
+								disabled={!isOnline}
+								onClick={(e) => {
+									e.stopPropagation();
+									if (!isOnline) return;
+									setTemperature((t) => Math.min(30, t + 1));
+								}}
+								className="w-9 h-9 rounded-full bg-[#0e0e0f] border border-[#46464b]/30 flex items-center justify-center text-[#e5e2e2] hover:bg-[#3a3939] transition-colors disabled:cursor-not-allowed disabled:hover:bg-[#0e0e0f]"
+							>
+								<Plus className="w-4 h-4" />
+							</button>
+							<button
+								type="button"
+								disabled={!isOnline}
+								onClick={(e) => {
+									e.stopPropagation();
+									if (!isOnline) return;
+									setTemperature((t) => Math.max(16, t - 1));
+								}}
+								className="w-9 h-9 rounded-full bg-[#0e0e0f] border border-[#46464b]/30 flex items-center justify-center text-[#e5e2e2] hover:bg-[#3a3939] transition-colors disabled:cursor-not-allowed disabled:hover:bg-[#0e0e0f]"
+							>
+								<Minus className="w-4 h-4" />
+							</button>
+						</div>
+						<div className="flex flex-col gap-1.5">
+							<button
+								type="button"
+								disabled={!isOnline}
+								onClick={(e) => {
+									e.stopPropagation();
+									if (!isOnline) return;
+									setClimateMode("cool");
+								}}
+								className={`w-9 h-9 rounded-full flex items-center justify-center transition-all disabled:cursor-not-allowed ${
+									climateMode === "cool"
+										? "bg-[#c4c6d2] text-[#2d303a] shadow-sm scale-105"
+										: "bg-[#0e0e0f] border border-[#46464b]/30 text-[#c7c6cb] hover:bg-[#3a3939]"
+								}`}
+							>
+								<Snowflake className="w-4 h-4" />
+							</button>
+							<button
+								type="button"
+								disabled={!isOnline}
+								onClick={(e) => {
+									e.stopPropagation();
+									if (!isOnline) return;
+									setClimateMode("fan");
+								}}
+								className={`w-9 h-9 rounded-full flex items-center justify-center transition-all disabled:cursor-not-allowed ${
+									climateMode === "fan"
+										? "bg-[#c4c6d2] text-[#2d303a] shadow-sm scale-105"
+										: "bg-[#0e0e0f] border border-[#46464b]/30 text-[#c7c6cb] hover:bg-[#3a3939]"
+								}`}
+							>
+								<Wind className="w-4 h-4" />
+							</button>
+						</div>
+					</div>
+				</div>
+			);
+		}
+
+		// 6. Genérico / Outros
+		return (
+			<div className="flex items-center justify-between text-xs mt-auto pt-3 border-t border-[#46464b]/20">
+				<span className="text-[#c7c6cb]">{t("card.state", "Estado")}</span>
+				<span className="text-[10px] font-semibold tracking-wider text-[#c7c6cb] px-2 py-0.5 bg-[#201f20] rounded-md">
+					{isOn
+						? t("common:status.on", "LIGADO")
+						: t("common:status.off", "DESLIGADO")}
+				</span>
+			</div>
+		);
+	};
+
+	return (
+		<>
+			<div
+				className={`relative group rounded-xl p-4 flex flex-col justify-between min-h-43.75 transition-all hover:shadow-md hover:-translate-y-0.5 overflow-hidden ${
+					isWide ? "col-span-1 md:col-span-2" : "col-span-1"
+				} ${
+					!isOnline
+						? "bg-linear-to-br from-[#1c1b1c] to-[#1c1b1c]/70 opacity-50 grayscale-[0.4] hover:-translate-y-0"
+						: isOn
+							? "bg-linear-to-br from-[#2a2a2a] to-[#232323] shadow-sm ring-1 ring-[#46464b]/30"
+							: "bg-linear-to-br from-[#1c1b1c] to-[#1c1b1c]/80"
+				}`}
+			>
+				{/* Glow / Gradiente suave quando ativo */}
+				{isOn && (
+					<div className="absolute inset-0 bg-linear-to-br from-[#c5c6cf]/10 to-transparent pointer-events-none" />
+				)}
+
+				{/* Topo do Card (Split-Interaction) */}
+				<div className="relative z-10 flex items-start justify-between gap-3">
+					<div className="flex items-center gap-3 min-w-0">
+						{/* Ícone Redondo que vira o Switch Real */}
+						{showToggle ? (
+							<button
+								type="button"
+								role="switch"
+								aria-checked={isOn}
+								aria-label={t("card.toggleAriaLabel", { name: device.name })}
+								disabled={!isOnline || isToggling}
+								onClick={handleToggle}
+								className={`relative z-10 w-12 h-12 rounded-full flex items-center justify-center transition-all shrink-0 cursor-pointer ${
+									!isOnline
+										? "bg-[#201f20] border border-[#46464b]/30 text-[#6e6e75] cursor-not-allowed"
+										: isOn
+											? isLight
+												? "bg-[#d3c4b8] text-[#382f27] shadow-[0_0_8px_rgba(211,196,184,0.2)] hover:scale-105"
+												: isAc
+													? "bg-[#c4c6d2] text-[#2d303a] shadow-[0_0_8px_rgba(196,198,210,0.2)] hover:scale-105"
+													: "bg-[#c5c6cf] text-[#2e3037] shadow-[0_0_8px_rgba(197,198,207,0.2)] hover:scale-105"
+											: "bg-[#201f20] border border-[#46464b]/30 text-[#c7c6cb] hover:bg-[#353435] hover:text-[#e5e2e2]"
+								}`}
+							>
+								<IconComponent className="w-6 h-6" />
+							</button>
+						) : (
+							<div className="w-12 h-12 rounded-full bg-[#201f20] border border-[#46464b]/30 flex items-center justify-center text-[#c7c6cb] shrink-0">
+								<IconComponent className="w-6 h-6" />
+							</div>
+						)}
+
+						{/* Stretched Link (Nome abre telemetria) */}
+						<div className="flex flex-col min-w-0">
+							<button
+								type="button"
+								onClick={handleInspectTelemetry}
+								className="text-left font-semibold text-[#e5e2e2] text-base leading-tight truncate hover:text-[#c5c6cf] transition-colors before:absolute before:inset-0 focus:outline-none cursor-pointer"
+							>
+								{device.name}
+							</button>
+							<span className="text-[10px] font-semibold tracking-wider text-[#c7c6cb] uppercase mt-1 truncate">
+								{(device.room ?? t("card.noRoom")).toUpperCase()} •{" "}
+								{isOnline
+									? device.brand.toUpperCase()
+									: t("common:status.offline", "OFFLINE")}
+							</span>
+						</div>
+					</div>
+
+					{/* Indicador "Reproduzindo"/"Offline" e Menu ⋮ */}
+					<div className="relative z-20 flex items-center gap-1">
+						{!isOnline ? (
+							<div className="flex items-center gap-1.5 mr-1">
+								<span className="h-2 w-2 rounded-full bg-[#6e6e75]" />
+								<span className="text-[9px] font-bold tracking-wider text-[#c7c6cb]">
+									{t("common:status.offline", "OFFLINE")}
+								</span>
+							</div>
+						) : (
+							isTv &&
+							isOn && (
+								<div className="flex items-center gap-1.5 mr-1">
+									<span className="flex h-2 w-2 relative">
+										<span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#c5c6cf] opacity-75" />
+										<span className="relative inline-flex rounded-full h-2 w-2 bg-[#c5c6cf]" />
+									</span>
+									<span className="text-[9px] font-bold tracking-wider text-[#c5c6cf]">
+										REPRODUZINDO
+									</span>
+								</div>
+							)
+						)}
+
+						<DropdownMenu>
+							<DropdownMenuTrigger asChild>
+								<button
+									type="button"
+									aria-label={t("card.moreOptions")}
+									className="rounded-md p-1.5 text-[#c7c6cb] transition-colors hover:bg-[#353435] hover:text-[#e5e2e2] cursor-pointer outline-none"
+								>
+									<MoreVertical className="h-4 w-4" />
+								</button>
+							</DropdownMenuTrigger>
+
+							<DropdownMenuContent
+								align="end"
+								className="w-36 border-[#46464b]/40 bg-[#201f20] text-[#e5e2e2] shadow-xl z-50"
+							>
+								<DropdownMenuItem
+									onClick={() => openEditSheet(device)}
+									className="cursor-pointer gap-2 text-xs text-[#c7c6cb] focus:bg-[#353435] focus:text-[#e5e2e2]"
+								>
+									<Pencil className="h-3.5 w-3.5" />
+									<span>{t("common:actions.edit")}</span>
+								</DropdownMenuItem>
+
+								<DropdownMenuItem
+									onClick={() => setIsDeleteModalOpen(true)}
+									className="cursor-pointer gap-2 text-xs text-[#ffb4ab] focus:bg-[#93000a]/20 focus:text-[#ffdad6]"
+								>
+									<Trash2 className="h-3.5 w-3.5" />
+									<span>{t("common:actions.delete")}</span>
+								</DropdownMenuItem>
+							</DropdownMenuContent>
+						</DropdownMenu>
+					</div>
+				</div>
+
+				{/* Conteúdo Dinâmico do Card */}
+				<div className="relative z-10">{renderCardBody()}</div>
 			</div>
 
 			<DeleteDeviceModal
@@ -219,7 +466,6 @@ export const DeviceCard: React.FC<DeviceCardProps> = ({ device }) => {
 				}}
 			/>
 
-			{/* Modal de Histórico e Séries Temporais */}
 			<DeviceTelemetrySheet
 				device={device}
 				isOpen={isTelemetryModalOpen}

@@ -30,7 +30,7 @@ describe("DeviceCard Integration Tests", () => {
 		expect(screen.getByText("Lâmpada da Sala")).toBeInTheDocument();
 		expect(screen.getByText(/Philips Hue/i)).toBeInTheDocument();
 		expect(screen.getByText(/Sala de Estar/i)).toBeInTheDocument();
-		expect(screen.getByText(/^Online$/i)).toBeInTheDocument();
+		expect(screen.queryByText(/^offline$/i)).not.toBeInTheDocument();
 		expect(screen.getByRole("switch")).toBeEnabled();
 	});
 
@@ -45,7 +45,7 @@ describe("DeviceCard Integration Tests", () => {
 		renderWithProviders(<DeviceCard device={mockDevice} />);
 
 		// Assert
-		expect(screen.getByText(/^Offline$/i)).toBeInTheDocument();
+		expect(screen.getByText(/^offline$/i)).toBeInTheDocument();
 		const switchButton = screen.getByRole("switch");
 		expect(switchButton).toBeDisabled();
 	});
