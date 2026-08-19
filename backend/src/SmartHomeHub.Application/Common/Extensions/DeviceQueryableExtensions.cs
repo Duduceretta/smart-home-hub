@@ -37,6 +37,16 @@ public static class DeviceQueryableExtensions
         return query;
     }
 
+    public static IQueryable<Device> FilterByRoomId(this IQueryable<Device> query, Guid? roomId)
+    {
+        return roomId is null ? query : query.Where(device => device.RoomId == roomId);
+    }
+
+    public static IQueryable<Device> FilterByOnlyOn(this IQueryable<Device> query, bool? onlyOn)
+    {
+        return onlyOn == true ? query.Where(device => device.IsOn) : query;
+    }
+
     public static IQueryable<Device> FilterBySearchTerm(
         this IQueryable<Device> query,
         string? searchTerm

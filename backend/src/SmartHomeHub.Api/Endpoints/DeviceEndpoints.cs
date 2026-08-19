@@ -27,6 +27,8 @@ public static class DeviceEndpoints
                     [FromQuery(Name = "q")] string? queryParam = null,
                     [FromQuery] string? category = null,
                     [FromQuery] string? status = null,
+                    [FromQuery] Guid? roomId = null,
+                    [FromQuery] bool? onlyOn = null,
                     [FromQuery] int page = 1,
                     [FromQuery] int pageSize = 10
                 ) =>
@@ -40,6 +42,8 @@ public static class DeviceEndpoints
                         queryParam,
                         category,
                         status,
+                        roomId,
+                        onlyOn,
                         page,
                         pageSize
                     );
@@ -53,7 +57,7 @@ public static class DeviceEndpoints
             .WithTags("Devices")
             .WithSummary("Lista todos os dispositivos com filtros e paginação")
             .WithDescription(
-                "Retorna uma lista paginada dos dispositivos ativos associados ao usuário autenticado, permitindo filtragem por busca textual (q), categoria e status (online/offline)."
+                "Retorna uma lista paginada dos dispositivos ativos associados ao usuário autenticado, permitindo filtragem por busca textual (q), categoria, status (online/offline), cômodo (roomId) e apenas ligados (onlyOn)."
             )
             .Produces<PagedResult<DeviceDto>>(StatusCodes.Status200OK)
             .ProducesProblem(StatusCodes.Status401Unauthorized);

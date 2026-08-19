@@ -29,6 +29,8 @@ public record GetDevicesQuery(
     string? Query = null,
     string? Category = null,
     string? Status = null,
+    Guid? RoomId = null,
+    bool? OnlyOn = null,
     int Page = 1,
     int PageSize = 10
 ) : IQuery<PagedResult<DeviceDto>>, IPagedQuery;
@@ -47,6 +49,8 @@ public class GetDevicesQueryHandler(IAppDbContext dbContext)
             .Where(device => device.User.ExternalAuthUid == request.FirebaseUid)
             .FilterByCategory(request.Category)
             .FilterByStatus(request.Status)
+            .FilterByRoomId(request.RoomId)
+            .FilterByOnlyOn(request.OnlyOn)
             .FilterBySearchTerm(request.Query)
             .OrderBy(device => device.Name)
             .ToPagedResultAsync(request.Page, request.PageSize, cancellationToken);
