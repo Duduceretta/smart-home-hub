@@ -13,13 +13,12 @@ export const DevicesHeader: React.FC = () => {
 				<h1 className="text-3xl font-semibold tracking-tight text-[#e5e2e2]">
 					{t("title")}
 				</h1>
-				<div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider text-[#c7c6cb]">
-					<span
-						className="h-2 w-2 rounded-full bg-[#c5c6cf] shadow-[0_0_8px_rgba(197,198,207,0.4)] animate-pulse"
-						aria-hidden="true"
-					/>
-					{t("header.hubStatus", "Hub 01 Online")}
-				</div>
+				<p className="text-sm text-[#c7c6cb]">
+					{t(
+						"header.subtitle",
+						"Gerencie conexões, consumo e estados dos periféricos integrados.",
+					)}
+				</p>
 			</div>
 
 			<button
