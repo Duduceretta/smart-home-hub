@@ -26,6 +26,8 @@ export async function fetchDevices({
 	query,
 	category,
 	status,
+	roomId,
+	onlyOn,
 	page = 1,
 	pageSize = 50,
 }: FetchDevicesParams = {}): Promise<Device[]> {
@@ -37,6 +39,8 @@ export async function fetchDevices({
 					q: query || undefined,
 					category: category && category !== "Todos" ? category : undefined,
 					status: status || undefined,
+					roomId: roomId || undefined,
+					onlyOn: onlyOn || undefined,
 					page,
 					pageSize,
 				},

@@ -1,6 +1,8 @@
 import { create } from "zustand";
 import type { Device, StatusFilterType } from "../types/devices.types";
 
+export type ViewModeType = "grid" | "list";
+
 /**
  * Interface defining the temporary UI state and actions for the Devices feature.
  */
@@ -9,9 +11,16 @@ interface DevicesUIState {
 	query: string;
 	activeTab: string;
 	statusFilter: StatusFilterType;
+	selectedRoomId: string | null;
+	onlyOn: boolean;
+	viewMode: ViewModeType;
+
 	setQuery: (query: string) => void;
 	setActiveTab: (tab: string) => void;
 	setStatusFilter: (filter: StatusFilterType) => void;
+	setSelectedRoomId: (roomId: string | null) => void;
+	toggleOnlyOn: () => void;
+	setViewMode: (mode: ViewModeType) => void;
 	resetFilters: () => void;
 
 	// Create Sheet Modal State
@@ -34,6 +43,9 @@ export const useDevicesUIStore = create<DevicesUIState>((set) => ({
 	query: "",
 	activeTab: "Todos",
 	statusFilter: null,
+	selectedRoomId: null,
+	onlyOn: false,
+	viewMode: "grid",
 	isCreateSheetOpen: false,
 	editingDevice: null,
 
@@ -44,8 +56,20 @@ export const useDevicesUIStore = create<DevicesUIState>((set) => ({
 		set((state) => ({
 			statusFilter: state.statusFilter === filter ? null : filter,
 		})),
+	setSelectedRoomId: (roomId) =>
+		set((state) => ({
+			selectedRoomId: state.selectedRoomId === roomId ? null : roomId,
+		})),
+	toggleOnlyOn: () => set((state) => ({ onlyOn: !state.onlyOn })),
+	setViewMode: (viewMode) => set({ viewMode }),
 	resetFilters: () =>
-		set({ query: "", activeTab: "Todos", statusFilter: null }),
+		set({
+			query: "",
+			activeTab: "Todos",
+			statusFilter: null,
+			selectedRoomId: null,
+			onlyOn: false,
+		}),
 
 	// Create Sheet Actions
 	openCreateSheet: () => set({ isCreateSheetOpen: true }),

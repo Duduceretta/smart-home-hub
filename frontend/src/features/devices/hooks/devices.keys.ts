@@ -8,6 +8,8 @@ export interface DevicesListFilters {
 	query?: string;
 	category?: string;
 	status?: StatusFilterType;
+	roomId?: string | null;
+	onlyOn?: boolean;
 }
 
 /**
