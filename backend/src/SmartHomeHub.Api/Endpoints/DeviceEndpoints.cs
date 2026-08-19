@@ -2,6 +2,7 @@ using System.Security.Claims;
 using Mediator;
 using Microsoft.AspNetCore.Mvc;
 using SmartHomeHub.Api.Extensions;
+using SmartHomeHub.Application.Common.Interfaces;
 using SmartHomeHub.Application.Common.Pagination;
 using SmartHomeHub.Application.Features.Devices.Commands.CreateDevice;
 using SmartHomeHub.Application.Features.Devices.Commands.DeleteDevice;
@@ -301,6 +302,56 @@ public static class DeviceEndpoints
             )
             .Produces(StatusCodes.Status204NoContent)
             .ProducesProblem(StatusCodes.Status404NotFound);
+
+        app.MapPost(
+                "/api/devices/discovery/start",
+                async (
+                    StartDiscoveryRequest request,
+                    ClaimsPrincipal userToken,
+                    IDeviceDiscoveryManager discoveryManager,
+                    CancellationToken cancellationToken
+                ) =>
+                {
+                    var firebaseUid = userToken.FindFirst("user_id")?.Value;
+                    if (string.IsNullOrEmpty(firebaseUid))
+                        return Results.Unauthorized();
+
+                    await discoveryManager.StartDiscoveryAsync(
+                        firebaseUid,
+                        request.TimeoutSeconds,
+                        CancellationToken.None
+                    );
+
+                    return Results.Accepted();
+                }
+            )
+            .RequireAuthorization()
+            .WithTags("Devices")
+            .WithSummary("Inicia a descoberta automática de dispositivos (fallback REST)")
+            .WithDescription(
+                "Alternativa ao método StartDiscovery do Hub SignalR /hubs/telemetry para clientes sem suporte a WebSocket. Os achados são notificados exclusivamente via evento 'DeviceDiscovered' do SignalR — este endpoint apenas inicia a varredura."
+            )
+            .Produces(StatusCodes.Status202Accepted)
+            .ProducesProblem(StatusCodes.Status401Unauthorized);
+
+        app.MapPost(
+                "/api/devices/discovery/stop",
+                async (ClaimsPrincipal userToken, IDeviceDiscoveryManager discoveryManager) =>
+                {
+                    var firebaseUid = userToken.FindFirst("user_id")?.Value;
+                    if (string.IsNullOrEmpty(firebaseUid))
+                        return Results.Unauthorized();
+
+                    await discoveryManager.StopDiscoveryAsync(firebaseUid);
+
+                    return Results.NoContent();
+                }
+            )
+            .RequireAuthorization()
+            .WithTags("Devices")
+            .WithSummary("Interrompe a descoberta automática de dispositivos em andamento")
+            .Produces(StatusCodes.Status204NoContent)
+            .ProducesProblem(StatusCodes.Status401Unauthorized);
     }
 }
 
@@ -317,6 +368,8 @@ public record CreateDeviceRequest(
     string? DpsPowerKey = null,
     string? ClientKey = null
 );
+
+public record StartDiscoveryRequest(int TimeoutSeconds = 30);
 
 public record UpdateDeviceRequest(
     string Name,
