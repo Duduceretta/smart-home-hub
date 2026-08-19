@@ -4,10 +4,12 @@ import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { useDevices } from "../hooks/useDevices";
 import { useDevicesUIStore } from "../store/devices-ui.store";
+import { DeviceTypeEnum } from "../types/devices.types";
 
 export const DevicesGlanceBar: React.FC = () => {
 	const { t } = useTranslation("devices");
-	const { data: devices = [], isLoading } = useDevices();
+	const { data, isLoading } = useDevices({ pageSize: 200 });
+	const devices = data?.items ?? [];
 
 	const {
 		onlyOn,
@@ -26,6 +28,9 @@ export const DevicesGlanceBar: React.FC = () => {
 		).length;
 		const activeCount = devices.filter((d) => d.isOn && d.isOnline).length;
 		const offlineCount = devices.filter((d) => !d.isOnline).length;
+		const climateCount = devices.filter(
+			(d) => d.type === DeviceTypeEnum.Thermostat,
+		).length;
 
 		// Estimativa de consumo agregado para dispositivos ligados (ex: tomadas/geral ~120W cada)
 		const estimatedWatts = activeCount * 120;
@@ -36,6 +41,7 @@ export const DevicesGlanceBar: React.FC = () => {
 			activeCount,
 			estimatedWatts,
 			offlineCount,
+			climateCount,
 		};
 	}, [devices]);
 
@@ -121,7 +127,7 @@ export const DevicesGlanceBar: React.FC = () => {
 			{/* 4. Chip Informativo: Clima */}
 			<div className="flex shrink-0 snap-start items-center gap-2 rounded-full bg-linear-to-b from-[#353435] to-[#2e2e2f] px-4 py-2 text-sm font-medium text-[#e5e2e2] shadow-sm">
 				<Snowflake className="h-4 w-4 text-[#c4c6d2]" aria-hidden="true" />
-				<span>{t("glanceBar.climate")}</span>
+				<span>{t("glanceBar.climate", { count: metrics.climateCount })}</span>
 			</div>
 
 			{/* 5. Chip Interativo: Dispositivos Offline (Aparece se houver offline) */}

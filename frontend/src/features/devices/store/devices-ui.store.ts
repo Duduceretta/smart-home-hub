@@ -14,6 +14,7 @@ interface DevicesUIState {
 	selectedRoomId: string | null;
 	onlyOn: boolean;
 	viewMode: ViewModeType;
+	page: number;
 
 	setQuery: (query: string) => void;
 	setActiveTab: (tab: string) => void;
@@ -21,6 +22,7 @@ interface DevicesUIState {
 	setSelectedRoomId: (roomId: string | null) => void;
 	toggleOnlyOn: () => void;
 	setViewMode: (mode: ViewModeType) => void;
+	setPage: (page: number) => void;
 	resetFilters: () => void;
 
 	// Create Sheet Modal State
@@ -46,22 +48,27 @@ export const useDevicesUIStore = create<DevicesUIState>((set) => ({
 	selectedRoomId: null,
 	onlyOn: false,
 	viewMode: "grid",
+	page: 1,
 	isCreateSheetOpen: false,
 	editingDevice: null,
 
-	// Filter Actions
-	setQuery: (query) => set({ query }),
-	setActiveTab: (activeTab) => set({ activeTab }),
+	// Filter Actions (todas resetam a página para 1 — a página atual pode não
+	// existir mais no novo conjunto filtrado)
+	setQuery: (query) => set({ query, page: 1 }),
+	setActiveTab: (activeTab) => set({ activeTab, page: 1 }),
 	setStatusFilter: (filter) =>
 		set((state) => ({
 			statusFilter: state.statusFilter === filter ? null : filter,
+			page: 1,
 		})),
 	setSelectedRoomId: (roomId) =>
 		set((state) => ({
 			selectedRoomId: state.selectedRoomId === roomId ? null : roomId,
+			page: 1,
 		})),
-	toggleOnlyOn: () => set((state) => ({ onlyOn: !state.onlyOn })),
+	toggleOnlyOn: () => set((state) => ({ onlyOn: !state.onlyOn, page: 1 })),
 	setViewMode: (viewMode) => set({ viewMode }),
+	setPage: (page) => set({ page }),
 	resetFilters: () =>
 		set({
 			query: "",
@@ -69,6 +76,7 @@ export const useDevicesUIStore = create<DevicesUIState>((set) => ({
 			statusFilter: null,
 			selectedRoomId: null,
 			onlyOn: false,
+			page: 1,
 		}),
 
 	// Create Sheet Actions

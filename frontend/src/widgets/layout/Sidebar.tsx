@@ -19,7 +19,8 @@ import { useDevices } from "@/features/devices/hooks/useDevices";
 export function Sidebar() {
 	const [isCollapsed, setIsCollapsed] = useState(false);
 	const location = useLocation();
-	const { data: devices = [] } = useDevices();
+	const { data } = useDevices({ pageSize: 200 });
+	const devices = data?.items ?? [];
 
 	const isActive = (path: string) => location.pathname.includes(path);
 
@@ -40,8 +41,7 @@ export function Sidebar() {
 	return (
 		<aside
 			className={cn(
-				// 👇 Fundo escuro fixado no tom surface-container-low (#1c1b1c)
-				"hidden md:flex flex-col h-full border-r border-border bg-gradient-to-b from-card/70 to-card/40 backdrop-blur-xl z-50 shrink-0 relative transition-[width] duration-300 ease-in-out text-foreground",
+				"hidden md:flex flex-col h-full border-r border-border bg-linear-to-b from-card/70 to-card/40 backdrop-blur-xl z-50 shrink-0 relative transition-[width] duration-300 ease-in-out text-foreground",
 				isCollapsed ? "w-20 p-4" : "w-72 p-6",
 			)}
 		>

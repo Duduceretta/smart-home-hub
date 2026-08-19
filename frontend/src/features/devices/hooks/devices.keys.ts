@@ -10,6 +10,8 @@ export interface DevicesListFilters {
 	status?: StatusFilterType;
 	roomId?: string | null;
 	onlyOn?: boolean;
+	page?: number;
+	pageSize?: number;
 }
 
 /**

@@ -12,15 +12,12 @@ import type {
 	UpdateDevicePayload,
 } from "../types/devices.types";
 
-export interface FetchDevicesParams extends DevicesListFilters {
-	page?: number;
-	pageSize?: number;
-}
+export type FetchDevicesParams = DevicesListFilters;
 
 /**
  * Fetches registered devices for the authenticated user, filtered and
- * paginated server-side. Supports both paginated PagedResponse and
- * direct Array responses.
+ * paginated server-side. Normalizes both paginated PagedResponse and
+ * direct Array responses into a single PagedResponse shape.
  */
 export async function fetchDevices({
 	query,
@@ -30,7 +27,7 @@ export async function fetchDevices({
 	onlyOn,
 	page = 1,
 	pageSize = 50,
-}: FetchDevicesParams = {}): Promise<Device[]> {
+}: FetchDevicesParams = {}): Promise<PagedResponse<Device>> {
 	try {
 		const { data } = await apiClient.get<PagedResponse<Device> | Device[]>(
 			"/devices",
@@ -53,14 +50,20 @@ export async function fetchDevices({
 			"items" in data &&
 			Array.isArray(data.items)
 		) {
-			return data.items;
-		}
-
-		if (Array.isArray(data)) {
 			return data;
 		}
 
-		return [];
+		const items = Array.isArray(data) ? data : [];
+
+		return {
+			items,
+			page,
+			pageSize,
+			totalCount: items.length,
+			totalPages: 1,
+			hasNextPage: false,
+			hasPreviousPage: false,
+		};
 	} catch (error: unknown) {
 		throw handleApplicationError(
 			error,

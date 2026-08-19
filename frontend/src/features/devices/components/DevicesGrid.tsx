@@ -1,10 +1,66 @@
-import { Cpu, Plus, Search } from "lucide-react";
+import { ChevronLeft, ChevronRight, Cpu, Plus, Search } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useDebouncedValue } from "@/core/hooks/useDebouncedValue";
 import { useDevices } from "../hooks/useDevices";
 import { useDevicesUIStore } from "../store/devices-ui.store";
 import { DeviceCard } from "./DeviceCard";
 import { DeviceListRow } from "./DeviceListRow";
+
+/**
+ * Itens por página. Paginação é por contagem de dispositivos, não por
+ * "linhas visuais" — a grade é responsiva (1 a 4 colunas) e TV/Climatização
+ * ocupam 2 colunas, então "N linhas cheias" não é uma unidade estável entre
+ * breakpoints. 12 itens/página se comporta bem como 3 linhas no layout xl
+ * (4 colunas) quando os cards são todos de largura simples.
+ */
+const PAGE_SIZE = 12;
+
+interface PaginationControlsProps {
+	page: number;
+	totalPages: number;
+	onPageChange: (page: number) => void;
+}
+
+const PaginationControls: React.FC<PaginationControlsProps> = ({
+	page,
+	totalPages,
+	onPageChange,
+}) => {
+	const { t } = useTranslation("devices");
+
+	if (totalPages <= 1) return null;
+
+	return (
+		<div className="flex items-center justify-between pt-2">
+			<span className="text-xs text-[#c7c6cb]">
+				{t("grid.pageIndicator", "Página {{page}} de {{totalPages}}", {
+					page,
+					totalPages,
+				})}
+			</span>
+			<div className="flex items-center gap-2">
+				<button
+					type="button"
+					disabled={page <= 1}
+					onClick={() => onPageChange(page - 1)}
+					aria-label={t("grid.previousPage", "Página anterior")}
+					className="flex h-8 w-8 items-center justify-center rounded-full bg-[#1c1b1c] text-[#c7c6cb] transition-colors hover:bg-[#2a2a2a] hover:text-[#e5e2e2] disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-[#1c1b1c]"
+				>
+					<ChevronLeft className="h-4 w-4" />
+				</button>
+				<button
+					type="button"
+					disabled={page >= totalPages}
+					onClick={() => onPageChange(page + 1)}
+					aria-label={t("grid.nextPage", "Próxima página")}
+					className="flex h-8 w-8 items-center justify-center rounded-full bg-[#1c1b1c] text-[#c7c6cb] transition-colors hover:bg-[#2a2a2a] hover:text-[#e5e2e2] disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-[#1c1b1c]"
+				>
+					<ChevronRight className="h-4 w-4" />
+				</button>
+			</div>
+		</div>
+	);
+};
 
 interface EmptyStateProps {
 	/** true = usuário não tem nenhum dispositivo cadastrado; false = filtro/busca zerou os resultados */
@@ -118,6 +174,8 @@ export const DevicesGrid: React.FC = () => {
 		selectedRoomId,
 		onlyOn,
 		viewMode,
+		page,
+		setPage,
 		resetFilters,
 		openCreateSheet,
 	} = useDevicesUIStore();
@@ -125,14 +183,20 @@ export const DevicesGrid: React.FC = () => {
 	const debouncedQuery = useDebouncedValue(query, 300);
 
 	// Busca do TanStack Query — filtros (cômodo, apenas ligados, categoria,
-	// status, busca) todos resolvidos server-side, sem filtragem client-side.
-	const { data: devices = [], isLoading } = useDevices({
+	// status, busca) e paginação todos resolvidos server-side, sem
+	// filtragem/paginação client-side.
+	const { data, isLoading } = useDevices({
 		query: debouncedQuery,
 		category: activeTab,
 		status: statusFilter,
 		roomId: selectedRoomId,
 		onlyOn,
+		page,
+		pageSize: PAGE_SIZE,
 	});
+
+	const devices = data?.items ?? [];
+	const totalPages = data?.totalPages ?? 1;
 
 	if (isLoading) {
 		return viewMode === "list" ? <ListSkeleton /> : <GridSkeleton />;
@@ -155,21 +219,33 @@ export const DevicesGrid: React.FC = () => {
 		);
 	}
 
-	if (viewMode === "list") {
-		return (
-			<div className="flex flex-col gap-2">
-				{devices.map((device) => (
-					<DeviceListRow key={device.id} device={device} />
-				))}
-			</div>
-		);
-	}
-
 	return (
-		<div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 auto-rows-max">
-			{devices.map((device) => (
-				<DeviceCard key={device.id} device={device} />
-			))}
+		<div className="flex flex-col gap-4">
+			{viewMode === "list" ? (
+				<div
+					key="list"
+					className="flex flex-col gap-2 motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-top-1 motion-safe:duration-200"
+				>
+					{devices.map((device) => (
+						<DeviceListRow key={device.id} device={device} />
+					))}
+				</div>
+			) : (
+				<div
+					key="grid"
+					className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 auto-rows-max grid-flow-row-dense motion-safe:animate-in motion-safe:fade-in motion-safe:zoom-in-95 motion-safe:duration-200"
+				>
+					{devices.map((device) => (
+						<DeviceCard key={device.id} device={device} />
+					))}
+				</div>
+			)}
+
+			<PaginationControls
+				page={page}
+				totalPages={totalPages}
+				onPageChange={setPage}
+			/>
 		</div>
 	);
 };
