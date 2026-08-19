@@ -8,18 +8,24 @@ export const DevicesHeader: React.FC = () => {
 	const openCreateSheet = useDevicesUIStore((state) => state.openCreateSheet);
 
 	return (
-		<div className="-mx-4 sm:-mx-6 px-4 sm:px-6 flex flex-col justify-between gap-3 border-b border-zinc-800/80 pb-4 sm:flex-row sm:items-center">
-			<div>
-				<h1 className="text-2xl font-bold tracking-tight text-zinc-50">
+		<div className="flex items-center justify-between gap-3">
+			<div className="flex flex-col gap-1">
+				<h1 className="text-3xl font-semibold tracking-tight text-[#e5e2e2]">
 					{t("title")}
 				</h1>
-				<p className="mt-0.5 text-xs text-zinc-400">{t("header.subtitle")}</p>
+				<div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider text-[#c7c6cb]">
+					<span
+						className="h-2 w-2 rounded-full bg-[#c5c6cf] shadow-[0_0_8px_rgba(197,198,207,0.4)] animate-pulse"
+						aria-hidden="true"
+					/>
+					{t("header.hubStatus", "Hub 01 Online")}
+				</div>
 			</div>
 
 			<button
 				type="button"
 				onClick={openCreateSheet}
-				className="inline-flex h-9 items-center justify-center gap-2 rounded-lg bg-indigo-600 px-3.5 py-2 text-xs font-medium text-white transition-all hover:bg-indigo-500 cursor-pointer shadow-md shadow-indigo-600/20 active:scale-[0.98]"
+				className="inline-flex items-center gap-2 rounded-full border border-[#46464b]/30 bg-linear-to-b from-[#2a2a2a] to-[#232323] px-4 py-2 text-xs font-semibold text-[#e5e2e2] transition-colors hover:from-[#353435] hover:to-[#2a2a2a] cursor-pointer active:scale-[0.98]"
 			>
 				<Plus className="h-4 w-4" />
 				<span>{t("header.addButton")}</span>

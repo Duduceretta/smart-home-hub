@@ -1,108 +1,163 @@
-import { Search, X } from "lucide-react";
+import { LayoutGrid, List, Search, X } from "lucide-react";
 import type React from "react";
+import { useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
-import { CATEGORY_LABEL_KEYS, DEVICE_CATEGORIES } from "../constants/devices.constants";
+import { useRooms } from "@/features/rooms/hooks/useRooms";
 import { useDevicesUIStore } from "../store/devices-ui.store";
 
 export const DevicesToolbar: React.FC = () => {
 	const { t } = useTranslation(["devices", "common"]);
+	const inputRef = useRef<HTMLInputElement>(null);
+	const { data: rooms = [] } = useRooms();
+
 	const {
 		query,
-		activeTab,
-		statusFilter,
 		setQuery,
-		setActiveTab,
-		setStatusFilter,
+		selectedRoomId,
+		setSelectedRoomId,
+		viewMode,
+		setViewMode,
 	} = useDevicesUIStore();
 
-	const handleStatusToggle = (status: "online" | "offline") => {
-		if (statusFilter === status) {
-			setStatusFilter(null);
-		} else {
-			setStatusFilter(status);
-		}
-	};
+	// Atalho global: ⌘K / Ctrl+K ou / para focar a barra de pesquisa
+	useEffect(() => {
+		const handleKeyDown = (e: KeyboardEvent) => {
+			const activeTag = document.activeElement?.tagName.toLowerCase();
+			const isInputFocused = activeTag === "input" || activeTag === "textarea";
+
+			if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
+				e.preventDefault();
+				inputRef.current?.focus();
+			} else if (e.key === "/" && !isInputFocused) {
+				e.preventDefault();
+				inputRef.current?.focus();
+			}
+		};
+
+		window.addEventListener("keydown", handleKeyDown);
+		return () => window.removeEventListener("keydown", handleKeyDown);
+	}, []);
 
 	return (
-		<div className="flex flex-col gap-4 lg:flex-row lg:items-center justify-between w-full">
-			{/* Input de Busca */}
-			<div className="relative flex-1 max-w-md">
-				<Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-500" />
-				<input
-					type="text"
-					value={query}
-					onChange={(e) => setQuery(e.target.value)}
-					placeholder={t("toolbar.searchPlaceholder")}
-					aria-label={t("toolbar.searchAriaLabel")}
-					className="w-full rounded-lg border border-zinc-800/80 bg-zinc-950/60 py-2 pl-9 pr-9 text-sm text-zinc-100 placeholder:text-zinc-500 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 transition-colors"
-				/>
-				{query && (
+		<div
+			role="toolbar"
+			aria-label={t("toolbar.ariaLabel", "Barra de ferramentas e filtros")}
+			className="flex flex-wrap items-center justify-between gap-4"
+		>
+			{/* 1. Filtro por Cômodos (Pills) */}
+			{rooms.length === 0 ? (
+				<p className="text-xs text-[#c7c6cb]">
+					{t(
+						"toolbar.roomFilterEmpty",
+						"Seus filtros por cômodos aparecerão aqui quando você tiver cômodos registrados.",
+					)}
+				</p>
+			) : (
+				<fieldset className="flex items-center gap-2 overflow-x-auto py-1 border-0 p-0 m-0 scrollbar-none">
+					<legend className="sr-only">
+						{t("toolbar.roomFilterAriaLabel", "Filtrar por cômodo")}
+					</legend>
+					{/* Pílula: Todos */}
 					<button
 						type="button"
-						onClick={() => setQuery("")}
-						aria-label={t("toolbar.clearSearchAriaLabel")}
-						className="absolute right-2.5 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300 cursor-pointer p-0.5 rounded-full hover:bg-zinc-800 transition-colors"
+						aria-pressed={selectedRoomId === null}
+						onClick={() => setSelectedRoomId(null)}
+						className={`shrink-0 rounded-full px-4 py-1.5 text-xs font-semibold tracking-wide transition-all shadow-sm ${
+							selectedRoomId === null
+								? "bg-[#c5c6cf]/20 text-[#c5c6cf] ring-1 ring-[#c5c6cf]/50"
+								: "bg-[#201f20] text-[#c7c6cb] hover:bg-[#2a2a2a] hover:text-[#e5e2e2]"
+						}`}
 					>
-						<X className="h-3.5 w-3.5" />
+						{t("toolbar.roomFilterAll", "Todos")}
 					</button>
-				)}
-			</div>
 
-			<div className="flex flex-wrap items-center gap-3">
-				{/* Categorias (Tabs) */}
-				<div className="flex items-center gap-2 overflow-x-auto py-1 scrollbar-none">
-					{DEVICE_CATEGORIES.map((tab) => {
-						const isActive = activeTab === tab;
+					{/* Pílulas de Cada Cômodo */}
+					{rooms.map((room) => {
+						const isSelected = selectedRoomId === room.id;
 						return (
 							<button
-								key={tab}
+								key={room.id}
 								type="button"
-								onClick={() => setActiveTab(tab)}
-								aria-pressed={isActive}
-								className={`whitespace-nowrap rounded-full px-3.5 py-1.5 text-xs font-medium transition-colors cursor-pointer ${
-									isActive
-										? "border border-indigo-500 bg-indigo-500/10 text-indigo-300"
-										: "border border-zinc-800 text-zinc-400 hover:border-zinc-700 hover:text-zinc-200"
+								aria-pressed={isSelected}
+								onClick={() => setSelectedRoomId(room.id)}
+								className={`shrink-0 rounded-full px-4 py-1.5 text-xs font-semibold tracking-wide transition-all shadow-sm ${
+									isSelected
+										? "bg-[#c5c6cf]/20 text-[#c5c6cf] ring-1 ring-[#c5c6cf]/50"
+										: "bg-[#201f20] text-[#c7c6cb] hover:bg-[#2a2a2a] hover:text-[#e5e2e2]"
 								}`}
 							>
-								{t(CATEGORY_LABEL_KEYS[tab])}
+								{room.name}
 							</button>
 						);
 					})}
+				</fieldset>
+			)}
+
+			{/* 2. Ações do Lado Direito: Busca + Toggle Grade/Lista */}
+			<div className="flex items-center gap-3">
+				{/* Campo de Busca Expansível */}
+				<div className="relative flex items-center">
+					<Search
+						className="absolute left-3 h-4 w-4 text-[#c7c6cb] pointer-events-none"
+						aria-hidden="true"
+					/>
+					<input
+						ref={inputRef}
+						type="text"
+						value={query}
+						onChange={(e) => setQuery(e.target.value)}
+						placeholder={t("toolbar.searchPlaceholder", "Buscar...")}
+						aria-label={t("toolbar.searchAriaLabel", "Buscar dispositivos")}
+						className="w-44 rounded-full bg-[#1c1b1c] py-1.5 pl-9 pr-11 text-xs text-[#e5e2e2] placeholder-[#c7c6cb]/60 outline-none transition-all duration-300 focus:w-60 focus:ring-1 focus:ring-[#c5c6cf]"
+					/>
+					{query ? (
+						<button
+							type="button"
+							onClick={() => setQuery("")}
+							aria-label={t("toolbar.clearSearchAriaLabel", "Limpar busca")}
+							className="absolute right-2.5 p-1 text-[#c7c6cb] hover:text-[#e5e2e2] rounded-full transition-colors"
+						>
+							<X className="h-3.5 w-3.5" />
+						</button>
+					) : (
+						<kbd className="pointer-events-none absolute right-2.5 flex h-5 items-center justify-center rounded bg-[#201f20] px-1.5 font-mono text-[10px] text-[#c7c6cb]">
+							⌘K
+						</kbd>
+					)}
 				</div>
 
-				{/* Separador Vertical */}
-				<div className="hidden h-6 w-px bg-zinc-800/80 lg:block mx-1" />
-
-				{/* Status Online/Offline */}
-				<div className="flex items-center gap-2">
+				{/* Segmented Control (Grade / Lista) */}
+				<fieldset className="flex rounded-lg bg-[#201f20] p-1 border-0 m-0">
+					<legend className="sr-only">
+						{t("toolbar.viewModeLabel", "Modo de visualização")}
+					</legend>
 					<button
 						type="button"
-						onClick={() => handleStatusToggle("online")}
-						aria-pressed={statusFilter === "online"}
-						className={`inline-flex items-center gap-2 rounded-full border px-3.5 py-1.5 text-xs font-medium transition-colors cursor-pointer ${
-							statusFilter === "online"
-								? "border-emerald-500/60 bg-emerald-500/10 text-emerald-300"
-								: "border-zinc-800 text-zinc-400 hover:border-zinc-700 hover:text-zinc-200"
+						aria-pressed={viewMode === "grid"}
+						aria-label={t("toolbar.viewModeGrid", "Visualização em grade")}
+						onClick={() => setViewMode("grid")}
+						className={`rounded p-1.5 transition-all shadow-sm ${
+							viewMode === "grid"
+								? "bg-[#3a3939] text-[#e5e2e2]"
+								: "text-[#c7c6cb] hover:text-[#e5e2e2]"
 						}`}
 					>
-						<span className="h-2 w-2 rounded-full bg-emerald-400" />{" "}
-						{t("common:status.online")}
+						<LayoutGrid className="h-4 w-4" />
 					</button>
 					<button
 						type="button"
-						onClick={() => handleStatusToggle("offline")}
-						aria-pressed={statusFilter === "offline"}
-						className={`inline-flex items-center gap-2 rounded-full border px-3.5 py-1.5 text-xs font-medium transition-colors cursor-pointer ${
-							statusFilter === "offline"
-								? "border-zinc-600 bg-zinc-700/40 text-zinc-200"
-								: "border-zinc-800 text-zinc-400 hover:border-zinc-700 hover:text-zinc-200"
+						aria-pressed={viewMode === "list"}
+						aria-label={t("toolbar.viewModeList", "Visualização em lista")}
+						onClick={() => setViewMode("list")}
+						className={`rounded p-1.5 transition-all shadow-sm ${
+							viewMode === "list"
+								? "bg-[#3a3939] text-[#e5e2e2]"
+								: "text-[#c7c6cb] hover:text-[#e5e2e2]"
 						}`}
 					>
-						<span className="h-2 w-2 rounded-full bg-zinc-500" />{" "}
-						{t("common:status.offline")}
+						<List className="h-4 w-4" />
 					</button>
-				</div>
+				</fieldset>
 			</div>
 		</div>
 	);
