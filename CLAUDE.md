@@ -106,7 +106,14 @@ Toda nova feature deve seguir estritamente os 5 passos:
 
 ## 🎨 UI/UX & Design System (Dark Mode First)
 
-- **Cores Base**: Fundo `bg-zinc-950`, cartões `bg-zinc-900/50` com bordas `border-zinc-800/80` e acentos primários `indigo-600` / `indigo-500`.
+- **Paleta Oficial (Warm Dark Surface)**: substitui o preto/zinc puro anterior por tons quentes de superfície. Definida como cores oficiais do app (migração global gradual — features novas devem seguir esta paleta; um retrofit completo de componentes legados e suporte a temas personalizados fica para depois):
+  - Fundo (`bg-[#141314]`), sidebar/header (mesmo tom, já aplicado em `AppLayout`/`Sidebar`/`Header`).
+  - Camadas de superfície: `#1c1b1c` (low) → `#201f20` (container) → `#2a2a2a` (high) → `#353435` (highest/pills).
+  - Bordas sutis: `#46464b` em opacidade baixa (`/20` a `/40`) — nunca em opacidade total, senão a linha fica marcada demais.
+  - Acentos funcionais: primário/neutro `#c5c6cf` (texto `#2e3037`), iluminação (âmbar/areia) `#d3c4b8` (texto `#382f27`), clima (azul-acinzentado) `#c4c6d2` (texto `#2d303a`), alerta/offline `#93000a` (container `/20`, borda `/50`, texto `#ffb4ab`).
+  - Texto: `#e5e2e2` (principal), `#c7c6cb` (secundário/labels uppercase).
+  - Glows/gradientes: sutis (`shadow-[0_0_8px_rgba(...,0.2)]`), nunca `0.3+` de opacidade — fica pesado demais. Superfícies (cards, pills, botões) podem levar leve `bg-gradient-to-b`/`to-br` entre dois tons próximos da mesma camada, nunca gradientes contrastantes.
+  - Referência viva de aplicação: `src/features/devices/` (`DeviceCard.tsx`, `DevicesToolbar.tsx`, `DevicesGlanceBar.tsx`, `DevicesHeader.tsx`).
 - **Espaçamento (Grid 8px)**:
   - Label ⇄ Input: `gap-1.5` ou `space-y-1.5`
   - Entre campos da mesma seção: `space-y-3` a `space-y-4`
