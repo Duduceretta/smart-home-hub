@@ -26,6 +26,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\SmartHomeHub.Domain\SmartHomeHub.Domain.csproj" />
     <ProjectReference Include="..\..\src\SmartHomeHub.Application\SmartHomeHub.Application.csproj" />
+    <ProjectReference Include="..\..\src\SmartHomeHub.Infrastructure\SmartHomeHub.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>
