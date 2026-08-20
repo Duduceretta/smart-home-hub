@@ -7,6 +7,7 @@ using SmartHomeHub.Api.Middlewares;
 using SmartHomeHub.Api.Workers;
 using SmartHomeHub.Application;
 using SmartHomeHub.Infrastructure;
+using SmartHomeHub.Infrastructure.BackgroundJobs;
 
 Log.Logger = new LoggerConfiguration()
     .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
@@ -46,6 +47,7 @@ try
     builder.Services.AddInfrastructure(builder.Configuration);
     builder.Services.AddApplication();
     builder.Services.AddHostedService<MqttListenerWorker>();
+    builder.Services.AddHostedService<DeviceHealthCheckWorker>();
     builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
     builder.Services.AddProblemDetails();
     builder.Services.AddOpenApi(options =>
