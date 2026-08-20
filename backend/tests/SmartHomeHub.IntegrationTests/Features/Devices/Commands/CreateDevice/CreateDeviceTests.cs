@@ -3,6 +3,7 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using SmartHomeHub.Domain.Entities;
 using SmartHomeHub.Domain.Enums;
 using SmartHomeHub.IntegrationTests.Setup;
@@ -12,13 +13,17 @@ namespace SmartHomeHub.IntegrationTests.Features.Devices.Commands.CreateDevice;
 
 public class CreateDeviceTests(IntegrationTestWebAppFactory factory) : BaseIntegrationTest(factory)
 {
+    private readonly TestDeviceProbeService _probeService =
+        factory.Services.GetRequiredService<TestDeviceProbeService>();
+
     private record CreateDeviceRequest(
         string Name,
         string Brand,
         string ExternalId,
         DeviceType Type,
         IntegrationType IntegrationType,
-        Guid? RoomId
+        Guid? RoomId,
+        string? IpAddress = null
     );
 
     [Fact]
@@ -63,6 +68,56 @@ public class CreateDeviceTests(IntegrationTestWebAppFactory factory) : BaseInteg
         physicalDevice.Should().NotBeNull();
         physicalDevice.UserId.Should().Be(userId);
         physicalDevice.IsOn.Should().BeFalse("A configuração definiu o DefaultValue como false.");
+    }
+
+    [Fact]
+    public async Task CreateDevice_WhenProbeSucceeds_ShouldPersistAsOnline()
+    {
+        _probeService.Reset();
+
+        var userId = Guid.NewGuid();
+        var user = new User
+        {
+            Id = userId,
+            Name = "Eduardo Ceretta",
+            Email = "eduardo@smarthome.com",
+            ExternalAuthUid = "firebase-token-123",
+            IsDeleted = false,
+        };
+        DbContext.Users.Add(user);
+        await DbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+
+        const string ipAddress = "192.168.1.77";
+        _probeService.SetResult(ipAddress, true);
+
+        var request = new CreateDeviceRequest(
+            "Chromecast Sala",
+            "Google",
+            "CAST-A1-B2-C3",
+            DeviceType.Television,
+            IntegrationType.GoogleCast,
+            null,
+            ipAddress
+        );
+
+        var response = await Client.PostAsJsonAsync(
+            "/api/devices",
+            request,
+            TestContext.Current.CancellationToken
+        );
+
+        response.StatusCode.Should().Be(HttpStatusCode.Created);
+
+        var physicalDevice = await DbContext
+            .Devices.AsNoTracking()
+            .FirstOrDefaultAsync(
+                device => device.ExternalId == request.ExternalId,
+                cancellationToken: TestContext.Current.CancellationToken
+            );
+
+        physicalDevice.Should().NotBeNull();
+        physicalDevice!.IsOnline.Should().BeTrue();
+        physicalDevice.LastSeenAt.Should().NotBeNull();
     }
 
     [Fact]

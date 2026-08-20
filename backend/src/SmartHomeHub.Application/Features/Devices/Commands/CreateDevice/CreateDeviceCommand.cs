@@ -1,6 +1,7 @@
 using FluentValidation;
 using Mediator;
 using Microsoft.EntityFrameworkCore;
+using SmartHomeHub.Application.Common.Extensions;
 using SmartHomeHub.Application.Common.Interfaces;
 using SmartHomeHub.Domain.Common.Primitives;
 using SmartHomeHub.Domain.Entities;
@@ -52,7 +53,7 @@ public class CreateDeviceCommandValidator : AbstractValidator<CreateDeviceComman
     }
 }
 
-public class CreateDeviceCommandHandler(IAppDbContext dbContext)
+public class CreateDeviceCommandHandler(IAppDbContext dbContext, IDeviceProbeService probeService)
     : ICommandHandler<CreateDeviceCommand, Result<Guid>>
 {
     public async ValueTask<Result<Guid>> Handle(
@@ -104,6 +105,24 @@ public class CreateDeviceCommandHandler(IAppDbContext dbContext)
                 ClientKey = request.ClientKey,
             },
         };
+
+        if (
+            !string.IsNullOrWhiteSpace(device.Configuration.IpAddress)
+            && device.IntegrationType.IsNetworkProbeable()
+        )
+        {
+            var isOnline = await probeService.ProbeDeviceAsync(
+                device.Configuration.IpAddress,
+                device.IntegrationType,
+                cancellationToken
+            );
+
+            if (isOnline)
+            {
+                device.IsOnline = true;
+                device.LastSeenAt = DateTimeOffset.UtcNow;
+            }
+        }
 
         dbContext.Devices.Add(device);
         await dbContext.SaveChangesAsync(cancellationToken);
