@@ -6,6 +6,7 @@ using Microsoft.IdentityModel.Tokens;
 using SmartHomeHub.Application.Common.Interfaces;
 using SmartHomeHub.Infrastructure.Discovery;
 using SmartHomeHub.Infrastructure.Discovery.Scanners;
+using SmartHomeHub.Infrastructure.HealthCheck;
 using SmartHomeHub.Infrastructure.Messaging;
 using SmartHomeHub.Infrastructure.Persistence;
 using SmartHomeHub.Infrastructure.Realtime.Services;
@@ -40,6 +41,8 @@ public static class DependencyInjection
 
         services.AddSignalR();
         services.AddScoped<IRealtimeNotificationService, RealtimeNotificationService>();
+
+        services.AddSingleton<IDeviceProbeService, DeviceProbeService>();
 
         var firebaseProjectId = configuration["Firebase:ProjectId"];
 

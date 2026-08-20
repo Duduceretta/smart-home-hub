@@ -11,4 +11,5 @@ public enum IntegrationType
     SsdpUpnp = 7,
     TuyaLocal = 8,
     EspHomeMqtt = 9,
+    AndroidTvAdb = 10,
 }

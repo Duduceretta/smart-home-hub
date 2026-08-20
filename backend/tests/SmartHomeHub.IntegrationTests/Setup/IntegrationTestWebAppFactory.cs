@@ -83,6 +83,14 @@ public class IntegrationTestWebAppFactory : WebApplicationFactory<Program>, IAsy
             services.RemoveAll<IRealtimeNotificationService>();
             services.AddSingleton(_ => Substitute.For<IRealtimeNotificationService>());
 
+            // Health Check: substitui o probe TCP real por um resultado configurável por IP,
+            // evitando sockets/rede real em CI (mesmo princípio do TestDiscoveryScanner acima).
+            services.RemoveAll<IDeviceProbeService>();
+            services.AddSingleton<TestDeviceProbeService>();
+            services.AddSingleton<IDeviceProbeService>(sp =>
+                sp.GetRequiredService<TestDeviceProbeService>()
+            );
+
             var serviceProvider = services.BuildServiceProvider();
             using var scope = serviceProvider.CreateScope();
             var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
