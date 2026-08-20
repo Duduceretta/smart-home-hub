@@ -53,7 +53,7 @@ export const DeviceCard: React.FC<DeviceCardProps> = ({ device }) => {
 
 	const { mutate: toggleDevice, isPending: isToggling } = useToggleDevice();
 	const { mutate: deleteDevice, isPending: isDeleting } = useDeleteDevice();
-	const openEditSheet = useDevicesUIStore((s) => s.openEditSheet);
+	const openEditModal = useDevicesUIStore((s) => s.openEditModal);
 
 	const config =
 		DEVICE_CONFIG[device.type] ?? DEVICE_CONFIG[DeviceTypeEnum.Light];
@@ -461,7 +461,7 @@ export const DeviceCard: React.FC<DeviceCardProps> = ({ device }) => {
 								className="w-36 border-[#46464b]/40 bg-[#201f20] text-[#e5e2e2] shadow-xl z-50"
 							>
 								<DropdownMenuItem
-									onClick={() => openEditSheet(device)}
+									onClick={() => openEditModal(device)}
 									className="cursor-pointer gap-2 text-xs text-[#c7c6cb] focus:bg-[#353435] focus:text-[#e5e2e2]"
 								>
 									<Pencil className="h-3.5 w-3.5" />

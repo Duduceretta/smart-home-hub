@@ -1,9 +1,9 @@
-import { CreateDeviceSheet } from "./CreateDeviceSheet";
+import { DeviceDiscoveryModal } from "./DeviceDiscoveryModal";
 import { DevicesGlanceBar } from "./DevicesGlanceBar";
 import { DevicesGrid } from "./DevicesGrid";
 import { DevicesHeader } from "./DevicesHeader";
 import { DevicesToolbar } from "./DevicesToolbar";
-import { EditDeviceSheet } from "./EditDeviceSheet";
+import { EditDeviceModal } from "./EditDeviceModal";
 
 export const DevicesView: React.FC = () => {
 	return (
@@ -21,8 +21,8 @@ export const DevicesView: React.FC = () => {
 			<DevicesGrid />
 
 			{/* Sheets / Modais */}
-			<CreateDeviceSheet />
-			<EditDeviceSheet />
+			<DeviceDiscoveryModal />
+			<EditDeviceModal />
 		</div>
 	);
 };
