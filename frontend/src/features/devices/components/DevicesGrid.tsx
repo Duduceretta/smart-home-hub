@@ -177,7 +177,7 @@ export const DevicesGrid: React.FC = () => {
 		page,
 		setPage,
 		resetFilters,
-		openCreateSheet,
+		openDiscoveryModal,
 	} = useDevicesUIStore();
 
 	const debouncedQuery = useDebouncedValue(query, 300);
@@ -214,7 +214,7 @@ export const DevicesGrid: React.FC = () => {
 			<EmptyState
 				hasNoDevices={!isFilterActive}
 				onReset={resetFilters}
-				onCreate={openCreateSheet}
+				onCreate={openDiscoveryModal}
 			/>
 		);
 	}

@@ -165,6 +165,38 @@ export async function deleteDeviceRequest(deviceId: string): Promise<void> {
 }
 
 /**
+ * Starts a network scan for the Device Discovery engine (REST fallback for
+ * when the SignalR Hub method invocation isn't available). Results are
+ * notified exclusively via the "DeviceDiscovered" SignalR event.
+ */
+export async function startDeviceDiscoveryRequest(
+	timeoutSeconds = 30,
+): Promise<void> {
+	try {
+		await apiClient.post("/devices/discovery/start", { timeoutSeconds });
+	} catch (error: unknown) {
+		throw handleApplicationError(
+			error,
+			"Não foi possível iniciar a busca por dispositivos.",
+		);
+	}
+}
+
+/**
+ * Stops an in-progress Device Discovery scan (REST fallback).
+ */
+export async function stopDeviceDiscoveryRequest(): Promise<void> {
+	try {
+		await apiClient.post("/devices/discovery/stop");
+	} catch (error: unknown) {
+		throw handleApplicationError(
+			error,
+			"Não foi possível interromper a busca por dispositivos.",
+		);
+	}
+}
+
+/**
  * Fetches historical telemetry data points (power usage, temperature, voltage) for a specific device.
  */
 export async function getDeviceTelemetryHistoryRequest({

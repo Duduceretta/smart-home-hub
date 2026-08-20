@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { INTEGRATION_FIELD_VISIBILITY } from "../constants/devices.constants";
 import { DeviceTypeEnum, IntegrationTypeEnum } from "./devices.types";
 
 /**
@@ -97,12 +98,9 @@ export const deviceBaseSchema = z.object({
  * doesn't require these, so this is frontend-only UX guidance.
  */
 export const createDeviceSchema = deviceBaseSchema.superRefine((data, ctx) => {
-	const requiresIp =
-		data.integrationType === IntegrationTypeEnum.TuyaBridge ||
-		data.integrationType === IntegrationTypeEnum.LgWebOs ||
-		data.integrationType === IntegrationTypeEnum.GoogleCast;
+	const visibility = INTEGRATION_FIELD_VISIBILITY[data.integrationType];
 
-	if (requiresIp && !data.ipAddress) {
+	if (visibility.requireIpOnCreate && !data.ipAddress) {
 		ctx.addIssue({
 			code: "custom",
 			path: ["ipAddress"],
@@ -110,14 +108,11 @@ export const createDeviceSchema = deviceBaseSchema.superRefine((data, ctx) => {
 		});
 	}
 
-	if (
-		data.integrationType === IntegrationTypeEnum.TuyaBridge &&
-		!data.localKey
-	) {
+	if (visibility.requireLocalKeyOnCreate && !data.localKey) {
 		ctx.addIssue({
 			code: "custom",
 			path: ["localKey"],
-			message: "A Local Key é obrigatória para integração via Tuya Bridge.",
+			message: "A Local Key é obrigatória para este tipo de integração.",
 		});
 	}
 });

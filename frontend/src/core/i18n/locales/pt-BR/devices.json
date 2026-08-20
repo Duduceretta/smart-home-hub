@@ -45,7 +45,11 @@
 			"tuyaBridge": "Tuya Bridge",
 			"lgWebOs": "LG WebOS",
 			"googleCast": "Google Cast",
-			"zigbee": "Zigbee"
+			"zigbee": "Zigbee",
+			"mdnsZeroconf": "mDNS/Zeroconf",
+			"ssdpUpnp": "SSDP/UPnP",
+			"tuyaLocal": "Tuya Local",
+			"espHomeMqtt": "ESPHome (MQTT)"
 		}
 	},
 	"grid": {
@@ -133,7 +137,9 @@
 			"title": "Editar Dispositivo",
 			"description": "Altere as informações cadastrais ou mude o cômodo do dispositivo.",
 			"loading": "Carregando especificações...",
-			"saveButton": "Salvar Alterações"
+			"saveButton": "Salvar Alterações",
+			"deleteButton": "Excluir Dispositivo",
+			"advancedSettings": "Configurações Técnicas"
 		}
 	},
 	"deleteModal": {
@@ -158,5 +164,64 @@
 		"24h": "24h",
 		"7d": "7d",
 		"30d": "30d"
+	},
+	"discoveryModal": {
+		"title": "Adicionar Novo Dispositivo",
+		"subtitle": "Conecte e configure dispositivos encontrados automaticamente na sua rede.",
+		"sidebar": {
+			"pairingModeActive": "Modo Pareamento Ativo"
+		},
+		"stepper": {
+			"step1": "Descoberta",
+			"step1Description": "Buscando na rede",
+			"step2": "Configuração",
+			"step2Description": "Ajustes locais",
+			"step3": "Finalização",
+			"step3Description": "Revisão final"
+		},
+		"scan": {
+			"sectionTitle": "Dispositivos Encontrados",
+			"idleTitle": "Pronto para escanear",
+			"idleSubtitle": "Aguardando início da busca por dispositivos na rede local.",
+			"scanningTitle": "Escaneando rede...",
+			"scanningSubtitle": "Buscando novos dispositivos, isso pode levar alguns instantes.",
+			"foundCount": "{{count}} dispositivo(s) encontrado(s)",
+			"emptyTitle": "Nenhum dispositivo encontrado",
+			"emptySubtitle": "Verifique se os dispositivos estão ligados e conectados à mesma rede.",
+			"rescanButton": "Buscar Novamente",
+			"rescanDescription": "Reinicia a varredura para encontrar novos dispositivos na rede.",
+			"manualButton": "Configurar Manualmente",
+			"continueButton": "Continuar",
+			"connectionError": "Não foi possível conectar ao serviço de descoberta."
+		},
+		"found": {
+			"selectPrompt": "Selecione um dispositivo para configurar",
+			"signalLabel": "Sinal: {{value}}"
+		},
+		"configure": {
+			"backButton": "Voltar",
+			"advancedSettings": "Configurações Avançadas",
+			"prefillNotice": "Alguns campos foram preenchidos automaticamente com base no dispositivo encontrado.",
+			"reviewButton": "Revisar Dispositivo"
+		},
+		"review": {
+			"sectionTitle": "Resumo do Dispositivo",
+			"sectionSubtitle": "Confira os dados antes de adicionar o dispositivo ao seu Smart Hub.",
+			"nameLabel": "Nome",
+			"brandLabel": "Marca / Modelo",
+			"externalIdLabel": "Identificador Externo / MAC",
+			"typeLabel": "Tipo",
+			"integrationTypeLabel": "Integração",
+			"roomLabel": "Cômodo",
+			"ipAddressLabel": "Endereço IP",
+			"backButton": "Voltar e Editar",
+			"confirmButton": "Adicionar Dispositivo"
+		},
+		"done": {
+			"title": "Dispositivo cadastrado!",
+			"subtitle": "\"{{name}}\" foi adicionado com sucesso ao seu Smart Hub.",
+			"addAnotherButton": "Adicionar Outro",
+			"finishButton": "Concluir"
+		}
 	}
 }

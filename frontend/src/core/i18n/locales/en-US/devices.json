@@ -45,7 +45,11 @@
 			"tuyaBridge": "Tuya Bridge",
 			"lgWebOs": "LG WebOS",
 			"googleCast": "Google Cast",
-			"zigbee": "Zigbee"
+			"zigbee": "Zigbee",
+			"mdnsZeroconf": "mDNS/Zeroconf",
+			"ssdpUpnp": "SSDP/UPnP",
+			"tuyaLocal": "Tuya Local",
+			"espHomeMqtt": "ESPHome (MQTT)"
 		}
 	},
 	"grid": {
@@ -133,7 +137,9 @@
 			"title": "Edit Device",
 			"description": "Change the registration details or the device's room.",
 			"loading": "Loading specifications...",
-			"saveButton": "Save Changes"
+			"saveButton": "Save Changes",
+			"deleteButton": "Delete Device",
+			"advancedSettings": "Technical Settings"
 		}
 	},
 	"deleteModal": {
@@ -158,5 +164,64 @@
 		"24h": "24h",
 		"7d": "7d",
 		"30d": "30d"
+	},
+	"discoveryModal": {
+		"title": "Add New Device",
+		"subtitle": "Connect and configure devices automatically found on your network.",
+		"sidebar": {
+			"pairingModeActive": "Pairing Mode Active"
+		},
+		"stepper": {
+			"step1": "Discovery",
+			"step1Description": "Scanning network",
+			"step2": "Configuration",
+			"step2Description": "Local settings",
+			"step3": "Finish",
+			"step3Description": "Final review"
+		},
+		"scan": {
+			"sectionTitle": "Discovered Devices",
+			"idleTitle": "Ready to scan",
+			"idleSubtitle": "Waiting to start the search for devices on the local network.",
+			"scanningTitle": "Scanning network...",
+			"scanningSubtitle": "Looking for new devices, this may take a moment.",
+			"foundCount": "{{count}} device(s) found",
+			"emptyTitle": "No devices found",
+			"emptySubtitle": "Check that the devices are powered on and connected to the same network.",
+			"rescanButton": "Scan Again",
+			"rescanDescription": "Restarts the scan to look for new devices on the network.",
+			"manualButton": "Configure Manually",
+			"continueButton": "Continue",
+			"connectionError": "Could not connect to the discovery service."
+		},
+		"found": {
+			"selectPrompt": "Select a device to configure",
+			"signalLabel": "Signal: {{value}}"
+		},
+		"configure": {
+			"backButton": "Back",
+			"advancedSettings": "Advanced Settings",
+			"prefillNotice": "Some fields were auto-filled based on the discovered device.",
+			"reviewButton": "Review Device"
+		},
+		"review": {
+			"sectionTitle": "Device Summary",
+			"sectionSubtitle": "Check the details before adding the device to your Smart Hub.",
+			"nameLabel": "Name",
+			"brandLabel": "Brand / Model",
+			"externalIdLabel": "External Identifier / MAC",
+			"typeLabel": "Type",
+			"integrationTypeLabel": "Integration",
+			"roomLabel": "Room",
+			"ipAddressLabel": "IP Address",
+			"backButton": "Back and Edit",
+			"confirmButton": "Add Device"
+		},
+		"done": {
+			"title": "Device registered!",
+			"subtitle": "\"{{name}}\" was successfully added to your Smart Hub.",
+			"addAnotherButton": "Add Another",
+			"finishButton": "Finish"
+		}
 	}
 }

@@ -1,7 +1,21 @@
 import { create } from "zustand";
-import type { Device, StatusFilterType } from "../types/devices.types";
+import type {
+	CreateDevicePayload,
+	Device,
+	DiscoveredDevice,
+	StatusFilterType,
+} from "../types/devices.types";
 
 export type ViewModeType = "grid" | "list";
+export type DiscoveryStep = "scan" | "configure" | "done";
+
+function discoveredDeviceKey(device: DiscoveredDevice): string {
+	return (
+		device.externalId ||
+		device.temporaryId ||
+		`${device.ipAddress}-${device.macAddress}`
+	);
+}
 
 /**
  * Interface defining the temporary UI state and actions for the Devices feature.
@@ -25,15 +39,33 @@ interface DevicesUIState {
 	setPage: (page: number) => void;
 	resetFilters: () => void;
 
-	// Create Sheet Modal State
-	isCreateSheetOpen: boolean;
-	openCreateSheet: () => void;
-	closeCreateSheet: () => void;
-
-	// Edit Sheet Modal State
+	// Edit Modal State
 	editingDevice: Device | null;
-	openEditSheet: (device: Device) => void;
-	closeEditSheet: () => void;
+	openEditModal: (device: Device) => void;
+	closeEditModal: () => void;
+
+	// Discovery Modal State
+	isDiscoveryModalOpen: boolean;
+	discoveryStep: DiscoveryStep;
+	isScanning: boolean;
+	discoveredDevices: DiscoveredDevice[];
+	selectedDiscoveredDevice: DiscoveredDevice | null;
+	/** Dados validados na Etapa 2, aguardando confirmação de salvamento na Etapa 3. */
+	pendingDevicePayload: CreateDevicePayload | null;
+	lastCreatedDeviceName: string | null;
+	/** Incrementado para forçar o useDeviceDiscovery a re-escanear sem fechar o modal. */
+	scanTrigger: number;
+
+	openDiscoveryModal: () => void;
+	closeDiscoveryModal: () => void;
+	setDiscoveryStep: (step: DiscoveryStep) => void;
+	setIsScanning: (isScanning: boolean) => void;
+	addDiscoveredDevice: (device: DiscoveredDevice) => void;
+	selectDiscoveredDevice: (device: DiscoveredDevice) => void;
+	setPendingDevicePayload: (payload: CreateDevicePayload) => void;
+	resetDiscovery: () => void;
+	triggerRescan: () => void;
+	setLastCreatedDeviceName: (name: string | null) => void;
 }
 
 /**
@@ -49,8 +81,15 @@ export const useDevicesUIStore = create<DevicesUIState>((set) => ({
 	onlyOn: false,
 	viewMode: "grid",
 	page: 1,
-	isCreateSheetOpen: false,
 	editingDevice: null,
+	isDiscoveryModalOpen: false,
+	discoveryStep: "scan",
+	isScanning: false,
+	discoveredDevices: [],
+	selectedDiscoveredDevice: null,
+	pendingDevicePayload: null,
+	lastCreatedDeviceName: null,
+	scanTrigger: 0,
 
 	// Filter Actions (todas resetam a página para 1 — a página atual pode não
 	// existir mais no novo conjunto filtrado)
@@ -79,11 +118,47 @@ export const useDevicesUIStore = create<DevicesUIState>((set) => ({
 			page: 1,
 		}),
 
-	// Create Sheet Actions
-	openCreateSheet: () => set({ isCreateSheetOpen: true }),
-	closeCreateSheet: () => set({ isCreateSheetOpen: false }),
+	// Edit Modal Actions
+	openEditModal: (device) => set({ editingDevice: device }),
+	closeEditModal: () => set({ editingDevice: null }),
 
-	// Edit Sheet Actions
-	openEditSheet: (device) => set({ editingDevice: device }),
-	closeEditSheet: () => set({ editingDevice: null }),
+	// Discovery Modal Actions
+	openDiscoveryModal: () => set({ isDiscoveryModalOpen: true }),
+	closeDiscoveryModal: () =>
+		set({
+			isDiscoveryModalOpen: false,
+			discoveryStep: "scan",
+			isScanning: false,
+			discoveredDevices: [],
+			selectedDiscoveredDevice: null,
+			pendingDevicePayload: null,
+			lastCreatedDeviceName: null,
+		}),
+	setDiscoveryStep: (discoveryStep) => set({ discoveryStep }),
+	setIsScanning: (isScanning) => set({ isScanning }),
+	addDiscoveredDevice: (device) =>
+		set((state) => {
+			const key = discoveredDeviceKey(device);
+			const alreadyKnown = state.discoveredDevices.some(
+				(d) => discoveredDeviceKey(d) === key,
+			);
+			if (alreadyKnown) return state;
+			return { discoveredDevices: [...state.discoveredDevices, device] };
+		}),
+	selectDiscoveredDevice: (device) =>
+		set({ selectedDiscoveredDevice: device, discoveryStep: "configure" }),
+	setPendingDevicePayload: (payload) =>
+		set({ pendingDevicePayload: payload, discoveryStep: "done" }),
+	resetDiscovery: () =>
+		set((state) => ({
+			discoveryStep: "scan",
+			discoveredDevices: [],
+			selectedDiscoveredDevice: null,
+			pendingDevicePayload: null,
+			lastCreatedDeviceName: null,
+			scanTrigger: state.scanTrigger + 1,
+		})),
+	triggerRescan: () => set((state) => ({ scanTrigger: state.scanTrigger + 1 })),
+	setLastCreatedDeviceName: (lastCreatedDeviceName) =>
+		set({ lastCreatedDeviceName }),
 }));

@@ -42,6 +42,10 @@ export const IntegrationTypeEnum = {
 	LgWebOs: 3,
 	GoogleCast: 4,
 	Zigbee: 5,
+	MdnsZeroconf: 6,
+	SsdpUpnp: 7,
+	TuyaLocal: 8,
+	EspHomeMqtt: 9,
 } as const;
 
 export type IntegrationTypeEnum =
@@ -57,6 +61,10 @@ export const INTEGRATION_TYPE_LABEL_KEYS = {
 	[IntegrationTypeEnum.LgWebOs]: "types.integrationTypes.lgWebOs",
 	[IntegrationTypeEnum.GoogleCast]: "types.integrationTypes.googleCast",
 	[IntegrationTypeEnum.Zigbee]: "types.integrationTypes.zigbee",
+	[IntegrationTypeEnum.MdnsZeroconf]: "types.integrationTypes.mdnsZeroconf",
+	[IntegrationTypeEnum.SsdpUpnp]: "types.integrationTypes.ssdpUpnp",
+	[IntegrationTypeEnum.TuyaLocal]: "types.integrationTypes.tuyaLocal",
+	[IntegrationTypeEnum.EspHomeMqtt]: "types.integrationTypes.espHomeMqtt",
 } as const satisfies Record<IntegrationTypeEnum, string>;
 
 /**
@@ -160,4 +168,22 @@ export interface DeviceTelemetryHistory {
 	deviceId: string;
 	deviceName: string;
 	points: DeviceTelemetryPoint[];
+}
+
+/**
+ * Payload of the SignalR "DeviceDiscovered" event (DiscoveredDeviceDto in C#,
+ * camelCase — JsonHubProtocol default). `signalStrength` is almost always
+ * null today: none of the current backend scanners populate it.
+ */
+export interface DiscoveredDevice {
+	temporaryId: string;
+	name: string;
+	brand: string;
+	externalId: string;
+	type: DeviceTypeEnum;
+	integrationType: IntegrationTypeEnum;
+	ipAddress: string | null;
+	macAddress: string | null;
+	signalStrength: number | null;
+	additionalProperties: Record<string, string> | null;
 }
