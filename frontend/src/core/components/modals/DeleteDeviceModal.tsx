@@ -41,7 +41,20 @@ export const DeleteDeviceModal: React.FC<DeleteDeviceModalProps> = ({
 	if (!isOpen || !mounted) return null;
 
 	return createPortal(
-		<div className="fixed inset-0 z-10000 flex items-center justify-center p-4 animate-fade-in">
+		<div
+			// Marcador estável no DOM: um Dialog Radix pai (ex: EditDeviceModal)
+			// pode checar `event.target.closest('[data-delete-confirm-modal]')`
+			// no seu onPointerDownOutside para reconhecer cliques originados aqui
+			// e ignorá-los, sem depender de estado React (que já pode ter mudado
+			// pelo próprio clique antes do listener do Dialog pai rodar).
+			data-delete-confirm-modal=""
+			className="fixed inset-0 z-10000 flex items-center justify-center p-4 pointer-events-auto animate-fade-in"
+			// Sobrepõe via inline style (além da classe) o `pointer-events: none`
+			// que o Radix Dialog aplica ao <body> (inline, via scroll-lock) quando
+			// este modal é aberto por cima de um Dialog já aberto — classes CSS
+			// puras podem não vencer um estilo inline no elemento ancestral.
+			style={{ pointerEvents: "auto" }}
+		>
 			<button
 				type="button"
 				disabled={isLoading}

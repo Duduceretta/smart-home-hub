@@ -87,6 +87,11 @@
 }
 
 .dark {
+  /* Impede o "Forçar cores escuras" do Chrome de reprocessar/inverter
+     elementos claros (ex: botões bg-[#e5e2e2]) — o tema já é escuro
+     por padrão, então o navegador não precisa aplicar heurística própria. */
+  color-scheme: dark;
+
   /* Paleta exata do Protótipo (Material 3 Dark Warm Surface) */
   --background: #141314;
   --foreground: #e5e2e2;

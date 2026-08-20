@@ -88,12 +88,15 @@ export function FormSelect<T extends FieldValues>({
 							value={currentValue}
 							disabled={disabled}
 							onValueChange={(val) => {
+								// Radix pode disparar um onValueChange("") espúrio logo após o
+								// valor controlado mudar de vazio para preenchido (ex: quando
+								// reset() popula o formulário de forma assíncrona); nenhuma das
+								// listas de opções deste componente inclui um item vazio, então
+								// um callback vazio nunca representa uma seleção real do usuário.
+								if (val === "") return;
+
 								const numericVal = Number(val);
-								field.onChange(
-									!Number.isNaN(numericVal) && val.trim() !== ""
-										? numericVal
-										: val,
-								);
+								field.onChange(!Number.isNaN(numericVal) ? numericVal : val);
 							}}
 						>
 							<div
