@@ -89,7 +89,7 @@
 			},
 			"externalId": {
 				"label": "External Identifier / MAC *",
-				"placeholder": "00:1B:44:11:3A:B7"
+				"placeholder": "00:1B:44:11:3A:B7 or Device ID"
 			},
 			"ipAddress": {
 				"label": "IP Address (Local - Optional)",

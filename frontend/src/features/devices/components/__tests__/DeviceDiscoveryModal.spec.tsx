@@ -51,6 +51,19 @@ const mockDiscovered: DiscoveredDevice = {
 	additionalProperties: null,
 };
 
+const mockDiscoveredUuid: DiscoveredDevice = {
+	temporaryId: "temp-2",
+	name: "Chromecast Sala",
+	brand: "Google",
+	externalId: "709294b6-3c52-dfe4-1edb-0ff8ef488344",
+	type: DeviceTypeEnum.Sensor,
+	integrationType: IntegrationTypeEnum.MdnsZeroconf,
+	ipAddress: "192.168.1.77",
+	macAddress: null,
+	signalStrength: null,
+	additionalProperties: null,
+};
+
 beforeEach(() => {
 	vi.clearAllMocks();
 	mockConnection.invoke.mockResolvedValue(undefined);
@@ -198,6 +211,44 @@ describe("DeviceDiscoveryModal Integration Tests", () => {
 		expect(
 			await screen.findByText("Dispositivo cadastrado!"),
 		).toBeInTheDocument();
+	});
+
+	it("DeviceDiscoveryModal_ConfirmStep3WithUuidExternalId_SubmitsWithoutValidationError", async () => {
+		let capturedBody: Record<string, unknown> | null = null;
+		server.use(
+			http.post("*/api/devices", async ({ request }) => {
+				capturedBody = (await request.json()) as Record<string, unknown>;
+				return HttpResponse.json(
+					{ message: "Dispositivo criado com sucesso!", deviceId: "new-id" },
+					{ status: 201 },
+				);
+			}),
+		);
+
+		const user = userEvent.setup();
+		renderWithProviders(<DeviceDiscoveryModal />);
+
+		useDevicesUIStore.getState().openDiscoveryModal();
+
+		await waitFor(() => {
+			expect(getRegisteredHandler("DeviceDiscovered")).toBeDefined();
+		});
+		getRegisteredHandler("DeviceDiscovered")?.(mockDiscoveredUuid);
+
+		await user.click(await screen.findByText("Chromecast Sala"));
+		await user.click(
+			screen.getByRole("button", { name: "Revisar Dispositivo" }),
+		);
+		await user.click(
+			await screen.findByRole("button", { name: "Adicionar Dispositivo" }),
+		);
+
+		await waitFor(() => {
+			expect(capturedBody).not.toBeNull();
+		});
+		expect(capturedBody).toMatchObject({
+			externalId: "709294b6-3c52-dfe4-1edb-0ff8ef488344",
+		});
 	});
 
 	it("DeviceDiscoveryModal_CloseModal_InvokesStopDiscoveryAndStopsConnection", async () => {

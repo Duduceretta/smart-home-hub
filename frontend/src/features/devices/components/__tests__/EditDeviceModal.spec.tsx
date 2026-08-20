@@ -107,6 +107,45 @@ describe("EditDeviceModal Integration Tests", () => {
 		});
 	});
 
+	it("EditDeviceModal_UpdateExternalIdWithUuid_SubmitsWithoutValidationError", async () => {
+		let capturedBody: Record<string, unknown> | null = null;
+		server.use(
+			http.put("*/api/devices/:id", async ({ request }) => {
+				capturedBody = (await request.json()) as Record<string, unknown>;
+				return HttpResponse.json(mockDevice, { status: 200 });
+			}),
+		);
+
+		const uuid = "709294b6-3c52-dfe4-1edb-0ff8ef488344";
+		const user = userEvent.setup();
+		renderWithProviders(<EditDeviceModal />);
+
+		useDevicesUIStore.getState().openEditModal(mockDevice);
+
+		const externalIdInput = await screen.findByLabelText(
+			/Identificador Externo/i,
+		);
+
+		await waitFor(() => {
+			expect(
+				screen.getByRole("combobox", { name: /Tipo de Atuador/i }),
+			).toHaveTextContent("Iluminação");
+		});
+
+		await user.clear(externalIdInput);
+		await user.type(externalIdInput, uuid);
+
+		await user.click(screen.getByRole("button", { name: "Salvar Alterações" }));
+
+		await waitFor(() => {
+			expect(capturedBody).not.toBeNull();
+		});
+		expect(capturedBody).toMatchObject({ externalId: uuid });
+		expect(
+			screen.queryByText(/O identificador físico/i),
+		).not.toBeInTheDocument();
+	});
+
 	it("EditDeviceModal_ClickDeleteButton_OpensConfirmationAndCallsDeleteApi", async () => {
 		let deleteCalled = false;
 		server.use(

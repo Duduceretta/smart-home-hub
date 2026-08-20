@@ -252,8 +252,6 @@ export const EditDeviceModal: React.FC = () => {
 											icon={<QrCode className="h-4 w-4" />}
 											error={errors.externalId?.message}
 											registration={register("externalId")}
-											mask={formatMacAddress}
-											maxLength={17}
 											className="font-mono"
 										/>
 

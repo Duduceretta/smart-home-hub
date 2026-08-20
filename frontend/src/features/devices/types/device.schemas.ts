@@ -29,11 +29,8 @@ export const deviceBaseSchema = z.object({
 
 	externalId: z
 		.string()
-		.min(3, "O identificador físico (MAC/ID) é obrigatório")
-		.regex(
-			/^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$|^[A-Za-z0-9-_]+$/,
-			"Digite um MAC address (ex: AA:BB:CC:11:22:33) ou ID válido",
-		),
+		.trim()
+		.min(1, "O identificador físico (MAC/ID) é obrigatório."),
 
 	ipAddress: z
 		.union([
