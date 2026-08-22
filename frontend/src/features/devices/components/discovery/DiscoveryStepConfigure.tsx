@@ -33,6 +33,7 @@ import {
 	INTEGRATION_TYPE_LABEL_KEYS,
 	IntegrationTypeEnum,
 } from "../../types/devices.types";
+import { TvSetupGuideCallout } from "../TvSetupGuideCallout";
 
 const EMPTY_DEFAULTS: CreateDeviceFormInput = {
 	name: "",
@@ -108,6 +109,9 @@ export const DiscoveryStepConfigure: React.FC = () => {
 	const selectedRoomId = useWatch({ control, name: "roomId" }) as
 		| string
 		| null
+		| undefined;
+	const selectedType = useWatch({ control, name: "type" }) as
+		| DeviceTypeEnum
 		| undefined;
 	const fieldVisibility =
 		INTEGRATION_FIELD_VISIBILITY[
@@ -201,6 +205,11 @@ export const DiscoveryStepConfigure: React.FC = () => {
 					</TabsList>
 				</Tabs>
 			</div>
+
+			<TvSetupGuideCallout
+				integrationType={selectedIntegration}
+				deviceType={selectedType}
+			/>
 
 			<div className="flex flex-col gap-1.5">
 				<span className="flex items-center gap-1.5 text-xs font-medium text-[#c7c6cb]">
