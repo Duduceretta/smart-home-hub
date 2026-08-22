@@ -5,6 +5,8 @@ using SmartHomeHub.Api.Extensions;
 using SmartHomeHub.Application.Features.Integrations.Commands.CompleteSpotifyConnection;
 using SmartHomeHub.Application.Features.Integrations.Commands.DisconnectSpotify;
 using SmartHomeHub.Application.Features.Integrations.Commands.SetSpotifyVolume;
+using SmartHomeHub.Application.Features.Integrations.Commands.SkipToNextSpotifyTrack;
+using SmartHomeHub.Application.Features.Integrations.Commands.SkipToPreviousSpotifyTrack;
 using SmartHomeHub.Application.Features.Integrations.Commands.StartSpotifyConnection;
 using SmartHomeHub.Application.Features.Integrations.Commands.ToggleSpotifyPlayback;
 using SmartHomeHub.Application.Features.Integrations.Queries.GetSpotifyPlayback;
@@ -188,6 +190,58 @@ public static class SpotifyEndpoints
             .RequireAuthorization()
             .WithTags("🎵 Spotify")
             .WithSummary("Alterna play/pause no dispositivo Spotify ativo")
+            .Produces<object>(StatusCodes.Status200OK)
+            .ProducesProblem(StatusCodes.Status400BadRequest)
+            .ProducesProblem(StatusCodes.Status401Unauthorized);
+
+        app.MapPost(
+                "/api/integrations/spotify/next",
+                async (ClaimsPrincipal userToken, IMediator mediator, CancellationToken cancellationToken) =>
+                {
+                    var firebaseUid = userToken.FindFirst("user_id")?.Value;
+                    if (string.IsNullOrEmpty(firebaseUid))
+                        return Results.Unauthorized();
+
+                    var result = await mediator.Send(
+                        new SkipToNextSpotifyTrackCommand(firebaseUid),
+                        cancellationToken
+                    );
+
+                    if (result.IsFailure)
+                        return result.ToProblemDetails();
+
+                    return Results.Ok(new { message = "Comando enviado com sucesso." });
+                }
+            )
+            .RequireAuthorization()
+            .WithTags("🎵 Spotify")
+            .WithSummary("Pula para a próxima faixa no dispositivo Spotify ativo")
+            .Produces<object>(StatusCodes.Status200OK)
+            .ProducesProblem(StatusCodes.Status400BadRequest)
+            .ProducesProblem(StatusCodes.Status401Unauthorized);
+
+        app.MapPost(
+                "/api/integrations/spotify/previous",
+                async (ClaimsPrincipal userToken, IMediator mediator, CancellationToken cancellationToken) =>
+                {
+                    var firebaseUid = userToken.FindFirst("user_id")?.Value;
+                    if (string.IsNullOrEmpty(firebaseUid))
+                        return Results.Unauthorized();
+
+                    var result = await mediator.Send(
+                        new SkipToPreviousSpotifyTrackCommand(firebaseUid),
+                        cancellationToken
+                    );
+
+                    if (result.IsFailure)
+                        return result.ToProblemDetails();
+
+                    return Results.Ok(new { message = "Comando enviado com sucesso." });
+                }
+            )
+            .RequireAuthorization()
+            .WithTags("🎵 Spotify")
+            .WithSummary("Volta para a faixa anterior no dispositivo Spotify ativo")
             .Produces<object>(StatusCodes.Status200OK)
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .ProducesProblem(StatusCodes.Status401Unauthorized);

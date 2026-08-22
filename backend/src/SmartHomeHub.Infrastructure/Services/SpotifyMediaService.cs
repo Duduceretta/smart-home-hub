@@ -227,6 +227,48 @@ public class SpotifyMediaService : ISpotifyMediaService
         }
     }
 
+    public async Task SkipToNextAsync(
+        string firebaseUid,
+        CancellationToken cancellationToken = default
+    )
+    {
+        await SendPlayerCommandAsync(firebaseUid, HttpMethod.Post, "next", cancellationToken);
+    }
+
+    public async Task SkipToPreviousAsync(
+        string firebaseUid,
+        CancellationToken cancellationToken = default
+    )
+    {
+        await SendPlayerCommandAsync(firebaseUid, HttpMethod.Post, "previous", cancellationToken);
+    }
+
+    private async Task SendPlayerCommandAsync(
+        string firebaseUid,
+        HttpMethod method,
+        string action,
+        CancellationToken cancellationToken
+    )
+    {
+        var integration = await GetIntegrationAsync(firebaseUid, cancellationToken);
+        if (integration is null)
+        {
+            throw new SpotifyNotConnectedException();
+        }
+
+        var accessToken = await EnsureValidAccessTokenAsync(integration, cancellationToken);
+
+        using var request = new HttpRequestMessage(method, $"{ApiBaseUrl}/me/player/{action}");
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+
+        using var response = await _httpClient.SendAsync(request, cancellationToken);
+
+        if (!response.IsSuccessStatusCode)
+        {
+            throw new SpotifyPlaybackUnavailableException();
+        }
+    }
+
     private async Task<SpotifyIntegration?> GetIntegrationAsync(
         string firebaseUid,
         CancellationToken cancellationToken

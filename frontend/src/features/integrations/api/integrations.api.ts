@@ -81,3 +81,25 @@ export async function toggleSpotifyPlaybackRequest(): Promise<void> {
 		);
 	}
 }
+
+export async function skipToNextSpotifyTrackRequest(): Promise<void> {
+	try {
+		await apiClient.post("/integrations/spotify/next");
+	} catch (error: unknown) {
+		throw handleApplicationError(
+			error,
+			"Não foi possível pular para a próxima faixa.",
+		);
+	}
+}
+
+export async function skipToPreviousSpotifyTrackRequest(): Promise<void> {
+	try {
+		await apiClient.post("/integrations/spotify/previous");
+	} catch (error: unknown) {
+		throw handleApplicationError(
+			error,
+			"Não foi possível voltar para a faixa anterior.",
+		);
+	}
+}

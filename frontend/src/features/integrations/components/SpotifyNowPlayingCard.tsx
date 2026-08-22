@@ -1,9 +1,21 @@
-import { Disc3, Pause, Play, Volume2 } from "lucide-react";
+import {
+	Disc3,
+	Pause,
+	Play,
+	SkipBack,
+	SkipForward,
+	Volume2,
+} from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useDebouncedValue } from "@/core/hooks/useDebouncedValue";
 import { useSetSpotifyVolume } from "../hooks/useSetSpotifyVolume";
+import {
+	useSkipToNextSpotifyTrack,
+	useSkipToPreviousSpotifyTrack,
+} from "../hooks/useSkipSpotifyTrack";
 import { useSpotifyPlayback } from "../hooks/useSpotifyPlayback";
 import { useSpotifyStatus } from "../hooks/useSpotifyStatus";
+import { useToggleSpotifyPlayback } from "../hooks/useToggleSpotifyPlayback";
 
 export const SpotifyNowPlayingCard: React.FC = () => {
 	const { data: status } = useSpotifyStatus();
@@ -11,6 +23,12 @@ export const SpotifyNowPlayingCard: React.FC = () => {
 		enabled: Boolean(status?.connected),
 	});
 	const { mutate: setVolume } = useSetSpotifyVolume();
+	const { mutate: togglePlayback, isPending: isToggling } =
+		useToggleSpotifyPlayback();
+	const { mutate: skipNext, isPending: isSkippingNext } =
+		useSkipToNextSpotifyTrack();
+	const { mutate: skipPrevious, isPending: isSkippingPrevious } =
+		useSkipToPreviousSpotifyTrack();
 
 	const [localVolume, setLocalVolume] = useState(0);
 	const [isDragging, setIsDragging] = useState(false);
@@ -66,13 +84,40 @@ export const SpotifyNowPlayingCard: React.FC = () => {
 						</span>
 					)}
 				</div>
-				<span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#1DB954]/15 text-[#1DB954]">
+			</div>
+
+			<div className="flex items-center justify-center gap-4">
+				<button
+					type="button"
+					aria-label="Faixa anterior"
+					disabled={isSkippingPrevious}
+					onClick={() => skipPrevious()}
+					className="flex h-8 w-8 items-center justify-center rounded-full text-[#c7c6cb] transition-colors hover:bg-[#201f20] hover:text-[#e5e2e2] disabled:cursor-not-allowed disabled:opacity-40 cursor-pointer"
+				>
+					<SkipBack className="w-4 h-4" />
+				</button>
+				<button
+					type="button"
+					aria-label={playback.isPlaying ? "Pausar" : "Reproduzir"}
+					disabled={isToggling}
+					onClick={() => togglePlayback()}
+					className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#1DB954]/15 text-[#1DB954] transition-colors hover:bg-[#1DB954]/25 disabled:cursor-not-allowed disabled:opacity-40 cursor-pointer"
+				>
 					{playback.isPlaying ? (
 						<Pause className="w-4 h-4 fill-current" />
 					) : (
 						<Play className="w-4 h-4 fill-current ml-0.5" />
 					)}
-				</span>
+				</button>
+				<button
+					type="button"
+					aria-label="Próxima faixa"
+					disabled={isSkippingNext}
+					onClick={() => skipNext()}
+					className="flex h-8 w-8 items-center justify-center rounded-full text-[#c7c6cb] transition-colors hover:bg-[#201f20] hover:text-[#e5e2e2] disabled:cursor-not-allowed disabled:opacity-40 cursor-pointer"
+				>
+					<SkipForward className="w-4 h-4" />
+				</button>
 			</div>
 
 			<div className="flex items-center gap-2">

@@ -25,4 +25,8 @@ public interface ISpotifyMediaService
     );
 
     Task TogglePlayPauseAsync(string firebaseUid, CancellationToken cancellationToken = default);
+
+    Task SkipToNextAsync(string firebaseUid, CancellationToken cancellationToken = default);
+
+    Task SkipToPreviousAsync(string firebaseUid, CancellationToken cancellationToken = default);
 }
