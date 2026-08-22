@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Net;
 using System.Net.Sockets;
 using System.Text.RegularExpressions;
@@ -14,6 +15,14 @@ namespace SmartHomeHub.Infrastructure.Services;
 public class GoogleTvNetworkService : IGoogleTvService
 {
     private readonly ILogger<GoogleTvNetworkService> _logger;
+
+    // O serviço é Transient (nova instância a cada resolução de DI), então o
+    // estado de "já avisei que essa TV está inalcançável" precisa sobreviver
+    // entre instâncias — daí static em vez de campo de instância. Evita
+    // repetir o mesmo WRN a cada ciclo de sondagem (12s) enquanto o IP
+    // estiver errado/a TV estiver offline; loga de novo só na mudança de
+    // estado (ficou inalcançável / voltou a responder).
+    private static readonly ConcurrentDictionary<string, bool> UnreachableWarned = new();
 
     public GoogleTvNetworkService(ILogger<GoogleTvNetworkService> logger)
     {
@@ -79,15 +88,29 @@ public class GoogleTvNetworkService : IGoogleTvService
                 cancellationToken
             );
 
-            return ParsePowerState(receiver.ToString());
+            var isAwake = ParsePowerState(receiver.ToString());
+
+            if (UnreachableWarned.TryRemove(ipAddress, out _))
+            {
+                _logger.LogInformation(
+                    "TV em {IpAddress} voltou a responder via ADB.",
+                    ipAddress
+                );
+            }
+
+            return isAwake;
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(
-                ex,
-                "Falha ao consultar o estado de energia da TV em {IpAddress}",
-                ipAddress
-            );
+            if (UnreachableWarned.TryAdd(ipAddress, true))
+            {
+                _logger.LogWarning(
+                    ex,
+                    "Falha ao consultar o estado de energia da TV em {IpAddress}",
+                    ipAddress
+                );
+            }
+
             return false;
         }
     }
