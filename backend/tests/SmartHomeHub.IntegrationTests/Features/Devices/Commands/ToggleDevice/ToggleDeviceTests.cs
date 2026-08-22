@@ -83,6 +83,125 @@ public class ToggleDeviceTests(IntegrationTestWebAppFactory factory) : BaseInteg
     }
 
     [Fact]
+    public async Task ToggleDevice_TurningOnAndroidTv_ShouldSendWakeOnLanThenAdbWakeUpKeycode()
+    {
+        ResetTvServices();
+
+        const string macAddress = "AA:BB:CC:11:22:33";
+        var (_, device) = await SeedTelevisionAsync(macAddress, isOn: false);
+
+        var response = await Client.PostAsync(
+            $"/api/devices/{device.Id}/toggle",
+            null,
+            TestContext.Current.CancellationToken
+        );
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        Received.InOrder(() =>
+        {
+            _wakeOnLanService.SendMagicPacketAsync(macAddress, Arg.Any<CancellationToken>());
+            _googleTvService.SendKeycodeAsync(
+                device.Configuration.IpAddress!,
+                224,
+                Arg.Any<CancellationToken>()
+            );
+        });
+    }
+
+    [Fact]
+    public async Task ToggleDevice_WhenAdbFailsTransientlyOnFirstAttempt_ShouldRetryOnceAndSucceed()
+    {
+        ResetTvServices();
+
+        var (_, device) = await SeedTelevisionAsync(macAddress: null, isOn: false);
+        var ipAddress = device.Configuration.IpAddress!;
+
+        var callCount = 0;
+        _googleTvService
+            .SendKeycodeAsync(ipAddress, 224, Arg.Any<CancellationToken>())
+            .Returns(_ =>
+            {
+                callCount++;
+                if (callCount == 1)
+                    throw new DeviceUnreachableException(ipAddress);
+                return Task.CompletedTask;
+            });
+
+        var response = await Client.PostAsync(
+            $"/api/devices/{device.Id}/toggle",
+            null,
+            TestContext.Current.CancellationToken
+        );
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        await _googleTvService
+            .Received(2)
+            .SendKeycodeAsync(ipAddress, 224, Arg.Any<CancellationToken>());
+        await _chromecastWakeService
+            .DidNotReceive()
+            .WakeUpAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task ToggleDevice_WhenAdbFailsBothAttempts_ShouldFallBackToChromecastWake()
+    {
+        ResetTvServices();
+
+        var (_, device) = await SeedTelevisionAsync(macAddress: null, isOn: false);
+        var ipAddress = device.Configuration.IpAddress!;
+
+        _googleTvService
+            .SendKeycodeAsync(ipAddress, 224, Arg.Any<CancellationToken>())
+            .ThrowsAsync(new DeviceUnreachableException(ipAddress));
+
+        var response = await Client.PostAsync(
+            $"/api/devices/{device.Id}/toggle",
+            null,
+            TestContext.Current.CancellationToken
+        );
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        await _googleTvService
+            .Received(2)
+            .SendKeycodeAsync(ipAddress, 224, Arg.Any<CancellationToken>());
+        await _chromecastWakeService
+            .Received(1)
+            .WakeUpAsync(ipAddress, Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task ToggleDevice_WhenChromecastFallbackThrows_ShouldNotBreakFlow()
+    {
+        ResetTvServices();
+
+        var (_, device) = await SeedTelevisionAsync(macAddress: null, isOn: false);
+        var ipAddress = device.Configuration.IpAddress!;
+
+        _googleTvService
+            .SendKeycodeAsync(ipAddress, 224, Arg.Any<CancellationToken>())
+            .ThrowsAsync(new DeviceUnreachableException(ipAddress));
+        _chromecastWakeService
+            .WakeUpAsync(ipAddress, Arg.Any<CancellationToken>())
+            .ThrowsAsync(new TimeoutException("The operation has timed out"));
+
+        var response = await Client.PostAsync(
+            $"/api/devices/{device.Id}/toggle",
+            null,
+            TestContext.Current.CancellationToken
+        );
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        var physicalDevice = await DbContext
+            .Devices.AsNoTracking()
+            .FirstAsync(d => d.Id == device.Id, TestContext.Current.CancellationToken);
+        physicalDevice.IsOn.Should().BeTrue("mesmo com timeout residual do Cast, o toggle deve concluir.");
+    }
+
+    [Fact]
     public async Task ToggleDevice_TurningOnTvWithoutMac_ShouldSkipWakeOnLan()
     {
         ResetTvServices();

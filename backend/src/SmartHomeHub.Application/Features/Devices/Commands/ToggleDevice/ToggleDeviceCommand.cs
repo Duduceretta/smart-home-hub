@@ -4,6 +4,7 @@ using FluentValidation;
 using Mediator;
 using Microsoft.EntityFrameworkCore;
 using SmartHomeHub.Application.Common.Interfaces;
+using SmartHomeHub.Domain.Common.Constants;
 using SmartHomeHub.Domain.Common.Exceptions;
 using SmartHomeHub.Domain.Common.Primitives;
 using SmartHomeHub.Domain.Enums;
@@ -85,18 +86,41 @@ public partial class ToggleDeviceCommandHandler(
                     if (macAddress is not null)
                     {
                         await wakeOnLanService.SendMagicPacketAsync(macAddress, cancellationToken);
-                        await Task.Delay(1200, cancellationToken);
+                        // A pilha de rede do Android leva mais tempo para subir do que o
+                        // socket Cast/ADB responder — 1200ms era curto demais e derrubava
+                        // o comando seguinte em timeout, deixando a TV travada na tela
+                        // vermelha de boot sem receber o keycode de ativação.
+                        await Task.Delay(2500, cancellationToken);
                     }
                 }
 
-                await chromecastWakeService.WakeUpAsync(ipAddress, cancellationToken);
-                await Task.Delay(2000, cancellationToken);
+                var wokeUpViaAdb =
+                    IsAdbControllable(device.IntegrationType)
+                    && await TryWakeUpViaAdbAsync(ipAddress, cancellationToken);
+
+                if (!wokeUpViaAdb)
+                {
+                    try
+                    {
+                        await chromecastWakeService.WakeUpAsync(ipAddress, cancellationToken);
+                    }
+                    catch (Exception)
+                    {
+                        // Fallback best-effort: a TV já pode ter sido acordada via WoL/ADB
+                        // antes deste ponto — um timeout residual do socket Cast aqui não
+                        // pode derrubar o fluxo de ligar o dispositivo.
+                    }
+                }
             }
             else
             {
                 try
                 {
-                    await googleTvService.SendKeycodeAsync(ipAddress, 26, cancellationToken);
+                    await googleTvService.SendKeycodeAsync(
+                        ipAddress,
+                        AndroidKeycodes.Power,
+                        cancellationToken
+                    );
                 }
                 catch (DeviceCommunicationException ex)
                 {
@@ -132,6 +156,58 @@ public partial class ToggleDeviceCommandHandler(
             is IntegrationType.GoogleCast
                 or IntegrationType.AndroidTvAdb
                 or IntegrationType.LgWebOs;
+
+    private static bool IsAdbControllable(IntegrationType integrationType) =>
+        integrationType is IntegrationType.GoogleCast or IntegrationType.AndroidTvAdb;
+
+    /// <summary>
+    /// Tenta acordar o display via ADB (KEYCODE_WAKEUP), com uma segunda tentativa
+    /// após 1s caso o daemon ADB ainda esteja subindo logo após o Wake-on-LAN.
+    /// Em caso de sucesso, envia KEYCODE_HOME em seguida para trazer o launcher para
+    /// o primeiro plano — falha nesse passo extra não invalida o wake-up já feito.
+    /// </summary>
+    private async Task<bool> TryWakeUpViaAdbAsync(
+        string ipAddress,
+        CancellationToken cancellationToken
+    )
+    {
+        for (var attempt = 1; attempt <= 2; attempt++)
+        {
+            try
+            {
+                await googleTvService.SendKeycodeAsync(
+                    ipAddress,
+                    AndroidKeycodes.WakeUp,
+                    cancellationToken
+                );
+
+                try
+                {
+                    await googleTvService.SendKeycodeAsync(
+                        ipAddress,
+                        AndroidKeycodes.Home,
+                        cancellationToken
+                    );
+                }
+                catch (DeviceCommunicationException)
+                {
+                    // O display já acordou — falha ao trazer o launcher não é crítica.
+                }
+
+                return true;
+            }
+            catch (DeviceCommunicationException) when (attempt == 1)
+            {
+                await Task.Delay(1000, cancellationToken);
+            }
+            catch (DeviceCommunicationException)
+            {
+                return false;
+            }
+        }
+
+        return false;
+    }
 
     private static bool LooksLikeMacAddress(string value) => MacAddressRegex().IsMatch(value);
 
