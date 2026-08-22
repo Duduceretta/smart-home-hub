@@ -4,6 +4,9 @@ using System.Text.Json;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using NSubstitute;
+using NSubstitute.ClearExtensions;
+using SmartHomeHub.Application.Common.Interfaces;
 using SmartHomeHub.Domain.Entities;
 using SmartHomeHub.Domain.Enums;
 using SmartHomeHub.IntegrationTests.Setup;
@@ -15,6 +18,8 @@ public class CreateDeviceTests(IntegrationTestWebAppFactory factory) : BaseInteg
 {
     private readonly TestDeviceProbeService _probeService =
         factory.Services.GetRequiredService<TestDeviceProbeService>();
+    private readonly IGoogleTvService _googleTvService =
+        factory.Services.GetRequiredService<IGoogleTvService>();
 
     private record CreateDeviceRequest(
         string Name,
@@ -118,6 +123,57 @@ public class CreateDeviceTests(IntegrationTestWebAppFactory factory) : BaseInteg
         physicalDevice.Should().NotBeNull();
         physicalDevice!.IsOnline.Should().BeTrue();
         physicalDevice.LastSeenAt.Should().NotBeNull();
+    }
+
+    [Fact]
+    public async Task CreateDevice_TelevisionWithPowerOn_ShouldPersistAsOn()
+    {
+        _googleTvService.ClearSubstitute();
+
+        var userId = Guid.NewGuid();
+        var user = new User
+        {
+            Id = userId,
+            Name = "Eduardo Ceretta",
+            Email = "eduardo@smarthome.com",
+            ExternalAuthUid = "firebase-token-123",
+            IsDeleted = false,
+        };
+        DbContext.Users.Add(user);
+        await DbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+
+        const string ipAddress = "192.168.1.88";
+        _googleTvService
+            .GetPowerStateAsync(ipAddress, Arg.Any<CancellationToken>())
+            .Returns(true);
+
+        var request = new CreateDeviceRequest(
+            "Android TV Quarto",
+            "Sony",
+            "ADB-A1-B2-C3",
+            DeviceType.Television,
+            IntegrationType.AndroidTvAdb,
+            null,
+            ipAddress
+        );
+
+        var response = await Client.PostAsJsonAsync(
+            "/api/devices",
+            request,
+            TestContext.Current.CancellationToken
+        );
+
+        response.StatusCode.Should().Be(HttpStatusCode.Created);
+
+        var physicalDevice = await DbContext
+            .Devices.AsNoTracking()
+            .FirstOrDefaultAsync(
+                device => device.ExternalId == request.ExternalId,
+                cancellationToken: TestContext.Current.CancellationToken
+            );
+
+        physicalDevice.Should().NotBeNull();
+        physicalDevice!.IsOn.Should().BeTrue();
     }
 
     [Fact]

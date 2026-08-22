@@ -7,4 +7,6 @@ public interface IGoogleTvService
         int keycode,
         CancellationToken cancellationToken = default
     );
+
+    Task<bool> GetPowerStateAsync(string ipAddress, CancellationToken cancellationToken = default);
 }

@@ -53,8 +53,11 @@ public class CreateDeviceCommandValidator : AbstractValidator<CreateDeviceComman
     }
 }
 
-public class CreateDeviceCommandHandler(IAppDbContext dbContext, IDeviceProbeService probeService)
-    : ICommandHandler<CreateDeviceCommand, Result<Guid>>
+public class CreateDeviceCommandHandler(
+    IAppDbContext dbContext,
+    IDeviceProbeService probeService,
+    IGoogleTvService googleTvService
+) : ICommandHandler<CreateDeviceCommand, Result<Guid>>
 {
     public async ValueTask<Result<Guid>> Handle(
         CreateDeviceCommand request,
@@ -122,6 +125,17 @@ public class CreateDeviceCommandHandler(IAppDbContext dbContext, IDeviceProbeSer
                 device.IsOnline = true;
                 device.LastSeenAt = DateTimeOffset.UtcNow;
             }
+        }
+
+        if (
+            device.Type == DeviceType.Television
+            && !string.IsNullOrWhiteSpace(device.Configuration.IpAddress)
+        )
+        {
+            device.IsOn = await googleTvService.GetPowerStateAsync(
+                device.Configuration.IpAddress,
+                cancellationToken
+            );
         }
 
         dbContext.Devices.Add(device);

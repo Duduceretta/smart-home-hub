@@ -3,6 +3,7 @@ using System.Net.Sockets;
 using AdvancedSharpAdbClient;
 using AdvancedSharpAdbClient.Models;
 using AdvancedSharpAdbClient.Receivers;
+using Microsoft.Extensions.Logging;
 using SmartHomeHub.Application.Common.Interfaces;
 using SmartHomeHub.Domain.Common.Exceptions;
 
@@ -10,8 +11,12 @@ namespace SmartHomeHub.Infrastructure.Services;
 
 public class GoogleTvNetworkService : IGoogleTvService
 {
-    public GoogleTvNetworkService()
+    private readonly ILogger<GoogleTvNetworkService> _logger;
+
+    public GoogleTvNetworkService(ILogger<GoogleTvNetworkService> logger)
     {
+        _logger = logger;
+
         var adbPath = @"C:\adb\adb.exe";
 
         if (File.Exists(adbPath))
@@ -72,5 +77,60 @@ public class GoogleTvNetworkService : IGoogleTvService
         {
             throw new DeviceUnreachableException(ipAddress);
         }
+    }
+
+    public async Task<bool> GetPowerStateAsync(
+        string ipAddress,
+        CancellationToken cancellationToken = default
+    )
+    {
+        try
+        {
+            var client = new AdbClient();
+            var endpoint = new DnsEndPoint(ipAddress, 5555);
+
+            client.Connect(endpoint);
+
+            var targetDevice = client
+                .GetDevices()
+                .FirstOrDefault(d => d.Serial.Contains(ipAddress));
+
+            if (targetDevice is null || targetDevice.State != DeviceState.Online)
+            {
+                return false;
+            }
+
+            var receiver = new ConsoleOutputReceiver();
+            await client.ExecuteRemoteCommandAsync(
+                "dumpsys power",
+                targetDevice,
+                receiver,
+                cancellationToken
+            );
+
+            return ParsePowerState(receiver.ToString());
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(
+                ex,
+                "Falha ao consultar o estado de energia da TV em {IpAddress}",
+                ipAddress
+            );
+            return false;
+        }
+    }
+
+    public static bool ParsePowerState(string? dumpsysOutput)
+    {
+        if (string.IsNullOrWhiteSpace(dumpsysOutput))
+            return false;
+
+        return dumpsysOutput.Contains("mWakefulness=Awake", StringComparison.Ordinal)
+            || dumpsysOutput.Contains("Display Power: state=ON", StringComparison.Ordinal)
+            || dumpsysOutput.Contains(
+                "mHoldingDisplaySuspendBlocker=true",
+                StringComparison.Ordinal
+            );
     }
 }
