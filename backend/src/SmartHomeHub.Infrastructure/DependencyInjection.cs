@@ -33,6 +33,8 @@ public static class DependencyInjection
 
         services.AddScoped<IChromecastWakeService, ChromecastWakeService>();
 
+        services.AddSingleton<IWakeOnLanService, WakeOnLanService>();
+
         services.AddTransient<IDeviceDiscoveryScanner, MdnsDiscoveryScanner>();
         services.AddTransient<IDeviceDiscoveryScanner, SsdpDiscoveryScanner>();
         services.AddTransient<IDeviceDiscoveryScanner, TuyaUdpDiscoveryScanner>();
