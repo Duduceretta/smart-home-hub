@@ -100,6 +100,12 @@ public class IntegrationTestWebAppFactory : WebApplicationFactory<Program>, IAsy
             services.RemoveAll<IChromecastWakeService>();
             services.AddSingleton(_ => Substitute.For<IChromecastWakeService>());
 
+            // Spotify: substitui o cliente HTTP real (troca de token, GET /me/player etc)
+            // por um spy NSubstitute — o ISpotifyOAuthStateStore continua real (só um
+            // dicionário em memória, sem rede envolvida).
+            services.RemoveAll<ISpotifyMediaService>();
+            services.AddSingleton(_ => Substitute.For<ISpotifyMediaService>());
+
             var serviceProvider = services.BuildServiceProvider();
             using var scope = serviceProvider.CreateScope();
             var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();

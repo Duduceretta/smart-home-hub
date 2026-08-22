@@ -21,4 +21,5 @@ public class User : IAuditableEntity, ISoftDeletable
     public ICollection<Room> Rooms { get; set; } = [];
     public ICollection<Device> Devices { get; set; } = [];
     public ICollection<DeviceGroup> DeviceGroups { get; set; } = [];
+    public SpotifyIntegration? SpotifyIntegration { get; set; }
 }

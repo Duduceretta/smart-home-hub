@@ -46,6 +46,11 @@ public static class DependencyInjection
 
         services.AddSingleton<IDeviceProbeService, DeviceProbeService>();
 
+        services.AddDataProtection();
+        services.AddSingleton<ISpotifyTokenCipher, SpotifyTokenCipher>();
+        services.AddSingleton<ISpotifyOAuthStateStore, SpotifyOAuthStateStore>();
+        services.AddHttpClient<ISpotifyMediaService, SpotifyMediaService>();
+
         var firebaseProjectId = configuration["Firebase:ProjectId"];
 
         services

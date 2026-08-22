@@ -11,6 +11,7 @@ public interface IAppDbContext
     DbSet<DeviceGroup> DeviceGroups { get; }
     DbSet<DeviceTelemetryLog> DeviceTelemetryLogs { get; }
     DbSet<SystemEvent> SystemEvents { get; }
+    DbSet<SpotifyIntegration> SpotifyIntegrations { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }

@@ -26,6 +26,10 @@ public sealed class DeviceStatePollingWorker(
     // uma notificação extra no próximo ciclo, sem problema de correção.
     private readonly ConcurrentDictionary<Guid, DeviceMediaStateDto> _lastKnownMediaState = new();
 
+    // Mesmo princípio acima, chaveado por UserId — o playback do Spotify é da
+    // conta do usuário, não de um Device específico.
+    private readonly ConcurrentDictionary<Guid, DeviceMediaStateDto> _lastKnownSpotifyState = new();
+
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         logger.LogInformation("Iniciando o worker de sondagem de estado de energia das TVs...");
@@ -67,57 +71,109 @@ public sealed class DeviceStatePollingWorker(
 
         var pollable = candidates.Where(device => device.User != null).ToList();
 
-        if (pollable.Count == 0)
+        // O early-return de "nenhuma TV" não pode pular o polling do Spotify —
+        // são fontes de mídia independentes (usuário pode só ter Spotify conectado,
+        // sem nenhuma TV cadastrada).
+        if (pollable.Count > 0)
+        {
+            var pollResults = await Task.WhenAll(
+                pollable.Select(async device => (
+                    Device: device,
+                    IsOn: await googleTvService.GetPowerStateAsync(
+                        device.Configuration.IpAddress!,
+                        cancellationToken
+                    )
+                ))
+            );
+
+            var changed = new List<Device>();
+
+            foreach (var (device, isOn) in pollResults)
+            {
+                if (device.IsOn == isOn)
+                {
+                    continue;
+                }
+
+                device.IsOn = isOn;
+                changed.Add(device);
+            }
+
+            if (changed.Count > 0)
+            {
+                await dbContext.SaveChangesAsync(cancellationToken);
+
+                foreach (var device in changed)
+                {
+                    logger.LogInformation(
+                        "Estado de energia do dispositivo {DeviceId} mudou para {Status}",
+                        device.Id,
+                        device.IsOn ? "ligado" : "desligado"
+                    );
+
+                    await notificationService.NotifyDeviceStatusChangedAsync(
+                        device.User.ExternalAuthUid,
+                        device.Id,
+                        device.IsOn,
+                        device.IsOnline,
+                        cancellationToken
+                    );
+                }
+            }
+
+            await PollMediaStateAsync(pollResults, notificationService, cancellationToken);
+        }
+
+        await PollSpotifyStateAsync(scope, dbContext, notificationService, cancellationToken);
+    }
+
+    private async Task PollSpotifyStateAsync(
+        IServiceScope scope,
+        IAppDbContext dbContext,
+        IRealtimeNotificationService notificationService,
+        CancellationToken cancellationToken
+    )
+    {
+        var integrations = await dbContext
+            .SpotifyIntegrations.Include(integration => integration.User)
+            .ToListAsync(cancellationToken);
+
+        if (integrations.Count == 0)
         {
             return;
         }
 
-        var pollResults = await Task.WhenAll(
-            pollable.Select(async device => (
-                Device: device,
-                IsOn: await googleTvService.GetPowerStateAsync(
-                    device.Configuration.IpAddress!,
+        var spotifyMediaService = scope.ServiceProvider.GetRequiredService<ISpotifyMediaService>();
+
+        var results = await Task.WhenAll(
+            integrations.Select(async integration => (
+                integration.User,
+                MediaState: await spotifyMediaService.GetCurrentPlaybackAsync(
+                    integration.User.ExternalAuthUid,
                     cancellationToken
-                )
+                ) ?? EmptyMediaState
             ))
         );
 
-        var changed = new List<Device>();
-
-        foreach (var (device, isOn) in pollResults)
+        foreach (var (user, mediaState) in results)
         {
-            if (device.IsOn == isOn)
+            var lastKnown = _lastKnownSpotifyState.GetValueOrDefault(user.Id);
+
+            if (lastKnown == mediaState)
             {
                 continue;
             }
 
-            device.IsOn = isOn;
-            changed.Add(device);
+            _lastKnownSpotifyState[user.Id] = mediaState;
+
+            logger.LogInformation("Estado de playback do Spotify mudou para {UserId}.", user.Id);
+
+            await notificationService.NotifySpotifyPlaybackChangedAsync(
+                user.ExternalAuthUid,
+                mediaState,
+                cancellationToken
+            );
         }
-
-        if (changed.Count > 0)
-        {
-            await dbContext.SaveChangesAsync(cancellationToken);
-
-            foreach (var device in changed)
-            {
-                logger.LogInformation(
-                    "Estado de energia do dispositivo {DeviceId} mudou para {Status}",
-                    device.Id,
-                    device.IsOn ? "ligado" : "desligado"
-                );
-
-                await notificationService.NotifyDeviceStatusChangedAsync(
-                    device.User.ExternalAuthUid,
-                    device.Id,
-                    device.IsOn,
-                    device.IsOnline,
-                    cancellationToken
-                );
-            }
-        }
-
-        await PollMediaStateAsync(pollResults, notificationService, cancellationToken);
     }
 
     private async Task PollMediaStateAsync(

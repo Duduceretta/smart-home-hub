@@ -111,6 +111,7 @@ try
     app.MapRoomEndpoints();
     app.MapDeviceEndpoints();
     app.MapDeviceGroupEndpoints();
+    app.MapSpotifyEndpoints();
     app.MapDevEndpoints(app.Environment);
 
     app.Run();

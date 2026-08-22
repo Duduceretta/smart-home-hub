@@ -87,4 +87,27 @@ public class RealtimeNotificationService(IHubContext<TelemetryHub> hubContext)
                 cancellationToken
             );
     }
+
+    public async Task NotifySpotifyPlaybackChangedAsync(
+        string firebaseUid,
+        DeviceMediaStateDto state,
+        CancellationToken cancellationToken = default
+    )
+    {
+        await hubContext
+            .Clients.Group($"user_{firebaseUid}")
+            .SendAsync(
+                "SpotifyPlaybackChanged",
+                new
+                {
+                    state.VolumePercent,
+                    state.IsPlaying,
+                    state.Title,
+                    state.Artist,
+                    state.AlbumCoverUrl,
+                    state.DeviceName,
+                },
+                cancellationToken
+            );
+    }
 }

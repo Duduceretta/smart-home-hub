@@ -33,4 +33,10 @@ public interface IRealtimeNotificationService
         DeviceMediaStateDto state,
         CancellationToken cancellationToken = default
     );
+
+    Task NotifySpotifyPlaybackChangedAsync(
+        string firebaseUid,
+        DeviceMediaStateDto state,
+        CancellationToken cancellationToken = default
+    );
 }

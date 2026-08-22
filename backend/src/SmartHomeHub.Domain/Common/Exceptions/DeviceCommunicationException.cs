@@ -22,3 +22,15 @@ public sealed class DeviceUnreachableException(string ipAddress)
 {
     public string IpAddress { get; } = ipAddress;
 }
+
+public sealed class SpotifyNotConnectedException()
+    : DeviceCommunicationException(
+        "Spotify.NotConnected",
+        "Conta do Spotify não está conectada."
+    );
+
+public sealed class SpotifyPlaybackUnavailableException()
+    : DeviceCommunicationException(
+        "Spotify.PlaybackUnavailable",
+        "Nenhum dispositivo Spotify ativo no momento. Abra o Spotify em algum aparelho e tente novamente."
+    );

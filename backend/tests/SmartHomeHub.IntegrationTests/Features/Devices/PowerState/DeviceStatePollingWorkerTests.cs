@@ -20,6 +20,8 @@ public class DeviceStatePollingWorkerTests(IntegrationTestWebAppFactory factory)
 {
     private readonly IGoogleTvService _googleTvService =
         factory.Services.GetRequiredService<IGoogleTvService>();
+    private readonly ISpotifyMediaService _spotifyMediaService =
+        factory.Services.GetRequiredService<ISpotifyMediaService>();
     private readonly IRealtimeNotificationService _notificationService =
         factory.Services.GetRequiredService<IRealtimeNotificationService>();
 
@@ -33,6 +35,7 @@ public class DeviceStatePollingWorkerTests(IntegrationTestWebAppFactory factory)
     private void Reset()
     {
         _googleTvService.ClearSubstitute();
+        _spotifyMediaService.ClearSubstitute();
         _notificationService.ClearReceivedCalls();
     }
 
@@ -320,6 +323,79 @@ public class DeviceStatePollingWorkerTests(IntegrationTestWebAppFactory factory)
             .NotifyDeviceMediaChangedAsync(
                 Arg.Any<string>(),
                 Arg.Any<Guid>(),
+                Arg.Any<DeviceMediaStateDto>(),
+                Arg.Any<CancellationToken>()
+            );
+    }
+
+    [Fact]
+    public async Task RunPollingCycle_WhenSpotifyPlaybackChanges_ShouldNotifySpotifyPlaybackChangedOnce()
+    {
+        Reset();
+
+        var user = await SeedUserAsync();
+        DbContext.SpotifyIntegrations.Add(
+            new SpotifyIntegration
+            {
+                UserId = user.Id,
+                AccessTokenEncrypted = "enc-access",
+                RefreshTokenEncrypted = "enc-refresh",
+                ExpiresAtUtc = DateTimeOffset.UtcNow.AddHours(1),
+                SpotifyDisplayName = "Test User",
+            }
+        );
+        await DbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+
+        _spotifyMediaService
+            .GetCurrentPlaybackAsync(user.ExternalAuthUid, Arg.Any<CancellationToken>())
+            .Returns(new DeviceMediaStateDto(70, true, "Song", "Artist"));
+
+        await CreateWorker().RunPollingCycleAsync(TestContext.Current.CancellationToken);
+
+        await _notificationService
+            .Received(1)
+            .NotifySpotifyPlaybackChangedAsync(
+                user.ExternalAuthUid,
+                Arg.Is<DeviceMediaStateDto>(state =>
+                    state != null && state.Title == "Song" && state.VolumePercent == 70
+                ),
+                Arg.Any<CancellationToken>()
+            );
+    }
+
+    [Fact]
+    public async Task RunPollingCycle_WhenSpotifyPlaybackUnchanged_ShouldNotNotifyOnSecondCycle()
+    {
+        Reset();
+
+        var user = await SeedUserAsync();
+        DbContext.SpotifyIntegrations.Add(
+            new SpotifyIntegration
+            {
+                UserId = user.Id,
+                AccessTokenEncrypted = "enc-access",
+                RefreshTokenEncrypted = "enc-refresh",
+                ExpiresAtUtc = DateTimeOffset.UtcNow.AddHours(1),
+                SpotifyDisplayName = "Test User",
+            }
+        );
+        await DbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+
+        _spotifyMediaService
+            .GetCurrentPlaybackAsync(user.ExternalAuthUid, Arg.Any<CancellationToken>())
+            .Returns(new DeviceMediaStateDto(70, true, "Song", "Artist"));
+
+        var worker = CreateWorker();
+        await worker.RunPollingCycleAsync(TestContext.Current.CancellationToken);
+
+        _notificationService.ClearReceivedCalls();
+
+        await worker.RunPollingCycleAsync(TestContext.Current.CancellationToken);
+
+        await _notificationService
+            .DidNotReceive()
+            .NotifySpotifyPlaybackChangedAsync(
+                Arg.Any<string>(),
                 Arg.Any<DeviceMediaStateDto>(),
                 Arg.Any<CancellationToken>()
             );
