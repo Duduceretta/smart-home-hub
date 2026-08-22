@@ -1,8 +1,10 @@
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using FluentValidation;
 using Mediator;
 using Microsoft.EntityFrameworkCore;
 using SmartHomeHub.Application.Common.Interfaces;
+using SmartHomeHub.Domain.Common.Exceptions;
 using SmartHomeHub.Domain.Common.Primitives;
 using SmartHomeHub.Domain.Enums;
 
@@ -24,11 +26,12 @@ public class ToggleDeviceCommandValidator : AbstractValidator<ToggleDeviceComman
     }
 }
 
-public class ToggleDeviceCommandHandler(
+public partial class ToggleDeviceCommandHandler(
     IAppDbContext dbContext,
     IMqttService mqttService,
     IGoogleTvService googleTvService,
     IChromecastWakeService chromecastWakeService,
+    IWakeOnLanService wakeOnLanService,
     IRealtimeNotificationService notificationService
 ) : ICommandHandler<ToggleDeviceCommand, Result>
 {
@@ -73,12 +76,32 @@ public class ToggleDeviceCommandHandler(
 
             if (newState)
             {
+                if (IsTvMediaIntegration(device.IntegrationType))
+                {
+                    var macAddress =
+                        device.Configuration.MacAddress
+                        ?? (LooksLikeMacAddress(device.ExternalId) ? device.ExternalId : null);
+
+                    if (macAddress is not null)
+                    {
+                        await wakeOnLanService.SendMagicPacketAsync(macAddress, cancellationToken);
+                        await Task.Delay(1200, cancellationToken);
+                    }
+                }
+
                 await chromecastWakeService.WakeUpAsync(ipAddress, cancellationToken);
                 await Task.Delay(2000, cancellationToken);
             }
             else
             {
-                await googleTvService.SendKeycodeAsync(ipAddress, 26, cancellationToken);
+                try
+                {
+                    await googleTvService.SendKeycodeAsync(ipAddress, 26, cancellationToken);
+                }
+                catch (DeviceCommunicationException ex)
+                {
+                    return Result.Failure(new Error(ex.Code, ex.Message));
+                }
             }
         }
         else
@@ -103,4 +126,15 @@ public class ToggleDeviceCommandHandler(
 
         return Result.Success();
     }
+
+    private static bool IsTvMediaIntegration(IntegrationType integrationType) =>
+        integrationType
+            is IntegrationType.GoogleCast
+                or IntegrationType.AndroidTvAdb
+                or IntegrationType.LgWebOs;
+
+    private static bool LooksLikeMacAddress(string value) => MacAddressRegex().IsMatch(value);
+
+    [GeneratedRegex("^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$")]
+    private static partial Regex MacAddressRegex();
 }

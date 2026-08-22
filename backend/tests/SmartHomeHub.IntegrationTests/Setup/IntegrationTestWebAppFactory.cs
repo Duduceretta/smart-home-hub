@@ -91,6 +91,15 @@ public class IntegrationTestWebAppFactory : WebApplicationFactory<Program>, IAsy
                 sp.GetRequiredService<TestDeviceProbeService>()
             );
 
+            // Controle de TVs: substitui os serviços de rede reais (WoL/ADB/Cast) por spies
+            // NSubstitute, evitando handshakes de verdade em CI (mesmo princípio acima).
+            services.RemoveAll<IWakeOnLanService>();
+            services.AddSingleton(_ => Substitute.For<IWakeOnLanService>());
+            services.RemoveAll<IGoogleTvService>();
+            services.AddSingleton(_ => Substitute.For<IGoogleTvService>());
+            services.RemoveAll<IChromecastWakeService>();
+            services.AddSingleton(_ => Substitute.For<IChromecastWakeService>());
+
             var serviceProvider = services.BuildServiceProvider();
             using var scope = serviceProvider.CreateScope();
             var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();

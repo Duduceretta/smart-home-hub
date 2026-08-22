@@ -1,14 +1,157 @@
 using System.Net;
+using System.Net.Http.Json;
+using System.Text.Json;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using NSubstitute;
+using NSubstitute.ClearExtensions;
+using NSubstitute.ExceptionExtensions;
+using SmartHomeHub.Application.Common.Interfaces;
+using SmartHomeHub.Domain.Common.Exceptions;
 using SmartHomeHub.Domain.Entities;
 using SmartHomeHub.Domain.Enums;
+using SmartHomeHub.Domain.ValueObjects;
 using SmartHomeHub.IntegrationTests.Setup;
 
 namespace SmartHomeHub.IntegrationTests.Features.Devices.Commands.ToggleDevice;
 
 public class ToggleDeviceTests(IntegrationTestWebAppFactory factory) : BaseIntegrationTest(factory)
 {
+    private readonly IWakeOnLanService _wakeOnLanService =
+        factory.Services.GetRequiredService<IWakeOnLanService>();
+    private readonly IGoogleTvService _googleTvService =
+        factory.Services.GetRequiredService<IGoogleTvService>();
+    private readonly IChromecastWakeService _chromecastWakeService =
+        factory.Services.GetRequiredService<IChromecastWakeService>();
+
+    private void ResetTvServices()
+    {
+        _wakeOnLanService.ClearReceivedCalls();
+        _googleTvService.ClearSubstitute();
+        _chromecastWakeService.ClearReceivedCalls();
+    }
+
+    private async Task<(User User, Device Device)> SeedTelevisionAsync(
+        string? macAddress,
+        bool isOn
+    )
+    {
+        var user = new User { Name = "Dono da TV", ExternalAuthUid = "firebase-token-123" };
+        var device = new Device
+        {
+            UserId = user.Id,
+            Name = "TV da Sala",
+            Brand = "Google",
+            ExternalId = $"CAST-{Guid.NewGuid():N}",
+            Type = DeviceType.Television,
+            IntegrationType = IntegrationType.GoogleCast,
+            IsOn = isOn,
+            Configuration = new DeviceConfiguration
+            {
+                IpAddress = "192.168.1.150",
+                MacAddress = macAddress,
+            },
+        };
+
+        DbContext.Users.Add(user);
+        DbContext.Devices.Add(device);
+        await DbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+
+        return (user, device);
+    }
+
+    [Fact]
+    public async Task ToggleDevice_TurningOnTvWithMacAddress_ShouldSendWakeOnLan()
+    {
+        ResetTvServices();
+
+        const string macAddress = "AA:BB:CC:11:22:33";
+        var (_, device) = await SeedTelevisionAsync(macAddress, isOn: false);
+
+        var response = await Client.PostAsync(
+            $"/api/devices/{device.Id}/toggle",
+            null,
+            TestContext.Current.CancellationToken
+        );
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        await _wakeOnLanService
+            .Received(1)
+            .SendMagicPacketAsync(macAddress, Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task ToggleDevice_TurningOnTvWithoutMac_ShouldSkipWakeOnLan()
+    {
+        ResetTvServices();
+
+        var (_, device) = await SeedTelevisionAsync(macAddress: null, isOn: false);
+
+        var response = await Client.PostAsync(
+            $"/api/devices/{device.Id}/toggle",
+            null,
+            TestContext.Current.CancellationToken
+        );
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        await _wakeOnLanService
+            .DidNotReceive()
+            .SendMagicPacketAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task ToggleDevice_WhenAdbThrowsUnauthorized_ShouldReturn403WithSemanticCode()
+    {
+        ResetTvServices();
+
+        var (_, device) = await SeedTelevisionAsync(macAddress: null, isOn: true);
+
+        _googleTvService
+            .SendKeycodeAsync(Arg.Any<string>(), Arg.Any<int>(), Arg.Any<CancellationToken>())
+            .ThrowsAsync(new AdbUnauthorizedException(device.Configuration.IpAddress!));
+
+        var response = await Client.PostAsync(
+            $"/api/devices/{device.Id}/toggle",
+            null,
+            TestContext.Current.CancellationToken
+        );
+
+        response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
+
+        var body = await response.Content.ReadFromJsonAsync<JsonElement>(
+            cancellationToken: TestContext.Current.CancellationToken
+        );
+        body.GetProperty("title").GetString().Should().Be("Device.AdbUnauthorized");
+    }
+
+    [Fact]
+    public async Task ToggleDevice_WhenAdbThrowsHostUnreachable_ShouldReturn400WithSemanticCode()
+    {
+        ResetTvServices();
+
+        var (_, device) = await SeedTelevisionAsync(macAddress: null, isOn: true);
+
+        _googleTvService
+            .SendKeycodeAsync(Arg.Any<string>(), Arg.Any<int>(), Arg.Any<CancellationToken>())
+            .ThrowsAsync(new DeviceUnreachableException(device.Configuration.IpAddress!));
+
+        var response = await Client.PostAsync(
+            $"/api/devices/{device.Id}/toggle",
+            null,
+            TestContext.Current.CancellationToken
+        );
+
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+
+        var body = await response.Content.ReadFromJsonAsync<JsonElement>(
+            cancellationToken: TestContext.Current.CancellationToken
+        );
+        body.GetProperty("title").GetString().Should().Be("Device.HostUnreachable");
+    }
+
     [Fact]
     public async Task ToggleDevice_ShouldInvertDeviceState_AndReturnOk()
     {
