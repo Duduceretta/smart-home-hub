@@ -4,6 +4,7 @@ import { EnergyChart } from "@/features/dashboard/components/EnergyChart";
 import { QuickActions } from "@/features/dashboard/components/QuickActions";
 import { RecentActivities } from "@/features/dashboard/components/RecentActivities";
 import { RoomChart } from "@/features/dashboard/components/RoomChart";
+import { SpotifyNowPlayingCard } from "@/features/integrations/components/SpotifyNowPlayingCard";
 
 export function DashboardPage() {
 	return (
@@ -14,6 +15,7 @@ export function DashboardPage() {
 				<EnergyChart />
 				<div className="lg:col-span-1 flex flex-col gap-6">
 					<QuickActions />
+					<SpotifyNowPlayingCard />
 					<RoomChart />
 				</div>
 			</div>

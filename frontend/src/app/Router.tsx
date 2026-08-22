@@ -14,6 +14,7 @@ import { LoginPage } from "@/pages/login/LoginPage";
 import { RegisterPage } from "@/pages/register/RegisterPage";
 import { ResetPasswordPage } from "@/pages/reset-password/ResetPasswordPage";
 import RoomsPage from "@/pages/rooms/RoomsPage";
+import { SettingsPage } from "@/pages/settings/SettingsPage";
 import { AppLayout } from "@/widgets/layout/AppLayout";
 
 const router = createBrowserRouter([
@@ -56,6 +57,10 @@ const router = createBrowserRouter([
 					{
 						path: "/device-groups",
 						element: <DeviceGroupsPage />,
+					},
+					{
+						path: "/settings",
+						element: <SettingsPage />,
 					},
 				],
 			},

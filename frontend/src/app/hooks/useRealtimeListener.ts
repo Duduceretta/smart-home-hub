@@ -10,6 +10,8 @@ import type {
 	Device,
 	DeviceMediaState,
 } from "@/features/devices/types/devices.types";
+import { integrationsKeys } from "@/features/integrations/hooks/integrations.keys";
+import type { SpotifyPlaybackState } from "@/features/integrations/types/integrations.types";
 
 interface DeviceStatusChangedPayload {
 	deviceId: string;
@@ -88,6 +90,15 @@ export function useRealtimeListener(): void {
 			},
 		);
 
+		connection.on("SpotifyPlaybackChanged", (payload: SpotifyPlaybackState) => {
+			Logger.info("Evento SignalR: SpotifyPlaybackChanged", payload);
+
+			queryClient.setQueryData<SpotifyPlaybackState>(
+				integrationsKeys.spotifyPlayback(),
+				payload,
+			);
+		});
+
 		connection.on(
 			"ReceiveTelemetryUpdate",
 			(payload: TelemetryReceivedPayload) => {
@@ -112,6 +123,9 @@ export function useRealtimeListener(): void {
 			Logger.info("Conexão SignalR restabelecida — reconciliando estado.");
 			queryClient.invalidateQueries({ queryKey: devicesKeys.lists() });
 			queryClient.invalidateQueries({ queryKey: devicesKeys.medias() });
+			queryClient.invalidateQueries({
+				queryKey: integrationsKeys.spotifyPlayback(),
+			});
 			queryClient.invalidateQueries({ queryKey: dashboardKeys.overview() });
 		});
 
