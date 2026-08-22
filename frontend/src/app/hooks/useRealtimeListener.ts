@@ -2,6 +2,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { createSignalRConnection } from "@/core/lib/signalr";
 import { Logger } from "@/core/logger/app.logger";
+import type { PagedResponse } from "@/core/types/pagination.types";
 import { useAuthStore } from "@/features/auth/store/useAuthStore";
 import { dashboardKeys } from "@/features/dashboard/hooks/dashboard.keys";
 import { devicesKeys } from "@/features/devices/hooks/devices.keys";
@@ -35,19 +36,22 @@ export function useRealtimeListener(): void {
 			(payload: DeviceStatusChangedPayload) => {
 				Logger.info("Evento SignalR: DeviceStatusChanged", payload);
 
-				queryClient.setQueriesData<Device[]>(
+				queryClient.setQueriesData<PagedResponse<Device>>(
 					{ queryKey: devicesKeys.lists() },
-					(oldDevices) => {
-						if (!oldDevices) return oldDevices;
-						return oldDevices.map((device) =>
-							device.id === payload.deviceId
-								? {
-										...device,
-										isOn: payload.isOn,
-										isOnline: payload.isOnline,
-									}
-								: device,
-						);
+					(oldData) => {
+						if (!oldData) return oldData;
+						return {
+							...oldData,
+							items: oldData.items.map((device) =>
+								device.id === payload.deviceId
+									? {
+											...device,
+											isOn: payload.isOn,
+											isOnline: payload.isOnline,
+										}
+									: device,
+							),
+						};
 					},
 				);
 
@@ -70,6 +74,25 @@ export function useRealtimeListener(): void {
 				});
 			},
 		);
+
+		// Eventos perdidos durante uma queda de conexão nunca são reenviados pelo
+		// SignalR (Clients.Group(...).SendAsync é fire-and-forget, sem fila/replay).
+		// Ao reconectar, força um refetch para reconciliar qualquer mudança de
+		// estado (ex: TV ligada/desligada pelo controle remoto) ocorrida enquanto
+		// a conexão estava fora do ar.
+		connection.onreconnecting((error) => {
+			Logger.warn("Conexão SignalR caiu, tentando reconectar...", error);
+		});
+
+		connection.onreconnected(() => {
+			Logger.info("Conexão SignalR restabelecida — reconciliando estado.");
+			queryClient.invalidateQueries({ queryKey: devicesKeys.lists() });
+			queryClient.invalidateQueries({ queryKey: dashboardKeys.overview() });
+		});
+
+		connection.onclose((error) => {
+			Logger.error("Conexão SignalR encerrada definitivamente", error);
+		});
 
 		connection
 			.start()
