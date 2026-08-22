@@ -11,10 +11,10 @@ async function fetchDashboardOverview(): Promise<DashboardOverviewResponse> {
 }
 
 export function useDashboardOverview() {
-    return useQuery<DashboardOverviewResponse, Error>({
-        queryKey: dashboardKeys.overview(),
-        queryFn: fetchDashboardOverview,
-        staleTime: 1000 * 60 * 5,
-        retry: 1,
-    });
+	return useQuery<DashboardOverviewResponse, Error>({
+		queryKey: dashboardKeys.overview(),
+		queryFn: fetchDashboardOverview,
+		staleTime: 1000 * 60 * 5,
+		retry: 1,
+	});
 }

@@ -2,7 +2,8 @@
 	"header": {
 		"title": "Overview",
 		"subtitle": "Real-time ecosystem monitoring",
-		"periodFilter": "Last 24h"
+		"hubStatus": "Hub Online",
+		"realtimeLabel": "REAL-TIME"
 	},
 	"metrics": {
 		"energyConsumption": "Energy Consumption",
@@ -17,20 +18,40 @@
 		"emptyTitle": "No consumption recorded today",
 		"emptySubtitle": "As soon as sensors start streaming telemetry via MQTT, the chart will be drawn in real time."
 	},
-	"quickActions": {
-		"title": "Quick Scenes",
-		"movieMode": "Movie Mode",
+	"cameraFeed": {
+		"title": "Aether Secure",
+		"liveLabel": "LIVE",
+		"comingSoon": "Camera integration coming soon."
+	},
+	"automations": {
+		"emptyTitle": "No automations configured yet",
+		"emptySubtitle": "Routines and automations will show up here once this feature is available."
+	},
+	"scenesBar": {
+		"arriveHome": "Arrived Home",
+		"movieMode": "Movie",
+		"sleepMode": "Sleep Mode",
 		"leaveHome": "Leave Home"
 	},
-	"recentActivities": {
-		"title": "Recent Activities",
-		"emptyTitle": "No recent activity recorded",
-		"emptySubtitle": "Toggle actions, automations and security alerts will show up in this history.",
-		"justNow": "Just now"
+	"roomSection": {
+		"unassigned": "Unassigned",
+		"viewAllDevices": "View all devices",
+		"editTitle": "Choose displayed devices",
+		"editDescription": "At most what 1 grid row fits (2 normal cards, or 1 wide card like TV/Climate).",
+		"wideCard": "takes the whole row",
+		"normalCard": "1 column",
+		"resetToAuto": "Use automatic",
+		"toggleExpand": "Expand/collapse"
 	},
-	"roomChart": {
-		"title": "Usage by Room",
-		"emptyTitle": "No data by room",
-		"emptySubtitle": "Assign devices to rooms to measure."
+	"filterChips": {
+		"all": "ALL",
+		"lights": "LIGHTS",
+		"climate": "CLIMATE",
+		"media": "MEDIA"
+	},
+	"activityLog": {
+		"title": "Timeline",
+		"emptyTitle": "No recent activity yet",
+		"justNow": "Just now"
 	}
 }

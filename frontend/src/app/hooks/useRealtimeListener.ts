@@ -5,6 +5,7 @@ import { Logger } from "@/core/logger/app.logger";
 import type { PagedResponse } from "@/core/types/pagination.types";
 import { useAuthStore } from "@/features/auth/store/useAuthStore";
 import { dashboardKeys } from "@/features/dashboard/hooks/dashboard.keys";
+import { useDashboardActivityStore } from "@/features/dashboard/store/dashboard-activity.store";
 import { devicesKeys } from "@/features/devices/hooks/devices.keys";
 import type {
 	Device,
@@ -45,6 +46,13 @@ export function useRealtimeListener(): void {
 			(payload: DeviceStatusChangedPayload) => {
 				Logger.info("Evento SignalR: DeviceStatusChanged", payload);
 
+				const cachedLists = queryClient.getQueriesData<PagedResponse<Device>>({
+					queryKey: devicesKeys.lists(),
+				});
+				const cachedDevice = cachedLists
+					.flatMap(([, data]) => data?.items ?? [])
+					.find((device) => device.id === payload.deviceId);
+
 				queryClient.setQueriesData<PagedResponse<Device>>(
 					{ queryKey: devicesKeys.lists() },
 					(oldData) => {
@@ -70,6 +78,25 @@ export function useRealtimeListener(): void {
 				queryClient.invalidateQueries({
 					queryKey: dashboardKeys.overview(),
 				});
+
+				const deviceName = cachedDevice?.name ?? "Dispositivo";
+				if (!payload.isOnline) {
+					useDashboardActivityStore.getState().pushEntry({
+						kind: "device-status",
+						deviceId: payload.deviceId,
+						title: `${deviceName} ficou offline`,
+						description: "Conexão perdida com o dispositivo.",
+					});
+				} else {
+					useDashboardActivityStore.getState().pushEntry({
+						kind: "device-status",
+						deviceId: payload.deviceId,
+						title: `${deviceName} ${payload.isOn ? "ligado" : "desligado"}`,
+						description: cachedDevice?.room
+							? `Ambiente: ${cachedDevice.room}`
+							: "Estado atualizado via SignalR.",
+					});
+				}
 			},
 		);
 
@@ -77,6 +104,10 @@ export function useRealtimeListener(): void {
 			"DeviceMediaChanged",
 			(payload: DeviceMediaChangedPayload) => {
 				Logger.info("Evento SignalR: DeviceMediaChanged", payload);
+
+				const previousMedia = queryClient.getQueryData<DeviceMediaState>(
+					devicesKeys.media(payload.deviceId),
+				);
 
 				queryClient.setQueryData<DeviceMediaState>(
 					devicesKeys.media(payload.deviceId),
@@ -87,16 +118,45 @@ export function useRealtimeListener(): void {
 						artist: payload.artist,
 					},
 				);
+
+				if (payload.title && previousMedia?.title !== payload.title) {
+					useDashboardActivityStore.getState().pushEntry({
+						kind: "device-media",
+						deviceId: payload.deviceId,
+						title: "Nova reprodução na TV",
+						description: payload.artist
+							? `${payload.title} — ${payload.artist}`
+							: payload.title,
+					});
+				}
 			},
 		);
 
 		connection.on("SpotifyPlaybackChanged", (payload: SpotifyPlaybackState) => {
 			Logger.info("Evento SignalR: SpotifyPlaybackChanged", payload);
 
+			const previousPlayback = queryClient.getQueryData<SpotifyPlaybackState>(
+				integrationsKeys.spotifyPlayback(),
+			);
+
 			queryClient.setQueryData<SpotifyPlaybackState>(
 				integrationsKeys.spotifyPlayback(),
 				payload,
 			);
+
+			if (
+				payload.title &&
+				(previousPlayback?.title !== payload.title ||
+					previousPlayback?.isPlaying !== payload.isPlaying)
+			) {
+				useDashboardActivityStore.getState().pushEntry({
+					kind: "spotify",
+					title: payload.isPlaying ? "Spotify reproduzindo" : "Spotify pausado",
+					description: payload.artist
+						? `${payload.title} — ${payload.artist}`
+						: payload.title,
+				});
+			}
 		});
 
 		connection.on(

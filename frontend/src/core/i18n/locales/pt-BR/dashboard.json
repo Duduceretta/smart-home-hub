@@ -2,7 +2,8 @@
 	"header": {
 		"title": "Visão Geral",
 		"subtitle": "Monitoramento do ecossistema em tempo real",
-		"periodFilter": "Últimas 24h"
+		"hubStatus": "Hub Online",
+		"realtimeLabel": "TEMPO REAL"
 	},
 	"metrics": {
 		"energyConsumption": "Consumo de Energia",
@@ -17,20 +18,40 @@
 		"emptyTitle": "Nenhum consumo registrado hoje",
 		"emptySubtitle": "Assim que os sensores começarem a transmitir telemetria via MQTT, o gráfico será desenhado em tempo real."
 	},
-	"quickActions": {
-		"title": "Cenas Rápidas",
-		"movieMode": "Modo Filme",
+	"cameraFeed": {
+		"title": "Aether Secure",
+		"liveLabel": "LIVE",
+		"comingSoon": "Integração de câmeras chegando em breve."
+	},
+	"automations": {
+		"emptyTitle": "Nenhuma automação configurada ainda",
+		"emptySubtitle": "Rotinas e automações vão aparecer aqui assim que essa feature estiver disponível."
+	},
+	"scenesBar": {
+		"arriveHome": "Cheguei em Casa",
+		"movieMode": "Cinema",
+		"sleepMode": "Modo Dormir",
 		"leaveHome": "Sair de Casa"
 	},
-	"recentActivities": {
-		"title": "Atividades Recentes",
-		"emptyTitle": "Nenhuma atividade recente registrada",
-		"emptySubtitle": "Ações de ligar/desligar, automações e alertas de segurança aparecerão neste histórico.",
-		"justNow": "Agora mesmo"
+	"roomSection": {
+		"unassigned": "Sem Ambiente",
+		"viewAllDevices": "Ver todos os dispositivos",
+		"editTitle": "Escolher dispositivos exibidos",
+		"editDescription": "No máximo o equivalente a 1 linha do grid (2 cards normais, ou 1 card largo como TV/Climatização).",
+		"wideCard": "ocupa a linha inteira",
+		"normalCard": "1 coluna",
+		"resetToAuto": "Usar automático",
+		"toggleExpand": "Expandir/recolher"
 	},
-	"roomChart": {
-		"title": "Uso por Cômodo",
-		"emptyTitle": "Sem dados por cômodo",
-		"emptySubtitle": "Aloque dispositivos em cômodos para medir."
+	"filterChips": {
+		"all": "TODOS",
+		"lights": "LUZES",
+		"climate": "CLIMA",
+		"media": "MÍDIA"
+	},
+	"activityLog": {
+		"title": "Linha do Tempo",
+		"emptyTitle": "Nenhuma atividade recente ainda",
+		"justNow": "Agora mesmo"
 	}
 }

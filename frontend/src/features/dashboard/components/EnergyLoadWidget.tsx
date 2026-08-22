@@ -11,15 +11,15 @@ import {
 } from "recharts";
 import { useDashboardOverview } from "../hooks/useDashboardOverview";
 
-export function EnergyChart() {
+export function EnergyLoadWidget() {
 	const { t, i18n } = useTranslation("dashboard");
 	const { data, isLoading } = useDashboardOverview();
 
 	if (isLoading || !data) {
 		return (
-			<div className="lg:col-span-3 border border-zinc-800/80 rounded-2xl bg-zinc-900/50 backdrop-blur-sm p-6 flex flex-col animate-pulse">
-				<div className="h-4 w-48 bg-zinc-800 rounded-md mb-6" />
-				<div className="flex-1 min-h-62.5 w-full bg-zinc-900/30 rounded-xl border border-zinc-800/40" />
+			<div className="rounded-xl border border-[#46464b]/20 bg-[#1c1b1c] p-5 flex flex-col animate-pulse">
+				<div className="h-4 w-48 bg-[#201f20] rounded-md mb-6" />
+				<div className="flex-1 min-h-62.5 w-full bg-[#201f20]/40 rounded-xl" />
 			</div>
 		);
 	}
@@ -36,22 +36,29 @@ export function EnergyChart() {
 	});
 
 	return (
-		<div className="lg:col-span-3 border border-zinc-800/80 rounded-2xl bg-zinc-900/50 backdrop-blur-sm p-6 flex flex-col">
-			<h3 className="text-sm font-medium text-zinc-50 mb-6">
-				{t("energyChart.title")}
-			</h3>
+		<div className="rounded-xl border border-[#46464b]/20 bg-[#1c1b1c] p-5 flex flex-col">
+			<div className="flex items-center justify-between mb-6">
+				<div className="flex items-center gap-2">
+					<div className="w-1.5 h-5 bg-[#c5c6cf] rounded-full" />
+					<h3 className="text-sm font-medium text-[#e5e2e2]">
+						{t("energyChart.title")}
+					</h3>
+				</div>
+				<span className="text-[10px] font-semibold tracking-wider text-[#c5c6cf] bg-[#c5c6cf]/10 px-2.5 py-1 rounded-md border border-[#c5c6cf]/20">
+					{data.summary.energyConsumptionKwh.toFixed(1)} kWh
+				</span>
+			</div>
 
 			<div className="flex-1 min-h-62.5 w-full flex flex-col justify-center">
-				{/* ZERO DATA STATE: Se não houver pontos no histórico */}
 				{chartData.length === 0 ? (
 					<div className="flex flex-col items-center justify-center gap-2 py-12 text-center">
-						<div className="flex h-12 w-12 items-center justify-center rounded-full bg-zinc-800/50 text-zinc-500">
+						<div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#201f20] text-[#c7c6cb]">
 							<Activity className="h-6 w-6" />
 						</div>
-						<p className="text-sm font-medium text-zinc-300">
+						<p className="text-sm font-medium text-[#e5e2e2]">
 							{t("energyChart.emptyTitle")}
 						</p>
-						<p className="max-w-xs text-xs text-zinc-500">
+						<p className="max-w-xs text-xs text-[#c7c6cb]">
 							{t("energyChart.emptySubtitle")}
 						</p>
 					</div>
@@ -63,41 +70,42 @@ export function EnergyChart() {
 						>
 							<defs>
 								<linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
-									<stop offset="5%" stopColor="#6366f1" stopOpacity={0.3} />
-									<stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
+									<stop offset="5%" stopColor="#c5c6cf" stopOpacity={0.3} />
+									<stop offset="95%" stopColor="#c5c6cf" stopOpacity={0} />
 								</linearGradient>
 							</defs>
 							<CartesianGrid
 								strokeDasharray="3 3"
-								stroke="#27272a"
+								stroke="#46464b"
+								strokeOpacity={0.2}
 								vertical={false}
 							/>
 							<XAxis
 								dataKey="time"
-								stroke="#71717a"
+								stroke="#c7c6cb"
 								fontSize={12}
 								tickLine={false}
 								axisLine={false}
 							/>
 							<YAxis
-								stroke="#71717a"
+								stroke="#c7c6cb"
 								fontSize={12}
 								tickLine={false}
 								axisLine={false}
 							/>
 							<Tooltip
 								contentStyle={{
-									backgroundColor: "#18181b",
-									borderColor: "#27272a",
+									backgroundColor: "#201f20",
+									borderColor: "rgba(70,70,75,0.3)",
 									borderRadius: "8px",
-									color: "#f4f4f5",
+									color: "#e5e2e2",
 								}}
-								itemStyle={{ color: "#818cf8" }}
+								itemStyle={{ color: "#c5c6cf" }}
 							/>
 							<Area
 								type="monotone"
 								dataKey="value"
-								stroke="#6366f1"
+								stroke="#c5c6cf"
 								strokeWidth={3}
 								fillOpacity={1}
 								fill="url(#colorValue)"

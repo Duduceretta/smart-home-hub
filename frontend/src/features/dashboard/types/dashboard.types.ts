@@ -29,5 +29,21 @@ export interface DashboardOverviewResponse {
 	summary: DashboardSummary;
 	energyChart: EnergyChartPoint[];
 	roomUsage: RoomEnergyUsage[];
+	/**
+	 * Não consumido pela UI — a Activity Log Timeline usa o buffer client-side
+	 * de `dashboard-activity.store.ts`, alimentado via SignalR em tempo real.
+	 * Mantido no contrato porque o backend ainda retorna o campo.
+	 */
 	recentActivities: RecentEvent[];
+}
+
+export type ActivityEventKind = "device-status" | "device-media" | "spotify";
+
+export interface ActivityLogEntry {
+	id: string;
+	kind: ActivityEventKind;
+	deviceId?: string;
+	title: string;
+	description: string;
+	occurredAt: string;
 }
