@@ -13,7 +13,7 @@ import {
 	Volume2,
 	Wind,
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { DeleteDeviceModal } from "@/core/components/modals/DeleteDeviceModal";
 import {
@@ -22,14 +22,18 @@ import {
 	DropdownMenuItem,
 	DropdownMenuTrigger,
 } from "@/core/components/ui/dropdown-menu";
+import { useDebouncedValue } from "@/core/hooks/useDebouncedValue";
 import { DEVICE_CONFIG } from "../constants/devices.constants";
 import { useDeleteDevice } from "../hooks/useDeleteDevice";
+import { useDeviceMedia } from "../hooks/useDeviceMedia";
+import { useSetDeviceVolume } from "../hooks/useSetDeviceVolume";
 import { useToggleDevice } from "../hooks/useToggleDevice";
 import { useDevicesUIStore } from "../store/devices-ui.store";
 import {
 	type Device,
 	DeviceTypeEnum,
 	INTEGRATION_TYPE_LABEL_KEYS,
+	IntegrationTypeEnum,
 	isActuatorDevice,
 } from "../types/devices.types";
 import { DeviceTelemetrySheet } from "./DeviceTelemetrySheet";
@@ -46,8 +50,6 @@ export const DeviceCard: React.FC<DeviceCardProps> = ({ device }) => {
 	// Estados locais para controles interativos embutidos
 	const [brightness, setBrightness] = useState(80);
 	const [isDraggingBrightness, setIsDraggingBrightness] = useState(false);
-	const [isPlaying, setIsPlaying] = useState(true);
-	const [volume, setVolume] = useState(45);
 	const [temperature, setTemperature] = useState(22);
 	const [climateMode, setClimateMode] = useState<"cool" | "fan">("cool");
 
@@ -69,6 +71,43 @@ export const DeviceCard: React.FC<DeviceCardProps> = ({ device }) => {
 	const isWide = isTv || isAc;
 	const isOnline = device.isOnline;
 	const isOn = device.isOn && isOnline;
+
+	// Volume/mídia real via ADB — só suportado por TVs GoogleCast/AndroidTvAdb
+	// (LgWebOs usa protocolo WebOS SSAP, fora de escopo).
+	const isAdbControllable =
+		device.integrationType === IntegrationTypeEnum.GoogleCast ||
+		device.integrationType === IntegrationTypeEnum.AndroidTvAdb;
+
+	const { data: media } = useDeviceMedia(device.id, {
+		enabled: isTv && isAdbControllable && isOnline,
+	});
+	const { mutate: setVolume } = useSetDeviceVolume();
+
+	const [localVolume, setLocalVolume] = useState(0);
+	const [isDraggingVolume, setIsDraggingVolume] = useState(false);
+	const lastSentVolumeRef = useRef<number | null>(null);
+
+	// Sincroniza do servidor só enquanto o usuário não está arrastando —
+	// mesma cautela do slider de brilho, evita "puxar" o dedo do usuário.
+	useEffect(() => {
+		if (media && !isDraggingVolume) {
+			setLocalVolume(media.volumePercent);
+			lastSentVolumeRef.current = media.volumePercent;
+		}
+	}, [media, isDraggingVolume]);
+
+	const debouncedVolume = useDebouncedValue(localVolume, 300);
+
+	useEffect(() => {
+		if (
+			isAdbControllable &&
+			lastSentVolumeRef.current !== null &&
+			debouncedVolume !== lastSentVolumeRef.current
+		) {
+			lastSentVolumeRef.current = debouncedVolume;
+			setVolume({ deviceId: device.id, volume: debouncedVolume });
+		}
+	}, [debouncedVolume, isAdbControllable, device.id, setVolume]);
 
 	const handleToggle = (e: React.MouseEvent) => {
 		e.stopPropagation();
@@ -169,6 +208,10 @@ export const DeviceCard: React.FC<DeviceCardProps> = ({ device }) => {
 
 		// 4. Smart TV (Now Playing + Controles de Mídia + Volume)
 		if (isTv) {
+			const hasMedia = isOnline && isAdbControllable && Boolean(media?.title);
+			const isPlaying = Boolean(media?.isPlaying);
+			const volumeDisabled = !isOnline || !isAdbControllable;
+
 			return (
 				<div className="flex-1 flex flex-col justify-end gap-3 mt-3">
 					<div className="flex items-center gap-3 bg-[#0e0e0f] rounded-lg p-2 border border-[#46464b]/20">
@@ -179,36 +222,34 @@ export const DeviceCard: React.FC<DeviceCardProps> = ({ device }) => {
 						</div>
 						<div className="flex flex-col flex-1 min-w-0">
 							<span className="text-xs font-semibold text-[#e5e2e2] truncate">
-								{isOnline
-									? "Blade Runner 2049"
+								{hasMedia
+									? media?.title
 									: t("card.noPlayback", "Sem Reprodução")}
 							</span>
 							<span className="text-[11px] text-[#c7c6cb] truncate">
-								{isOnline
-									? "Plex Media Server"
-									: t("card.deviceOffline", "Dispositivo offline")}
+								{!isOnline
+									? t("card.deviceOffline", "Dispositivo offline")
+									: hasMedia
+										? media?.artist
+										: undefined}
 							</span>
 						</div>
+						{/* Controles de transporte refletem o estado real (isPlaying) mas
+						não disparam ação — play/pause/skip fica fora de escopo por ora. */}
 						<div className="flex items-center gap-1 relative z-20">
 							<button
 								type="button"
-								disabled={!isOnline}
-								onClick={(e) => e.stopPropagation()}
-								className="w-7 h-7 rounded-full bg-[#201f20] flex items-center justify-center text-[#e5e2e2] hover:bg-[#3a3939] transition-colors disabled:cursor-not-allowed disabled:hover:bg-[#201f20]"
+								disabled
+								className="w-7 h-7 rounded-full bg-[#201f20] flex items-center justify-center text-[#e5e2e2] disabled:cursor-not-allowed disabled:opacity-40"
 							>
 								<SkipBack className="w-3.5 h-3.5" />
 							</button>
 							<button
 								type="button"
-								disabled={!isOnline}
-								onClick={(e) => {
-									e.stopPropagation();
-									if (!isOnline) return;
-									setIsPlaying(!isPlaying);
-								}}
-								className="w-8 h-8 rounded-full bg-[#c5c6cf] text-[#2e3037] flex items-center justify-center shadow-sm hover:scale-105 transition-transform disabled:cursor-not-allowed disabled:hover:scale-100"
+								disabled
+								className="w-8 h-8 rounded-full bg-[#c5c6cf] text-[#2e3037] flex items-center justify-center shadow-sm disabled:cursor-not-allowed disabled:opacity-40"
 							>
-								{isOnline && isPlaying ? (
+								{isPlaying ? (
 									<Pause className="w-4 h-4 fill-current" />
 								) : (
 									<Play className="w-4 h-4 fill-current ml-0.5" />
@@ -216,9 +257,8 @@ export const DeviceCard: React.FC<DeviceCardProps> = ({ device }) => {
 							</button>
 							<button
 								type="button"
-								disabled={!isOnline}
-								onClick={(e) => e.stopPropagation()}
-								className="w-7 h-7 rounded-full bg-[#201f20] flex items-center justify-center text-[#e5e2e2] hover:bg-[#3a3939] transition-colors disabled:cursor-not-allowed disabled:hover:bg-[#201f20]"
+								disabled
+								className="w-7 h-7 rounded-full bg-[#201f20] flex items-center justify-center text-[#e5e2e2] disabled:cursor-not-allowed disabled:opacity-40"
 							>
 								<SkipForward className="w-3.5 h-3.5" />
 							</button>
@@ -229,23 +269,47 @@ export const DeviceCard: React.FC<DeviceCardProps> = ({ device }) => {
 						<Volume2 className="w-4 h-4 text-[#c7c6cb]" />
 						<button
 							type="button"
-							disabled={!isOnline}
+							disabled={volumeDisabled}
 							aria-label={t("card.volume", "Volume")}
-							className="relative block flex-1 h-1.5 rounded-full bg-[#0e0e0f] overflow-hidden cursor-pointer disabled:cursor-not-allowed"
-							onClick={(e) => {
+							className="relative z-20 block flex-1 h-1.5 rounded-full bg-[#0e0e0f] overflow-visible cursor-pointer group/slider disabled:cursor-not-allowed touch-none"
+							onPointerDown={(e) => {
 								e.stopPropagation();
-								if (!isOnline) return;
+								if (volumeDisabled) return;
+								e.currentTarget.setPointerCapture(e.pointerId);
+								setIsDraggingVolume(true);
 								const rect = e.currentTarget.getBoundingClientRect();
 								const pct = Math.round(
 									((e.clientX - rect.left) / rect.width) * 100,
 								);
-								setVolume(Math.max(0, Math.min(100, pct)));
+								setLocalVolume(Math.max(0, Math.min(100, pct)));
+							}}
+							onPointerMove={(e) => {
+								if (volumeDisabled || e.buttons !== 1) return;
+								const rect = e.currentTarget.getBoundingClientRect();
+								const pct = Math.round(
+									((e.clientX - rect.left) / rect.width) * 100,
+								);
+								setLocalVolume(Math.max(0, Math.min(100, pct)));
+							}}
+							onPointerUp={(e) => {
+								if (e.currentTarget.hasPointerCapture(e.pointerId)) {
+									e.currentTarget.releasePointerCapture(e.pointerId);
+								}
+								setIsDraggingVolume(false);
 							}}
 						>
 							<div
-								className="h-full bg-[#c5c6cf] rounded-full"
-								style={{ width: `${volume}%` }}
-							/>
+								className={`h-full bg-[#c5c6cf] rounded-full relative ${isDraggingVolume ? "" : "transition-all"}`}
+								style={{ width: `${volumeDisabled ? 0 : localVolume}%` }}
+							>
+								<div
+									className={`absolute right-0 top-1/2 -translate-y-1/2 w-3 h-3 bg-[#2e3037] rounded-full shadow-sm transition-opacity ${
+										isDraggingVolume
+											? "opacity-100"
+											: "opacity-0 group-hover/slider:opacity-100"
+									}`}
+								/>
+							</div>
 						</button>
 					</div>
 				</div>
@@ -408,10 +472,9 @@ export const DeviceCard: React.FC<DeviceCardProps> = ({ device }) => {
 								{device.name}
 							</button>
 							<span className="text-[10px] font-semibold tracking-wider text-[#c7c6cb] uppercase mt-1 truncate">
-								{(
-									device.roomId
-										? device.room
-										: t(INTEGRATION_TYPE_LABEL_KEYS[device.integrationType])
+								{(device.roomId
+									? device.room
+									: t(INTEGRATION_TYPE_LABEL_KEYS[device.integrationType])
 								).toUpperCase()}{" "}
 								•{" "}
 								{isOnline

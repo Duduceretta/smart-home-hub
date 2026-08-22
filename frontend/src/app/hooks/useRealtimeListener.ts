@@ -6,12 +6,19 @@ import type { PagedResponse } from "@/core/types/pagination.types";
 import { useAuthStore } from "@/features/auth/store/useAuthStore";
 import { dashboardKeys } from "@/features/dashboard/hooks/dashboard.keys";
 import { devicesKeys } from "@/features/devices/hooks/devices.keys";
-import type { Device } from "@/features/devices/types/devices.types";
+import type {
+	Device,
+	DeviceMediaState,
+} from "@/features/devices/types/devices.types";
 
 interface DeviceStatusChangedPayload {
 	deviceId: string;
 	isOn: boolean;
 	isOnline: boolean;
+}
+
+interface DeviceMediaChangedPayload extends DeviceMediaState {
+	deviceId: string;
 }
 
 interface TelemetryReceivedPayload {
@@ -65,6 +72,23 @@ export function useRealtimeListener(): void {
 		);
 
 		connection.on(
+			"DeviceMediaChanged",
+			(payload: DeviceMediaChangedPayload) => {
+				Logger.info("Evento SignalR: DeviceMediaChanged", payload);
+
+				queryClient.setQueryData<DeviceMediaState>(
+					devicesKeys.media(payload.deviceId),
+					{
+						volumePercent: payload.volumePercent,
+						isPlaying: payload.isPlaying,
+						title: payload.title,
+						artist: payload.artist,
+					},
+				);
+			},
+		);
+
+		connection.on(
 			"ReceiveTelemetryUpdate",
 			(payload: TelemetryReceivedPayload) => {
 				Logger.info("Evento SignalR: ReceiveTelemetryUpdate", payload);
@@ -87,6 +111,7 @@ export function useRealtimeListener(): void {
 		connection.onreconnected(() => {
 			Logger.info("Conexão SignalR restabelecida — reconciliando estado.");
 			queryClient.invalidateQueries({ queryKey: devicesKeys.lists() });
+			queryClient.invalidateQueries({ queryKey: devicesKeys.medias() });
 			queryClient.invalidateQueries({ queryKey: dashboardKeys.overview() });
 		});
 

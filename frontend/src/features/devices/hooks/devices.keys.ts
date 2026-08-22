@@ -28,4 +28,6 @@ export const devicesKeys = {
 	telemetries: () => [...devicesKeys.all, "telemetry"] as const,
 	telemetry: (id: string, range = "24h") =>
 		[...devicesKeys.telemetries(), id, { range }] as const,
+	medias: () => [...devicesKeys.all, "media"] as const,
+	media: (id: string) => [...devicesKeys.medias(), id] as const,
 };

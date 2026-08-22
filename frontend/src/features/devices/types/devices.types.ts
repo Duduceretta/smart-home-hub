@@ -173,6 +173,18 @@ export interface DeviceTelemetryHistory {
 }
 
 /**
+ * Real volume/now-playing state of a TV, read live via ADB
+ * (DeviceMediaStateDto in C#). Only GoogleCast/AndroidTvAdb devices
+ * support this — see IntegrationTypeExtensions.IsAdbControllable.
+ */
+export interface DeviceMediaState {
+	volumePercent: number;
+	isPlaying: boolean;
+	title: string | null;
+	artist: string | null;
+}
+
+/**
  * Payload of the SignalR "DeviceDiscovered" event (DiscoveredDeviceDto in C#,
  * camelCase — JsonHubProtocol default). `signalStrength` is almost always
  * null today: none of the current backend scanners populate it.

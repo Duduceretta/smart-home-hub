@@ -6,6 +6,7 @@ import type {
 	CreateDevicePayload,
 	CreateDeviceResponse,
 	Device,
+	DeviceMediaState,
 	DeviceTelemetryHistory,
 	TelemetryRange,
 	ToggleDeviceResponse,
@@ -192,6 +193,47 @@ export async function stopDeviceDiscoveryRequest(): Promise<void> {
 		throw handleApplicationError(
 			error,
 			"Não foi possível interromper a busca por dispositivos.",
+		);
+	}
+}
+
+/**
+ * Fetches the live volume and now-playing media state of a TV (ADB-backed,
+ * GoogleCast/AndroidTvAdb only).
+ */
+export async function getDeviceMediaStateRequest(
+	deviceId: string,
+): Promise<DeviceMediaState> {
+	try {
+		const { data } = await apiClient.get<DeviceMediaState>(
+			`/devices/${deviceId}/media`,
+		);
+		return data;
+	} catch (error: unknown) {
+		throw handleApplicationError(
+			error,
+			"Não foi possível carregar o estado de mídia da TV.",
+		);
+	}
+}
+
+/**
+ * Sets the TV's volume (0-100%), converted server-side to the real
+ * absolute stream level via ADB.
+ */
+export async function setDeviceVolumeRequest({
+	deviceId,
+	volume,
+}: {
+	deviceId: string;
+	volume: number;
+}): Promise<void> {
+	try {
+		await apiClient.put(`/devices/${deviceId}/volume`, { volume });
+	} catch (error: unknown) {
+		throw handleApplicationError(
+			error,
+			"Não foi possível ajustar o volume da TV.",
 		);
 	}
 }
