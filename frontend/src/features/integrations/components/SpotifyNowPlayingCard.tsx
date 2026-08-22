@@ -14,23 +14,23 @@ export const SpotifyNowPlayingCard: React.FC = () => {
 
 	const [localVolume, setLocalVolume] = useState(0);
 	const [isDragging, setIsDragging] = useState(false);
-	const lastSentVolumeRef = useRef<number | null>(null);
+	// Só true entre um arraste do usuário e o envio debounced correspondente —
+	// evita que a sincronização vinda do servidor (abaixo) seja confundida com
+	// uma mudança do usuário e dispare um envio espúrio ao montar o card com
+	// dados já em cache (ex: voltando do Dashboard pra Devices).
+	const userDraggedVolumeRef = useRef(false);
 
 	useEffect(() => {
 		if (playback && !isDragging) {
 			setLocalVolume(playback.volumePercent);
-			lastSentVolumeRef.current = playback.volumePercent;
 		}
 	}, [playback, isDragging]);
 
 	const debouncedVolume = useDebouncedValue(localVolume, 300);
 
 	useEffect(() => {
-		if (
-			lastSentVolumeRef.current !== null &&
-			debouncedVolume !== lastSentVolumeRef.current
-		) {
-			lastSentVolumeRef.current = debouncedVolume;
+		if (userDraggedVolumeRef.current) {
+			userDraggedVolumeRef.current = false;
 			setVolume(debouncedVolume);
 		}
 	}, [debouncedVolume, setVolume]);
@@ -88,6 +88,7 @@ export const SpotifyNowPlayingCard: React.FC = () => {
 						const pct = Math.round(
 							((e.clientX - rect.left) / rect.width) * 100,
 						);
+						userDraggedVolumeRef.current = true;
 						setLocalVolume(Math.max(0, Math.min(100, pct)));
 					}}
 					onPointerMove={(e) => {
@@ -96,6 +97,7 @@ export const SpotifyNowPlayingCard: React.FC = () => {
 						const pct = Math.round(
 							((e.clientX - rect.left) / rect.width) * 100,
 						);
+						userDraggedVolumeRef.current = true;
 						setLocalVolume(Math.max(0, Math.min(100, pct)));
 					}}
 					onPointerUp={(e) => {

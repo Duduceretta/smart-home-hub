@@ -85,26 +85,25 @@ export const DeviceCard: React.FC<DeviceCardProps> = ({ device }) => {
 
 	const [localVolume, setLocalVolume] = useState(0);
 	const [isDraggingVolume, setIsDraggingVolume] = useState(false);
-	const lastSentVolumeRef = useRef<number | null>(null);
+	// Só true entre um arraste do usuário e o envio debounced correspondente —
+	// evita que a sincronização vinda do servidor (abaixo) seja confundida com
+	// uma mudança do usuário e dispare um envio espúrio ao montar o card com
+	// dados já em cache (ex: voltando do Dashboard pra Devices).
+	const userDraggedVolumeRef = useRef(false);
 
 	// Sincroniza do servidor só enquanto o usuário não está arrastando —
 	// mesma cautela do slider de brilho, evita "puxar" o dedo do usuário.
 	useEffect(() => {
 		if (media && !isDraggingVolume) {
 			setLocalVolume(media.volumePercent);
-			lastSentVolumeRef.current = media.volumePercent;
 		}
 	}, [media, isDraggingVolume]);
 
 	const debouncedVolume = useDebouncedValue(localVolume, 300);
 
 	useEffect(() => {
-		if (
-			isAdbControllable &&
-			lastSentVolumeRef.current !== null &&
-			debouncedVolume !== lastSentVolumeRef.current
-		) {
-			lastSentVolumeRef.current = debouncedVolume;
+		if (isAdbControllable && userDraggedVolumeRef.current) {
+			userDraggedVolumeRef.current = false;
 			setVolume({ deviceId: device.id, volume: debouncedVolume });
 		}
 	}, [debouncedVolume, isAdbControllable, device.id, setVolume]);
@@ -281,6 +280,7 @@ export const DeviceCard: React.FC<DeviceCardProps> = ({ device }) => {
 								const pct = Math.round(
 									((e.clientX - rect.left) / rect.width) * 100,
 								);
+								userDraggedVolumeRef.current = true;
 								setLocalVolume(Math.max(0, Math.min(100, pct)));
 							}}
 							onPointerMove={(e) => {
@@ -289,6 +289,7 @@ export const DeviceCard: React.FC<DeviceCardProps> = ({ device }) => {
 								const pct = Math.round(
 									((e.clientX - rect.left) / rect.width) * 100,
 								);
+								userDraggedVolumeRef.current = true;
 								setLocalVolume(Math.max(0, Math.min(100, pct)));
 							}}
 							onPointerUp={(e) => {
