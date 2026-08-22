@@ -5,6 +5,7 @@ import {
 } from "react-router-dom";
 import { ProtectedRoute } from "@/features/auth/guards/ProtectedRoute";
 import { PublicRoute } from "@/features/auth/guards/PublicRoute";
+import DashboardMockPreview from "@/features/dashboard/components/mock";
 import DevicesMockPreview from "@/features/devices/components/mock";
 import { DashboardPage } from "@/pages/dashboard/DashboardPage";
 import DeviceGroupsPage from "@/pages/device-groups/DeviceGroupsPage";
@@ -67,6 +68,10 @@ const router = createBrowserRouter([
 			{
 				path: "/devices/mock",
 				element: <DevicesMockPreview />,
+			},
+			{
+				path: "/dashboard/mock",
+				element: <DashboardMockPreview />,
 			},
 		],
 	},
