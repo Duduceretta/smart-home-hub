@@ -49,7 +49,8 @@
 			"mdnsZeroconf": "mDNS/Zeroconf",
 			"ssdpUpnp": "SSDP/UPnP",
 			"tuyaLocal": "Tuya Local",
-			"espHomeMqtt": "ESPHome (MQTT)"
+			"espHomeMqtt": "ESPHome (MQTT)",
+			"androidTvAdb": "Android TV (ADB)"
 		}
 	},
 	"grid": {
@@ -145,6 +146,12 @@
 	"deleteModal": {
 		"title": "Delete device?",
 		"description": "Are you sure you want to remove <bold>\"{{name}}\"</bold>? This action cannot be undone."
+	},
+	"tvSetupGuide": {
+		"title": "Smart TV Control Tips",
+		"quickStart": "Enable Quick Start in the TV's Power menu.",
+		"wakeOnLan": "Enable Wake-on-LAN/Wi-Fi in the Network settings.",
+		"networkDebugging": "Enable Network Debugging (Developer Options) and authorize the hub on the TV screen."
 	},
 	"telemetry": {
 		"title": "Telemetry History",

@@ -46,6 +46,7 @@ export const IntegrationTypeEnum = {
 	SsdpUpnp: 7,
 	TuyaLocal: 8,
 	EspHomeMqtt: 9,
+	AndroidTvAdb: 10,
 } as const;
 
 export type IntegrationTypeEnum =
@@ -65,6 +66,7 @@ export const INTEGRATION_TYPE_LABEL_KEYS = {
 	[IntegrationTypeEnum.SsdpUpnp]: "types.integrationTypes.ssdpUpnp",
 	[IntegrationTypeEnum.TuyaLocal]: "types.integrationTypes.tuyaLocal",
 	[IntegrationTypeEnum.EspHomeMqtt]: "types.integrationTypes.espHomeMqtt",
+	[IntegrationTypeEnum.AndroidTvAdb]: "types.integrationTypes.androidTvAdb",
 } as const satisfies Record<IntegrationTypeEnum, string>;
 
 /**

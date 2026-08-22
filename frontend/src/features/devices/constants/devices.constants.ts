@@ -102,6 +102,7 @@ export const INTEGRATION_ICON: Record<
 	[IntegrationTypeEnum.SsdpUpnp]: Router,
 	[IntegrationTypeEnum.TuyaLocal]: Cloud,
 	[IntegrationTypeEnum.EspHomeMqtt]: Cpu,
+	[IntegrationTypeEnum.AndroidTvAdb]: Tv,
 };
 
 export interface IntegrationFieldVisibility {
@@ -146,7 +147,7 @@ export const INTEGRATION_FIELD_VISIBILITY: Record<
 	},
 	[IntegrationTypeEnum.LgWebOs]: {
 		showIp: true,
-		showMac: false,
+		showMac: true,
 		showLocalKey: false,
 		showDpsPowerKey: false,
 		showClientKey: false,
@@ -155,7 +156,7 @@ export const INTEGRATION_FIELD_VISIBILITY: Record<
 	},
 	[IntegrationTypeEnum.GoogleCast]: {
 		showIp: true,
-		showMac: false,
+		showMac: true,
 		showLocalKey: false,
 		showDpsPowerKey: false,
 		showClientKey: true,
@@ -205,6 +206,15 @@ export const INTEGRATION_FIELD_VISIBILITY: Record<
 		showDpsPowerKey: false,
 		showClientKey: false,
 		requireIpOnCreate: false,
+		requireLocalKeyOnCreate: false,
+	},
+	[IntegrationTypeEnum.AndroidTvAdb]: {
+		showIp: true,
+		showMac: true,
+		showLocalKey: false,
+		showDpsPowerKey: false,
+		showClientKey: false,
+		requireIpOnCreate: true,
 		requireLocalKeyOnCreate: false,
 	},
 };

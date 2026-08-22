@@ -49,7 +49,8 @@
 			"mdnsZeroconf": "mDNS/Zeroconf",
 			"ssdpUpnp": "SSDP/UPnP",
 			"tuyaLocal": "Tuya Local",
-			"espHomeMqtt": "ESPHome (MQTT)"
+			"espHomeMqtt": "ESPHome (MQTT)",
+			"androidTvAdb": "Android TV (ADB)"
 		}
 	},
 	"grid": {
@@ -145,6 +146,12 @@
 	"deleteModal": {
 		"title": "Excluir dispositivo?",
 		"description": "Tem certeza que deseja remover <bold>\"{{name}}\"</bold>? Esta ação não poderá ser desfeita."
+	},
+	"tvSetupGuide": {
+		"title": "Dicas para Controle da Smart TV",
+		"quickStart": "Ative a Inicialização Rápida no menu de Energia da TV.",
+		"wakeOnLan": "Ative o Wake-on-LAN/Wi-Fi nas configurações de Rede.",
+		"networkDebugging": "Ative a Depuração de Rede (Opções de Desenvolvedor) e autorize o hub na tela da TV."
 	},
 	"telemetry": {
 		"title": "Histórico de telemetria",
