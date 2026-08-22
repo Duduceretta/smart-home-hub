@@ -5,6 +5,7 @@ using Microsoft.Extensions.Logging;
 using NSubstitute;
 using NSubstitute.ClearExtensions;
 using SmartHomeHub.Application.Common.Interfaces;
+using SmartHomeHub.Application.Features.Devices.Common;
 using SmartHomeHub.Domain.Entities;
 using SmartHomeHub.Domain.Enums;
 using SmartHomeHub.Domain.ValueObjects;
@@ -148,5 +149,179 @@ public class DeviceStatePollingWorkerTests(IntegrationTestWebAppFactory factory)
         await _googleTvService
             .DidNotReceive()
             .GetPowerStateAsync(ipAddress, Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task RunPollingCycle_WhenAndroidTvIsOnWithMediaPlaying_ShouldNotifyMediaChangedOnce()
+    {
+        Reset();
+
+        var user = await SeedUserAsync();
+        const string ipAddress = "192.168.1.214";
+        var device = new Device
+        {
+            UserId = user.Id,
+            Name = "Android TV Cozinha",
+            Brand = "Sony",
+            ExternalId = "ADB-MEDIA-001",
+            Type = DeviceType.Television,
+            IntegrationType = IntegrationType.AndroidTvAdb,
+            IsOn = true,
+            Configuration = new DeviceConfiguration { IpAddress = ipAddress },
+        };
+        DbContext.Devices.Add(device);
+        await DbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+
+        _googleTvService.GetPowerStateAsync(ipAddress, Arg.Any<CancellationToken>()).Returns(true);
+        _googleTvService.GetVolumePercentAsync(ipAddress, Arg.Any<CancellationToken>()).Returns(60);
+        _googleTvService
+            .GetMediaSessionInfoAsync(ipAddress, Arg.Any<CancellationToken>())
+            .Returns(new MediaSessionInfo("Some Video", "Some Channel", true));
+
+        await CreateWorker().RunPollingCycleAsync(TestContext.Current.CancellationToken);
+
+        await _notificationService
+            .Received(1)
+            .NotifyDeviceMediaChangedAsync(
+                user.ExternalAuthUid,
+                device.Id,
+                Arg.Is<DeviceMediaStateDto>(state =>
+                    state != null
+                    && state.VolumePercent == 60
+                    && state.IsPlaying
+                    && state.Title == "Some Video"
+                    && state.Artist == "Some Channel"
+                ),
+                Arg.Any<CancellationToken>()
+            );
+    }
+
+    [Fact]
+    public async Task RunPollingCycle_WhenMediaStateUnchangedAcrossCycles_ShouldNotifyOnlyOnce()
+    {
+        Reset();
+
+        var user = await SeedUserAsync();
+        const string ipAddress = "192.168.1.215";
+        var device = new Device
+        {
+            UserId = user.Id,
+            Name = "Android TV Escritório",
+            Brand = "Sony",
+            ExternalId = "ADB-MEDIA-002",
+            Type = DeviceType.Television,
+            IntegrationType = IntegrationType.AndroidTvAdb,
+            IsOn = true,
+            Configuration = new DeviceConfiguration { IpAddress = ipAddress },
+        };
+        DbContext.Devices.Add(device);
+        await DbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+
+        _googleTvService.GetPowerStateAsync(ipAddress, Arg.Any<CancellationToken>()).Returns(true);
+        _googleTvService.GetVolumePercentAsync(ipAddress, Arg.Any<CancellationToken>()).Returns(60);
+        _googleTvService
+            .GetMediaSessionInfoAsync(ipAddress, Arg.Any<CancellationToken>())
+            .Returns(new MediaSessionInfo("Some Video", "Some Channel", true));
+
+        var worker = CreateWorker();
+        await worker.RunPollingCycleAsync(TestContext.Current.CancellationToken);
+
+        _notificationService.ClearReceivedCalls();
+
+        await worker.RunPollingCycleAsync(TestContext.Current.CancellationToken);
+
+        await _notificationService
+            .DidNotReceive()
+            .NotifyDeviceMediaChangedAsync(
+                Arg.Any<string>(),
+                device.Id,
+                Arg.Any<DeviceMediaStateDto>(),
+                Arg.Any<CancellationToken>()
+            );
+    }
+
+    [Fact]
+    public async Task RunPollingCycle_WhenAndroidTvTurnsOff_ShouldNotifyZeroedMediaWithoutAdbCalls()
+    {
+        Reset();
+
+        var user = await SeedUserAsync();
+        const string ipAddress = "192.168.1.216";
+        var device = new Device
+        {
+            UserId = user.Id,
+            Name = "Android TV Varanda",
+            Brand = "Sony",
+            ExternalId = "ADB-MEDIA-003",
+            Type = DeviceType.Television,
+            IntegrationType = IntegrationType.AndroidTvAdb,
+            IsOn = true,
+            Configuration = new DeviceConfiguration { IpAddress = ipAddress },
+        };
+        DbContext.Devices.Add(device);
+        await DbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+
+        _googleTvService.GetPowerStateAsync(ipAddress, Arg.Any<CancellationToken>()).Returns(false);
+
+        await CreateWorker().RunPollingCycleAsync(TestContext.Current.CancellationToken);
+
+        await _notificationService
+            .Received(1)
+            .NotifyDeviceMediaChangedAsync(
+                user.ExternalAuthUid,
+                device.Id,
+                Arg.Is<DeviceMediaStateDto>(state =>
+                    state != null && state.VolumePercent == 0 && !state.IsPlaying && state.Title == null
+                ),
+                Arg.Any<CancellationToken>()
+            );
+
+        await _googleTvService
+            .DidNotReceive()
+            .GetVolumePercentAsync(ipAddress, Arg.Any<CancellationToken>());
+        await _googleTvService
+            .DidNotReceive()
+            .GetMediaSessionInfoAsync(ipAddress, Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task RunPollingCycle_ForLgWebOsTv_ShouldNeverCallMediaMethods()
+    {
+        Reset();
+
+        var user = await SeedUserAsync();
+        const string ipAddress = "192.168.1.217";
+        var device = new Device
+        {
+            UserId = user.Id,
+            Name = "LG WebOS Sala",
+            Brand = "LG",
+            ExternalId = "LG-MEDIA-001",
+            Type = DeviceType.Television,
+            IntegrationType = IntegrationType.LgWebOs,
+            IsOn = false,
+            Configuration = new DeviceConfiguration { IpAddress = ipAddress },
+        };
+        DbContext.Devices.Add(device);
+        await DbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+
+        _googleTvService.GetPowerStateAsync(ipAddress, Arg.Any<CancellationToken>()).Returns(true);
+
+        await CreateWorker().RunPollingCycleAsync(TestContext.Current.CancellationToken);
+
+        await _googleTvService
+            .DidNotReceive()
+            .GetVolumePercentAsync(ipAddress, Arg.Any<CancellationToken>());
+        await _googleTvService
+            .DidNotReceive()
+            .GetMediaSessionInfoAsync(ipAddress, Arg.Any<CancellationToken>());
+        await _notificationService
+            .DidNotReceive()
+            .NotifyDeviceMediaChangedAsync(
+                Arg.Any<string>(),
+                Arg.Any<Guid>(),
+                Arg.Any<DeviceMediaStateDto>(),
+                Arg.Any<CancellationToken>()
+            );
     }
 }

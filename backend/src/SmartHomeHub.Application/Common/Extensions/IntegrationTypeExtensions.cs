@@ -26,4 +26,9 @@ public static class IntegrationTypeExtensions
             IntegrationType.MdnsZeroconf or IntegrationType.SsdpUpnp => [80, 8080],
             _ => [],
         };
+
+    // LgWebOs usa o protocolo WebOS SSAP (não ADB) — comandos via adb shell
+    // (keycodes, volume, dumpsys) só se aplicam a GoogleCast/AndroidTvAdb.
+    public static bool IsAdbControllable(this IntegrationType type) =>
+        type is IntegrationType.GoogleCast or IntegrationType.AndroidTvAdb;
 }

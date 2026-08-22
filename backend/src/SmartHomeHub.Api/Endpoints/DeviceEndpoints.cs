@@ -6,9 +6,12 @@ using SmartHomeHub.Application.Common.Interfaces;
 using SmartHomeHub.Application.Common.Pagination;
 using SmartHomeHub.Application.Features.Devices.Commands.CreateDevice;
 using SmartHomeHub.Application.Features.Devices.Commands.DeleteDevice;
+using SmartHomeHub.Application.Features.Devices.Commands.SetDeviceVolume;
 using SmartHomeHub.Application.Features.Devices.Commands.ToggleDevice;
 using SmartHomeHub.Application.Features.Devices.Commands.UpdateDevice;
+using SmartHomeHub.Application.Features.Devices.Common;
 using SmartHomeHub.Application.Features.Devices.Queries.GetDeviceById;
+using SmartHomeHub.Application.Features.Devices.Queries.GetDeviceMediaState;
 using SmartHomeHub.Application.Features.Devices.Queries.GetDevices;
 using SmartHomeHub.Application.Features.Devices.Queries.GetDeviceTelemetryHistory;
 using SmartHomeHub.Domain.Enums;
@@ -126,6 +129,74 @@ public static class DeviceEndpoints
             .Produces<DeviceTelemetryHistoryDto>(StatusCodes.Status200OK)
             .ProducesProblem(StatusCodes.Status404NotFound)
             .ProducesProblem(StatusCodes.Status401Unauthorized);
+
+        app.MapGet(
+                "/api/devices/{id:guid}/media",
+                async (
+                    Guid id,
+                    ClaimsPrincipal userToken,
+                    IMediator mediator,
+                    CancellationToken cancellationToken
+                ) =>
+                {
+                    var firebaseUid = userToken.FindFirst("user_id")?.Value;
+                    if (string.IsNullOrEmpty(firebaseUid))
+                        return Results.Unauthorized();
+
+                    var query = new GetDeviceMediaStateQuery(id, firebaseUid);
+                    var result = await mediator.Send(query, cancellationToken);
+
+                    return result.IsSuccess
+                        ? Results.Ok(result.Value)
+                        : Results.Problem(
+                            statusCode: StatusCodes.Status404NotFound,
+                            title: result.Error.Code,
+                            detail: result.Error.Description
+                        );
+                }
+            )
+            .RequireAuthorization()
+            .WithTags("⚡ Dispositivos")
+            .WithSummary("Obtém volume e mídia em reprodução da TV")
+            .WithDescription(
+                "Consulta em tempo real (via ADB) o volume atual e a sessão de mídia ativa da TV. Só suportado por TVs GoogleCast/AndroidTvAdb."
+            )
+            .Produces<DeviceMediaStateDto>(StatusCodes.Status200OK)
+            .ProducesProblem(StatusCodes.Status404NotFound)
+            .ProducesProblem(StatusCodes.Status401Unauthorized);
+
+        app.MapPut(
+                "/api/devices/{id:guid}/volume",
+                async (
+                    Guid id,
+                    SetVolumeRequest request,
+                    ClaimsPrincipal userToken,
+                    IMediator mediator,
+                    CancellationToken cancellationToken
+                ) =>
+                {
+                    var firebaseUid = userToken.FindFirst("user_id")?.Value;
+                    if (string.IsNullOrEmpty(firebaseUid))
+                        return Results.Unauthorized();
+
+                    var command = new SetDeviceVolumeCommand(id, firebaseUid, request.Volume);
+                    var result = await mediator.Send(command, cancellationToken);
+
+                    if (result.IsFailure)
+                        return result.ToProblemDetails();
+
+                    return Results.Ok(new { message = "Volume ajustado com sucesso." });
+                }
+            )
+            .RequireAuthorization()
+            .WithTags("⚡ Dispositivos")
+            .WithSummary("Ajusta o volume da TV")
+            .WithDescription(
+                "Define o volume (0-100%) da TV via ADB, convertendo para o nível absoluto real do stream de mídia. Só suportado por TVs GoogleCast/AndroidTvAdb."
+            )
+            .Produces<object>(StatusCodes.Status200OK)
+            .ProducesProblem(StatusCodes.Status400BadRequest)
+            .ProducesProblem(StatusCodes.Status404NotFound);
 
         app.MapPost(
                 "/api/devices",
@@ -370,6 +441,8 @@ public record CreateDeviceRequest(
 );
 
 public record StartDiscoveryRequest(int TimeoutSeconds = 30);
+
+public record SetVolumeRequest(int Volume);
 
 public record UpdateDeviceRequest(
     string Name,

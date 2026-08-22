@@ -77,4 +77,21 @@ public class IntegrationTypeExtensionsTests
     {
         type.GetProbeCandidatePorts().Should().BeEmpty();
     }
+
+    [Theory]
+    [InlineData(IntegrationType.GoogleCast)]
+    [InlineData(IntegrationType.AndroidTvAdb)]
+    public void IsAdbControllable_ForGoogleCastOrAndroidTvAdb_ShouldReturnTrue(IntegrationType type)
+    {
+        type.IsAdbControllable().Should().BeTrue();
+    }
+
+    [Theory]
+    [InlineData(IntegrationType.LgWebOs)]
+    [InlineData(IntegrationType.NativeMqtt)]
+    [InlineData(IntegrationType.TuyaLocal)]
+    public void IsAdbControllable_ForNonAdbIntegrations_ShouldReturnFalse(IntegrationType type)
+    {
+        type.IsAdbControllable().Should().BeFalse();
+    }
 }

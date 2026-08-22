@@ -64,4 +64,27 @@ public class RealtimeNotificationService(IHubContext<TelemetryHub> hubContext)
             .Clients.Group($"user_{firebaseUid}")
             .SendAsync("DeviceDiscovered", device, cancellationToken);
     }
+
+    public async Task NotifyDeviceMediaChangedAsync(
+        string firebaseUid,
+        Guid deviceId,
+        DeviceMediaStateDto state,
+        CancellationToken cancellationToken = default
+    )
+    {
+        await hubContext
+            .Clients.Group($"user_{firebaseUid}")
+            .SendAsync(
+                "DeviceMediaChanged",
+                new
+                {
+                    deviceId,
+                    state.VolumePercent,
+                    state.IsPlaying,
+                    state.Title,
+                    state.Artist,
+                },
+                cancellationToken
+            );
+    }
 }

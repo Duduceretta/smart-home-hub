@@ -26,4 +26,11 @@ public interface IRealtimeNotificationService
         DiscoveredDeviceDto device,
         CancellationToken cancellationToken = default
     );
+
+    Task NotifyDeviceMediaChangedAsync(
+        string firebaseUid,
+        Guid deviceId,
+        DeviceMediaStateDto state,
+        CancellationToken cancellationToken = default
+    );
 }

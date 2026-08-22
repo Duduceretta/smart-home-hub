@@ -3,6 +3,7 @@ using System.Text.RegularExpressions;
 using FluentValidation;
 using Mediator;
 using Microsoft.EntityFrameworkCore;
+using SmartHomeHub.Application.Common.Extensions;
 using SmartHomeHub.Application.Common.Interfaces;
 using SmartHomeHub.Domain.Common.Constants;
 using SmartHomeHub.Domain.Common.Exceptions;
@@ -95,7 +96,7 @@ public partial class ToggleDeviceCommandHandler(
                 }
 
                 var wokeUpViaAdb =
-                    IsAdbControllable(device.IntegrationType)
+                    device.IntegrationType.IsAdbControllable()
                     && await TryWakeUpViaAdbAsync(ipAddress, cancellationToken);
 
                 if (!wokeUpViaAdb)
@@ -156,9 +157,6 @@ public partial class ToggleDeviceCommandHandler(
             is IntegrationType.GoogleCast
                 or IntegrationType.AndroidTvAdb
                 or IntegrationType.LgWebOs;
-
-    private static bool IsAdbControllable(IntegrationType integrationType) =>
-        integrationType is IntegrationType.GoogleCast or IntegrationType.AndroidTvAdb;
 
     /// <summary>
     /// Tenta acordar o display via ADB (KEYCODE_WAKEUP), com uma segunda tentativa
