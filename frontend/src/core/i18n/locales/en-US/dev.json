@@ -1,0 +1,29 @@
+{
+	"title": "Developer Tools",
+	"description": "IoT device simulator for testing without real hardware. Available only in development environment.",
+	"seed": {
+		"title": "Generate Mock House",
+		"description": "Creates mock rooms and devices (TV, lights, plugs, sensors) linked to your account.",
+		"action": "Generate Mock House (Seed)",
+		"clearAction": "Remove Mock House"
+	},
+	"telemetry": {
+		"title": "Emit Manual Telemetry",
+		"description": "Injects a simulated telemetry event for a specific device.",
+		"fields": {
+			"device": "Device",
+			"watts": "Power (Watts)",
+			"temperature": "Temperature (°C)"
+		},
+		"action": "Emit Telemetry"
+	},
+	"connectivity": {
+		"title": "Force Connectivity",
+		"description": "Simulates a device's connection dropping or coming back online.",
+		"fields": {
+			"device": "Device"
+		},
+		"online": "Force Online",
+		"offline": "Force Offline"
+	}
+}

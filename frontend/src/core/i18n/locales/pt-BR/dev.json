@@ -1,0 +1,29 @@
+{
+	"title": "Ferramentas de Desenvolvimento",
+	"description": "Simulador de dispositivos IoT para testes sem hardware real. Disponível apenas em ambiente de desenvolvimento.",
+	"seed": {
+		"title": "Gerar Casa Mock",
+		"description": "Cria ambientes e dispositivos fictícios (TV, lâmpadas, tomadas, sensores) vinculados à sua conta.",
+		"action": "Gerar Casa Mock (Seed)",
+		"clearAction": "Remover Casa Mock"
+	},
+	"telemetry": {
+		"title": "Emitir Telemetria Manual",
+		"description": "Injeta um evento de telemetria simulado para um dispositivo específico.",
+		"fields": {
+			"device": "Dispositivo",
+			"watts": "Consumo (Watts)",
+			"temperature": "Temperatura (°C)"
+		},
+		"action": "Emitir Telemetria"
+	},
+	"connectivity": {
+		"title": "Forçar Conectividade",
+		"description": "Simula a queda ou retorno de conexão de um dispositivo.",
+		"fields": {
+			"device": "Dispositivo"
+		},
+		"online": "Forçar Online",
+		"offline": "Forçar Offline"
+	}
+}

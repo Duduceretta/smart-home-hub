@@ -1,3 +1,4 @@
+import { lazy, Suspense } from "react";
 import {
 	createBrowserRouter,
 	Navigate,
@@ -17,6 +18,10 @@ import { ResetPasswordPage } from "@/pages/reset-password/ResetPasswordPage";
 import RoomsPage from "@/pages/rooms/RoomsPage";
 import { SettingsPage } from "@/pages/settings/SettingsPage";
 import { AppLayout } from "@/widgets/layout/AppLayout";
+
+const DevToolsPage = import.meta.env.DEV
+	? lazy(() => import("@/pages/dev/DevToolsPage"))
+	: null;
 
 const router = createBrowserRouter([
 	{
@@ -63,6 +68,18 @@ const router = createBrowserRouter([
 						path: "/settings",
 						element: <SettingsPage />,
 					},
+					...(import.meta.env.DEV && DevToolsPage
+						? [
+								{
+									path: "/dev-tools",
+									element: (
+										<Suspense fallback={null}>
+											<DevToolsPage />
+										</Suspense>
+									),
+								},
+							]
+						: []),
 				],
 			},
 			{
