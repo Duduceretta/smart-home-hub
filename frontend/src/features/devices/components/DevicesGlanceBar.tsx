@@ -51,7 +51,7 @@ export const DevicesGlanceBar: React.FC = () => {
 				{["sk-1", "sk-2", "sk-3", "sk-4"].map((sk) => (
 					<div
 						key={sk}
-						className="h-10 w-36 shrink-0 animate-pulse rounded-full bg-[#353435]/60"
+						className="h-10 w-36 shrink-0 animate-pulse rounded-full bg-surface-highest/60"
 					/>
 				))}
 			</div>
@@ -67,8 +67,8 @@ export const DevicesGlanceBar: React.FC = () => {
 			className="flex gap-2 overflow-x-auto pb-2 scrollbar-none snap-x snap-mandatory"
 		>
 			{/* 1. Chip Fixo / Informativo: Total */}
-			<div className="flex shrink-0 snap-start items-center gap-2 rounded-full bg-linear-to-b from-[#353435] to-[#2e2e2f] px-4 py-2 text-sm font-medium text-[#e5e2e2] shadow-sm">
-				<Cpu className="h-4 w-4 text-[#c5c6cf]" aria-hidden="true" />
+			<div className="flex shrink-0 snap-start items-center gap-2 rounded-full bg-linear-to-b from-surface-highest to-[#2e2e2f] px-4 py-2 text-sm font-medium text-foreground shadow-sm">
+				<Cpu className="h-4 w-4 text-primary" aria-hidden="true" />
 				<span>{t("glanceBar.total", { count: metrics.total })}</span>
 			</div>
 
@@ -87,13 +87,13 @@ export const DevicesGlanceBar: React.FC = () => {
 				}}
 				className={`flex shrink-0 snap-start items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-all shadow-sm ${
 					isLightsFilterActive
-						? "bg-[#d3c4b8]/20 text-[#d3c4b8] ring-1 ring-[#d3c4b8]/50"
-						: "bg-linear-to-b from-[#353435] to-[#2e2e2f] text-[#e5e2e2] hover:from-[#3a3939] hover:to-[#333333]"
+						? "bg-warm/20 text-warm ring-1 ring-warm/50"
+						: "bg-linear-to-b from-surface-highest to-[#2e2e2f] text-foreground hover:from-[#3a3939] hover:to-[#333333]"
 				}`}
 			>
 				<Lightbulb
 					className={`h-4 w-4 ${
-						isLightsFilterActive ? "text-[#d3c4b8] fill-current" : "text-[#d3c4b8]"
+						isLightsFilterActive ? "text-warm fill-current" : "text-warm"
 					}`}
 					aria-hidden="true"
 				/>
@@ -107,15 +107,15 @@ export const DevicesGlanceBar: React.FC = () => {
 				onClick={toggleOnlyOn}
 				className={`flex shrink-0 snap-start items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-all shadow-sm ${
 					onlyOn && activeTab === "Todos"
-						? "bg-[#c5c6cf]/20 text-[#c5c6cf] ring-1 ring-[#c5c6cf]/50"
-						: "bg-linear-to-b from-[#353435] to-[#2e2e2f] text-[#e5e2e2] hover:from-[#3a3939] hover:to-[#333333]"
+						? "bg-primary/20 text-primary ring-1 ring-primary/50"
+						: "bg-linear-to-b from-surface-highest to-[#2e2e2f] text-foreground hover:from-[#3a3939] hover:to-[#333333]"
 				}`}
 			>
 				<Zap
 					className={`h-4 w-4 ${
 						onlyOn && activeTab === "Todos"
-							? "text-[#c5c6cf] fill-current"
-							: "text-[#c5c6cf]"
+							? "text-primary fill-current"
+							: "text-primary"
 					}`}
 					aria-hidden="true"
 				/>
@@ -125,8 +125,8 @@ export const DevicesGlanceBar: React.FC = () => {
 			</button>
 
 			{/* 4. Chip Informativo: Clima */}
-			<div className="flex shrink-0 snap-start items-center gap-2 rounded-full bg-linear-to-b from-[#353435] to-[#2e2e2f] px-4 py-2 text-sm font-medium text-[#e5e2e2] shadow-sm">
-				<Snowflake className="h-4 w-4 text-[#c4c6d2]" aria-hidden="true" />
+			<div className="flex shrink-0 snap-start items-center gap-2 rounded-full bg-linear-to-b from-surface-highest to-[#2e2e2f] px-4 py-2 text-sm font-medium text-foreground shadow-sm">
+				<Snowflake className="h-4 w-4 text-cool" aria-hidden="true" />
 				<span>{t("glanceBar.climate", { count: metrics.climateCount })}</span>
 			</div>
 
@@ -140,13 +140,15 @@ export const DevicesGlanceBar: React.FC = () => {
 					}
 					className={`flex shrink-0 snap-start items-center gap-2 rounded-full border px-4 py-2 text-sm font-medium transition-all shadow-sm ${
 						isOfflineFilterActive
-							? "bg-[#93000a]/30 text-[#ffb4ab] border-[#ffb4ab]/60 ring-1 ring-[#ffb4ab]/40"
-							: "bg-[#93000a]/20 border-[#93000a]/50 text-[#ffb4ab] hover:bg-[#93000a]/30"
+							? "bg-alert/30 text-alert-foreground border-alert-foreground/60 ring-1 ring-alert-foreground/40"
+							: "bg-alert/20 border-alert/50 text-alert-foreground hover:bg-alert/30"
 					}`}
 				>
 					<AlertTriangle
 						className={`h-4 w-4 ${
-							isOfflineFilterActive ? "text-[#ffb4ab]" : "text-[#ffb4ab]"
+							isOfflineFilterActive
+								? "text-alert-foreground"
+								: "text-alert-foreground"
 						}`}
 						aria-hidden="true"
 					/>

@@ -18,8 +18,8 @@ export const Pill: React.FC<PillProps> = ({
 			onClick={onClick}
 			className={`shrink-0 inline-flex items-center gap-2 rounded-full border px-4 py-2 text-xs font-semibold transition-colors cursor-pointer ${
 				active
-					? "bg-[#c5c6cf]/20 border-[#c5c6cf]/50 text-[#e5e2e2]"
-					: "bg-[#201f20] border-[#46464b]/20 text-[#c7c6cb] hover:bg-[#2a2a2a] hover:text-[#e5e2e2]"
+					? "bg-primary/20 border-primary/50 text-foreground"
+					: "bg-surface-container border-border-subtle/20 text-muted-foreground hover:bg-surface-high hover:text-foreground"
 			} ${className}`}
 		>
 			{children}

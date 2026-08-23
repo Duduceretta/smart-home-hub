@@ -26,8 +26,8 @@ export function DeviceTypeFilterChips({
 					onClick={() => onChange(chip)}
 					className={`shrink-0 text-[11px] font-mono uppercase tracking-wider pb-1 border-b-2 transition-colors cursor-pointer ${
 						activeChip === chip
-							? "text-[#e5e2e2] border-[#c5c6cf]"
-							: "text-[#c7c6cb]/60 border-transparent hover:text-[#e5e2e2]"
+							? "text-foreground border-primary"
+							: "text-muted-foreground/60 border-transparent hover:text-foreground"
 					}`}
 				>
 					{t(`filterChips.${chip}`)} ({countsByChip[chip]})

@@ -83,17 +83,17 @@ export function RoomDeviceSection({
 			onOpenChange={(open) => setRoomExpanded(roomKey, open)}
 			className="flex flex-col gap-3"
 		>
-			<div className="flex w-full items-center justify-between border-b border-[#46464b]/20 pb-2">
+			<div className="flex w-full items-center justify-between border-b border-border-subtle/20 pb-2">
 				<button
 					type="button"
 					onClick={() => setRoomExpanded(roomKey, !expanded)}
 					className="flex items-center gap-2 cursor-pointer group"
 				>
-					<RoomIcon className="w-4 h-4 text-[#c5c6cf]/80 group-hover:text-[#c5c6cf] transition-colors" />
-					<h3 className="text-[10px] font-semibold tracking-wider text-[#c7c6cb] uppercase">
+					<RoomIcon className="w-4 h-4 text-primary/80 group-hover:text-primary transition-colors" />
+					<h3 className="text-[10px] font-semibold tracking-wider text-muted-foreground uppercase">
 						{title}
 					</h3>
-					<span className="text-[10px] text-[#c7c6cb]/60">
+					<span className="text-[10px] text-muted-foreground/60">
 						({devices.length})
 					</span>
 				</button>
@@ -106,7 +106,7 @@ export function RoomDeviceSection({
 							"roomSection.editTitle",
 							"Escolher dispositivos exibidos",
 						)}
-						className="rounded-md p-1 text-[#c7c6cb] transition-colors hover:bg-[#2a2a2a] hover:text-[#e5e2e2] cursor-pointer"
+						className="rounded-md p-1 text-muted-foreground transition-colors hover:bg-surface-high hover:text-foreground cursor-pointer"
 					>
 						<Pencil className="h-3.5 w-3.5" />
 					</button>
@@ -114,7 +114,7 @@ export function RoomDeviceSection({
 						type="button"
 						onClick={() => setRoomExpanded(roomKey, !expanded)}
 						aria-label={t("roomSection.toggleExpand", "Expandir/recolher")}
-						className="rounded-md p-1 text-[#c7c6cb] transition-colors hover:bg-[#2a2a2a] hover:text-[#e5e2e2] cursor-pointer"
+						className="rounded-md p-1 text-muted-foreground transition-colors hover:bg-surface-high hover:text-foreground cursor-pointer"
 					>
 						<ChevronDown
 							className={`h-4 w-4 transition-transform duration-200 ${expanded ? "" : "-rotate-90"}`}
@@ -134,7 +134,7 @@ export function RoomDeviceSection({
 					<button
 						type="button"
 						onClick={handleViewAll}
-						className="flex items-center justify-center gap-1.5 rounded-lg border border-[#46464b]/20 bg-[#201f20] py-2 text-xs font-medium text-[#c7c6cb] transition-colors hover:bg-[#2a2a2a] hover:text-[#e5e2e2] cursor-pointer"
+						className="flex items-center justify-center gap-1.5 rounded-lg border border-border-subtle/20 bg-surface-container py-2 text-xs font-medium text-muted-foreground transition-colors hover:bg-surface-high hover:text-foreground cursor-pointer"
 					>
 						{t("roomSection.viewAllDevices", "Ver todos os dispositivos")}
 						<ChevronRight className="h-3.5 w-3.5" />

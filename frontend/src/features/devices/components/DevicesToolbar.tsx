@@ -58,7 +58,7 @@ export const DevicesToolbar: React.FC = () => {
 			{/* 1. Filtro por Cômodos (Pills) + Limpar Filtros */}
 			<div className="flex items-center gap-2 min-w-0 flex-1">
 				{rooms.length === 0 ? (
-					<p className="text-xs text-[#c7c6cb]">
+					<p className="text-xs text-muted-foreground">
 						{t(
 							"toolbar.roomFilterEmpty",
 							"Seus filtros por cômodos aparecerão aqui quando você tiver cômodos registrados.",
@@ -76,8 +76,8 @@ export const DevicesToolbar: React.FC = () => {
 							onClick={() => setSelectedRoomId(null)}
 							className={`shrink-0 rounded-full px-4 py-1.5 text-xs font-medium transition-all shadow-sm ${
 								selectedRoomId === null
-									? "bg-[#c5c6cf]/20 text-[#c5c6cf] ring-1 ring-[#c5c6cf]/50"
-									: "bg-[#201f20] text-[#c7c6cb] hover:bg-[#2a2a2a] hover:text-[#e5e2e2]"
+									? "bg-primary/20 text-primary ring-1 ring-primary/50"
+									: "bg-surface-container text-muted-foreground hover:bg-surface-high hover:text-foreground"
 							}`}
 						>
 							{t("toolbar.roomFilterAll", "Todos")}
@@ -94,8 +94,8 @@ export const DevicesToolbar: React.FC = () => {
 									onClick={() => setSelectedRoomId(room.id)}
 									className={`shrink-0 rounded-full px-4 py-1.5 text-xs font-medium transition-all shadow-sm ${
 										isSelected
-											? "bg-[#c5c6cf]/20 text-[#c5c6cf] ring-1 ring-[#c5c6cf]/50"
-											: "bg-[#201f20] text-[#c7c6cb] hover:bg-[#2a2a2a] hover:text-[#e5e2e2]"
+											? "bg-primary/20 text-primary ring-1 ring-primary/50"
+											: "bg-surface-container text-muted-foreground hover:bg-surface-high hover:text-foreground"
 									}`}
 								>
 									{room.name}
@@ -109,7 +109,7 @@ export const DevicesToolbar: React.FC = () => {
 					<button
 						type="button"
 						onClick={resetFilters}
-						className="flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium text-[#c7c6cb] transition-colors hover:bg-[#201f20] hover:text-[#e5e2e2] cursor-pointer"
+						className="flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-surface-container hover:text-foreground cursor-pointer"
 					>
 						<FilterX className="h-3.5 w-3.5" />
 						{t("grid.clearFilters", "Limpar filtros")}
@@ -122,7 +122,7 @@ export const DevicesToolbar: React.FC = () => {
 				{/* Campo de Busca Expansível */}
 				<div className="relative flex items-center">
 					<Search
-						className="absolute left-3 h-4 w-4 text-[#c7c6cb] pointer-events-none"
+						className="absolute left-3 h-4 w-4 text-muted-foreground pointer-events-none"
 						aria-hidden="true"
 					/>
 					<input
@@ -132,26 +132,26 @@ export const DevicesToolbar: React.FC = () => {
 						onChange={(e) => setQuery(e.target.value)}
 						placeholder={t("toolbar.searchPlaceholder", "Buscar...")}
 						aria-label={t("toolbar.searchAriaLabel", "Buscar dispositivos")}
-						className="w-44 rounded-full bg-[#1c1b1c] py-1.5 pl-9 pr-14 text-xs text-[#e5e2e2] placeholder-[#c7c6cb]/60 outline-none transition-all duration-300 focus:w-60 focus:ring-1 focus:ring-[#c5c6cf]"
+						className="w-44 rounded-full bg-surface-low py-1.5 pl-9 pr-14 text-xs text-foreground placeholder-muted-foreground/60 outline-none transition-all duration-300 focus:w-60 focus:ring-1 focus:ring-primary"
 					/>
 					{query ? (
 						<button
 							type="button"
 							onClick={() => setQuery("")}
 							aria-label={t("toolbar.clearSearchAriaLabel", "Limpar busca")}
-							className="absolute right-2.5 p-1 text-[#c7c6cb] hover:text-[#e5e2e2] rounded-full transition-colors"
+							className="absolute right-2.5 p-1 text-muted-foreground hover:text-foreground rounded-full transition-colors"
 						>
 							<X className="h-3.5 w-3.5" />
 						</button>
 					) : (
-						<kbd className="pointer-events-none absolute right-2 flex h-5 items-center justify-center rounded bg-[#201f20] px-1.5 font-mono text-[9px] text-[#c7c6cb]">
+						<kbd className="pointer-events-none absolute right-2 flex h-5 items-center justify-center rounded bg-surface-container px-1.5 font-mono text-[9px] text-muted-foreground">
 							Ctrl+K
 						</kbd>
 					)}
 				</div>
 
 				{/* Segmented Control (Grade / Lista) */}
-				<fieldset className="flex items-center gap-1 rounded-lg bg-[#1c1b1c] p-1 border-0 m-0">
+				<fieldset className="flex items-center gap-1 rounded-lg bg-surface-low p-1 border-0 m-0">
 					<legend className="sr-only">
 						{t("toolbar.viewModeLabel", "Modo de visualização")}
 					</legend>
@@ -162,8 +162,8 @@ export const DevicesToolbar: React.FC = () => {
 						onClick={() => setViewMode("grid")}
 						className={`rounded p-1.5 transition-colors ${
 							viewMode === "grid"
-								? "bg-[#2a2a2a] text-[#e5e2e2] shadow-sm"
-								: "text-[#c7c6cb] hover:text-[#e5e2e2]"
+								? "bg-surface-high text-foreground shadow-sm"
+								: "text-muted-foreground hover:text-foreground"
 						}`}
 					>
 						<LayoutGrid className="h-4 w-4" />
@@ -175,8 +175,8 @@ export const DevicesToolbar: React.FC = () => {
 						onClick={() => setViewMode("list")}
 						className={`rounded p-1.5 transition-colors ${
 							viewMode === "list"
-								? "bg-[#2a2a2a] text-[#e5e2e2] shadow-sm"
-								: "text-[#c7c6cb] hover:text-[#e5e2e2]"
+								? "bg-surface-high text-foreground shadow-sm"
+								: "text-muted-foreground hover:text-foreground"
 						}`}
 					>
 						<List className="h-4 w-4" />

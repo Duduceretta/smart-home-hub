@@ -17,9 +17,9 @@ export function EnergyLoadWidget() {
 
 	if (isLoading || !data) {
 		return (
-			<div className="rounded-xl border border-[#46464b]/20 bg-[#201f20] p-5 flex flex-col animate-pulse">
-				<div className="h-4 w-48 bg-[#2a2a2a] rounded-md mb-6" />
-				<div className="flex-1 min-h-62.5 w-full bg-[#2a2a2a]/40 rounded-xl" />
+			<div className="rounded-xl border border-border-subtle/20 bg-surface-container p-5 flex flex-col animate-pulse">
+				<div className="h-4 w-48 bg-surface-high rounded-md mb-6" />
+				<div className="flex-1 min-h-62.5 w-full bg-surface-high/40 rounded-xl" />
 			</div>
 		);
 	}
@@ -36,15 +36,15 @@ export function EnergyLoadWidget() {
 	});
 
 	return (
-		<div className="rounded-xl border border-[#46464b]/20 bg-[#201f20] p-5 flex flex-col transition-all duration-200 hover:border-[#c5c6cf]/25 hover:shadow-lg hover:shadow-black/30">
+		<div className="rounded-xl border border-border-subtle/20 bg-surface-container p-5 flex flex-col transition-all duration-200 hover:border-primary/25 hover:shadow-lg hover:shadow-black/30">
 			<div className="flex items-center justify-between mb-6">
 				<div className="flex items-center gap-2">
-					<div className="w-1.5 h-5 bg-[#c5c6cf] rounded-full" />
-					<h3 className="text-sm font-medium text-[#e5e2e2]">
+					<div className="w-1.5 h-5 bg-primary rounded-full" />
+					<h3 className="text-sm font-medium text-foreground">
 						{t("energyChart.title")}
 					</h3>
 				</div>
-				<span className="text-[10px] font-semibold tracking-wider text-[#c5c6cf] bg-[#c5c6cf]/10 px-2.5 py-1 rounded-md border border-[#c5c6cf]/20">
+				<span className="text-[10px] font-semibold tracking-wider text-primary bg-primary/10 px-2.5 py-1 rounded-md border border-primary/20">
 					{data.summary.energyConsumptionKwh.toFixed(1)} kWh
 				</span>
 			</div>
@@ -54,13 +54,13 @@ export function EnergyLoadWidget() {
 			>
 				{chartData.length === 0 ? (
 					<div className="flex flex-col items-center justify-center gap-1.5 py-4 text-center">
-						<div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#2a2a2a] text-[#c7c6cb]">
+						<div className="flex h-9 w-9 items-center justify-center rounded-full bg-surface-high text-muted-foreground">
 							<Activity className="h-4 w-4" />
 						</div>
-						<p className="text-sm font-medium text-[#e5e2e2]">
+						<p className="text-sm font-medium text-foreground">
 							{t("energyChart.emptyTitle")}
 						</p>
-						<p className="max-w-xs text-xs text-[#c7c6cb]">
+						<p className="max-w-xs text-xs text-muted-foreground">
 							{t("energyChart.emptySubtitle")}
 						</p>
 					</div>
@@ -72,42 +72,50 @@ export function EnergyLoadWidget() {
 						>
 							<defs>
 								<linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
-									<stop offset="5%" stopColor="#c5c6cf" stopOpacity={0.3} />
-									<stop offset="95%" stopColor="#c5c6cf" stopOpacity={0} />
+									<stop
+										offset="5%"
+										stopColor="var(--color-primary)"
+										stopOpacity={0.3}
+									/>
+									<stop
+										offset="95%"
+										stopColor="var(--color-primary)"
+										stopOpacity={0}
+									/>
 								</linearGradient>
 							</defs>
 							<CartesianGrid
 								strokeDasharray="3 3"
-								stroke="#46464b"
+								stroke="var(--color-border-subtle)"
 								strokeOpacity={0.2}
 								vertical={false}
 							/>
 							<XAxis
 								dataKey="time"
-								stroke="#c7c6cb"
+								stroke="var(--color-muted-foreground)"
 								fontSize={12}
 								tickLine={false}
 								axisLine={false}
 							/>
 							<YAxis
-								stroke="#c7c6cb"
+								stroke="var(--color-muted-foreground)"
 								fontSize={12}
 								tickLine={false}
 								axisLine={false}
 							/>
 							<Tooltip
 								contentStyle={{
-									backgroundColor: "#2a2a2a",
+									backgroundColor: "var(--color-surface-high)",
 									borderColor: "rgba(70,70,75,0.3)",
 									borderRadius: "8px",
-									color: "#e5e2e2",
+									color: "var(--color-foreground)",
 								}}
-								itemStyle={{ color: "#c5c6cf" }}
+								itemStyle={{ color: "var(--color-primary)" }}
 							/>
 							<Area
 								type="monotone"
 								dataKey="value"
-								stroke="#c5c6cf"
+								stroke="var(--color-primary)"
 								strokeWidth={3}
 								fillOpacity={1}
 								fill="url(#colorValue)"

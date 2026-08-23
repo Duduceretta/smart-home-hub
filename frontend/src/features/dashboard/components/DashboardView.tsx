@@ -119,7 +119,7 @@ export const DashboardView: React.FC = () => {
 						<button
 							type="button"
 							onClick={() => setAllRoomsExpanded(roomKeys, !allRoomsExpanded)}
-							className="flex items-center gap-1.5 self-end rounded-md px-2 py-1 text-[10px] font-semibold uppercase tracking-wider text-[#c7c6cb] transition-colors hover:bg-[#2a2a2a] hover:text-[#e5e2e2] cursor-pointer"
+							className="flex items-center gap-1.5 self-end rounded-md px-2 py-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground transition-colors hover:bg-surface-high hover:text-foreground cursor-pointer"
 						>
 							{allRoomsExpanded ? (
 								<ChevronsDownUp className="h-3.5 w-3.5" />
@@ -154,7 +154,7 @@ export const DashboardView: React.FC = () => {
 					<ActiveAutomationsCard />
 				</div>
 
-				<div className="lg:col-span-4 flex flex-col gap-6">
+				<div className="lg:col-span-4 flex flex-col gap-6 sticky top-24">
 					<CameraFeedCard />
 					<SpotifyNowPlayingCard />
 					<ActivityLogTimeline />
