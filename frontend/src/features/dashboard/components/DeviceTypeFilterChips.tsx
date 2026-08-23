@@ -1,16 +1,8 @@
 import { useTranslation } from "react-i18next";
-import { DeviceTypeEnum } from "@/features/devices/types/devices.types";
-
-export type ChipKey = "all" | "lights" | "climate" | "media";
-
-export const CHIP_TO_TYPES: Record<ChipKey, DeviceTypeEnum[] | null> = {
-	all: null,
-	lights: [DeviceTypeEnum.Light],
-	climate: [DeviceTypeEnum.Thermostat, DeviceTypeEnum.Sensor],
-	media: [DeviceTypeEnum.Television],
-};
-
-const CHIPS: ChipKey[] = ["all", "lights", "climate", "media"];
+import {
+	type ChipKey,
+	DEVICE_TYPE_CHIPS,
+} from "../constants/dashboard.constants";
 
 interface DeviceTypeFilterChipsProps {
 	activeChip: ChipKey;
@@ -27,7 +19,7 @@ export function DeviceTypeFilterChips({
 
 	return (
 		<div className="flex items-center gap-4 overflow-x-auto pb-1">
-			{CHIPS.map((chip) => (
+			{DEVICE_TYPE_CHIPS.map((chip) => (
 				<button
 					key={chip}
 					type="button"
