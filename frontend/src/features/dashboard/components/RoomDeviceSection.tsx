@@ -2,6 +2,10 @@ import { ChevronDown, ChevronRight, Pencil } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
+import {
+	Collapsible,
+	CollapsibleContent,
+} from "@/core/components/ui/collapsible";
 import { DeviceCard } from "@/features/devices/components/DeviceCard";
 import { useDevicesUIStore } from "@/features/devices/store/devices-ui.store";
 import type { Device } from "@/features/devices/types/devices.types";
@@ -73,7 +77,11 @@ export function RoomDeviceSection({
 	};
 
 	return (
-		<div className="flex flex-col gap-3">
+		<Collapsible
+			open={expanded}
+			onOpenChange={(open) => setRoomExpanded(roomKey, open)}
+			className="flex flex-col gap-3"
+		>
 			<div className="flex w-full items-center justify-between border-b border-[#46464b]/20 pb-2">
 				<button
 					type="button"
@@ -108,32 +116,30 @@ export function RoomDeviceSection({
 						className="rounded-md p-1 text-[#c7c6cb] transition-colors hover:bg-[#2a2a2a] hover:text-[#e5e2e2] cursor-pointer"
 					>
 						<ChevronDown
-							className={`h-4 w-4 transition-transform ${expanded ? "" : "-rotate-90"}`}
+							className={`h-4 w-4 transition-transform duration-200 ${expanded ? "" : "-rotate-90"}`}
 						/>
 					</button>
 				</div>
 			</div>
 
-			{expanded && (
-				<div className="flex flex-col gap-3">
-					<div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-						{previewDevices.map((device) => (
-							<DeviceCard key={device.id} device={device} />
-						))}
-					</div>
-
-					{hasMore && (
-						<button
-							type="button"
-							onClick={handleViewAll}
-							className="flex items-center justify-center gap-1.5 rounded-lg border border-[#46464b]/20 bg-[#1c1b1c] py-2 text-xs font-medium text-[#c7c6cb] transition-colors hover:bg-[#201f20] hover:text-[#e5e2e2] cursor-pointer"
-						>
-							{t("roomSection.viewAllDevices", "Ver todos os dispositivos")}
-							<ChevronRight className="h-3.5 w-3.5" />
-						</button>
-					)}
+			<CollapsibleContent className="flex flex-col gap-3">
+				<div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+					{previewDevices.map((device) => (
+						<DeviceCard key={device.id} device={device} />
+					))}
 				</div>
-			)}
+
+				{hasMore && (
+					<button
+						type="button"
+						onClick={handleViewAll}
+						className="flex items-center justify-center gap-1.5 rounded-lg border border-[#46464b]/20 bg-[#1c1b1c] py-2 text-xs font-medium text-[#c7c6cb] transition-colors hover:bg-[#201f20] hover:text-[#e5e2e2] cursor-pointer"
+					>
+						{t("roomSection.viewAllDevices", "Ver todos os dispositivos")}
+						<ChevronRight className="h-3.5 w-3.5" />
+					</button>
+				)}
+			</CollapsibleContent>
 
 			<EditRoomPreviewModal
 				isOpen={isEditOpen}
@@ -143,6 +149,6 @@ export function RoomDeviceSection({
 				onSave={(ids) => setRoomPreview(roomKey, ids)}
 				onReset={() => clearRoomPreview(roomKey)}
 			/>
-		</div>
+		</Collapsible>
 	);
 }
