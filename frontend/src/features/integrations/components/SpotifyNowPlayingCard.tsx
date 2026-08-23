@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useDebouncedValue } from "@/core/hooks/useDebouncedValue";
+import { useConnectSpotify } from "../hooks/useConnectSpotify";
 import { useSetSpotifyVolume } from "../hooks/useSetSpotifyVolume";
 import {
 	useSkipToNextSpotifyTrack,
@@ -29,6 +30,8 @@ export const SpotifyNowPlayingCard: React.FC = () => {
 		useSkipToNextSpotifyTrack();
 	const { mutate: skipPrevious, isPending: isSkippingPrevious } =
 		useSkipToPreviousSpotifyTrack();
+	const { mutate: connectSpotify, isPending: isConnecting } =
+		useConnectSpotify();
 
 	const [localVolume, setLocalVolume] = useState(0);
 	const [isDragging, setIsDragging] = useState(false);
@@ -53,8 +56,46 @@ export const SpotifyNowPlayingCard: React.FC = () => {
 		}
 	}, [debouncedVolume, setVolume]);
 
-	if (!status?.connected || !playback?.title) {
-		return null;
+	if (!status?.connected) {
+		return (
+			<div className="rounded-xl border border-[#46464b]/30 bg-linear-to-br from-[#2a2a2a] to-[#232323] p-4 flex flex-col items-center gap-3 text-center">
+				<div className="flex h-11 w-11 items-center justify-center rounded-full bg-[#1DB954]/15 text-[#1DB954]">
+					<Disc3 className="w-5 h-5" />
+				</div>
+				<div>
+					<p className="text-sm font-medium text-[#e5e2e2]">
+						Spotify desconectado
+					</p>
+					<p className="text-xs text-[#c7c6cb] mt-0.5">
+						Conecte sua conta pra controlar a reprodução por aqui.
+					</p>
+				</div>
+				<button
+					type="button"
+					disabled={isConnecting}
+					onClick={() => connectSpotify()}
+					className="rounded-full bg-[#1DB954]/15 px-4 py-1.5 text-xs font-semibold text-[#1DB954] transition-colors hover:bg-[#1DB954]/25 disabled:cursor-not-allowed disabled:opacity-40 cursor-pointer"
+				>
+					Conectar Spotify
+				</button>
+			</div>
+		);
+	}
+
+	if (!playback?.title) {
+		return (
+			<div className="rounded-xl border border-[#46464b]/30 bg-linear-to-br from-[#2a2a2a] to-[#232323] p-4 flex flex-col items-center gap-2 text-center">
+				<div className="flex h-11 w-11 items-center justify-center rounded-full bg-[#201f20] text-[#c7c6cb]">
+					<Disc3 className="w-5 h-5" />
+				</div>
+				<p className="text-sm font-medium text-[#e5e2e2]">
+					Nada tocando no momento
+				</p>
+				<p className="text-xs text-[#c7c6cb]">
+					Toque algo no Spotify pra ver aqui.
+				</p>
+			</div>
+		);
 	}
 
 	return (
