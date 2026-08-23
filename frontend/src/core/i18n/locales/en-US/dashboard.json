@@ -52,6 +52,7 @@
 	"activityLog": {
 		"title": "Timeline",
 		"emptyTitle": "No recent activity yet",
-		"justNow": "Just now"
+		"justNow": "Just now",
+		"viewAll": "View full history"
 	}
 }

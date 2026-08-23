@@ -52,6 +52,7 @@
 	"activityLog": {
 		"title": "Linha do Tempo",
 		"emptyTitle": "Nenhuma atividade recente ainda",
-		"justNow": "Agora mesmo"
+		"justNow": "Agora mesmo",
+		"viewAll": "Ver histórico completo"
 	}
 }
