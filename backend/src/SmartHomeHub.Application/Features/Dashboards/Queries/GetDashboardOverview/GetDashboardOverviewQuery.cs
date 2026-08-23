@@ -114,6 +114,41 @@ public sealed class GetDashboardOverviewQueryHandler(IAppDbContext dbContext)
 
         var totalConsumptionKwh = energyChartData.Sum(point => point.Value);
 
+        var yesterdayStartUtc = startOfDayUtc.AddDays(-1);
+
+        var todayTemperatures = await dbContext
+            .DeviceTelemetryLogs.AsNoTracking()
+            .Where(log =>
+                userDeviceIds.Contains(log.DeviceId)
+                && log.Timestamp >= startOfDayUtc
+                && log.Timestamp < endOfDayUtc
+                && log.TemperatureCelsius.HasValue
+            )
+            .Select(log => log.TemperatureCelsius!.Value)
+            .ToListAsync(cancellationToken);
+
+        var yesterdayTemperatures = await dbContext
+            .DeviceTelemetryLogs.AsNoTracking()
+            .Where(log =>
+                userDeviceIds.Contains(log.DeviceId)
+                && log.Timestamp >= yesterdayStartUtc
+                && log.Timestamp < startOfDayUtc
+                && log.TemperatureCelsius.HasValue
+            )
+            .Select(log => log.TemperatureCelsius!.Value)
+            .ToListAsync(cancellationToken);
+
+        // Sem leitura hoje = 0 (mesmo padrão de "sem dado" usado nos outros
+        // campos do summary). Tendência só faz sentido com baseline de ontem;
+        // sem os dois lados, fica 0 em vez de um delta enganoso.
+        var averageTemperatureCelsius =
+            todayTemperatures.Count > 0 ? Math.Round(todayTemperatures.Average(), 1) : 0;
+
+        var temperatureTrend =
+            todayTemperatures.Count > 0 && yesterdayTemperatures.Count > 0
+                ? Math.Round(todayTemperatures.Average() - yesterdayTemperatures.Average(), 1)
+                : 0;
+
         var roomUsageData = userDevices
             .Where(d => d.RoomName != null)
             .GroupBy(d => d.RoomName!)
@@ -132,8 +167,8 @@ public sealed class GetDashboardOverviewQueryHandler(IAppDbContext dbContext)
             TotalDevicesCount: totalDevicesCount,
             OnlineDevicesCount: onlineDevicesCount,
             EnergyConsumptionKwh: Math.Round(totalConsumptionKwh, 1),
-            AverageTemperatureCelsius: 23.0,
-            TemperatureTrend: -1.0,
+            AverageTemperatureCelsius: averageTemperatureCelsius,
+            TemperatureTrend: temperatureTrend,
             ActiveAlertsCount: activeAlertsCount
         );
 
