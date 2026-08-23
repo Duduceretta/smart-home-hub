@@ -6,7 +6,7 @@ export function RoomDeviceSectionSkeleton() {
 				{["sk-1", "sk-2"].map((key) => (
 					<div
 						key={key}
-						className="h-44 rounded-xl border border-[#46464b]/20 bg-[#1c1b1c]"
+						className="h-44 rounded-xl border border-[#46464b]/20 bg-[#201f20]"
 					/>
 				))}
 			</div>

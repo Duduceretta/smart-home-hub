@@ -10,7 +10,7 @@ export function CameraFeedCard() {
 	const { t } = useTranslation("dashboard");
 
 	return (
-		<div className="rounded-xl border border-[#46464b]/20 bg-[#1c1b1c] overflow-hidden">
+		<div className="rounded-xl border border-[#46464b]/20 bg-[#201f20] overflow-hidden transition-all duration-200 hover:border-[#c5c6cf]/25 hover:shadow-lg hover:shadow-black/30">
 			<div className="flex items-center gap-2 px-4 py-3 border-b border-[#46464b]/20">
 				<Shield className="w-3.5 h-3.5 text-[#ffb4ab]" />
 				<span className="text-xs font-semibold text-[#e5e2e2]">

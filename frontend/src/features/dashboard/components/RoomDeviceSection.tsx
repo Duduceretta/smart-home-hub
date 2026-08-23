@@ -133,7 +133,7 @@ export function RoomDeviceSection({
 					<button
 						type="button"
 						onClick={handleViewAll}
-						className="flex items-center justify-center gap-1.5 rounded-lg border border-[#46464b]/20 bg-[#1c1b1c] py-2 text-xs font-medium text-[#c7c6cb] transition-colors hover:bg-[#201f20] hover:text-[#e5e2e2] cursor-pointer"
+						className="flex items-center justify-center gap-1.5 rounded-lg border border-[#46464b]/20 bg-[#201f20] py-2 text-xs font-medium text-[#c7c6cb] transition-colors hover:bg-[#2a2a2a] hover:text-[#e5e2e2] cursor-pointer"
 					>
 						{t("roomSection.viewAllDevices", "Ver todos os dispositivos")}
 						<ChevronRight className="h-3.5 w-3.5" />

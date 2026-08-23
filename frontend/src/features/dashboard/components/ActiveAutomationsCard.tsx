@@ -9,8 +9,8 @@ export function ActiveAutomationsCard() {
 	const { t } = useTranslation("dashboard");
 
 	return (
-		<div className="rounded-xl border border-[#46464b]/20 bg-[#1c1b1c] p-5 flex flex-col items-center justify-center gap-2 text-center flex-1">
-			<div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#201f20] text-[#c7c6cb]">
+		<div className="rounded-xl border border-[#46464b]/20 bg-[#201f20] p-5 flex flex-col items-center justify-center gap-2 text-center flex-1 transition-all duration-200 hover:border-[#c5c6cf]/25 hover:shadow-lg hover:shadow-black/30">
+			<div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#2a2a2a] text-[#c7c6cb]">
 				<Radio className="h-5 w-5" />
 			</div>
 			<p className="text-sm font-medium text-[#e5e2e2]">

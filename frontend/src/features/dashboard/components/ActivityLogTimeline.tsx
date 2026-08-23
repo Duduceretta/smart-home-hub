@@ -30,7 +30,7 @@ export function ActivityLogTimeline() {
 	const entries = useDashboardActivityStore((state) => state.entries);
 
 	return (
-		<div className="rounded-xl border border-[#46464b]/20 bg-[#1c1b1c] p-5 flex flex-col flex-1">
+		<div className="rounded-xl border border-[#46464b]/20 bg-[#201f20] p-5 flex flex-col flex-1 transition-all duration-200 hover:border-[#c5c6cf]/25 hover:shadow-lg hover:shadow-black/30">
 			<div className="flex items-center justify-between mb-5">
 				<h3 className="text-[10px] font-semibold tracking-wider text-[#c7c6cb] uppercase">
 					{t("activityLog.title")}
@@ -57,7 +57,7 @@ export function ActivityLogTimeline() {
 								className="relative z-10 flex gap-3 items-start"
 							>
 								<div
-									className={`w-6 h-6 rounded-full bg-[#1c1b1c] border-2 flex items-center justify-center shrink-0 mt-0.5 ${style.border}`}
+									className={`w-6 h-6 rounded-full bg-[#201f20] border-2 flex items-center justify-center shrink-0 mt-0.5 ${style.border}`}
 								>
 									<Icon className={`w-3 h-3 ${style.color}`} />
 								</div>

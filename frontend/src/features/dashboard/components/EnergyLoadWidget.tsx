@@ -17,9 +17,9 @@ export function EnergyLoadWidget() {
 
 	if (isLoading || !data) {
 		return (
-			<div className="rounded-xl border border-[#46464b]/20 bg-[#1c1b1c] p-5 flex flex-col animate-pulse">
-				<div className="h-4 w-48 bg-[#201f20] rounded-md mb-6" />
-				<div className="flex-1 min-h-62.5 w-full bg-[#201f20]/40 rounded-xl" />
+			<div className="rounded-xl border border-[#46464b]/20 bg-[#201f20] p-5 flex flex-col animate-pulse">
+				<div className="h-4 w-48 bg-[#2a2a2a] rounded-md mb-6" />
+				<div className="flex-1 min-h-62.5 w-full bg-[#2a2a2a]/40 rounded-xl" />
 			</div>
 		);
 	}
@@ -36,7 +36,7 @@ export function EnergyLoadWidget() {
 	});
 
 	return (
-		<div className="rounded-xl border border-[#46464b]/20 bg-[#1c1b1c] p-5 flex flex-col">
+		<div className="rounded-xl border border-[#46464b]/20 bg-[#201f20] p-5 flex flex-col transition-all duration-200 hover:border-[#c5c6cf]/25 hover:shadow-lg hover:shadow-black/30">
 			<div className="flex items-center justify-between mb-6">
 				<div className="flex items-center gap-2">
 					<div className="w-1.5 h-5 bg-[#c5c6cf] rounded-full" />
@@ -49,11 +49,13 @@ export function EnergyLoadWidget() {
 				</span>
 			</div>
 
-			<div className="flex-1 min-h-62.5 w-full flex flex-col justify-center">
+			<div
+				className={`w-full flex flex-col justify-center ${chartData.length === 0 ? "min-h-32" : "flex-1 min-h-62.5"}`}
+			>
 				{chartData.length === 0 ? (
-					<div className="flex flex-col items-center justify-center gap-2 py-12 text-center">
-						<div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#201f20] text-[#c7c6cb]">
-							<Activity className="h-6 w-6" />
+					<div className="flex flex-col items-center justify-center gap-1.5 py-4 text-center">
+						<div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#2a2a2a] text-[#c7c6cb]">
+							<Activity className="h-4 w-4" />
 						</div>
 						<p className="text-sm font-medium text-[#e5e2e2]">
 							{t("energyChart.emptyTitle")}
@@ -95,7 +97,7 @@ export function EnergyLoadWidget() {
 							/>
 							<Tooltip
 								contentStyle={{
-									backgroundColor: "#201f20",
+									backgroundColor: "#2a2a2a",
 									borderColor: "rgba(70,70,75,0.3)",
 									borderRadius: "8px",
 									color: "#e5e2e2",
