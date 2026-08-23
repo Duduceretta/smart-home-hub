@@ -49,6 +49,12 @@ try
     builder.Services.AddHostedService<MqttListenerWorker>();
     builder.Services.AddHostedService<DeviceHealthCheckWorker>();
     builder.Services.AddHostedService<DeviceStatePollingWorker>();
+
+    if (builder.Environment.IsDevelopment())
+    {
+        builder.Services.AddHostedService<MockTelemetryWorker>();
+    }
+
     builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
     builder.Services.AddProblemDetails();
     builder.Services.AddOpenApi(options =>
