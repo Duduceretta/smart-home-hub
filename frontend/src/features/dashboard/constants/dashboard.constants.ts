@@ -30,6 +30,15 @@ export const SCENES: SceneOption[] = [
 	{ key: "leaveHome", labelKey: "scenesBar.leaveHome", icon: LogOut },
 ];
 
+/**
+ * roomKey usado no dashboard-preview.store para o bucket de dispositivos
+ * sem ambiente. Compartilhado entre DashboardView (agregação do
+ * expandir/recolher todos) e RoomDeviceSection (leitura/escrita do próprio
+ * estado) — precisa ser exatamente a mesma string nos dois lugares, senão
+ * o botão de agregação lê uma chave que a seção nunca escreve.
+ */
+export const UNASSIGNED_ROOM_KEY = "__unassigned__";
+
 export type ChipKey = "all" | "lights" | "climate" | "media";
 
 export const DEVICE_TYPE_CHIPS: ChipKey[] = [

@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import {
 	CHIP_TO_TYPES,
 	type ChipKey,
+	UNASSIGNED_ROOM_KEY,
 } from "@/features/dashboard/constants/dashboard.constants";
 import { EditDeviceModal } from "@/features/devices/components/EditDeviceModal";
 import { useDevices } from "@/features/devices/hooks/useDevices";
@@ -23,7 +24,6 @@ import { ScenesBar } from "./ScenesBar";
 import { StatusHubSummary } from "./StatusHubSummary";
 
 const DEVICES_PAGE_SIZE = 200;
-const UNASSIGNED_ROOM_KEY = "__unassigned__";
 
 export const DashboardView: React.FC = () => {
 	const { t } = useTranslation("dashboard");

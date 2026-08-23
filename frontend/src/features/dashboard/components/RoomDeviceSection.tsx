@@ -6,6 +6,7 @@ import {
 	Collapsible,
 	CollapsibleContent,
 } from "@/core/components/ui/collapsible";
+import { UNASSIGNED_ROOM_KEY } from "@/features/dashboard/constants/dashboard.constants";
 import { DeviceCard } from "@/features/devices/components/DeviceCard";
 import { useDevicesUIStore } from "@/features/devices/store/devices-ui.store";
 import type { Device } from "@/features/devices/types/devices.types";
@@ -50,7 +51,7 @@ export function RoomDeviceSection({
 	const setSelectedRoomId = useDevicesUIStore((s) => s.setSelectedRoomId);
 	const [isEditOpen, setIsEditOpen] = useState(false);
 
-	const roomKey = roomId ?? "unassigned";
+	const roomKey = roomId ?? UNASSIGNED_ROOM_KEY;
 	const override = useDashboardPreviewStore((s) => s.overridesByRoom[roomKey]);
 	const setRoomPreview = useDashboardPreviewStore((s) => s.setRoomPreview);
 	const clearRoomPreview = useDashboardPreviewStore((s) => s.clearRoomPreview);
