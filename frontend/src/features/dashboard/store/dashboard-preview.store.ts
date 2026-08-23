@@ -10,6 +10,7 @@ interface DashboardPreviewState {
 	/** roomKey -> seção expandida/recolhida. Ausente = expandida (padrão). */
 	expandedByRoom: Record<string, boolean>;
 	setRoomExpanded: (roomKey: string, expanded: boolean) => void;
+	setAllRoomsExpanded: (roomKeys: string[], expanded: boolean) => void;
 }
 
 export const useDashboardPreviewStore = create<DashboardPreviewState>()(
@@ -31,6 +32,13 @@ export const useDashboardPreviewStore = create<DashboardPreviewState>()(
 			setRoomExpanded: (roomKey, expanded) =>
 				set((state) => ({
 					expandedByRoom: { ...state.expandedByRoom, [roomKey]: expanded },
+				})),
+			setAllRoomsExpanded: (roomKeys, expanded) =>
+				set((state) => ({
+					expandedByRoom: {
+						...state.expandedByRoom,
+						...Object.fromEntries(roomKeys.map((key) => [key, expanded])),
+					},
 				})),
 		}),
 		{ name: "dashboard-room-preview" },

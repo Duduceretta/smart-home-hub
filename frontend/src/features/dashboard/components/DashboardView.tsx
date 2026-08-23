@@ -1,3 +1,4 @@
+import { ChevronsDownUp, ChevronsUpDown } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
@@ -9,6 +10,7 @@ import { useDevices } from "@/features/devices/hooks/useDevices";
 import type { Device } from "@/features/devices/types/devices.types";
 import { SpotifyNowPlayingCard } from "@/features/integrations/components/SpotifyNowPlayingCard";
 import { useRooms } from "@/features/rooms/hooks/useRooms";
+import { useDashboardPreviewStore } from "../store/dashboard-preview.store";
 import { ActiveAutomationsCard } from "./ActiveAutomationsCard";
 import { ActivityLogTimeline } from "./ActivityLogTimeline";
 import { CameraFeedCard } from "./CameraFeedCard";
@@ -35,6 +37,11 @@ export const DashboardView: React.FC = () => {
 	const devices = devicesPage?.items ?? [];
 	const rooms = roomsData ?? [];
 	const isLoading = isRoomsLoading || isDevicesLoading;
+
+	const expandedByRoom = useDashboardPreviewStore((s) => s.expandedByRoom);
+	const setAllRoomsExpanded = useDashboardPreviewStore(
+		(s) => s.setAllRoomsExpanded,
+	);
 
 	const countsByChip = useMemo(() => {
 		const counts: Record<ChipKey, number> = {
@@ -86,6 +93,9 @@ export const DashboardView: React.FC = () => {
 			: []),
 	];
 
+	const roomKeys = roomSections.map((section) => section.key);
+	const allRoomsExpanded = roomKeys.every((key) => expandedByRoom[key] ?? true);
+
 	return (
 		<div className="flex flex-col gap-6 motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-2 motion-safe:duration-300">
 			<DashboardTopBar />
@@ -99,11 +109,30 @@ export const DashboardView: React.FC = () => {
 				/>
 			</div>
 
-			<div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+			<div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
 				<div className="lg:col-span-8 flex flex-col gap-6">
 					<StatusHubSummary />
 
 					<EnergyLoadWidget />
+
+					{!isLoading && roomSections.length > 0 && (
+						<button
+							type="button"
+							onClick={() => setAllRoomsExpanded(roomKeys, !allRoomsExpanded)}
+							className="flex items-center gap-1.5 self-end rounded-md px-2 py-1 text-[10px] font-semibold uppercase tracking-wider text-[#c7c6cb] transition-colors hover:bg-[#2a2a2a] hover:text-[#e5e2e2] cursor-pointer"
+						>
+							{allRoomsExpanded ? (
+								<ChevronsDownUp className="h-3.5 w-3.5" />
+							) : (
+								<ChevronsUpDown className="h-3.5 w-3.5" />
+							)}
+							{t(
+								allRoomsExpanded
+									? "roomSection.collapseAll"
+									: "roomSection.expandAll",
+							)}
+						</button>
+					)}
 
 					{isLoading ? (
 						<>

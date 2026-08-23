@@ -41,7 +41,9 @@
 		"wideCard": "ocupa a linha inteira",
 		"normalCard": "1 coluna",
 		"resetToAuto": "Usar automático",
-		"toggleExpand": "Expandir/recolher"
+		"toggleExpand": "Expandir/recolher",
+		"expandAll": "Expandir todos",
+		"collapseAll": "Recolher todos"
 	},
 	"filterChips": {
 		"all": "TODOS",

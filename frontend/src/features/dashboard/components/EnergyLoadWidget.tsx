@@ -50,7 +50,7 @@ export function EnergyLoadWidget() {
 			</div>
 
 			<div
-				className={`w-full flex flex-col justify-center ${chartData.length === 0 ? "min-h-32" : "flex-1 min-h-62.5"}`}
+				className={`w-full flex flex-col justify-center ${chartData.length === 0 ? "h-32" : "h-62.5"}`}
 			>
 				{chartData.length === 0 ? (
 					<div className="flex flex-col items-center justify-center gap-1.5 py-4 text-center">

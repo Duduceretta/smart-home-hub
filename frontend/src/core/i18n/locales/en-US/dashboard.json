@@ -41,7 +41,9 @@
 		"wideCard": "takes the whole row",
 		"normalCard": "1 column",
 		"resetToAuto": "Use automatic",
-		"toggleExpand": "Expand/collapse"
+		"toggleExpand": "Expand/collapse",
+		"expandAll": "Expand all",
+		"collapseAll": "Collapse all"
 	},
 	"filterChips": {
 		"all": "ALL",
