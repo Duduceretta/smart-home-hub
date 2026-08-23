@@ -74,7 +74,9 @@ public sealed class GetDashboardOverviewQueryHandler(IAppDbContext dbContext)
         var startOfDayUtc = request.TargetDateUtc.Date;
         var endOfDayUtc = startOfDayUtc.AddDays(1);
 
-        var rawEnergyQuery = await dbContext
+        const int bucketMinutes = 5;
+
+        var rawEnergyLogs = await dbContext
             .DeviceTelemetryLogs.AsNoTracking()
             .Where(log =>
                 userDeviceIds.Contains(log.DeviceId)
@@ -82,27 +84,30 @@ public sealed class GetDashboardOverviewQueryHandler(IAppDbContext dbContext)
                 && log.Timestamp < endOfDayUtc
                 && log.PowerUsageWatts.HasValue
             )
-            .GroupBy(log => new
-            {
-                Year = log.Timestamp.Year,
-                Month = log.Timestamp.Month,
-                Day = log.Timestamp.Day,
-                Hour = log.Timestamp.Hour,
-            })
-            .Select(group => new
-            {
-                group.Key.Year,
-                group.Key.Month,
-                group.Key.Day,
-                group.Key.Hour,
-                TotalWatts = group.Sum(x => x.PowerUsageWatts!.Value),
-            })
+            .Select(log => new { log.Timestamp, log.PowerUsageWatts })
             .ToListAsync(cancellationToken);
 
-        var energyChartData = rawEnergyQuery
-            .Select(item => new EnergyChartPointDto(
-                new DateTimeOffset(item.Year, item.Month, item.Day, item.Hour, 0, 0, TimeSpan.Zero),
-                Math.Round(item.TotalWatts / 1000.0, 2)
+        // Agrupado em memória (não em SQL) em baldes de 5 minutos: dá uma
+        // resolução fina o bastante para o gráfico já formar uma curva com
+        // poucos minutos de telemetria mockada, sem depender de horas cheias
+        // de dados acumulados como o balde por hora exigia.
+        var energyChartData = rawEnergyLogs
+            .GroupBy(log =>
+            {
+                var flooredMinute = (log.Timestamp.Minute / bucketMinutes) * bucketMinutes;
+                return new DateTimeOffset(
+                    log.Timestamp.Year,
+                    log.Timestamp.Month,
+                    log.Timestamp.Day,
+                    log.Timestamp.Hour,
+                    flooredMinute,
+                    0,
+                    TimeSpan.Zero
+                );
+            })
+            .Select(group => new EnergyChartPointDto(
+                group.Key,
+                Math.Round(group.Sum(x => x.PowerUsageWatts!.Value) / 1000.0, 2)
             ))
             .OrderBy(point => point.Timestamp)
             .ToList();
