@@ -10,7 +10,7 @@ export const RoomsView: React.FC = () => {
 	const { query, setQuery, openCreateSheet } = useRoomsUIStore();
 
 	return (
-		<div className="space-y-6 pb-12">
+		<div className="space-y-6 pb-6">
 			{/* Cabeçalho da Seção */}
 			<div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
 				<div>
