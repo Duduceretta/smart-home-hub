@@ -4,6 +4,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using SmartHomeHub.Application.Common.Extensions;
 using SmartHomeHub.Application.Common.Interfaces;
+using SmartHomeHub.Application.Features.Dashboards.ActivityLog;
 using SmartHomeHub.Domain.Entities;
 
 namespace SmartHomeHub.Infrastructure.BackgroundJobs;
@@ -50,6 +51,7 @@ public sealed class DeviceHealthCheckWorker(
 
         var candidates = await dbContext
             .Devices.Include(device => device.User)
+            .Include(device => device.Room)
             .Where(device => device.Configuration.IpAddress != null)
             .ToListAsync(cancellationToken);
 
@@ -94,6 +96,28 @@ public sealed class DeviceHealthCheckWorker(
         if (changed.Count == 0)
         {
             return;
+        }
+
+        foreach (var device in changed)
+        {
+            var (title, description) = ActivityLogMessages.DeviceStatusChanged(
+                device.Name,
+                device.Room?.Name,
+                device.IsOn,
+                device.IsOnline
+            );
+
+            dbContext.SystemEvents.Add(
+                new SystemEvent
+                {
+                    UserId = device.UserId,
+                    DeviceId = device.Id,
+                    EventType = ActivityEventTypes.DeviceStatus,
+                    Title = title,
+                    Description = description,
+                    Timestamp = DateTimeOffset.UtcNow,
+                }
+            );
         }
 
         await dbContext.SaveChangesAsync(cancellationToken);

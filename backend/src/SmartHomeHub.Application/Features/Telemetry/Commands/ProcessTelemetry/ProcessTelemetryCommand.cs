@@ -2,6 +2,7 @@ using System.Text.Json;
 using Mediator;
 using Microsoft.EntityFrameworkCore;
 using SmartHomeHub.Application.Common.Interfaces;
+using SmartHomeHub.Application.Features.Dashboards.ActivityLog;
 using SmartHomeHub.Domain.Common.Primitives;
 using SmartHomeHub.Domain.Entities;
 
@@ -58,6 +59,7 @@ public class ProcessTelemetryCommandHandler(
 
             var device = await dbContext
                 .Devices.Include(device => device.User)
+                .Include(device => device.Room)
                 .FirstOrDefaultAsync(device => device.ExternalId == externalId, cancellationToken);
 
             if (device == null)
@@ -68,6 +70,8 @@ public class ProcessTelemetryCommandHandler(
             }
 
             var nowUtc = DateTimeOffset.UtcNow;
+            var wasOn = device.IsOn;
+            var wasOnline = device.IsOnline;
 
             device.IsOn = telemetry.IsOn;
             device.IsOnline = true;
@@ -90,6 +94,29 @@ public class ProcessTelemetryCommandHandler(
             };
 
             dbContext.DeviceTelemetryLogs.Add(telemetryLog);
+
+            if (wasOn != device.IsOn || !wasOnline)
+            {
+                var (title, description) = ActivityLogMessages.DeviceStatusChanged(
+                    device.Name,
+                    device.Room?.Name,
+                    device.IsOn,
+                    device.IsOnline
+                );
+
+                dbContext.SystemEvents.Add(
+                    new SystemEvent
+                    {
+                        UserId = device.UserId,
+                        DeviceId = device.Id,
+                        EventType = ActivityEventTypes.DeviceStatus,
+                        Title = title,
+                        Description = description,
+                        Timestamp = nowUtc,
+                    }
+                );
+            }
+
             await dbContext.SaveChangesAsync(cancellationToken);
 
             await notificationService.NotifyDeviceStatusChangedAsync(

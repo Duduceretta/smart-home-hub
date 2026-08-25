@@ -1,38 +1,48 @@
 import { Clock, MonitorPlay, Music, Power } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
-import { useDashboardActivityStore } from "../store/dashboard-activity.store";
-import type { ActivityEventKind } from "../types/dashboard.types";
+import { useActivityLog } from "../hooks/useActivityLog";
+import type { ActivityEventType } from "../types/dashboard.types";
 import { getRelativeTime } from "../utils/relativeTime";
 
 const VISIBLE_ENTRIES_LIMIT = 5;
 
-const KIND_STYLE: Record<
-	ActivityEventKind,
+const EVENT_STYLE: Record<
+	ActivityEventType,
 	{ icon: typeof Power; color: string; border: string }
 > = {
-	"device-status": {
+	DeviceStatus: {
 		icon: Power,
 		color: "text-primary",
 		border: "border-primary",
 	},
-	"device-media": {
+	DeviceMedia: {
 		icon: MonitorPlay,
 		color: "text-cool",
 		border: "border-cool",
 	},
-	spotify: {
+	Spotify: {
 		icon: Music,
 		color: "text-[#1DB954]",
 		border: "border-[#1DB954]",
 	},
 };
 
+// SystemEvent.EventType é uma coluna de texto livre — outras origens (ex:
+// alertas de segurança) podem gravar valores fora dos três tipos que a
+// Linha do Tempo estiliza hoje. Sem esse fallback, um eventType desconhecido
+// derruba o card inteiro.
+const DEFAULT_EVENT_STYLE = {
+	icon: Clock,
+	color: "text-muted-foreground",
+	border: "border-muted-foreground",
+};
+
 export function ActivityLogTimeline() {
 	const { t, i18n } = useTranslation("dashboard");
 	const navigate = useNavigate();
-	const entries = useDashboardActivityStore((state) => state.entries);
-	const visibleEntries = entries.slice(0, VISIBLE_ENTRIES_LIMIT);
+	const { data, isLoading } = useActivityLog(1, VISIBLE_ENTRIES_LIMIT);
+	const entries = data?.items ?? [];
 
 	return (
 		<div className="rounded-xl border border-border-subtle/20 bg-surface-container p-5 flex flex-col flex-1 transition-all duration-200 hover:border-primary/25 hover:shadow-lg hover:shadow-black/30">
@@ -44,18 +54,20 @@ export function ActivityLogTimeline() {
 			</div>
 
 			<div className="min-h-[320px]">
-				{visibleEntries.length === 0 ? (
+				{isLoading || entries.length === 0 ? (
 					<div className="flex h-[320px] flex-col items-center justify-center gap-2 text-center">
 						<Clock className="h-7 w-7 text-muted-foreground" />
 						<p className="text-xs font-medium text-muted-foreground">
-							{t("activityLog.emptyTitle")}
+							{isLoading
+								? t("activityLog.loading", "Carregando...")
+								: t("activityLog.emptyTitle")}
 						</p>
 					</div>
 				) : (
 					<div className="relative flex flex-col gap-5">
 						<div className="absolute left-[11px] top-2 bottom-2 w-px bg-border-subtle/20" />
-						{visibleEntries.map((entry) => {
-							const style = KIND_STYLE[entry.kind];
+						{entries.map((entry) => {
+							const style = EVENT_STYLE[entry.eventType] ?? DEFAULT_EVENT_STYLE;
 							const Icon = style.icon;
 							return (
 								<div
@@ -76,7 +88,7 @@ export function ActivityLogTimeline() {
 										</span>
 										<span className="text-[10px] text-muted-foreground/60 mt-0.5 uppercase">
 											{getRelativeTime(
-												entry.occurredAt,
+												entry.timestamp,
 												i18n.language || "pt-BR",
 												t("activityLog.justNow", "Agora mesmo"),
 											)}

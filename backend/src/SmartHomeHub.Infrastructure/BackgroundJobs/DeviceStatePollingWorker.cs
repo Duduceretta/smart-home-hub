@@ -5,6 +5,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using SmartHomeHub.Application.Common.Extensions;
 using SmartHomeHub.Application.Common.Interfaces;
+using SmartHomeHub.Application.Features.Dashboards.ActivityLog;
 using SmartHomeHub.Application.Features.Devices.Common;
 using SmartHomeHub.Domain.Entities;
 using SmartHomeHub.Domain.Enums;
@@ -64,6 +65,7 @@ public sealed class DeviceStatePollingWorker(
 
         var candidates = await dbContext
             .Devices.Include(device => device.User)
+            .Include(device => device.Room)
             .Where(device =>
                 device.Type == DeviceType.Television && device.Configuration.IpAddress != null
             )
@@ -101,6 +103,28 @@ public sealed class DeviceStatePollingWorker(
 
             if (changed.Count > 0)
             {
+                foreach (var device in changed)
+                {
+                    var (title, description) = ActivityLogMessages.DeviceStatusChanged(
+                        device.Name,
+                        device.Room?.Name,
+                        device.IsOn,
+                        device.IsOnline
+                    );
+
+                    dbContext.SystemEvents.Add(
+                        new SystemEvent
+                        {
+                            UserId = device.UserId,
+                            DeviceId = device.Id,
+                            EventType = ActivityEventTypes.DeviceStatus,
+                            Title = title,
+                            Description = description,
+                            Timestamp = DateTimeOffset.UtcNow,
+                        }
+                    );
+                }
+
                 await dbContext.SaveChangesAsync(cancellationToken);
 
                 foreach (var device in changed)
@@ -121,7 +145,7 @@ public sealed class DeviceStatePollingWorker(
                 }
             }
 
-            await PollMediaStateAsync(pollResults, notificationService, cancellationToken);
+            await PollMediaStateAsync(pollResults, dbContext, notificationService, cancellationToken);
         }
 
         await PollSpotifyStateAsync(scope, dbContext, notificationService, cancellationToken);
@@ -168,16 +192,43 @@ public sealed class DeviceStatePollingWorker(
 
             logger.LogInformation("Estado de playback do Spotify mudou para {UserId}.", user.Id);
 
+            if (!string.IsNullOrWhiteSpace(mediaState.Title) && mediaState.Title != lastKnown?.Title)
+            {
+                var (title, description) = ActivityLogMessages.SpotifyPlaybackChanged(
+                    mediaState.IsPlaying,
+                    mediaState.Title,
+                    mediaState.Artist
+                );
+
+                dbContext.SystemEvents.Add(
+                    new SystemEvent
+                    {
+                        UserId = user.Id,
+                        DeviceId = null,
+                        EventType = ActivityEventTypes.Spotify,
+                        Title = title,
+                        Description = description,
+                        Timestamp = DateTimeOffset.UtcNow,
+                    }
+                );
+            }
+
             await notificationService.NotifySpotifyPlaybackChangedAsync(
                 user.ExternalAuthUid,
                 mediaState,
                 cancellationToken
             );
         }
+
+        // Um único save após o loop em vez de um round-trip por item mudado —
+        // SaveChangesAsync é barato quando não há entradas pendentes (EF checa
+        // o ChangeTracker antes de tocar o banco).
+        await dbContext.SaveChangesAsync(cancellationToken);
     }
 
     private async Task PollMediaStateAsync(
         (Device Device, bool IsOn)[] pollResults,
+        IAppDbContext dbContext,
         IRealtimeNotificationService notificationService,
         CancellationToken cancellationToken
     )
@@ -215,6 +266,26 @@ public sealed class DeviceStatePollingWorker(
 
             logger.LogInformation("Estado de mídia do dispositivo {DeviceId} mudou.", device.Id);
 
+            if (!string.IsNullOrWhiteSpace(mediaState.Title) && mediaState.Title != lastKnown?.Title)
+            {
+                var (title, description) = ActivityLogMessages.DeviceMediaChanged(
+                    mediaState.Title,
+                    mediaState.Artist
+                );
+
+                dbContext.SystemEvents.Add(
+                    new SystemEvent
+                    {
+                        UserId = device.UserId,
+                        DeviceId = device.Id,
+                        EventType = ActivityEventTypes.DeviceMedia,
+                        Title = title,
+                        Description = description,
+                        Timestamp = DateTimeOffset.UtcNow,
+                    }
+                );
+            }
+
             await notificationService.NotifyDeviceMediaChangedAsync(
                 device.User.ExternalAuthUid,
                 device.Id,
@@ -222,6 +293,8 @@ public sealed class DeviceStatePollingWorker(
                 cancellationToken
             );
         }
+
+        await dbContext.SaveChangesAsync(cancellationToken);
     }
 
     private async Task<DeviceMediaStateDto> FetchMediaStateAsync(

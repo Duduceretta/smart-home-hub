@@ -5,9 +5,11 @@ using Mediator;
 using Microsoft.EntityFrameworkCore;
 using SmartHomeHub.Application.Common.Extensions;
 using SmartHomeHub.Application.Common.Interfaces;
+using SmartHomeHub.Application.Features.Dashboards.ActivityLog;
 using SmartHomeHub.Domain.Common.Constants;
 using SmartHomeHub.Domain.Common.Exceptions;
 using SmartHomeHub.Domain.Common.Primitives;
+using SmartHomeHub.Domain.Entities;
 using SmartHomeHub.Domain.Enums;
 
 namespace SmartHomeHub.Application.Features.Devices.Commands.ToggleDevice;
@@ -52,10 +54,12 @@ public partial class ToggleDeviceCommandHandler(
         if (user == null)
             return Result.Failure(new Error("User.NotFound", "Usuário não encontrado."));
 
-        var device = await dbContext.Devices.FirstOrDefaultAsync(
-            device => device.Id == request.DeviceId && device.UserId == user.Id,
-            cancellationToken
-        );
+        var device = await dbContext
+            .Devices.Include(device => device.Room)
+            .FirstOrDefaultAsync(
+                device => device.Id == request.DeviceId && device.UserId == user.Id,
+                cancellationToken
+            );
 
         if (device == null)
             return Result.Failure(
@@ -139,6 +143,26 @@ public partial class ToggleDeviceCommandHandler(
         }
 
         device.IsOn = newState;
+
+        var (title, description) = ActivityLogMessages.DeviceStatusChanged(
+            device.Name,
+            device.Room?.Name,
+            device.IsOn,
+            device.IsOnline
+        );
+
+        dbContext.SystemEvents.Add(
+            new SystemEvent
+            {
+                UserId = device.UserId,
+                DeviceId = device.Id,
+                EventType = ActivityEventTypes.DeviceStatus,
+                Title = title,
+                Description = description,
+                Timestamp = DateTimeOffset.UtcNow,
+            }
+        );
+
         await dbContext.SaveChangesAsync(cancellationToken);
 
         await notificationService.NotifyDeviceStatusChangedAsync(

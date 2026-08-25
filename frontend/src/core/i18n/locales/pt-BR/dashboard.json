@@ -55,6 +55,7 @@
 		"title": "Linha do Tempo",
 		"emptyTitle": "Nenhuma atividade recente ainda",
 		"justNow": "Agora mesmo",
-		"viewAll": "Ver histórico completo"
+		"viewAll": "Ver histórico completo",
+		"loading": "Carregando..."
 	}
 }

@@ -12,8 +12,11 @@ export interface EnergyChartPoint {
 	value: number;
 }
 
+/**
+ * roomId nulo = bucket "Sem Ambiente" (dispositivos sem cômodo atribuído).
+ */
 export interface RoomEnergyUsage {
-	name: string;
+	roomId: string | null;
 	value: number;
 }
 
@@ -30,20 +33,28 @@ export interface DashboardOverviewResponse {
 	energyChart: EnergyChartPoint[];
 	roomUsage: RoomEnergyUsage[];
 	/**
-	 * Não consumido pela UI — a Activity Log Timeline usa o buffer client-side
-	 * de `dashboard-activity.store.ts`, alimentado via SignalR em tempo real.
+	 * Não consumido pela UI — a Linha do Tempo usa o endpoint dedicado e
+	 * paginado `GET /api/dashboard/activity-log` (ver `useActivityLog`).
 	 * Mantido no contrato porque o backend ainda retorna o campo.
 	 */
 	recentActivities: RecentEvent[];
 }
 
-export type ActivityEventKind = "device-status" | "device-media" | "spotify";
+/**
+ * Espelha `ActivityEventTypes` em
+ * `Features/Dashboards/ActivityLog/ActivityLogMessages.cs` (backend).
+ */
+export type ActivityEventType = "DeviceStatus" | "DeviceMedia" | "Spotify";
 
+/**
+ * Entrada real da Linha do Tempo — persistida como SystemEvent no backend,
+ * servida por `GET /api/dashboard/activity-log`.
+ */
 export interface ActivityLogEntry {
 	id: string;
-	kind: ActivityEventKind;
-	deviceId?: string;
+	deviceId: string | null;
+	eventType: ActivityEventType;
 	title: string;
 	description: string;
-	occurredAt: string;
+	timestamp: string;
 }
