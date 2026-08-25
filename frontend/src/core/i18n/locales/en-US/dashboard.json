@@ -35,6 +35,7 @@
 	},
 	"roomSection": {
 		"unassigned": "Unassigned",
+		"energyUsage": "Usage",
 		"viewAllDevices": "View all devices",
 		"editTitle": "Choose displayed devices",
 		"editDescription": "At most what 1 grid row fits (2 normal cards, or 1 wide card like TV/Climate).",

@@ -35,6 +35,7 @@
 	},
 	"roomSection": {
 		"unassigned": "Sem Ambiente",
+		"energyUsage": "Consumo",
 		"viewAllDevices": "Ver todos os dispositivos",
 		"editTitle": "Escolher dispositivos exibidos",
 		"editDescription": "No máximo o equivalente a 1 linha do grid (2 cards normais, ou 1 card largo como TV/Climatização).",

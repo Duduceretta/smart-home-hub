@@ -11,6 +11,7 @@ import { useDevices } from "@/features/devices/hooks/useDevices";
 import type { Device } from "@/features/devices/types/devices.types";
 import { SpotifyNowPlayingCard } from "@/features/integrations/components/SpotifyNowPlayingCard";
 import { useRooms } from "@/features/rooms/hooks/useRooms";
+import { useDashboardOverview } from "../hooks/useDashboardOverview";
 import { useDashboardPreviewStore } from "../store/dashboard-preview.store";
 import { ActiveAutomationsCard } from "./ActiveAutomationsCard";
 import { ActivityLogTimeline } from "./ActivityLogTimeline";
@@ -34,9 +35,19 @@ export const DashboardView: React.FC = () => {
 		pageSize: DEVICES_PAGE_SIZE,
 	});
 
+	const { data: overviewData } = useDashboardOverview();
+
 	const devices = devicesPage?.items ?? [];
 	const rooms = roomsData ?? [];
 	const isLoading = isRoomsLoading || isDevicesLoading;
+
+	const energyUsageByRoomKey = useMemo(() => {
+		const map: Record<string, number> = {};
+		for (const room of overviewData?.roomUsage ?? []) {
+			map[room.roomId ?? UNASSIGNED_ROOM_KEY] = room.value;
+		}
+		return map;
+	}, [overviewData]);
 
 	const expandedByRoom = useDashboardPreviewStore((s) => s.expandedByRoom);
 	const setAllRoomsExpanded = useDashboardPreviewStore(
@@ -147,6 +158,7 @@ export const DashboardView: React.FC = () => {
 								roomId={section.roomId}
 								icon={section.icon}
 								devices={devicesByRoomId[section.key] ?? []}
+								energyUsageKwh={energyUsageByRoomKey[section.key]}
 							/>
 						))
 					)}

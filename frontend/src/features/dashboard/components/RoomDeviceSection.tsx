@@ -37,6 +37,8 @@ interface RoomDeviceSectionProps {
 	roomId?: string;
 	/** Ícone real cadastrado na sala (Room.icon) — mesmo id usado em ROOM_ICON_MAP. */
 	icon?: string | null;
+	/** Consumo real do cômodo hoje (kWh), agregado de DeviceTelemetryLog no backend. undefined = sem telemetria registrada ainda. */
+	energyUsageKwh?: number;
 }
 
 export function RoomDeviceSection({
@@ -44,6 +46,7 @@ export function RoomDeviceSection({
 	devices,
 	roomId,
 	icon,
+	energyUsageKwh,
 }: RoomDeviceSectionProps) {
 	const { t } = useTranslation("dashboard");
 	const RoomIcon = ROOM_ICON_MAP[icon || ""] || ROOM_ICON_MAP.default;
@@ -96,6 +99,14 @@ export function RoomDeviceSection({
 					<span className="text-[10px] text-muted-foreground/60">
 						({devices.length})
 					</span>
+					{energyUsageKwh !== undefined && (
+						<span className="text-[10px] font-medium text-warm">
+							{t("roomSection.energyUsage", "Consumo")}:{" "}
+							<span className="font-semibold">
+								{energyUsageKwh.toFixed(2)} kWh
+							</span>
+						</span>
+					)}
 				</button>
 
 				<div className="flex items-center gap-1">

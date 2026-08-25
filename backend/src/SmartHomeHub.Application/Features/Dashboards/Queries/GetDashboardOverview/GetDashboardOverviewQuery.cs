@@ -16,7 +16,12 @@ public record DashboardSummaryDto(
 
 public record EnergyChartPointDto(DateTimeOffset Timestamp, double Value);
 
-public record RoomEnergyUsageDto(string Name, double Value);
+/// <summary>
+/// RoomId nulo representa o bucket "Sem Ambiente" (dispositivos sem cômodo
+/// atribuído) — casar por Id em vez de nome evita depender do texto exibido
+/// na tela, que é traduzido/pode mudar.
+/// </summary>
+public record RoomEnergyUsageDto(Guid? RoomId, double Value);
 
 public record RecentEventDto(
     Guid Id,
@@ -51,7 +56,7 @@ public sealed class GetDashboardOverviewQueryHandler(IAppDbContext dbContext)
             {
                 device.Id,
                 device.IsOn,
-                RoomName = device.Room!.Name,
+                device.RoomId,
             })
             .ToListAsync(cancellationToken);
 
@@ -84,7 +89,7 @@ public sealed class GetDashboardOverviewQueryHandler(IAppDbContext dbContext)
                 && log.Timestamp < endOfDayUtc
                 && log.PowerUsageWatts.HasValue
             )
-            .Select(log => new { log.Timestamp, log.PowerUsageWatts })
+            .Select(log => new { log.Timestamp, log.DeviceId, log.PowerUsageWatts })
             .ToListAsync(cancellationToken);
 
         // Agrupado em memória (não em SQL) em baldes de 5 minutos: dá uma
@@ -149,10 +154,18 @@ public sealed class GetDashboardOverviewQueryHandler(IAppDbContext dbContext)
                 ? Math.Round(todayTemperatures.Average() - yesterdayTemperatures.Average(), 1)
                 : 0;
 
-        var roomUsageData = userDevices
-            .Where(d => d.RoomName != null)
-            .GroupBy(d => d.RoomName!)
-            .Select(group => new RoomEnergyUsageDto(group.Key, group.Count() * 15.0))
+        // Consumo real por cômodo: soma da telemetria de hoje (mesma base do
+        // EnergyConsumptionKwh acima), agrupada pelo cômodo de cada dispositivo
+        // (RoomId nulo agrupa os dispositivos sem ambiente) em vez de uma
+        // estimativa fixa por contagem de aparelhos.
+        var deviceRoomIds = userDevices.ToDictionary(d => d.Id, d => d.RoomId);
+
+        var roomUsageData = rawEnergyLogs
+            .GroupBy(log => deviceRoomIds.GetValueOrDefault(log.DeviceId))
+            .Select(group => new RoomEnergyUsageDto(
+                group.Key,
+                Math.Round(group.Sum(x => x.PowerUsageWatts!.Value) / 1000.0, 2)
+            ))
             .ToList();
 
         var recentActivities = await dbContext
