@@ -69,11 +69,14 @@ public sealed class MockTelemetryWorker(
     {
         return device.Type switch
         {
+            // Dispositivo desligado não consome — gerar Watts aleatório aqui
+            // independente de IsOn faria uma lâmpada "OFF" aparecer consumindo
+            // energia no dashboard.
             DeviceType.Light or DeviceType.Switch => new TelemetryPayload(
                 IsOn: device.IsOn,
                 Voltage: 220,
                 SignalStrength: "strong",
-                PowerUsageWatts: Random.Shared.Next(5, 61),
+                PowerUsageWatts: device.IsOn ? Random.Shared.Next(5, 61) : 0,
                 TemperatureCelsius: null
             ),
             DeviceType.Sensor or DeviceType.Thermostat => new TelemetryPayload(
@@ -87,7 +90,7 @@ public sealed class MockTelemetryWorker(
                 IsOn: device.IsOn,
                 Voltage: 220,
                 SignalStrength: "strong",
-                PowerUsageWatts: Random.Shared.Next(80, 151),
+                PowerUsageWatts: device.IsOn ? Random.Shared.Next(80, 151) : 0,
                 TemperatureCelsius: null
             ),
             _ => new TelemetryPayload(
