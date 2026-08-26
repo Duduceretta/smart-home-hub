@@ -1,3 +1,5 @@
+using Hangfire;
+using Hangfire.PostgreSql;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -52,6 +54,27 @@ public static class DependencyInjection
         services.AddHttpClient<ISpotifyMediaService, SpotifyMediaService>();
 
         services.AddSingleton<IAutomationEventQueue, AutomationEventQueue>();
+
+        services.AddHangfire(config =>
+            config
+                .SetDataCompatibilityLevel(CompatibilityLevel.Version_180)
+                .UseSimpleAssemblyNameTypeSerializer()
+                .UseRecommendedSerializerSettings()
+                .UsePostgreSqlStorage(options =>
+                {
+                    options.UseNpgsqlConnection(
+                        configuration.GetConnectionString("DefaultConnection")
+                    );
+                })
+        );
+
+        // Adiciona o processo em background (Worker) do Hangfire
+        services.AddHangfireServer(options =>
+        {
+            // Limitar workers é essencial aqui. Garante que os retries lentos de hardware
+            // não roubem 100% da CPU, deixando espaço para o nosso Channel<T> rodar liso.
+            options.WorkerCount = Math.Min(Environment.ProcessorCount, 10);
+        });
 
         var firebaseProjectId = configuration["Firebase:ProjectId"];
 

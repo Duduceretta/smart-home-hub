@@ -1,3 +1,4 @@
+using Hangfire;
 using Microsoft.OpenApi;
 using Scalar.AspNetCore;
 using Serilog;
@@ -110,6 +111,7 @@ try
     app.UseExceptionHandler();
     app.UseAuthentication();
     app.UseAuthorization();
+    app.UseHangfireDashboard("/hangfire");
 
     app.MapHubEndpoints();
     app.MapDashboardEndpoints();
