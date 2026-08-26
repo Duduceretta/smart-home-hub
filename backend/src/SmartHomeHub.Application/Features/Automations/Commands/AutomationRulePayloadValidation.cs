@@ -10,11 +10,6 @@ namespace SmartHomeHub.Application.Features.Automations.Commands;
 // dispatch, bem mais tarde e sem contexto de qual requisição causou).
 public static class AutomationRulePayloadValidation
 {
-    private static readonly JsonSerializerOptions JsonOptions = new()
-    {
-        PropertyNameCaseInsensitive = true,
-    };
-
     public static List<string> Validate(string rulePayload)
     {
         var errors = new List<string>();
@@ -22,7 +17,10 @@ public static class AutomationRulePayloadValidation
         AutomationPayload? payload;
         try
         {
-            payload = JsonSerializer.Deserialize<AutomationPayload>(rulePayload, JsonOptions);
+            payload = JsonSerializer.Deserialize<AutomationPayload>(
+                rulePayload,
+                AutomationPayloadJsonOptions.Default
+            );
         }
         catch (JsonException)
         {

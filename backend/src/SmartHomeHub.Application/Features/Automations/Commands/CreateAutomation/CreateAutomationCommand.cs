@@ -51,11 +51,6 @@ public class CreateAutomationCommandHandler(
     IAutomationSchedulerService schedulerService
 ) : ICommandHandler<CreateAutomationCommand, Result<Guid>>
 {
-    private static readonly JsonSerializerOptions JsonOptions = new()
-    {
-        PropertyNameCaseInsensitive = true,
-    };
-
     public async ValueTask<Result<Guid>> Handle(
         CreateAutomationCommand request,
         CancellationToken cancellationToken
@@ -91,7 +86,7 @@ public class CreateAutomationCommandHandler(
         {
             var payload = JsonSerializer.Deserialize<AutomationPayload>(
                 request.RulePayload,
-                JsonOptions
+                AutomationPayloadJsonOptions.Default
             );
             var cronExpression = payload?.GetTimeTriggerCronExpression();
 

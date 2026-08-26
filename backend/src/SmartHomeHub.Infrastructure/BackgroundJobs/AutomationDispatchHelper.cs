@@ -14,11 +14,6 @@ namespace SmartHomeHub.Infrastructure.BackgroundJobs;
 // instante ainda é UMA automação, não deve executar duas vezes em 5s.
 internal static class AutomationDispatchHelper
 {
-    private static readonly JsonSerializerOptions JsonOptions = new()
-    {
-        PropertyNameCaseInsensitive = true,
-    };
-
     public static void DispatchActionsSafely(
         Automation automation,
         string traceId,
@@ -42,7 +37,7 @@ internal static class AutomationDispatchHelper
 
         var payload = JsonSerializer.Deserialize<AutomationPayload>(
             automation.RulePayload,
-            JsonOptions
+            AutomationPayloadJsonOptions.Default
         );
         if (payload?.Actions == null)
             return;

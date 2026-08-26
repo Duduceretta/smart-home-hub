@@ -56,11 +56,6 @@ public class UpdateAutomationCommandHandler(
     IAutomationSchedulerService schedulerService
 ) : ICommandHandler<UpdateAutomationCommand, Result>
 {
-    private static readonly JsonSerializerOptions JsonOptions = new()
-    {
-        PropertyNameCaseInsensitive = true,
-    };
-
     public async ValueTask<Result> Handle(
         UpdateAutomationCommand request,
         CancellationToken cancellationToken
@@ -104,7 +99,7 @@ public class UpdateAutomationCommandHandler(
         // agendamento que não reflete o que está no banco.
         var payload = JsonSerializer.Deserialize<AutomationPayload>(
             request.RulePayload,
-            JsonOptions
+            AutomationPayloadJsonOptions.Default
         );
         var cronExpression = payload?.GetTimeTriggerCronExpression();
 

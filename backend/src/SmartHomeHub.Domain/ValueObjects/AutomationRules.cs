@@ -48,3 +48,22 @@ public static class AutomationPayloadExtensions
     public static string? GetTimeTriggerCronExpression(this AutomationPayload payload) =>
         payload.Triggers?.OfType<TimeTrigger>().FirstOrDefault()?.CronExpression;
 }
+
+// Fonte única das JsonSerializerOptions usadas para (des)serializar
+// AutomationPayload — antes cada consumidor (validator, handlers, worker,
+// rules engine) duplicava sua própria instância, e nenhuma delas tinha
+// AllowOutOfOrderMetadataProperties. Resultado: o Postgres armazena
+// RulePayload como `jsonb`, que NÃO preserva a ordem original das chaves do
+// JSON (reordena por tamanho), então "type" deixa de ser a primeira
+// propriedade do trigger e o System.Text.Json falha ao localizar o
+// discriminador polimórfico ("must specify a type discriminator") — mesmo
+// com o "type" presente no JSON, só que fora de ordem. Uma única fonte
+// evita a mesma falha reaparecer numa 6ª cópia divergente no futuro.
+public static class AutomationPayloadJsonOptions
+{
+    public static readonly JsonSerializerOptions Default = new()
+    {
+        PropertyNameCaseInsensitive = true,
+        AllowOutOfOrderMetadataProperties = true,
+    };
+}
