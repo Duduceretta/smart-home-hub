@@ -81,6 +81,9 @@ export const DeviceCard: React.FC<DeviceCardProps> = ({ device }) => {
 	const { data: media } = useDeviceMedia(device.id, {
 		enabled: isTv && isAdbControllable && isOnline,
 	});
+	// Estado real de reprodução (via ADB) — não confundir com `isOn` (TV
+	// ligada só indica energia, não que algo está tocando na tela).
+	const isPlaying = Boolean(media?.isPlaying);
 	const { mutate: setVolume } = useSetDeviceVolume();
 
 	const [localVolume, setLocalVolume] = useState(0);
@@ -206,7 +209,6 @@ export const DeviceCard: React.FC<DeviceCardProps> = ({ device }) => {
 		// 4. Smart TV (Now Playing + Controles de Mídia + Volume)
 		if (isTv) {
 			const hasMedia = isOnline && isAdbControllable && Boolean(media?.title);
-			const isPlaying = Boolean(media?.isPlaying);
 			const volumeDisabled = !isOnline || !isAdbControllable;
 
 			return (
@@ -496,7 +498,7 @@ export const DeviceCard: React.FC<DeviceCardProps> = ({ device }) => {
 							</div>
 						) : (
 							isTv &&
-							isOn && (
+							isPlaying && (
 								<div className="flex items-center gap-1.5 mr-1">
 									<span className="flex h-2 w-2 relative">
 										<span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75" />
