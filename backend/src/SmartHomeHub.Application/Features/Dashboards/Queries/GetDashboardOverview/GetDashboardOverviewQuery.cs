@@ -14,6 +14,11 @@ public record DashboardSummaryDto(
     int ActiveAlertsCount
 );
 
+/// <summary>
+/// Value é potência média (kW) do balde de tempo — não energia. O gráfico
+/// mostra "quanto a casa está puxando agora", distinto do total acumulado
+/// do dia (DashboardSummaryDto.EnergyConsumptionKwh, em kWh).
+/// </summary>
 public record EnergyChartPointDto(DateTimeOffset Timestamp, double Value);
 
 /// <summary>
@@ -76,7 +81,15 @@ public sealed class GetDashboardOverviewQueryHandler(IAppDbContext dbContext)
             .Where(events => events.User.ExternalAuthUid == request.FirebaseUid && events.IsAlert)
             .CountAsync(cancellationToken);
 
-        var startOfDayUtc = request.TargetDateUtc.Date;
+        // TargetDateUtc.Date descartaria o offset e viraria DateTime
+        // Unspecified — ao comparar com a coluna timestamptz, o EF/Npgsql
+        // reinterpreta esse valor usando o fuso LOCAL do servidor (não UTC),
+        // deslocando a janela do dia por horas erradas. Construir a data já
+        // como DateTimeOffset com offset zero evita essa reinterpretação.
+        var startOfDayUtc = new DateTimeOffset(
+            request.TargetDateUtc.UtcDateTime.Date,
+            TimeSpan.Zero
+        );
         var endOfDayUtc = startOfDayUtc.AddDays(1);
 
         const int bucketMinutes = 5;
@@ -92,32 +105,55 @@ public sealed class GetDashboardOverviewQueryHandler(IAppDbContext dbContext)
             .Select(log => new { log.Timestamp, log.DeviceId, log.PowerUsageWatts })
             .ToListAsync(cancellationToken);
 
-        // Agrupado em memória (não em SQL) em baldes de 5 minutos: dá uma
-        // resolução fina o bastante para o gráfico já formar uma curva com
-        // poucos minutos de telemetria mockada, sem depender de horas cheias
-        // de dados acumulados como o balde por hora exigia.
-        var energyChartData = rawEnergyLogs
-            .GroupBy(log =>
+        DateTimeOffset FloorToBucket(DateTimeOffset timestamp)
+        {
+            var flooredMinute = (timestamp.Minute / bucketMinutes) * bucketMinutes;
+            return new DateTimeOffset(
+                timestamp.Year,
+                timestamp.Month,
+                timestamp.Day,
+                timestamp.Hour,
+                flooredMinute,
+                0,
+                TimeSpan.Zero
+            );
+        }
+
+        // Energia (kWh) é potência × tempo, não a soma bruta das amostras de
+        // Watts — como a telemetria chega a cada poucos segundos, somar as
+        // amostras direto infla o total proporcionalmente à frequência de
+        // leitura (10 leituras de 50W num balde de 5min não são "500W", são
+        // só 50W sustentados). Por isso: 1) reduz cada (dispositivo, balde) à
+        // potência MÉDIA nesse balde — elimina a distorção da frequência de
+        // amostragem — e só então 2) soma a potência média dos dispositivos
+        // concorrentes no balde e multiplica pela duração do balde em horas.
+        var deviceBucketAverages = rawEnergyLogs
+            .GroupBy(log => (Bucket: FloorToBucket(log.Timestamp), log.DeviceId))
+            .Select(group => new
             {
-                var flooredMinute = (log.Timestamp.Minute / bucketMinutes) * bucketMinutes;
-                return new DateTimeOffset(
-                    log.Timestamp.Year,
-                    log.Timestamp.Month,
-                    log.Timestamp.Day,
-                    log.Timestamp.Hour,
-                    flooredMinute,
-                    0,
-                    TimeSpan.Zero
-                );
+                group.Key.Bucket,
+                group.Key.DeviceId,
+                AverageWatts = group.Average(x => x.PowerUsageWatts!.Value),
             })
+            .ToList();
+
+        var bucketDurationHours = bucketMinutes / 60.0;
+
+        // Cada ponto é a potência MÉDIA (kW) da casa naquele balde — soma da
+        // potência média de cada dispositivo concorrente, sem multiplicar
+        // pela duração. É "quanto está sendo puxado agora", não energia.
+        var energyChartData = deviceBucketAverages
+            .GroupBy(x => x.Bucket)
             .Select(group => new EnergyChartPointDto(
                 group.Key,
-                Math.Round(group.Sum(x => x.PowerUsageWatts!.Value) / 1000.0, 2)
+                Math.Round(group.Sum(x => x.AverageWatts) / 1000.0, 4)
             ))
             .OrderBy(point => point.Timestamp)
             .ToList();
 
-        var totalConsumptionKwh = energyChartData.Sum(point => point.Value);
+        // Energia total do dia (kWh) = integral de potência × tempo — soma de
+        // cada ponto do gráfico (kW) multiplicado pela duração do seu balde.
+        var totalConsumptionKwh = energyChartData.Sum(point => point.Value) * bucketDurationHours;
 
         var yesterdayStartUtc = startOfDayUtc.AddDays(-1);
 
@@ -154,17 +190,17 @@ public sealed class GetDashboardOverviewQueryHandler(IAppDbContext dbContext)
                 ? Math.Round(todayTemperatures.Average() - yesterdayTemperatures.Average(), 1)
                 : 0;
 
-        // Consumo real por cômodo: soma da telemetria de hoje (mesma base do
-        // EnergyConsumptionKwh acima), agrupada pelo cômodo de cada dispositivo
-        // (RoomId nulo agrupa os dispositivos sem ambiente) em vez de uma
-        // estimativa fixa por contagem de aparelhos.
+        // Consumo real por cômodo: mesma base (deviceBucketAverages, já livre
+        // da distorção de frequência de amostragem) do gráfico acima, só que
+        // agrupada pelo cômodo de cada dispositivo em vez de pelo balde de
+        // tempo — RoomId nulo agrupa os dispositivos sem ambiente.
         var deviceRoomIds = userDevices.ToDictionary(d => d.Id, d => d.RoomId);
 
-        var roomUsageData = rawEnergyLogs
-            .GroupBy(log => deviceRoomIds.GetValueOrDefault(log.DeviceId))
+        var roomUsageData = deviceBucketAverages
+            .GroupBy(x => deviceRoomIds.GetValueOrDefault(x.DeviceId))
             .Select(group => new RoomEnergyUsageDto(
                 group.Key,
-                Math.Round(group.Sum(x => x.PowerUsageWatts!.Value) / 1000.0, 2)
+                Math.Round(group.Sum(x => x.AverageWatts) * bucketDurationHours / 1000.0, 4)
             ))
             .ToList();
 
@@ -179,7 +215,7 @@ public sealed class GetDashboardOverviewQueryHandler(IAppDbContext dbContext)
         var summary = new DashboardSummaryDto(
             TotalDevicesCount: totalDevicesCount,
             OnlineDevicesCount: onlineDevicesCount,
-            EnergyConsumptionKwh: Math.Round(totalConsumptionKwh, 1),
+            EnergyConsumptionKwh: Math.Round(totalConsumptionKwh, 4),
             AverageTemperatureCelsius: averageTemperatureCelsius,
             TemperatureTrend: temperatureTrend,
             ActiveAlertsCount: activeAlertsCount
