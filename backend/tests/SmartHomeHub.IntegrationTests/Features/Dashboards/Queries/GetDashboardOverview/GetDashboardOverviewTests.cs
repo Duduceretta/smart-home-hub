@@ -14,14 +14,19 @@ public class GetDashboardOverviewTests(IntegrationTestWebAppFactory factory)
         int TotalDevicesCount,
         int OnlineDevicesCount,
         double EnergyConsumptionKwh,
+        bool IsEnergyEstimated,
         double AverageTemperatureCelsius,
         double TemperatureTrend,
         int ActiveAlertsCount
     );
 
-    private record EnergyChartPointResponse(DateTimeOffset Timestamp, double Value);
+    private record EnergyChartPointResponse(
+        DateTimeOffset Timestamp,
+        double Value,
+        bool IsEstimated
+    );
 
-    private record RoomEnergyUsageResponse(string Name, double Value);
+    private record RoomEnergyUsageResponse(Guid? RoomId, double Value, bool IsEstimated);
 
     private record RecentEventResponse(
         Guid Id,
@@ -91,6 +96,9 @@ public class GetDashboardOverviewTests(IntegrationTestWebAppFactory factory)
             ExternalAuthUid = "vizinho-token",
         };
 
+        // "Online" é conectividade (IsOnline), não estado de energia (IsOn) —
+        // um dispositivo pode estar conectado ao Hub e desligado (ex: luz
+        // desligada, mas ainda "vista" pela rede).
         var myOnlineDevice1 = new Device
         {
             Id = Guid.NewGuid(),
@@ -100,6 +108,7 @@ public class GetDashboardOverviewTests(IntegrationTestWebAppFactory factory)
             ExternalId = "MAC-DASH-1",
             Type = DeviceType.Light,
             IsOn = true,
+            IsOnline = true,
         };
         var myOnlineDevice2 = new Device
         {
@@ -109,7 +118,8 @@ public class GetDashboardOverviewTests(IntegrationTestWebAppFactory factory)
             Brand = "LG",
             ExternalId = "MAC-DASH-2",
             Type = DeviceType.Thermostat,
-            IsOn = true,
+            IsOn = false,
+            IsOnline = true,
         };
         var myOfflineDevice = new Device
         {
@@ -120,6 +130,7 @@ public class GetDashboardOverviewTests(IntegrationTestWebAppFactory factory)
             ExternalId = "MAC-DASH-3",
             Type = DeviceType.Lock,
             IsOn = false,
+            IsOnline = false,
         };
 
         var otherUserDevice = new Device
@@ -131,6 +142,7 @@ public class GetDashboardOverviewTests(IntegrationTestWebAppFactory factory)
             ExternalId = "MAC-DASH-VIZINHO",
             Type = DeviceType.Television,
             IsOn = true,
+            IsOnline = true,
         };
 
         var myAlert1 = new SystemEvent
@@ -206,7 +218,7 @@ public class GetDashboardOverviewTests(IntegrationTestWebAppFactory factory)
     }
 
     [Fact]
-    public async Task GetDashboardOverview_ShouldGroupEnergyConsumption_ByHour_OnlyForTargetDate()
+    public async Task GetDashboardOverview_ShouldGroupEnergyConsumption_ByFiveMinuteBucket_AndFillGapsBetweenThem()
     {
         var loggedUser = new User
         {
@@ -227,26 +239,31 @@ public class GetDashboardOverviewTests(IntegrationTestWebAppFactory factory)
 
         var targetDate = new DateTimeOffset(2026, 3, 10, 0, 0, 0, TimeSpan.Zero);
 
-        var logsSameHour = new List<DeviceTelemetryLog>
+        // Duas leituras dentro do MESMO balde de 5min (08:05-08:10) — devem
+        // virar UM ponto no gráfico com a potência MÉDIA, não a soma bruta.
+        var logsSameBucket = new List<DeviceTelemetryLog>
         {
             new()
             {
                 DeviceId = device.Id,
                 Timestamp = targetDate.AddHours(8).AddMinutes(5),
-                PowerUsageWatts = 500,
+                PowerUsageWatts = 400,
             },
             new()
             {
                 DeviceId = device.Id,
-                Timestamp = targetDate.AddHours(8).AddMinutes(40),
-                PowerUsageWatts = 500,
+                Timestamp = targetDate.AddHours(8).AddMinutes(7),
+                PowerUsageWatts = 600,
             },
         };
 
-        var logDifferentHour = new DeviceTelemetryLog
+        // Próximo balde com dado real (08:15) — o balde entre os dois
+        // (08:10) não tem nenhuma amostra e deve ser preenchido com 0kW
+        // pra manter o eixo do gráfico uniforme.
+        var logNextBucket = new DeviceTelemetryLog
         {
             DeviceId = device.Id,
-            Timestamp = targetDate.AddHours(14),
+            Timestamp = targetDate.AddHours(8).AddMinutes(15),
             PowerUsageWatts = 2000,
         };
 
@@ -260,16 +277,16 @@ public class GetDashboardOverviewTests(IntegrationTestWebAppFactory factory)
         var logWithoutPower = new DeviceTelemetryLog
         {
             DeviceId = device.Id,
-            Timestamp = targetDate.AddHours(9),
+            Timestamp = targetDate.AddHours(8).AddMinutes(6),
             PowerUsageWatts = null,
         };
 
         DbContext.Users.Add(loggedUser);
         DbContext.Devices.Add(device);
         DbContext.DeviceTelemetryLogs.AddRange(
-            logsSameHour[0],
-            logsSameHour[1],
-            logDifferentHour,
+            logsSameBucket[0],
+            logsSameBucket[1],
+            logNextBucket,
             logOutsideTargetDate,
             logWithoutPower
         );
@@ -289,25 +306,37 @@ public class GetDashboardOverviewTests(IntegrationTestWebAppFactory factory)
         overview.Should().NotBeNull();
         overview!
             .EnergyChart.Should()
-            .HaveCount(2, "apenas as duas horas do dia alvo com potência registrada.");
+            .HaveCount(
+                3,
+                "os baldes 08:05 e 08:15 têm dado real, e 08:10 entra preenchido com 0kW no meio deles."
+            );
 
-        var hourEightPoint = overview.EnergyChart.Single(point =>
-            point.Timestamp == targetDate.AddHours(8)
+        var firstBucket = overview.EnergyChart.Single(point =>
+            point.Timestamp == targetDate.AddHours(8).AddMinutes(5)
         );
-        hourEightPoint.Value.Should().Be(1.0, "500W + 500W = 1000W, convertidos para 1.0 kWh.");
+        firstBucket.Value.Should().Be(0.5, "média de 400W e 600W = 500W = 0.5kW.");
 
-        var hourFourteenPoint = overview.EnergyChart.Single(point =>
-            point.Timestamp == targetDate.AddHours(14)
+        var gapBucket = overview.EnergyChart.Single(point =>
+            point.Timestamp == targetDate.AddHours(8).AddMinutes(10)
         );
-        hourFourteenPoint.Value.Should().Be(2.0);
+        gapBucket.Value.Should().Be(0, "balde sem nenhuma amostra, preenchido pelo gap-fill.");
+
+        var lastBucket = overview.EnergyChart.Single(point =>
+            point.Timestamp == targetDate.AddHours(8).AddMinutes(15)
+        );
+        lastBucket.Value.Should().Be(2.0);
 
         overview
             .Summary.EnergyConsumptionKwh.Should()
-            .Be(3.0, "soma de todos os pontos do gráfico do dia alvo (1.0 + 2.0).");
+            .BeApproximately(
+                0.2083,
+                0.0001,
+                "(0.5 + 0 + 2.0) kW × 5min de cada balde, convertido em kWh."
+            );
     }
 
     [Fact]
-    public async Task GetDashboardOverview_ShouldGroupUsage_ByRoomName_ExcludingDevicesWithoutRoom()
+    public async Task GetDashboardOverview_ShouldGroupUsage_ByRoomId_ExcludingDevicesWithoutTelemetry()
     {
         var loggedUser = new User
         {
@@ -370,6 +399,32 @@ public class GetDashboardOverviewTests(IntegrationTestWebAppFactory factory)
             Type = DeviceType.Switch,
         };
 
+        var now = DateTimeOffset.UtcNow;
+
+        // RoomUsage é derivado de telemetria real (mesma base do gráfico),
+        // não de um campo estático no Device — sem nenhum log de potência,
+        // um dispositivo simplesmente não contribui pra nenhum grupo, com
+        // ou sem cômodo atribuído. roomlessDevice fica de propósito sem
+        // telemetria, então nunca aparece (nem como grupo "Sem Ambiente").
+        var livingRoomLog1 = new DeviceTelemetryLog
+        {
+            DeviceId = livingRoomDevice1.Id,
+            Timestamp = now,
+            PowerUsageWatts = 2000,
+        };
+        var livingRoomLog2 = new DeviceTelemetryLog
+        {
+            DeviceId = livingRoomDevice2.Id,
+            Timestamp = now,
+            PowerUsageWatts = 1000,
+        };
+        var bedroomLog = new DeviceTelemetryLog
+        {
+            DeviceId = bedroomDevice.Id,
+            Timestamp = now,
+            PowerUsageWatts = 1200,
+        };
+
         DbContext.Users.Add(loggedUser);
         DbContext.Rooms.AddRange(livingRoom, bedroom);
         DbContext.Devices.AddRange(
@@ -378,6 +433,7 @@ public class GetDashboardOverviewTests(IntegrationTestWebAppFactory factory)
             bedroomDevice,
             roomlessDevice
         );
+        DbContext.DeviceTelemetryLogs.AddRange(livingRoomLog1, livingRoomLog2, bedroomLog);
         await DbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         var response = await Client.GetAsync(
@@ -394,14 +450,16 @@ public class GetDashboardOverviewTests(IntegrationTestWebAppFactory factory)
         overview.Should().NotBeNull();
         overview!
             .RoomUsage.Should()
-            .HaveCount(2, "o dispositivo sem cômodo não deve gerar um grupo próprio.");
+            .HaveCount(2, "o dispositivo sem telemetria não deve gerar nenhum grupo.");
 
         overview
             .RoomUsage.Should()
-            .ContainSingle(usage => usage.Name == "Sala de Estar" && usage.Value == 30.0);
+            .ContainSingle(usage =>
+                usage.RoomId == livingRoom.Id && usage.Value == 0.25
+            );
         overview
             .RoomUsage.Should()
-            .ContainSingle(usage => usage.Name == "Quarto" && usage.Value == 15.0);
+            .ContainSingle(usage => usage.RoomId == bedroom.Id && usage.Value == 0.1);
     }
 
     [Fact]
