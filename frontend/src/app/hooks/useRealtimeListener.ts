@@ -1,5 +1,5 @@
 import { useQueryClient } from "@tanstack/react-query";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { createSignalRConnection } from "@/core/lib/signalr";
 import { Logger } from "@/core/logger/app.logger";
 import type { PagedResponse } from "@/core/types/pagination.types";
@@ -34,6 +34,7 @@ export function useRealtimeListener(): void {
 	const user = useAuthStore((state) => state.user);
 	const isLoading = useAuthStore((state) => state.isLoading);
 	const queryClient = useQueryClient();
+	const telemetryDebounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
 	useEffect(() => {
 		if (isLoading || !user) return;
@@ -131,9 +132,19 @@ export function useRealtimeListener(): void {
 			(payload: TelemetryReceivedPayload) => {
 				Logger.info("Evento SignalR: ReceiveTelemetryUpdate", payload);
 
-				queryClient.invalidateQueries({
-					queryKey: dashboardKeys.overview(),
-				});
+				// Telemetria chega em rajada — um único tick do worker mock dispara
+				// um evento por dispositivo (dezenas em poucos ms), e cada
+				// invalidateQueries dispara um refetch. Sem debounce, isso vira uma
+				// rajada de requisições HTTP simultâneas pra /dashboard/overview a
+				// cada ciclo. O dashboard não precisa de precisão sub-segundo (o
+				// gráfico agrega em baldes de 5 min), só coalescer as invalidações
+				// do burst numa única, após um breve período de silêncio.
+				clearTimeout(telemetryDebounceRef.current);
+				telemetryDebounceRef.current = setTimeout(() => {
+					queryClient.invalidateQueries({
+						queryKey: dashboardKeys.overview(),
+					});
+				}, 800);
 			},
 		);
 
@@ -171,6 +182,7 @@ export function useRealtimeListener(): void {
 			});
 
 		return () => {
+			clearTimeout(telemetryDebounceRef.current);
 			connection.stop().catch((error: unknown) => {
 				Logger.warn("Erro ao encerrar conexão SignalR de forma limpa", error);
 			});
