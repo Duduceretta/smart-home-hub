@@ -95,7 +95,14 @@ public class ProcessTelemetryCommandHandler(
 
             dbContext.DeviceTelemetryLogs.Add(telemetryLog);
 
-            if (wasOn != device.IsOn || !wasOnline)
+            // device.IsOn muda a cada payload mock (mesmo sem transição real),
+            // então gatear em wasOn/wasOnline evita disparar DeviceStatusChanged
+            // pra todo device a cada tick — sem isso, o worker mock (~12
+            // devices a cada 5s) inunda o frontend de invalidações de
+            // dashboardKeys.overview()/activityLogs() sem debounce.
+            var statusChanged = wasOn != device.IsOn || !wasOnline;
+
+            if (statusChanged)
             {
                 var (title, description) = ActivityLogMessages.DeviceStatusChanged(
                     device.Name,
@@ -119,13 +126,16 @@ public class ProcessTelemetryCommandHandler(
 
             await dbContext.SaveChangesAsync(cancellationToken);
 
-            await notificationService.NotifyDeviceStatusChangedAsync(
-                device.User.ExternalAuthUid,
-                device.Id,
-                device.IsOn,
-                device.IsOnline,
-                cancellationToken
-            );
+            if (statusChanged)
+            {
+                await notificationService.NotifyDeviceStatusChangedAsync(
+                    device.User.ExternalAuthUid,
+                    device.Id,
+                    device.IsOn,
+                    device.IsOnline,
+                    cancellationToken
+                );
+            }
 
             await notificationService.NotifyTelemetryReceivedAsync(
                 device.User.ExternalAuthUid,
