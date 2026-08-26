@@ -12,6 +12,7 @@ public interface IAppDbContext
     DbSet<DeviceTelemetryLog> DeviceTelemetryLogs { get; }
     DbSet<SystemEvent> SystemEvents { get; }
     DbSet<SpotifyIntegration> SpotifyIntegrations { get; }
+    DbSet<Automation> Automations { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }
