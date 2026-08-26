@@ -1,14 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
-import { apiClient } from "@/core/api/api.client";
+import { fetchDashboardOverview } from "../api/dashboard.api";
 import type { DashboardOverviewResponse } from "../types/dashboard.types";
 import { dashboardKeys } from "./dashboard.keys";
-
-async function fetchDashboardOverview(): Promise<DashboardOverviewResponse> {
-	const { data } = await apiClient.get<DashboardOverviewResponse>(
-		"/dashboard/overview",
-	);
-	return data;
-}
 
 export function useDashboardOverview() {
 	return useQuery<DashboardOverviewResponse, Error>({
