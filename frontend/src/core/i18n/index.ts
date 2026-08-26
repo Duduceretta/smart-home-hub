@@ -3,12 +3,14 @@ import LanguageDetector from "i18next-browser-languagedetector";
 import { initReactI18next } from "react-i18next";
 
 import enAuth from "./locales/en-US/auth.json";
+import enAutomations from "./locales/en-US/automations.json";
 import enCommon from "./locales/en-US/common.json";
 import enDashboard from "./locales/en-US/dashboard.json";
 import enDeviceGroups from "./locales/en-US/device-groups.json";
 import enDevices from "./locales/en-US/devices.json";
 import enRooms from "./locales/en-US/rooms.json";
 import ptAuth from "./locales/pt-BR/auth.json";
+import ptAutomations from "./locales/pt-BR/automations.json";
 import ptCommon from "./locales/pt-BR/common.json";
 import ptDashboard from "./locales/pt-BR/dashboard.json";
 import ptDeviceGroups from "./locales/pt-BR/device-groups.json";
@@ -25,6 +27,7 @@ export const resources = {
 		rooms: ptRooms,
 		"device-groups": ptDeviceGroups,
 		auth: ptAuth,
+		automations: ptAutomations,
 	},
 	"en-US": {
 		common: enCommon,
@@ -33,6 +36,7 @@ export const resources = {
 		rooms: enRooms,
 		"device-groups": enDeviceGroups,
 		auth: enAuth,
+		automations: enAutomations,
 	},
 } as const;
 
@@ -43,7 +47,15 @@ i18n
 		resources,
 		fallbackLng: "pt-BR",
 		defaultNS,
-		ns: ["common", "devices", "dashboard", "rooms", "device-groups", "auth"],
+		ns: [
+			"common",
+			"devices",
+			"dashboard",
+			"rooms",
+			"device-groups",
+			"auth",
+			"automations",
+		],
 		interpolation: {
 			escapeValue: false,
 		},

@@ -1,0 +1,103 @@
+{
+	"title": "Automations",
+	"header": {
+		"subtitle": "Create routines that turn devices on, off, and react to them automatically, by schedule or by event.",
+		"addButton": "New Automation"
+	},
+	"toolbar": {
+		"searchPlaceholder": "Search automation by name..."
+	},
+	"grid": {
+		"errorTitle": "Error loading automations.",
+		"errorSubtitle": "Check your connection or whether the C# API service is running.",
+		"searchEmptyTitle": "No automation found",
+		"searchEmptySubtitle": "No automation matches your search for \"{{query}}\".",
+		"clearSearch": "Clear search",
+		"emptyTitle": "No automations yet",
+		"emptySubtitle": "Create your first automation to turn devices on, off, or react to them automatically.",
+		"emptyCta": "Create First Automation"
+	},
+	"card": {
+		"optionsAriaLabel": "Automation options",
+		"deleting": "Deleting...",
+		"confirmDelete": "Are you sure you want to delete the automation \"{{name}}\"?",
+		"active": "Active",
+		"inactive": "Inactive",
+		"invalidPayload": "Invalid configuration",
+		"actionsCount": "{{count}} action",
+		"actionsCount_other": "{{count}} actions",
+		"triggerSummary": {
+			"time": "Cron: {{cron}}",
+			"deviceState": "Based on device event",
+			"none": "No trigger configured"
+		}
+	},
+	"form": {
+		"fields": {
+			"name": {
+				"label": "Automation Name *",
+				"placeholder": "E.g.: Turn everything off at night"
+			},
+			"isActive": {
+				"label": "Automation active"
+			}
+		},
+		"create": {
+			"title": "New Automation",
+			"description": "Define the trigger, conditions, and actions this automation will run.",
+			"submitButton": "Create Automation"
+		},
+		"edit": {
+			"title": "Edit Automation",
+			"description": "Change the trigger, conditions, or actions of this automation.",
+			"submitButton": "Save Changes"
+		}
+	},
+	"trigger": {
+		"title": "Trigger",
+		"tabs": {
+			"time": "Schedule",
+			"deviceState": "Device State"
+		},
+		"cron": {
+			"label": "Cron Expression",
+			"placeholder": "0 22 * * *",
+			"help": "5 fields: minute hour day month weekday. E.g.: \"0 22 * * *\" runs every day at 10pm."
+		},
+		"deviceState": {
+			"deviceLabel": "Observed device",
+			"devicePlaceholder": "Select a device",
+			"stateTypeLabel": "State type",
+			"stateTypePlaceholder": "E.g.: isOn"
+		}
+	},
+	"conditions": {
+		"title": "Conditions (optional)",
+		"empty": "No conditions — the automation runs whenever the trigger fires.",
+		"devicePlaceholder": "Select a device",
+		"addRow": "Add condition",
+		"removeRow": "Remove condition",
+		"operator": {
+			"and": "AND (all)",
+			"or": "OR (any)"
+		}
+	},
+	"actions": {
+		"title": "Actions",
+		"addRow": "Add action",
+		"turnOn": "Turn on",
+		"turnOff": "Turn off"
+	},
+	"property": {
+		"options": {
+			"isOn": "On/Off",
+			"temperature": "Temperature",
+			"powerUsageWatts": "Power usage (W)",
+			"deviceId": "Device (compare)"
+		},
+		"isOnValue": {
+			"on": "On",
+			"off": "Off"
+		}
+	}
+}

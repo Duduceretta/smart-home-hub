@@ -26,6 +26,9 @@ const RoomsPage = lazy(() => import("@/pages/rooms/RoomsPage"));
 const DeviceGroupsPage = lazy(
 	() => import("@/pages/device-groups/DeviceGroupsPage"),
 );
+const AutomationsPage = lazy(
+	() => import("@/pages/automations/AutomationsPage"),
+);
 const SettingsPage = lazy(() => import("@/pages/settings/SettingsPage"));
 
 const DevToolsPage = import.meta.env.DEV
@@ -79,6 +82,10 @@ const router = createBrowserRouter([
 					{
 						path: "/device-groups",
 						element: withFallback(<DeviceGroupsPage />),
+					},
+					{
+						path: "/automations",
+						element: withFallback(<AutomationsPage />),
 					},
 					{
 						path: "/settings",

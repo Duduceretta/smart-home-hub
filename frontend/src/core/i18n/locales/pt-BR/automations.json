@@ -1,0 +1,103 @@
+{
+	"title": "Automações",
+	"header": {
+		"subtitle": "Crie rotinas que ligam, desligam e reagem aos seus dispositivos automaticamente, por horário ou por evento.",
+		"addButton": "Nova Automação"
+	},
+	"toolbar": {
+		"searchPlaceholder": "Buscar automação por nome..."
+	},
+	"grid": {
+		"errorTitle": "Erro ao carregar as automações.",
+		"errorSubtitle": "Verifique sua conexão ou se o serviço de API C# está em execução.",
+		"searchEmptyTitle": "Nenhuma automação encontrada",
+		"searchEmptySubtitle": "Nenhuma automação corresponde à sua busca por \"{{query}}\".",
+		"clearSearch": "Limpar busca",
+		"emptyTitle": "Nenhuma automação cadastrada",
+		"emptySubtitle": "Crie sua primeira automação para ligar, desligar ou reagir a dispositivos automaticamente.",
+		"emptyCta": "Criar Primeira Automação"
+	},
+	"card": {
+		"optionsAriaLabel": "Opções da automação",
+		"deleting": "Excluindo...",
+		"confirmDelete": "Tem certeza que deseja excluir a automação \"{{name}}\"?",
+		"active": "Ativa",
+		"inactive": "Inativa",
+		"invalidPayload": "Configuração inválida",
+		"actionsCount": "{{count}} ação",
+		"actionsCount_other": "{{count}} ações",
+		"triggerSummary": {
+			"time": "Cron: {{cron}}",
+			"deviceState": "Baseado em evento de dispositivo",
+			"none": "Sem gatilho configurado"
+		}
+	},
+	"form": {
+		"fields": {
+			"name": {
+				"label": "Nome da Automação *",
+				"placeholder": "Ex: Desligar tudo à noite"
+			},
+			"isActive": {
+				"label": "Automação ativa"
+			}
+		},
+		"create": {
+			"title": "Nova Automação",
+			"description": "Defina o gatilho, as condições e as ações que essa automação vai executar.",
+			"submitButton": "Criar Automação"
+		},
+		"edit": {
+			"title": "Editar Automação",
+			"description": "Altere o gatilho, as condições ou as ações desta automação.",
+			"submitButton": "Salvar Alterações"
+		}
+	},
+	"trigger": {
+		"title": "Gatilho",
+		"tabs": {
+			"time": "Horário",
+			"deviceState": "Estado do Dispositivo"
+		},
+		"cron": {
+			"label": "Expressão Cron",
+			"placeholder": "0 22 * * *",
+			"help": "5 campos: minuto hora dia mês dia-da-semana. Ex: \"0 22 * * *\" roda todo dia às 22h."
+		},
+		"deviceState": {
+			"deviceLabel": "Dispositivo observado",
+			"devicePlaceholder": "Selecione um dispositivo",
+			"stateTypeLabel": "Tipo de estado",
+			"stateTypePlaceholder": "Ex: isOn"
+		}
+	},
+	"conditions": {
+		"title": "Condições (opcional)",
+		"empty": "Sem condições — a automação dispara sempre que o gatilho ocorrer.",
+		"devicePlaceholder": "Selecione um dispositivo",
+		"addRow": "Adicionar condição",
+		"removeRow": "Remover condição",
+		"operator": {
+			"and": "E (todas)",
+			"or": "OU (qualquer uma)"
+		}
+	},
+	"actions": {
+		"title": "Ações",
+		"addRow": "Adicionar ação",
+		"turnOn": "Ligar",
+		"turnOff": "Desligar"
+	},
+	"property": {
+		"options": {
+			"isOn": "Ligado/Desligado",
+			"temperature": "Temperatura",
+			"powerUsageWatts": "Consumo (W)",
+			"deviceId": "Dispositivo (comparar)"
+		},
+		"isOnValue": {
+			"on": "Ligado",
+			"off": "Desligado"
+		}
+	}
+}
