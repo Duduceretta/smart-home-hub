@@ -25,7 +25,7 @@ test.describe("E2E: Gerenciamento de Dispositivos", () => {
 		await goToDevicesPage(page);
 
 		// Assert
-		await expect(page.getByText("Nenhum dispositivo encontrado")).toBeVisible();
+		await expect(page.getByText("Nenhum dispositivo cadastrado")).toBeVisible();
 	});
 
 	test("CreateDeviceSheet_PreenchimentoValidoDosCamposObrigatorios_DeveExibirNovoCardNaGrade", async ({
@@ -37,9 +37,12 @@ test.describe("E2E: Gerenciamento de Dispositivos", () => {
 		await loginAsTestUser(page);
 		await goToDevicesPage(page);
 
-		// Act
+		// Act — "Novo Dispositivo" abre o modal de descoberta automática; o
+		// cadastro manual é um passo dentro dele, não um formulário direto.
 		await page.getByRole("button", { name: "Novo Dispositivo" }).click();
 		await expect(page.getByText("Adicionar Novo Dispositivo")).toBeVisible();
+
+		await page.getByRole("button", { name: "Configurar Manualmente" }).click();
 
 		await page
 			.getByLabel(/Nome do Dispositivo/i)
@@ -50,12 +53,23 @@ test.describe("E2E: Gerenciamento de Dispositivos", () => {
 		await page.getByRole("combobox", { name: "Tipo de Atuador" }).click();
 		await page.getByRole("option", { name: "Interruptor" }).click();
 
-		await page.getByRole("combobox", { name: "Cômodo" }).click();
-		await page.getByRole("option", { name: mockRoom.name }).click();
+		await page.getByRole("button", { name: mockRoom.name }).click();
 
-		await page.getByRole("button", { name: "Registrar" }).click();
+		await page.getByRole("button", { name: "Revisar Dispositivo" }).click();
 
-		// Assert
+		// Assert — passo de revisão mostra o resumo antes de confirmar
+		await expect(page.getByText("Resumo do Dispositivo")).toBeVisible();
+		await expect(
+			page.getByText("Interruptor da Cozinha", { exact: true }),
+		).toBeVisible();
+
+		// Act — confirma a criação
+		await page.getByRole("button", { name: "Adicionar Dispositivo" }).click();
+
+		// Assert — tela de sucesso, depois fecha o modal
+		await expect(page.getByText("Dispositivo cadastrado!")).toBeVisible();
+		await page.getByRole("button", { name: "Concluir" }).click();
+
 		await expect(page.getByText("Adicionar Novo Dispositivo")).toBeHidden();
 		await expect(page.getByText("Interruptor da Cozinha")).toBeVisible();
 	});
@@ -134,6 +148,6 @@ test.describe("E2E: Gerenciamento de Dispositivos", () => {
 
 		// Assert
 		await expect(deviceNameButton).toBeHidden();
-		await expect(page.getByText("Nenhum dispositivo encontrado")).toBeVisible();
+		await expect(page.getByText("Nenhum dispositivo cadastrado")).toBeVisible();
 	});
 });
