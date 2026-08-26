@@ -1,6 +1,5 @@
 import { Clock, MonitorPlay, Music, Power } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { useNavigate } from "react-router-dom";
 import { useActivityLog } from "../hooks/useActivityLog";
 import type { ActivityEventType } from "../types/dashboard.types";
 import { getRelativeTime } from "../utils/relativeTime";
@@ -40,7 +39,6 @@ const DEFAULT_EVENT_STYLE = {
 
 export function ActivityLogTimeline() {
 	const { t, i18n } = useTranslation("dashboard");
-	const navigate = useNavigate();
 	const { data, isLoading } = useActivityLog(1, VISIBLE_ENTRIES_LIMIT);
 	const entries = data?.items ?? [];
 
@@ -100,14 +98,6 @@ export function ActivityLogTimeline() {
 					</div>
 				)}
 			</div>
-
-			<button
-				type="button"
-				onClick={() => navigate("/devices")}
-				className="mt-4 w-full rounded-lg border border-border-subtle/20 py-2 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground cursor-pointer"
-			>
-				{t("activityLog.viewAll")}
-			</button>
 		</div>
 	);
 }
