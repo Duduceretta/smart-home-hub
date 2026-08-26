@@ -8,3 +8,5 @@ export function ResetPasswordPage() {
 		</AuthLayout>
 	);
 }
+
+export default ResetPasswordPage;
