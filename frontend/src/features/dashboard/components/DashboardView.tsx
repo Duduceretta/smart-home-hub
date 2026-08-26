@@ -79,33 +79,38 @@ export const DashboardView: React.FC = () => {
 	}, [devices, activeChip]);
 
 	const devicesByRoomId = useMemo(() => {
-		return filteredDevices.reduce<Record<string, Device[]>>((acc, device) => {
+		const map: Record<string, Device[]> = {};
+		for (const device of filteredDevices) {
 			const key = device.roomId ?? UNASSIGNED_ROOM_KEY;
-			acc[key] = [...(acc[key] ?? []), device];
-			return acc;
-		}, {});
+			if (!map[key]) map[key] = [];
+			map[key].push(device);
+		}
+		return map;
 	}, [filteredDevices]);
 
-	const roomSections = [
-		...rooms
-			.filter((room) => (devicesByRoomId[room.id]?.length ?? 0) > 0)
-			.map((room) => ({
-				key: room.id,
-				title: room.name,
-				roomId: room.id,
-				icon: room.icon,
-			})),
-		...(devicesByRoomId[UNASSIGNED_ROOM_KEY]?.length
-			? [
-					{
-						key: UNASSIGNED_ROOM_KEY,
-						title: t("roomSection.unassigned", "Sem Ambiente"),
-						roomId: undefined,
-						icon: undefined,
-					},
-				]
-			: []),
-	];
+	const roomSections = useMemo(
+		() => [
+			...rooms
+				.filter((room) => (devicesByRoomId[room.id]?.length ?? 0) > 0)
+				.map((room) => ({
+					key: room.id,
+					title: room.name,
+					roomId: room.id,
+					icon: room.icon,
+				})),
+			...(devicesByRoomId[UNASSIGNED_ROOM_KEY]?.length
+				? [
+						{
+							key: UNASSIGNED_ROOM_KEY,
+							title: t("roomSection.unassigned", "Sem Ambiente"),
+							roomId: undefined,
+							icon: undefined,
+						},
+					]
+				: []),
+		],
+		[rooms, devicesByRoomId, t],
+	);
 
 	const roomKeys = roomSections.map((section) => section.key);
 	const allRoomsExpanded = roomKeys.every((key) => expandedByRoom[key] ?? true);
