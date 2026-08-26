@@ -33,9 +33,15 @@ export function EditRoomPreviewModal({
 	const { t } = useTranslation(["dashboard", "common"]);
 	const [draft, setDraft] = useState<string[]>(selectedIds);
 
+	// Só ressincroniza ao ABRIR o modal — não a cada mudança de referência de
+	// `selectedIds` (recalculado a cada render de RoomDeviceSection, inclusive
+	// por refetches em segundo plano). Depender de `selectedIds` aqui apagava
+	// silenciosamente a edição em andamento do usuário assim que qualquer
+	// refetch acontecesse enquanto o modal estava aberto.
+	// biome-ignore lint/correctness/useExhaustiveDependencies: sincroniza só na transição de isOpen, de propósito.
 	useEffect(() => {
 		if (isOpen) setDraft(selectedIds);
-	}, [isOpen, selectedIds]);
+	}, [isOpen]);
 
 	const usedUnits = draft.reduce((total, id) => {
 		const device = devices.find((d) => d.id === id);
