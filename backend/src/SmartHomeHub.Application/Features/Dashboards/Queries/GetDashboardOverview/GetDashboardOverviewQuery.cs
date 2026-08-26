@@ -61,11 +61,14 @@ public sealed class GetDashboardOverviewQueryHandler(IAppDbContext dbContext)
     {
         var userDevices = await dbContext
             .Devices.AsNoTracking()
-            .Where(device => device.User.ExternalAuthUid == request.FirebaseUid)
+            .Where(device =>
+                device.User.ExternalAuthUid == request.FirebaseUid && !device.IsDeleted
+            )
             .Select(device => new
             {
                 device.Id,
                 device.IsOn,
+                device.IsOnline,
                 device.RoomId,
             })
             .ToListAsync(cancellationToken);
@@ -78,7 +81,11 @@ public sealed class GetDashboardOverviewQueryHandler(IAppDbContext dbContext)
             return Result.Success(new DashboardOverviewResponse(emptySummary, [], [], []));
         }
 
-        var onlineDevicesCount = userDevices.Count(device => device.IsOn);
+        // "Dispositivos Online" é conectividade (IsOnline), não estado de
+        // energia (IsOn) — uma lâmpada desligada continua online (conectada
+        // ao Hub), só não está ligada. Contar IsOn aqui divergia do card da
+        // sidebar (que já conta IsOnline corretamente).
+        var onlineDevicesCount = userDevices.Count(device => device.IsOnline);
         var userDeviceIds = userDevices.Select(d => d.Id).ToList();
 
         var activeAlertsCount = await dbContext
@@ -163,6 +170,35 @@ public sealed class GetDashboardOverviewQueryHandler(IAppDbContext dbContext)
             ))
             .OrderBy(point => point.Timestamp)
             .ToList();
+
+        // Baldes sem nenhuma amostra de telemetria (ex: hub reiniciado, gap
+        // de rede) simplesmente não entram no array acima — como o eixo X do
+        // gráfico é posicional (um ponto por índice, não por tempo real),
+        // "pular" um balde faz o espaçamento visual entre pontos vizinhos
+        // variar (5, 10, 15 min...) dependendo de onde os buracos caem.
+        // Preenche os baldes faltantes entre o primeiro e o último ponto real
+        // com 0kW pra manter o eixo uniforme.
+        if (energyChartData.Count > 1)
+        {
+            var filledChartData = new List<EnergyChartPointDto>();
+            var existingByBucket = energyChartData.ToDictionary(point => point.Timestamp);
+            var lastBucket = energyChartData[^1].Timestamp;
+
+            for (
+                var bucket = energyChartData[0].Timestamp;
+                bucket <= lastBucket;
+                bucket = bucket.AddMinutes(bucketMinutes)
+            )
+            {
+                filledChartData.Add(
+                    existingByBucket.TryGetValue(bucket, out var existingPoint)
+                        ? existingPoint
+                        : new EnergyChartPointDto(bucket, 0, false)
+                );
+            }
+
+            energyChartData = filledChartData;
+        }
 
         // Energia total do dia (kWh) = integral de potência × tempo — soma de
         // cada ponto do gráfico (kW) multiplicado pela duração do seu balde.
