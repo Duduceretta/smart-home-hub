@@ -12,12 +12,15 @@
 		"averageTemperature": "Average Temperature",
 		"securityAlerts": "Security Alerts",
 		"alertsUnit": "alerts",
-		"energyConsumptionSubtitle": "Accumulated today"
+		"energyConsumptionSubtitle": "Accumulated today",
+		"energyEstimatedTitle": "Includes estimated consumption from devices without a real power sensor (e.g. TV)",
+		"energyEstimatedShort": "includes estimate"
 	},
 	"energyChart": {
 		"title": "Live power",
 		"subtitle": "How much the house is drawing right now",
 		"totalSubtitle": "Accumulated today",
+		"estimated": "estimated",
 		"emptyTitle": "No consumption recorded today",
 		"emptySubtitle": "As soon as sensors start streaming telemetry via MQTT, the chart will be drawn in real time."
 	},

@@ -42,9 +42,12 @@ export const DashboardView: React.FC = () => {
 	const isLoading = isRoomsLoading || isDevicesLoading;
 
 	const energyUsageByRoomKey = useMemo(() => {
-		const map: Record<string, number> = {};
+		const map: Record<string, { value: number; isEstimated: boolean }> = {};
 		for (const room of overviewData?.roomUsage ?? []) {
-			map[room.roomId ?? UNASSIGNED_ROOM_KEY] = room.value;
+			map[room.roomId ?? UNASSIGNED_ROOM_KEY] = {
+				value: room.value,
+				isEstimated: room.isEstimated,
+			};
 		}
 		return map;
 	}, [overviewData]);
@@ -158,7 +161,10 @@ export const DashboardView: React.FC = () => {
 								roomId={section.roomId}
 								icon={section.icon}
 								devices={devicesByRoomId[section.key] ?? []}
-								energyUsageKwh={energyUsageByRoomKey[section.key]}
+								energyUsageKwh={energyUsageByRoomKey[section.key]?.value}
+								energyUsageIsEstimated={
+									energyUsageByRoomKey[section.key]?.isEstimated
+								}
 							/>
 						))
 					)}

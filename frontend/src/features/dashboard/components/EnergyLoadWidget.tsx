@@ -33,6 +33,7 @@ export function EnergyLoadWidget() {
 				minute: "2-digit",
 			}),
 			value: point.value,
+			isEstimated: point.isEstimated,
 		};
 	});
 
@@ -53,7 +54,18 @@ export function EnergyLoadWidget() {
 					</span>
 				</div>
 				<div className="flex flex-col items-end gap-0.5">
-					<span className="text-[10px] font-semibold tracking-wider text-primary bg-primary/10 px-2.5 py-1 rounded-md border border-primary/20">
+					<span
+						className="text-[10px] font-semibold tracking-wider text-primary bg-primary/10 px-2.5 py-1 rounded-md border border-primary/20"
+						title={
+							data.summary.isEnergyEstimated
+								? t(
+										"metrics.energyEstimatedTitle",
+										"Inclui consumo estimado de dispositivos sem sensor de energia (ex: TV)",
+									)
+								: undefined
+						}
+					>
+						{data.summary.isEnergyEstimated && "~"}
 						{totalEnergy.value} {totalEnergy.unit}
 					</span>
 					<span className="text-[10px] text-muted-foreground/60">
@@ -128,10 +140,14 @@ export function EnergyLoadWidget() {
 									color: "var(--color-foreground)",
 								}}
 								itemStyle={{ color: "var(--color-primary)" }}
-								formatter={(rawValue) => {
+								formatter={(rawValue, _name, props) => {
 									const power = formatPower(Number(rawValue));
+									const isEstimated = Boolean(
+										(props?.payload as { isEstimated?: boolean } | undefined)
+											?.isEstimated,
+									);
 									return [
-										`${power.value} ${power.unit}`,
+										`${isEstimated ? "~" : ""}${power.value} ${power.unit}${isEstimated ? ` (${t("energyChart.estimated", "estimado")})` : ""}`,
 										t("energyChart.title", "Potência ao vivo"),
 									];
 								}}

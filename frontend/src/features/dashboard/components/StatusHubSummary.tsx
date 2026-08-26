@@ -36,7 +36,18 @@ export function StatusHubSummary() {
 					<Zap className="w-4 h-4 text-warm" />
 				</div>
 				<div>
-					<span className="text-2xl font-bold text-foreground">
+					<span
+						className="text-2xl font-bold text-foreground"
+						title={
+							summary.isEnergyEstimated
+								? t(
+										"metrics.energyEstimatedTitle",
+										"Inclui consumo estimado de dispositivos sem sensor de energia (ex: TV)",
+									)
+								: undefined
+						}
+					>
+						{summary.isEnergyEstimated && "~"}
 						{energy.value}
 					</span>
 					<span className="text-xs text-muted-foreground ml-1">
@@ -45,6 +56,8 @@ export function StatusHubSummary() {
 				</div>
 				<span className="text-[10px] text-muted-foreground/60">
 					{t("metrics.energyConsumptionSubtitle", "Acumulado hoje")}
+					{summary.isEnergyEstimated &&
+						` · ${t("metrics.energyEstimatedShort", "inclui estimativa")}`}
 				</span>
 			</div>
 

@@ -40,6 +40,8 @@ interface RoomDeviceSectionProps {
 	icon?: string | null;
 	/** Consumo real do cômodo hoje (kWh), agregado de DeviceTelemetryLog no backend. undefined = sem telemetria registrada ainda. */
 	energyUsageKwh?: number;
+	/** true se algum dispositivo do cômodo não tem sensor de energia real (ex: TV via ADB) e entrou com potência estimada. */
+	energyUsageIsEstimated?: boolean;
 }
 
 export function RoomDeviceSection({
@@ -48,6 +50,7 @@ export function RoomDeviceSection({
 	roomId,
 	icon,
 	energyUsageKwh,
+	energyUsageIsEstimated,
 }: RoomDeviceSectionProps) {
 	const { t } = useTranslation("dashboard");
 	const RoomIcon = ROOM_ICON_MAP[icon || ""] || ROOM_ICON_MAP.default;
@@ -104,9 +107,20 @@ export function RoomDeviceSection({
 						(() => {
 							const energy = formatEnergy(energyUsageKwh);
 							return (
-								<span className="text-[10px] font-medium text-warm">
+								<span
+									className="text-[10px] font-medium text-warm"
+									title={
+										energyUsageIsEstimated
+											? t(
+													"metrics.energyEstimatedTitle",
+													"Inclui consumo estimado de dispositivos sem sensor de energia (ex: TV)",
+												)
+											: undefined
+									}
+								>
 									{t("roomSection.energyUsage", "Consumo")}:{" "}
 									<span className="font-semibold">
+										{energyUsageIsEstimated && "~"}
 										{energy.value} {energy.unit}
 									</span>
 								</span>

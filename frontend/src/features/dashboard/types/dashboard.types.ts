@@ -2,6 +2,12 @@ export interface DashboardSummary {
 	totalDevicesCount: number;
 	onlineDevicesCount: number;
 	energyConsumptionKwh: number;
+	/**
+	 * true se algum dispositivo somado aqui não tem sensor de energia real
+	 * (ex: TV controlada via ADB/Cast) e entrou com potência estimada por
+	 * média típica do aparelho, não medição real.
+	 */
+	isEnergyEstimated: boolean;
 	averageTemperatureCelsius: number;
 	temperatureTrend: number;
 	activeAlertsCount: number;
@@ -10,6 +16,7 @@ export interface DashboardSummary {
 export interface EnergyChartPoint {
 	timestamp: string;
 	value: number;
+	isEstimated: boolean;
 }
 
 /**
@@ -18,6 +25,7 @@ export interface EnergyChartPoint {
 export interface RoomEnergyUsage {
 	roomId: string | null;
 	value: number;
+	isEstimated: boolean;
 }
 
 export interface RecentEvent {
