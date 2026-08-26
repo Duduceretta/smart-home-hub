@@ -120,6 +120,7 @@ try
     app.MapRoomEndpoints();
     app.MapDeviceEndpoints();
     app.MapDeviceGroupEndpoints();
+    app.MapAutomationEndpoints();
     app.MapSpotifyEndpoints();
     app.MapDevEndpoints(app.Environment);
 

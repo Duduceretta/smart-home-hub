@@ -39,3 +39,12 @@ public record AutomationAction(
     [property: JsonPropertyName("deviceId")] Guid DeviceId,
     [property: JsonPropertyName("desiredState")] bool DesiredState
 );
+
+public static class AutomationPayloadExtensions
+{
+    // A expressão cron mora dentro do TimeTrigger (Triggers), não como campo
+    // solto no payload — um campo `CronExpression` duplicado no nível raiz
+    // criaria duas fontes de verdade divergentes para a mesma automação.
+    public static string? GetTimeTriggerCronExpression(this AutomationPayload payload) =>
+        payload.Triggers?.OfType<TimeTrigger>().FirstOrDefault()?.CronExpression;
+}
