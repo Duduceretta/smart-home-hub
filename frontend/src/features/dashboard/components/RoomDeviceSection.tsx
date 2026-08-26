@@ -13,6 +13,7 @@ import type { Device } from "@/features/devices/types/devices.types";
 import { ROOM_ICON_MAP } from "@/features/rooms/constants/rooms.constants";
 import { useDashboardPreviewStore } from "../store/dashboard-preview.store";
 import { isWideDevice } from "../utils/deviceRowUnits";
+import { formatEnergy } from "../utils/formatEnergy";
 import { EditRoomPreviewModal } from "./EditRoomPreviewModal";
 
 /**
@@ -99,14 +100,18 @@ export function RoomDeviceSection({
 					<span className="text-[10px] text-muted-foreground/60">
 						({devices.length})
 					</span>
-					{energyUsageKwh !== undefined && (
-						<span className="text-[10px] font-medium text-warm">
-							{t("roomSection.energyUsage", "Consumo")}:{" "}
-							<span className="font-semibold">
-								{energyUsageKwh.toFixed(2)} kWh
-							</span>
-						</span>
-					)}
+					{energyUsageKwh !== undefined &&
+						(() => {
+							const energy = formatEnergy(energyUsageKwh);
+							return (
+								<span className="text-[10px] font-medium text-warm">
+									{t("roomSection.energyUsage", "Consumo")}:{" "}
+									<span className="font-semibold">
+										{energy.value} {energy.unit}
+									</span>
+								</span>
+							);
+						})()}
 				</button>
 
 				<div className="flex items-center gap-1">

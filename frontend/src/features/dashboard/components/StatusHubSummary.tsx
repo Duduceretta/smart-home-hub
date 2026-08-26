@@ -1,6 +1,7 @@
 import { ShieldAlert, Thermometer, Wifi, Zap } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useDashboardOverview } from "../hooks/useDashboardOverview";
+import { formatEnergy } from "../utils/formatEnergy";
 
 export function StatusHubSummary() {
 	const { t } = useTranslation("dashboard");
@@ -23,6 +24,7 @@ export function StatusHubSummary() {
 	}
 
 	const { summary } = data;
+	const energy = formatEnergy(summary.energyConsumptionKwh);
 
 	return (
 		<div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
@@ -35,10 +37,15 @@ export function StatusHubSummary() {
 				</div>
 				<div>
 					<span className="text-2xl font-bold text-foreground">
-						{summary.energyConsumptionKwh.toFixed(1)}
+						{energy.value}
 					</span>
-					<span className="text-xs text-muted-foreground ml-1">kWh</span>
+					<span className="text-xs text-muted-foreground ml-1">
+						{energy.unit}
+					</span>
 				</div>
+				<span className="text-[10px] text-muted-foreground/60">
+					{t("metrics.energyConsumptionSubtitle", "Acumulado hoje")}
+				</span>
 			</div>
 
 			<div className="rounded-xl border border-primary/30 bg-surface-container p-4 flex flex-col justify-between gap-3 relative overflow-hidden transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/50 hover:shadow-lg hover:shadow-black/30">

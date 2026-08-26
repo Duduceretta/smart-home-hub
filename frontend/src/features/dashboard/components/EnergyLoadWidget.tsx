@@ -10,6 +10,7 @@ import {
 	YAxis,
 } from "recharts";
 import { useDashboardOverview } from "../hooks/useDashboardOverview";
+import { formatEnergy, formatPower } from "../utils/formatEnergy";
 
 export function EnergyLoadWidget() {
 	const { t, i18n } = useTranslation("dashboard");
@@ -35,18 +36,30 @@ export function EnergyLoadWidget() {
 		};
 	});
 
+	const totalEnergy = formatEnergy(data.summary.energyConsumptionKwh);
+
 	return (
 		<div className="rounded-xl border border-border-subtle/20 bg-surface-container p-5 flex flex-col transition-all duration-200 hover:border-primary/25 hover:shadow-lg hover:shadow-black/30">
 			<div className="flex items-center justify-between mb-6">
-				<div className="flex items-center gap-2">
-					<div className="w-1.5 h-5 bg-primary rounded-full" />
-					<h3 className="text-sm font-medium text-foreground">
-						{t("energyChart.title")}
-					</h3>
+				<div className="flex flex-col gap-0.5">
+					<div className="flex items-center gap-2">
+						<div className="w-1.5 h-5 bg-primary rounded-full" />
+						<h3 className="text-sm font-medium text-foreground">
+							{t("energyChart.title", "Potência ao vivo")}
+						</h3>
+					</div>
+					<span className="text-[10px] text-muted-foreground/60 pl-3.5">
+						{t("energyChart.subtitle", "Quanto a casa está puxando agora")}
+					</span>
 				</div>
-				<span className="text-[10px] font-semibold tracking-wider text-primary bg-primary/10 px-2.5 py-1 rounded-md border border-primary/20">
-					{data.summary.energyConsumptionKwh.toFixed(1)} kWh
-				</span>
+				<div className="flex flex-col items-end gap-0.5">
+					<span className="text-[10px] font-semibold tracking-wider text-primary bg-primary/10 px-2.5 py-1 rounded-md border border-primary/20">
+						{totalEnergy.value} {totalEnergy.unit}
+					</span>
+					<span className="text-[10px] text-muted-foreground/60">
+						{t("energyChart.totalSubtitle", "Acumulado hoje")}
+					</span>
+				</div>
 			</div>
 
 			<div
@@ -102,6 +115,10 @@ export function EnergyLoadWidget() {
 								fontSize={12}
 								tickLine={false}
 								axisLine={false}
+								tickFormatter={(kw: number) => {
+									const power = formatPower(kw);
+									return `${power.value}${power.unit}`;
+								}}
 							/>
 							<Tooltip
 								contentStyle={{
@@ -111,6 +128,13 @@ export function EnergyLoadWidget() {
 									color: "var(--color-foreground)",
 								}}
 								itemStyle={{ color: "var(--color-primary)" }}
+								formatter={(rawValue) => {
+									const power = formatPower(Number(rawValue));
+									return [
+										`${power.value} ${power.unit}`,
+										t("energyChart.title", "Potência ao vivo"),
+									];
+								}}
 							/>
 							<Area
 								type="monotone"

@@ -11,10 +11,13 @@
 		"activeOf": "/ {{total}} ativos",
 		"averageTemperature": "Temperatura Média",
 		"securityAlerts": "Alertas de Segurança",
-		"alertsUnit": "alertas"
+		"alertsUnit": "alertas",
+		"energyConsumptionSubtitle": "Acumulado hoje"
 	},
 	"energyChart": {
-		"title": "Consumo de Energia (kW)",
+		"title": "Potência ao vivo",
+		"subtitle": "Quanto a casa está puxando agora",
+		"totalSubtitle": "Acumulado hoje",
 		"emptyTitle": "Nenhum consumo registrado hoje",
 		"emptySubtitle": "Assim que os sensores começarem a transmitir telemetria via MQTT, o gráfico será desenhado em tempo real."
 	},
