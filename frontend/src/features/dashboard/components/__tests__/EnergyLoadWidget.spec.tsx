@@ -2,7 +2,7 @@ import { HttpResponse, http } from "msw";
 import { describe, expect, it } from "vitest";
 import { createDashboardOverviewMock } from "@/testing/mocks/dashboard.mock";
 import { server } from "@/testing/mocks/server";
-import { renderWithProviders, screen } from "@/testing/test-utils";
+import { renderWithProviders, screen, userEvent } from "@/testing/test-utils";
 import { EnergyLoadWidget } from "../EnergyLoadWidget";
 
 describe("EnergyLoadWidget Integration Tests", () => {
@@ -78,5 +78,43 @@ describe("EnergyLoadWidget Integration Tests", () => {
 
 		// Assert
 		expect(await screen.findByText(/~130 Wh/)).toBeInTheDocument();
+	});
+
+	it("EnergyLoadWidget_FetchFails_ShouldRenderErrorStateAndRetryOnClick", async () => {
+		// Arrange
+		let requestCount = 0;
+		server.use(
+			http.get("*/api/dashboard/overview", () => {
+				requestCount += 1;
+				return HttpResponse.json(
+					{ title: "Erro Interno do Servidor", status: 500 },
+					{ status: 500 },
+				);
+			}),
+		);
+
+		const user = userEvent.setup();
+		renderWithProviders(<EnergyLoadWidget />);
+
+		// Assert — estado de erro aparece após esgotar o retry automático
+		expect(
+			await screen.findByText(
+				/não foi possível carregar o gráfico de consumo/i,
+				{},
+				{ timeout: 3000 },
+			),
+		).toBeInTheDocument();
+		const requestsBeforeRetryClick = requestCount;
+
+		// Act
+		await user.click(screen.getByRole("button", { name: /tentar novamente/i }));
+
+		// Assert
+		await screen.findByText(
+			/não foi possível carregar o gráfico de consumo/i,
+			{},
+			{ timeout: 3000 },
+		);
+		expect(requestCount).toBeGreaterThan(requestsBeforeRetryClick);
 	});
 });

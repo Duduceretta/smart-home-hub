@@ -2,7 +2,7 @@ import { HttpResponse, http } from "msw";
 import { describe, expect, it } from "vitest";
 import { createActivityLogEntryMock } from "@/testing/mocks/dashboard.mock";
 import { server } from "@/testing/mocks/server";
-import { renderWithProviders, screen } from "@/testing/test-utils";
+import { renderWithProviders, screen, userEvent } from "@/testing/test-utils";
 import { ActivityLogTimeline } from "../ActivityLogTimeline";
 
 function mockActivityLogResponse(
@@ -94,5 +94,43 @@ describe("ActivityLogTimeline Integration Tests", () => {
 		// Assert
 		expect(await screen.findByText("Alarme disparado")).toBeInTheDocument();
 		expect(screen.getByText("Movimento detectado")).toBeInTheDocument();
+	});
+
+	it("ActivityLogTimeline_FetchFails_ShouldRenderErrorStateAndRetryOnClick", async () => {
+		// Arrange
+		let requestCount = 0;
+		server.use(
+			http.get("*/api/dashboard/activity-log", () => {
+				requestCount += 1;
+				return HttpResponse.json(
+					{ title: "Erro Interno do Servidor", status: 500 },
+					{ status: 500 },
+				);
+			}),
+		);
+
+		const user = userEvent.setup();
+		renderWithProviders(<ActivityLogTimeline />);
+
+		// Assert — estado de erro aparece após esgotar o retry automático
+		expect(
+			await screen.findByText(
+				/não foi possível carregar a linha do tempo/i,
+				{},
+				{ timeout: 3000 },
+			),
+		).toBeInTheDocument();
+		const requestsBeforeRetryClick = requestCount;
+
+		// Act
+		await user.click(screen.getByRole("button", { name: /tentar novamente/i }));
+
+		// Assert
+		await screen.findByText(
+			/não foi possível carregar a linha do tempo/i,
+			{},
+			{ timeout: 3000 },
+		);
+		expect(requestCount).toBeGreaterThan(requestsBeforeRetryClick);
 	});
 });
