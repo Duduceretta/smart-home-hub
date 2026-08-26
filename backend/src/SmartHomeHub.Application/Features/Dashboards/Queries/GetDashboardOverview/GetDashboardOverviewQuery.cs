@@ -105,23 +105,35 @@ public sealed class GetDashboardOverviewQueryHandler(IAppDbContext dbContext)
         var endOfDayUtc = startOfDayUtc.AddDays(1);
 
         const int bucketMinutes = 5;
+        var yesterdayStartUtc = startOfDayUtc.AddDays(-1);
 
-        var rawEnergyLogs = await dbContext
+        // Energia de hoje, temperatura de hoje e temperatura de ontem antes
+        // viviam em 3 queries separadas contra a MESMA tabela — cada uma
+        // escaneando o range de hoje (ou ontem) de novo. Uma única leitura
+        // cobrindo [ontem, fim de hoje) traz tudo de uma vez; a divisão em
+        // energia/temperatura/dia acontece em memória sobre essa lista já
+        // pequena (é só o que o dia tem de telemetria).
+        var telemetryLogs = await dbContext
             .DeviceTelemetryLogs.AsNoTracking()
             .Where(log =>
                 userDeviceIds.Contains(log.DeviceId)
-                && log.Timestamp >= startOfDayUtc
+                && log.Timestamp >= yesterdayStartUtc
                 && log.Timestamp < endOfDayUtc
-                && log.PowerUsageWatts.HasValue
+                && (log.PowerUsageWatts.HasValue || log.TemperatureCelsius.HasValue)
             )
             .Select(log => new
             {
                 log.Timestamp,
                 log.DeviceId,
                 log.PowerUsageWatts,
+                log.TemperatureCelsius,
                 log.IsEstimated,
             })
             .ToListAsync(cancellationToken);
+
+        var rawEnergyLogs = telemetryLogs
+            .Where(log => log.Timestamp >= startOfDayUtc && log.PowerUsageWatts.HasValue)
+            .ToList();
 
         DateTimeOffset FloorToBucket(DateTimeOffset timestamp)
         {
@@ -204,29 +216,15 @@ public sealed class GetDashboardOverviewQueryHandler(IAppDbContext dbContext)
         // cada ponto do gráfico (kW) multiplicado pela duração do seu balde.
         var totalConsumptionKwh = energyChartData.Sum(point => point.Value) * bucketDurationHours;
 
-        var yesterdayStartUtc = startOfDayUtc.AddDays(-1);
-
-        var todayTemperatures = await dbContext
-            .DeviceTelemetryLogs.AsNoTracking()
-            .Where(log =>
-                userDeviceIds.Contains(log.DeviceId)
-                && log.Timestamp >= startOfDayUtc
-                && log.Timestamp < endOfDayUtc
-                && log.TemperatureCelsius.HasValue
-            )
+        var todayTemperatures = telemetryLogs
+            .Where(log => log.Timestamp >= startOfDayUtc && log.TemperatureCelsius.HasValue)
             .Select(log => log.TemperatureCelsius!.Value)
-            .ToListAsync(cancellationToken);
+            .ToList();
 
-        var yesterdayTemperatures = await dbContext
-            .DeviceTelemetryLogs.AsNoTracking()
-            .Where(log =>
-                userDeviceIds.Contains(log.DeviceId)
-                && log.Timestamp >= yesterdayStartUtc
-                && log.Timestamp < startOfDayUtc
-                && log.TemperatureCelsius.HasValue
-            )
+        var yesterdayTemperatures = telemetryLogs
+            .Where(log => log.Timestamp < startOfDayUtc && log.TemperatureCelsius.HasValue)
             .Select(log => log.TemperatureCelsius!.Value)
-            .ToListAsync(cancellationToken);
+            .ToList();
 
         // Sem leitura hoje = 0 (mesmo padrão de "sem dado" usado nos outros
         // campos do summary). Tendência só faz sentido com baseline de ontem;
