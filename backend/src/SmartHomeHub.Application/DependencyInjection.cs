@@ -3,6 +3,7 @@ using Mediator;
 using Microsoft.Extensions.DependencyInjection;
 using SmartHomeHub.Application.Common.Behaviors;
 using SmartHomeHub.Application.Common.Mappings;
+using SmartHomeHub.Application.Features.Automations.Engine;
 
 namespace SmartHomeHub.Application;
 
@@ -20,6 +21,9 @@ public static class DependencyInjection
         services.AddScoped(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
 
         services.AddValidatorsFromAssembly(typeof(DependencyInjection).Assembly);
+
+        services.AddSingleton<IAutomationConditionCompiler, AutomationConditionCompiler>();
+        services.AddSingleton<IAutomationRulesEngine, AutomationRulesEngine>();
 
         MapsterConfiguration.RegisterMappings();
 
