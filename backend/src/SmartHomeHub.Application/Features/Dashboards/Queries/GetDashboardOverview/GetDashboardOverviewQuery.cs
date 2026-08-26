@@ -9,6 +9,7 @@ public record DashboardSummaryDto(
     int TotalDevicesCount,
     int OnlineDevicesCount,
     double EnergyConsumptionKwh,
+    bool IsEnergyEstimated,
     double AverageTemperatureCelsius,
     double TemperatureTrend,
     int ActiveAlertsCount
@@ -18,15 +19,19 @@ public record DashboardSummaryDto(
 /// Value é potência média (kW) do balde de tempo — não energia. O gráfico
 /// mostra "quanto a casa está puxando agora", distinto do total acumulado
 /// do dia (DashboardSummaryDto.EnergyConsumptionKwh, em kWh).
+/// IsEstimated é true se algum dispositivo do balde não tem sensor de
+/// energia real (ex: TV via ADB/Cast) e entrou com potência estimada —
+/// o valor não deixa de ser útil, só não é 100% medido.
 /// </summary>
-public record EnergyChartPointDto(DateTimeOffset Timestamp, double Value);
+public record EnergyChartPointDto(DateTimeOffset Timestamp, double Value, bool IsEstimated);
 
 /// <summary>
 /// RoomId nulo representa o bucket "Sem Ambiente" (dispositivos sem cômodo
 /// atribuído) — casar por Id em vez de nome evita depender do texto exibido
-/// na tela, que é traduzido/pode mudar.
+/// na tela, que é traduzido/pode mudar. IsEstimated segue o mesmo critério
+/// de EnergyChartPointDto.
 /// </summary>
-public record RoomEnergyUsageDto(Guid? RoomId, double Value);
+public record RoomEnergyUsageDto(Guid? RoomId, double Value, bool IsEstimated);
 
 public record RecentEventDto(
     Guid Id,
@@ -69,7 +74,7 @@ public sealed class GetDashboardOverviewQueryHandler(IAppDbContext dbContext)
 
         if (totalDevicesCount == 0)
         {
-            var emptySummary = new DashboardSummaryDto(0, 0, 0, 0, 0, 0);
+            var emptySummary = new DashboardSummaryDto(0, 0, 0, false, 0, 0, 0);
             return Result.Success(new DashboardOverviewResponse(emptySummary, [], [], []));
         }
 
@@ -102,7 +107,13 @@ public sealed class GetDashboardOverviewQueryHandler(IAppDbContext dbContext)
                 && log.Timestamp < endOfDayUtc
                 && log.PowerUsageWatts.HasValue
             )
-            .Select(log => new { log.Timestamp, log.DeviceId, log.PowerUsageWatts })
+            .Select(log => new
+            {
+                log.Timestamp,
+                log.DeviceId,
+                log.PowerUsageWatts,
+                log.IsEstimated,
+            })
             .ToListAsync(cancellationToken);
 
         DateTimeOffset FloorToBucket(DateTimeOffset timestamp)
@@ -134,6 +145,7 @@ public sealed class GetDashboardOverviewQueryHandler(IAppDbContext dbContext)
                 group.Key.Bucket,
                 group.Key.DeviceId,
                 AverageWatts = group.Average(x => x.PowerUsageWatts!.Value),
+                IsEstimated = group.Any(x => x.IsEstimated),
             })
             .ToList();
 
@@ -146,7 +158,8 @@ public sealed class GetDashboardOverviewQueryHandler(IAppDbContext dbContext)
             .GroupBy(x => x.Bucket)
             .Select(group => new EnergyChartPointDto(
                 group.Key,
-                Math.Round(group.Sum(x => x.AverageWatts) / 1000.0, 4)
+                Math.Round(group.Sum(x => x.AverageWatts) / 1000.0, 4),
+                group.Any(x => x.IsEstimated)
             ))
             .OrderBy(point => point.Timestamp)
             .ToList();
@@ -200,7 +213,8 @@ public sealed class GetDashboardOverviewQueryHandler(IAppDbContext dbContext)
             .GroupBy(x => deviceRoomIds.GetValueOrDefault(x.DeviceId))
             .Select(group => new RoomEnergyUsageDto(
                 group.Key,
-                Math.Round(group.Sum(x => x.AverageWatts) * bucketDurationHours / 1000.0, 4)
+                Math.Round(group.Sum(x => x.AverageWatts) * bucketDurationHours / 1000.0, 4),
+                group.Any(x => x.IsEstimated)
             ))
             .ToList();
 
@@ -216,6 +230,7 @@ public sealed class GetDashboardOverviewQueryHandler(IAppDbContext dbContext)
             TotalDevicesCount: totalDevicesCount,
             OnlineDevicesCount: onlineDevicesCount,
             EnergyConsumptionKwh: Math.Round(totalConsumptionKwh, 4),
+            IsEnergyEstimated: energyChartData.Any(point => point.IsEstimated),
             AverageTemperatureCelsius: averageTemperatureCelsius,
             TemperatureTrend: temperatureTrend,
             ActiveAlertsCount: activeAlertsCount

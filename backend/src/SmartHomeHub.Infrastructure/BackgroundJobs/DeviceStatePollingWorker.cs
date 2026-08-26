@@ -21,6 +21,16 @@ public sealed class DeviceStatePollingWorker(
     private static readonly TimeSpan PollingInterval = TimeSpan.FromSeconds(12);
     private static readonly DeviceMediaStateDto EmptyMediaState = new(0, false, null, null);
 
+    // TVs não expõem uma API de consumo real via ADB/Cast/WebOS — só
+    // ligado/desligado, mídia e volume. Sem um sensor de energia físico
+    // (ex: tomada inteligente) não tem como medir o Watts real, então
+    // estimamos com base na potência média típica de uma Smart TV
+    // (fabricante costuma informar ~100-150W em uso, ~0W em standby real
+    // desligada via relé). Todo log gerado aqui é marcado IsEstimated=true
+    // pra não ser confundido com leitura de sensor.
+    private const double EstimatedTvWattsOn = 120.0;
+    private const double EstimatedTvWattsOff = 0.0;
+
     // Volume/mídia são estado live (não persistido no Postgres, ao contrário de
     // IsOn/IsOnline) — o último valor conhecido fica só em memória, aqui, pra
     // detectar delta entre ciclos. Perder esse cache num restart custa no máximo
@@ -124,9 +134,28 @@ public sealed class DeviceStatePollingWorker(
                         }
                     );
                 }
+            }
 
-                await dbContext.SaveChangesAsync(cancellationToken);
+            var nowUtc = DateTimeOffset.UtcNow;
 
+            foreach (var (device, isOn) in pollResults)
+            {
+                dbContext.DeviceTelemetryLogs.Add(
+                    new DeviceTelemetryLog
+                    {
+                        DeviceId = device.Id,
+                        Timestamp = nowUtc,
+                        IsOn = isOn,
+                        PowerUsageWatts = isOn ? EstimatedTvWattsOn : EstimatedTvWattsOff,
+                        IsEstimated = true,
+                    }
+                );
+            }
+
+            await dbContext.SaveChangesAsync(cancellationToken);
+
+            if (changed.Count > 0)
+            {
                 foreach (var device in changed)
                 {
                     logger.LogInformation(

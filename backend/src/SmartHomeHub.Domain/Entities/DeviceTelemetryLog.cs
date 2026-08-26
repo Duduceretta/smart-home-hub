@@ -13,4 +13,10 @@ public class DeviceTelemetryLog
 
     public double? TemperatureCelsius { get; set; }
     public double? PowerUsageWatts { get; set; }
+
+    // Dispositivos sem sensor de energia real (ex: TV controlada via ADB/Cast,
+    // sem API de consumo) recebem uma estimativa baseada na potência média
+    // típica do tipo de aparelho, não uma leitura medida. Marca a origem do
+    // dado pra não confundir o usuário sobre o que é medição real.
+    public bool IsEstimated { get; set; }
 }
