@@ -100,10 +100,9 @@ public sealed class DeviceHealthCheckWorker(
 
         foreach (var device in changed)
         {
-            var (title, description) = ActivityLogMessages.DeviceStatusChanged(
+            var (title, description) = ActivityLogMessages.DeviceConnectivityChanged(
                 device.Name,
                 device.Room?.Name,
-                device.IsOn,
                 device.IsOnline
             );
 

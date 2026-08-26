@@ -36,6 +36,47 @@ public static class ActivityLogMessages
         return (title, description);
     }
 
+    /// <summary>
+    /// Só o eixo de energia (ligado/desligado) — para origens que só sabem
+    /// detectar essa transição (ex: DeviceStatePollingWorker via ADB). Não
+    /// gateia em IsOnline: usar DeviceStatusChanged aqui erra o texto sempre
+    /// que o outro eixo (conectividade) estiver desatualizado no momento da
+    /// leitura, já que os dois workers rodam em ciclos independentes.
+    /// </summary>
+    public static (string Title, string Description) DevicePowerStateChanged(
+        string deviceName,
+        string? roomName,
+        bool isOn
+    )
+    {
+        var title = $"{deviceName} {(isOn ? "ligado" : "desligado")}";
+        var description = roomName != null ? $"Ambiente: {roomName}" : "Estado atualizado.";
+
+        return (title, description);
+    }
+
+    /// <summary>
+    /// Só o eixo de conectividade (online/offline) — para origens que só
+    /// sabem detectar essa transição (ex: DeviceHealthCheckWorker via probe
+    /// de rede). Mesmo motivo do DevicePowerStateChanged: não depende do
+    /// IsOn atual, que pode estar desatualizado nesse worker.
+    /// </summary>
+    public static (string Title, string Description) DeviceConnectivityChanged(
+        string deviceName,
+        string? roomName,
+        bool isOnline
+    )
+    {
+        var title = $"{deviceName} {(isOnline ? "ficou online" : "ficou offline")}";
+        var description = isOnline
+            ? roomName != null
+                ? $"Ambiente: {roomName}"
+                : "Conexão restabelecida."
+            : "Conexão perdida com o dispositivo.";
+
+        return (title, description);
+    }
+
     public static (string Title, string Description) DeviceMediaChanged(
         string title,
         string? artist

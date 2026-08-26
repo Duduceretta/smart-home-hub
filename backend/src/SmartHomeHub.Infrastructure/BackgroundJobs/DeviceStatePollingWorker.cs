@@ -115,11 +115,10 @@ public sealed class DeviceStatePollingWorker(
             {
                 foreach (var device in changed)
                 {
-                    var (title, description) = ActivityLogMessages.DeviceStatusChanged(
+                    var (title, description) = ActivityLogMessages.DevicePowerStateChanged(
                         device.Name,
                         device.Room?.Name,
-                        device.IsOn,
-                        device.IsOnline
+                        device.IsOn
                     );
 
                     dbContext.SystemEvents.Add(
