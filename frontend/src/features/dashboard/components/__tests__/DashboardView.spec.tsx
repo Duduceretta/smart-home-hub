@@ -15,7 +15,13 @@ import {
 } from "@/testing/test-utils";
 import { DashboardView } from "../DashboardView";
 
-const room = { id: "room-01", name: "Sala de Estar", icon: "sofa" };
+interface MockRoom {
+	id: string;
+	name: string;
+	icon: string | null;
+}
+
+const room: MockRoom = { id: "room-01", name: "Sala de Estar", icon: "sofa" };
 
 const lamp = createDeviceMock({
 	id: "device-lamp",
@@ -58,7 +64,7 @@ function useDefaultHandlers({
 	rooms = [room],
 	devices = [lamp, unassignedSensor],
 }: {
-	rooms?: (typeof room)[] | "error";
+	rooms?: MockRoom[] | "error";
 	devices?: ReturnType<typeof createDeviceMock>[] | "error";
 } = {}) {
 	server.use(
