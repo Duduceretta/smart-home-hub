@@ -48,6 +48,19 @@ Implementa o contexto do Entity Framework Core (`AppDbContext`), as classes de m
 
 Expõe as Minimal APIs para o mundo exterior. É responsável por configurar o pipeline de requisições HTTP, middlewares globais (`GlobalExceptionHandler`, Firebase JWT), registrar as coleções de endpoints no Scalar e inicializar o mecanismo de logs estruturados do Serilog. Também hospeda serviços em background (Worker Services).
 
+**Worker Services em execução:**
+
+| Worker | Camada | Responsabilidade |
+|---|---|---|
+| `MqttListenerWorker` | `Api` | Assina o tópico global `home/#` no broker Mosquitto e despacha `ProcessTelemetryCommand` pra cada mensagem recebida |
+| `MockTelemetryWorker` | `Api` | **Apenas Development.** A cada 5s, gera telemetria plausível (Watts/temperatura) pra dispositivos `NativeMqtt`, respeitando `IsOn`, reaproveitando a pipeline real de processamento — permite testar o dashboard sem hardware |
+| `DeviceStatePollingWorker` | `Infrastructure` | Sincroniza periodicamente o estado real de TVs (via ADB de rede) e da sessão Spotify conectada, registrando eventos de atividade quando o estado muda |
+| `DeviceHealthCheckWorker` | `Infrastructure` | Detecta dispositivos que pararam de responder e marca como offline, registrando o evento |
+
+**Motor de descoberta automática de dispositivos** (`Infrastructure/Discovery`): `IDeviceDiscoveryManager` orquestra scanners plugáveis — **mDNS** (Chromecast/Google Cast), **SSDP/UPnP**, **MQTT Discovery** (payloads auto-anunciados) e **Tuya UDP local** — pra encontrar dispositivos na rede sem exigir cadastro manual de IP/porta.
+
+**Integrações de terceiros:** Spotify Web API (playback remoto — conectar conta, now playing, skip, volume) e Android TV/Google Cast via ADB sobre rede (liga/desliga, mídia, volume), ambas expostas via `SpotifyEndpoints.cs`/`DeviceEndpoints.cs` e consumidas pelo front-end sem depender de infravermelho ou apps proprietários.
+
 ---
 
 ### 🎯 5. SmartHomeHub.UnitTests

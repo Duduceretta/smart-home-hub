@@ -29,6 +29,8 @@ O projeto foi desenhado utilizando padrões da indústria para garantir escalabi
 | **Observabilidade** | Serilog (Structured Logging) + Scalar (OpenAPI UI) |
 | **Front-end** | React + TypeScript (Vite, Tailwind CSS, Shadcn UI, Zustand e TanStack Query) |
 | **Tempo Real** | SignalR (WebSockets) para espelhamento de estado bidirecional |
+| **Descoberta Automática** | Scanners mDNS, SSDP, MQTT Discovery e Tuya UDP para achar dispositivos na rede local sem cadastro manual |
+| **Integrações de Terceiros** | Spotify Web API (playback remoto) e Android TV/Google Cast via ADB sobre rede (mídia, volume) |
 
 ---
 
@@ -119,12 +121,36 @@ docker-compose up -d
 - [x] Consumo da rota `/dashboard/overview` no TanStack Query com gráficos do Recharts
 - [X] Integrar WebSockets via `@microsoft/signalr` para ouvir eventos e atualizar a tela sem dar F5
 - [X] Modal de detalhes do dispositivo exibindo gráficos históricos de consumo/temperatura
+- [X] Consumo de energia real (não mocado): média de potência por dispositivo/balde de 5 min agregada em série histórica, sem distorção por frequência de amostragem
+- [X] Separação visual entre **potência instantânea** (gráfico, kW/W — "quanto a casa está puxando agora") e **energia acumulada** (card de KPI, kWh/Wh — "acumulado hoje"), com auto-escala de unidade
+- [X] Consumo de energia real por Ambiente (card por cômodo, agregado a partir da mesma base do gráfico)
+- [X] Linha do tempo de atividades (`/dashboard/activity-log`) persistida no banco (`SystemEvent`), substituindo o mock client-side — populada por toggles manuais, polling de TV/Spotify e health check de conectividade
+- [X] Temperatura média do dia com tendência vs. dia anterior, calculada a partir da telemetria real de sensores/termostatos
 
 #### Fase 4.6: Testes, Qualidade & i18n
  
 - [X] Configurar i18n (`react-i18next`) para suporte a Português e Inglês
 - [X] Configurar Vitest + React Testing Library para testes de componentes e hooks
 - [X] Configurar Playwright para testes End-to-End (E2E) simulando login e criação de dispositivos
+
+#### Fase 4.7: Descoberta Automática & Integrações de Terceiros *(implementada, fora do roadmap original)*
+
+- [X] Motor de descoberta de dispositivos na rede local (`IDeviceDiscoveryManager`), combinando scanners **mDNS**, **SSDP/UPnP**, **MQTT Discovery** e **Tuya UDP local**
+- [X] Fluxo de UI de descoberta (`DeviceDiscoveryModal`) em 3 passos: escanear → encontrado → configurar/nomear → concluído
+- [X] Integração real com **Spotify Web API**: conectar conta, ver "tocando agora", pular faixa, controlar volume e play/pause direto do card do dispositivo
+- [X] Controle de **Android TV / Google Cast via ADB de rede** (`GoogleTvNetworkService`): ligar/desligar, mídia em reprodução e volume, sem depender de infravermelho
+- [X] Worker de polling (`DeviceStatePollingWorker`) sincronizando estado real de TV/Spotify periodicamente e gerando eventos de atividade quando o estado muda
+- [X] Worker de health check (`DeviceHealthCheckWorker`) detectando dispositivos que ficaram offline e registrando o evento
+
+#### Fase 4.8: Dev Tools Hub *(implementada, fora do roadmap original — apenas ambiente de desenvolvimento)*
+
+Simulador isolado de produção pra testar o ecossistema (dispositivos, telemetria, dashboard em tempo real) sem hardware físico. Gateado em ambos os lados: endpoints só existem com `env.IsDevelopment()` no back-end e a rota/chunk só existe com `import.meta.env.DEV` no front-end (tree-shaken do build de produção).
+
+- [X] `POST /api/dev/seed-mock-house` — gera uma casa mock completa (4 ambientes, 12 dispositivos de todos os tipos)
+- [X] `POST /api/dev/clear-mock-house` — remove (soft delete) só o que o seed criou, sem tocar em dados reais
+- [X] `POST /api/dev/emit-telemetry` e `POST /api/dev/toggle-connectivity` — disparam a pipeline real de telemetria/conectividade pra um dispositivo específico
+- [X] `MockTelemetryWorker` — a cada 5s, gera telemetria plausível (Watts/temperatura) pra todos os dispositivos `NativeMqtt`, respeitando o estado ligado/desligado real, animando os gráficos do dashboard sem ação manual repetida
+- [X] Tela `/dev-tools` (sem link no menu, acesso só por URL direta) reaproveitando a pipeline real de persistência + notificação SignalR
 
 ### ⏳ Fase 5: O Cérebro das Automações (Rules Engine)
 

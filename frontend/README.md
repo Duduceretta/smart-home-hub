@@ -85,6 +85,10 @@ Cada pasta representa um domínio funcional independente (`auth`, `dashboard`, `
 
 > **Regra inviolável:** features **nunca importam entre si diretamente**. Se `dashboard` precisa do usuário logado, ele consome a store de `auth` — nunca importa um componente de dentro de `auth/components/`.
 
+**Features existentes:** `auth`, `dashboard`, `devices`, `rooms`, `device-groups`, `integrations` (Spotify — conectar conta, now playing, skip, volume) e `dev` (Dev Tools Hub).
+
+O `dev` é um caso especial: existe só em ambiente de desenvolvimento. A rota `/dev-tools` é importada condicionalmente em `Router.tsx` via `import.meta.env.DEV ? lazy(...) : null` com spread condicional no array de rotas — em build de produção o literal vira `false`, o `import()` dinâmico fica inalcançável e o Rollup remove o chunk inteiro (nenhum código de `dev` chega no bundle final). Sem link no menu — acesso apenas por URL direta.
+
 ---
 
 ### 🛠️ 5. `src/core` (Shared)
