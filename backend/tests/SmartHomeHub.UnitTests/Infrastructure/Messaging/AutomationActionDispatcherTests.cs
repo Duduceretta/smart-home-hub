@@ -1,11 +1,14 @@
 using FluentAssertions;
 using Mediator;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
 using SmartHomeHub.Application.Common.Interfaces;
 using SmartHomeHub.Application.Features.Devices.Commands.SetDeviceState;
 using SmartHomeHub.Domain.Common.Primitives;
+using SmartHomeHub.Domain.Entities;
 using SmartHomeHub.Infrastructure.Messaging;
+using SmartHomeHub.Infrastructure.Persistence;
 
 namespace SmartHomeHub.UnitTests.Infrastructure.Messaging;
 
@@ -15,11 +18,18 @@ public class AutomationActionDispatcherTests
     private readonly IRealtimeNotificationService _notificationService = Substitute.For<
         IRealtimeNotificationService
     >();
+    private readonly AppDbContext _dbContext;
     private readonly AutomationActionDispatcher _sut;
 
     public AutomationActionDispatcherTests()
     {
+        var options = new DbContextOptionsBuilder<AppDbContext>()
+            .UseInMemoryDatabase(Guid.NewGuid().ToString())
+            .Options;
+        _dbContext = new AppDbContext(options);
+
         _sut = new AutomationActionDispatcher(
+            _dbContext,
             _mediator,
             _notificationService,
             Substitute.For<ILogger<AutomationActionDispatcher>>()
@@ -50,6 +60,7 @@ public class AutomationActionDispatcherTests
                 traceId,
                 Arg.Any<CancellationToken>()
             );
+        _dbContext.IdempotencyRecords.Should().HaveCount(1);
     }
 
     [Fact]
@@ -87,7 +98,9 @@ public class AutomationActionDispatcherTests
         var deviceId = Guid.NewGuid();
         const string firebaseUid = "uid-123";
         const string traceId = "trace-abc";
-        var exception = new InvalidOperationException("Falha física de comunicação com o dispositivo.");
+        var exception = new InvalidOperationException(
+            "Falha física de comunicação com o dispositivo."
+        );
 
         _mediator.Send(Arg.Any<SetDeviceStateCommand>(), Arg.Any<CancellationToken>())
             .Returns<ValueTask<Result>>(_ => throw exception);
@@ -106,5 +119,39 @@ public class AutomationActionDispatcherTests
                 traceId,
                 Arg.Any<CancellationToken>()
             );
+    }
+
+    [Fact]
+    public async Task DispatchAsync_WhenIdempotencyKeyAlreadyProcessed_ShouldSkipCommandAndNotify()
+    {
+        var automationId = Guid.NewGuid();
+        var deviceId = Guid.NewGuid();
+        const string firebaseUid = "uid-123";
+        const string traceId = "trace-abc";
+
+        _mediator.Send(Arg.Any<SetDeviceStateCommand>(), Arg.Any<CancellationToken>())
+            .Returns(Result.Success());
+
+        // Simula um job duplicado do Hangfire (mesma automação, mesmo evento,
+        // mesmo dispositivo) já processado anteriormente.
+        await _sut.DispatchAsync(automationId, deviceId, firebaseUid, true, traceId);
+        _mediator.ClearReceivedCalls();
+        _notificationService.ClearReceivedCalls();
+
+        await _sut.DispatchAsync(automationId, deviceId, firebaseUid, true, traceId);
+
+        await _mediator.DidNotReceive().Send(Arg.Any<SetDeviceStateCommand>(), Arg.Any<CancellationToken>());
+        await _notificationService
+            .DidNotReceive()
+            .NotifyAutomationExecutionResultAsync(
+                Arg.Any<string>(),
+                Arg.Any<Guid>(),
+                Arg.Any<Guid>(),
+                Arg.Any<bool>(),
+                Arg.Any<string?>(),
+                Arg.Any<string>(),
+                Arg.Any<CancellationToken>()
+            );
+        _dbContext.IdempotencyRecords.Should().HaveCount(1);
     }
 }

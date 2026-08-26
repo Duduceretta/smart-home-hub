@@ -13,6 +13,7 @@ public interface IAppDbContext
     DbSet<SystemEvent> SystemEvents { get; }
     DbSet<SpotifyIntegration> SpotifyIntegrations { get; }
     DbSet<Automation> Automations { get; }
+    DbSet<IdempotencyRecord> IdempotencyRecords { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }

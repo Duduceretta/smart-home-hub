@@ -17,6 +17,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
     public DbSet<SystemEvent> SystemEvents => Set<SystemEvent>();
     public DbSet<SpotifyIntegration> SpotifyIntegrations => Set<SpotifyIntegration>();
     public DbSet<Automation> Automations => Set<Automation>();
+    public DbSet<IdempotencyRecord> IdempotencyRecords => Set<IdempotencyRecord>();
 
     public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
