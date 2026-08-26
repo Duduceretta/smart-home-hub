@@ -4,6 +4,8 @@ using SmartHomeHub.Api.Extensions;
 using SmartHomeHub.Application.Features.Automations.Commands.CreateAutomation;
 using SmartHomeHub.Application.Features.Automations.Commands.DeleteAutomation;
 using SmartHomeHub.Application.Features.Automations.Commands.UpdateAutomation;
+using SmartHomeHub.Application.Features.Automations.Queries.GetAutomationById;
+using SmartHomeHub.Application.Features.Automations.Queries.GetAutomations;
 
 namespace SmartHomeHub.Api.Endpoints;
 
@@ -11,6 +13,64 @@ public static class AutomationEndpoints
 {
     public static void MapAutomationEndpoints(this IEndpointRouteBuilder app)
     {
+        app.MapGet(
+                "/api/automations",
+                async (
+                    ClaimsPrincipal userToken,
+                    IMediator mediator,
+                    CancellationToken cancellationToken,
+                    int page = 1,
+                    int pageSize = 10
+                ) =>
+                {
+                    var firebaseUid = userToken.FindFirst("user_id")?.Value;
+
+                    if (string.IsNullOrEmpty(firebaseUid))
+                        return Results.Unauthorized();
+
+                    var query = new GetAutomationsQuery(firebaseUid, page, pageSize);
+                    var automations = await mediator.Send(query, cancellationToken);
+
+                    return Results.Ok(automations);
+                }
+            )
+            .RequireAuthorization()
+            .WithTags("Automations")
+            .WithSummary("Lista todas as automações")
+            .WithDescription(
+                "Retorna a lista paginada de automações cadastradas pelo usuário autenticado."
+            )
+            .Produces<object>(StatusCodes.Status200OK);
+
+        app.MapGet(
+                "/api/automations/{id:guid}",
+                async (
+                    Guid id,
+                    ClaimsPrincipal userToken,
+                    IMediator mediator,
+                    CancellationToken cancellationToken
+                ) =>
+                {
+                    var firebaseUid = userToken.FindFirst("user_id")?.Value;
+
+                    if (string.IsNullOrEmpty(firebaseUid))
+                        return Results.Unauthorized();
+
+                    var query = new GetAutomationByIdQuery(id, firebaseUid);
+                    var automation = await mediator.Send(query, cancellationToken);
+
+                    return automation is not null ? Results.Ok(automation) : Results.NotFound();
+                }
+            )
+            .RequireAuthorization()
+            .WithTags("Automations")
+            .WithSummary("Busca uma automação por ID")
+            .WithDescription(
+                "Retorna os detalhes (incluindo o RulePayload ECA completo) de uma automação específica. Retorna 404 caso pertença a outro usuário ou não exista."
+            )
+            .Produces<object>(StatusCodes.Status200OK)
+            .ProducesProblem(StatusCodes.Status404NotFound);
+
         app.MapPost(
                 "/api/automations",
                 async (
