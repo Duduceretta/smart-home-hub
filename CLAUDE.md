@@ -30,6 +30,7 @@ Monorepo de Casa Inteligente de alta performance composto por Backend em C# (.NE
    - Restrições físicas de banco de dados (`ON DELETE CASCADE` ou `SET NULL`) são **proibidas**. Cascatas e desvinculações são tratadas manualmente em código dentro dos Handlers antes do disparo do Soft Delete.
    - Índices parciais de unicidade (ex: `ExternalId`) devem conter `.HasFilter("\"IsDeleted\" = false")`.
 3. **Commits em Inglês**: Mensagens de commit (título e corpo) são sempre em **inglês**, padrão Conventional Commits (`feat`, `fix`, `refactor`, `perf`, `chore`, `test`, `docs`), independente do idioma usado na conversa com o usuário.
+4. **Commits Separados por Lógica e Contexto**: Nunca agrupar num único commit mudanças que pertencem a preocupações diferentes (ex: CRUD de escrita vs. endpoints de leitura vs. testes de integração vs. uma correção não relacionada encontrada de passagem). Cada commit deve contar uma história coesa e revisável isoladamente — quando em dúvida, prefira mais commits menores a um grande.
 
 ---
 
