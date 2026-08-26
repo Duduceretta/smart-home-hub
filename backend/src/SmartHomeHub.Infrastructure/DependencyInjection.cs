@@ -6,6 +6,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using SmartHomeHub.Application.Common.Interfaces;
+using SmartHomeHub.Infrastructure.BackgroundJobs;
 using SmartHomeHub.Infrastructure.Discovery;
 using SmartHomeHub.Infrastructure.Discovery.Scanners;
 using SmartHomeHub.Infrastructure.HealthCheck;
@@ -54,6 +55,9 @@ public static class DependencyInjection
         services.AddHttpClient<ISpotifyMediaService, SpotifyMediaService>();
 
         services.AddSingleton<IAutomationEventQueue, AutomationEventQueue>();
+
+        services.AddHostedService<AutomationExecutionWorker>();
+        services.AddScoped<IAutomationActionDispatcher, AutomationActionDispatcher>();
 
         services.AddHangfire(config =>
             config

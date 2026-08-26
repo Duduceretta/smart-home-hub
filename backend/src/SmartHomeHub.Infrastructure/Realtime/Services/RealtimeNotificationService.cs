@@ -110,4 +110,30 @@ public class RealtimeNotificationService(IHubContext<TelemetryHub> hubContext)
                 cancellationToken
             );
     }
+
+    public async Task NotifyAutomationExecutionResultAsync(
+        string firebaseUid,
+        Guid automationId,
+        Guid deviceId,
+        bool success,
+        string? errorMessage,
+        string traceId,
+        CancellationToken cancellationToken = default
+    )
+    {
+        await hubContext
+            .Clients.Group($"user_{firebaseUid}")
+            .SendAsync(
+                "AutomationExecutionResult",
+                new
+                {
+                    automationId,
+                    deviceId,
+                    success,
+                    errorMessage,
+                    traceId,
+                },
+                cancellationToken
+            );
+    }
 }

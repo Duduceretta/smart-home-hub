@@ -45,6 +45,7 @@ try
     });
 
     builder.Services.AddHttpClient();
+    builder.Services.AddMemoryCache();
     builder.Services.AddInfrastructure(builder.Configuration);
     builder.Services.AddApplication();
     builder.Services.AddHostedService<MqttListenerWorker>();

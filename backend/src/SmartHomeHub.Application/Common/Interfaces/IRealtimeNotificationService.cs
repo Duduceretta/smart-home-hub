@@ -39,4 +39,14 @@ public interface IRealtimeNotificationService
         DeviceMediaStateDto state,
         CancellationToken cancellationToken = default
     );
+
+    Task NotifyAutomationExecutionResultAsync(
+        string firebaseUid,
+        Guid automationId,
+        Guid deviceId,
+        bool success,
+        string? errorMessage,
+        string traceId,
+        CancellationToken cancellationToken = default
+    );
 }
