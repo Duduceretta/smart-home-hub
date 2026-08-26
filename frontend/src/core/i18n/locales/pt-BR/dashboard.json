@@ -14,7 +14,9 @@
 		"alertsUnit": "alertas",
 		"energyConsumptionSubtitle": "Acumulado hoje",
 		"energyEstimatedTitle": "Inclui consumo estimado de dispositivos sem sensor de energia (ex: TV)",
-		"energyEstimatedShort": "inclui estimativa"
+		"energyEstimatedShort": "inclui estimativa",
+		"errorTitle": "Não foi possível carregar os indicadores",
+		"errorSubtitle": "Verifique sua conexão e tente novamente."
 	},
 	"energyChart": {
 		"title": "Potência ao vivo",
@@ -22,7 +24,9 @@
 		"totalSubtitle": "Acumulado hoje",
 		"estimated": "estimado",
 		"emptyTitle": "Nenhum consumo registrado hoje",
-		"emptySubtitle": "Assim que os sensores começarem a transmitir telemetria via MQTT, o gráfico será desenhado em tempo real."
+		"emptySubtitle": "Assim que os sensores começarem a transmitir telemetria via MQTT, o gráfico será desenhado em tempo real.",
+		"errorTitle": "Não foi possível carregar o gráfico de consumo",
+		"errorSubtitle": "Verifique sua conexão e tente novamente."
 	},
 	"cameraFeed": {
 		"title": "Aether Secure",
@@ -50,7 +54,9 @@
 		"resetToAuto": "Usar automático",
 		"toggleExpand": "Expandir/recolher",
 		"expandAll": "Expandir todos",
-		"collapseAll": "Recolher todos"
+		"collapseAll": "Recolher todos",
+		"errorTitle": "Não foi possível carregar os ambientes e dispositivos",
+		"errorSubtitle": "Verifique sua conexão e tente novamente."
 	},
 	"filterChips": {
 		"all": "TODOS",
@@ -62,6 +68,8 @@
 		"title": "Linha do Tempo",
 		"emptyTitle": "Nenhuma atividade recente ainda",
 		"justNow": "Agora mesmo",
-		"loading": "Carregando..."
+		"loading": "Carregando...",
+		"errorTitle": "Não foi possível carregar a linha do tempo",
+		"errorSubtitle": "Verifique sua conexão e tente novamente."
 	}
 }

@@ -6,7 +6,8 @@
 		"edit": "Edit",
 		"close": "Close",
 		"register": "Register",
-		"confirm": "Confirm"
+		"confirm": "Confirm",
+		"retry": "Try again"
 	},
 	"status": {
 		"online": "Online",

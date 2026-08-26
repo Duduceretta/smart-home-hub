@@ -16,6 +16,7 @@ import { useDashboardPreviewStore } from "../store/dashboard-preview.store";
 import { ActiveAutomationsCard } from "./ActiveAutomationsCard";
 import { ActivityLogTimeline } from "./ActivityLogTimeline";
 import { CameraFeedCard } from "./CameraFeedCard";
+import { DashboardErrorState } from "./DashboardErrorState";
 import { DashboardTopBar } from "./DashboardTopBar";
 import { DeviceTypeFilterChips } from "./DeviceTypeFilterChips";
 import { EnergyLoadWidget } from "./EnergyLoadWidget";
@@ -30,8 +31,18 @@ export const DashboardView: React.FC = () => {
 	const { t } = useTranslation("dashboard");
 	const [activeChip, setActiveChip] = useState<ChipKey>("all");
 
-	const { data: roomsData, isLoading: isRoomsLoading } = useRooms();
-	const { data: devicesPage, isLoading: isDevicesLoading } = useDevices({
+	const {
+		data: roomsData,
+		isLoading: isRoomsLoading,
+		isError: isRoomsError,
+		refetch: refetchRooms,
+	} = useRooms();
+	const {
+		data: devicesPage,
+		isLoading: isDevicesLoading,
+		isError: isDevicesError,
+		refetch: refetchDevices,
+	} = useDevices({
 		pageSize: DEVICES_PAGE_SIZE,
 	});
 
@@ -40,6 +51,7 @@ export const DashboardView: React.FC = () => {
 	const devices = devicesPage?.items ?? [];
 	const rooms = roomsData ?? [];
 	const isLoading = isRoomsLoading || isDevicesLoading;
+	const isError = isRoomsError || isDevicesError;
 
 	const energyUsageByRoomKey = useMemo(() => {
 		const map: Record<string, { value: number; isEstimated: boolean }> = {};
@@ -158,6 +170,21 @@ export const DashboardView: React.FC = () => {
 							<RoomDeviceSectionSkeleton />
 							<RoomDeviceSectionSkeleton />
 						</>
+					) : isError ? (
+						<DashboardErrorState
+							title={t(
+								"roomSection.errorTitle",
+								"Não foi possível carregar os ambientes e dispositivos",
+							)}
+							subtitle={t(
+								"roomSection.errorSubtitle",
+								"Verifique sua conexão e tente novamente.",
+							)}
+							onRetry={() => {
+								refetchRooms();
+								refetchDevices();
+							}}
+						/>
 					) : (
 						roomSections.map((section) => (
 							<RoomDeviceSection

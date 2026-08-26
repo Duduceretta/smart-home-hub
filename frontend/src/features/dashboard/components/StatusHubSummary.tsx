@@ -2,12 +2,13 @@ import { ShieldAlert, Thermometer, Wifi, Zap } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useDashboardOverview } from "../hooks/useDashboardOverview";
 import { formatEnergy } from "../utils/formatEnergy";
+import { DashboardErrorState } from "./DashboardErrorState";
 
 export function StatusHubSummary() {
 	const { t } = useTranslation("dashboard");
-	const { data, isLoading } = useDashboardOverview();
+	const { data, isLoading, isError, refetch } = useDashboardOverview();
 
-	if (isLoading || !data) {
+	if (isLoading) {
 		return (
 			<div className="grid grid-cols-2 lg:grid-cols-4 gap-4 animate-pulse">
 				{["energy", "devices", "temperature", "alerts"].map((metricKey) => (
@@ -20,6 +21,22 @@ export function StatusHubSummary() {
 					</div>
 				))}
 			</div>
+		);
+	}
+
+	if (isError || !data) {
+		return (
+			<DashboardErrorState
+				title={t(
+					"metrics.errorTitle",
+					"Não foi possível carregar os indicadores",
+				)}
+				subtitle={t(
+					"metrics.errorSubtitle",
+					"Verifique sua conexão e tente novamente.",
+				)}
+				onRetry={() => refetch()}
+			/>
 		);
 	}
 

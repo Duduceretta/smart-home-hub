@@ -11,16 +11,35 @@ import {
 } from "recharts";
 import { useDashboardOverview } from "../hooks/useDashboardOverview";
 import { formatEnergy, formatPower } from "../utils/formatEnergy";
+import { DashboardErrorState } from "./DashboardErrorState";
 
 export function EnergyLoadWidget() {
 	const { t, i18n } = useTranslation("dashboard");
-	const { data, isLoading } = useDashboardOverview();
+	const { data, isLoading, isError, refetch } = useDashboardOverview();
 
-	if (isLoading || !data) {
+	if (isLoading) {
 		return (
 			<div className="rounded-xl border border-border-subtle/20 bg-surface-container p-5 flex flex-col animate-pulse">
 				<div className="h-4 w-48 bg-surface-high rounded-md mb-6" />
 				<div className="flex-1 min-h-62.5 w-full bg-surface-high/40 rounded-xl" />
+			</div>
+		);
+	}
+
+	if (isError || !data) {
+		return (
+			<div className="rounded-xl border border-border-subtle/20 bg-surface-container p-5 flex flex-col justify-center h-62.5">
+				<DashboardErrorState
+					title={t(
+						"energyChart.errorTitle",
+						"Não foi possível carregar o gráfico de consumo",
+					)}
+					subtitle={t(
+						"energyChart.errorSubtitle",
+						"Verifique sua conexão e tente novamente.",
+					)}
+					onRetry={() => refetch()}
+				/>
 			</div>
 		);
 	}

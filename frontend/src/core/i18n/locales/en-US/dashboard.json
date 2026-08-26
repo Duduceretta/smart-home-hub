@@ -14,7 +14,9 @@
 		"alertsUnit": "alerts",
 		"energyConsumptionSubtitle": "Accumulated today",
 		"energyEstimatedTitle": "Includes estimated consumption from devices without a real power sensor (e.g. TV)",
-		"energyEstimatedShort": "includes estimate"
+		"energyEstimatedShort": "includes estimate",
+		"errorTitle": "Couldn't load the metrics",
+		"errorSubtitle": "Check your connection and try again."
 	},
 	"energyChart": {
 		"title": "Live power",
@@ -22,7 +24,9 @@
 		"totalSubtitle": "Accumulated today",
 		"estimated": "estimated",
 		"emptyTitle": "No consumption recorded today",
-		"emptySubtitle": "As soon as sensors start streaming telemetry via MQTT, the chart will be drawn in real time."
+		"emptySubtitle": "As soon as sensors start streaming telemetry via MQTT, the chart will be drawn in real time.",
+		"errorTitle": "Couldn't load the consumption chart",
+		"errorSubtitle": "Check your connection and try again."
 	},
 	"cameraFeed": {
 		"title": "Aether Secure",
@@ -50,7 +54,9 @@
 		"resetToAuto": "Use automatic",
 		"toggleExpand": "Expand/collapse",
 		"expandAll": "Expand all",
-		"collapseAll": "Collapse all"
+		"collapseAll": "Collapse all",
+		"errorTitle": "Couldn't load rooms and devices",
+		"errorSubtitle": "Check your connection and try again."
 	},
 	"filterChips": {
 		"all": "ALL",
@@ -62,6 +68,8 @@
 		"title": "Timeline",
 		"emptyTitle": "No recent activity yet",
 		"justNow": "Just now",
-		"loading": "Loading..."
+		"loading": "Loading...",
+		"errorTitle": "Couldn't load the timeline",
+		"errorSubtitle": "Check your connection and try again."
 	}
 }

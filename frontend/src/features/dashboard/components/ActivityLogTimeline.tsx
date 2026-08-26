@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { useActivityLog } from "../hooks/useActivityLog";
 import type { ActivityEventType } from "../types/dashboard.types";
 import { getRelativeTime } from "../utils/relativeTime";
+import { DashboardErrorState } from "./DashboardErrorState";
 
 const VISIBLE_ENTRIES_LIMIT = 5;
 
@@ -39,7 +40,10 @@ const DEFAULT_EVENT_STYLE = {
 
 export function ActivityLogTimeline() {
 	const { t, i18n } = useTranslation("dashboard");
-	const { data, isLoading } = useActivityLog(1, VISIBLE_ENTRIES_LIMIT);
+	const { data, isLoading, isError, refetch } = useActivityLog(
+		1,
+		VISIBLE_ENTRIES_LIMIT,
+	);
 	const entries = data?.items ?? [];
 
 	return (
@@ -52,7 +56,21 @@ export function ActivityLogTimeline() {
 			</div>
 
 			<div className="min-h-[320px]">
-				{isLoading || entries.length === 0 ? (
+				{isError ? (
+					<div className="flex h-[320px] items-center justify-center">
+						<DashboardErrorState
+							title={t(
+								"activityLog.errorTitle",
+								"Não foi possível carregar a linha do tempo",
+							)}
+							subtitle={t(
+								"activityLog.errorSubtitle",
+								"Verifique sua conexão e tente novamente.",
+							)}
+							onRetry={() => refetch()}
+						/>
+					</div>
+				) : isLoading || entries.length === 0 ? (
 					<div className="flex h-[320px] flex-col items-center justify-center gap-2 text-center">
 						<Clock className="h-7 w-7 text-muted-foreground" />
 						<p className="text-xs font-medium text-muted-foreground">
