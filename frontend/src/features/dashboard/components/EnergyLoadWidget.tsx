@@ -58,6 +58,17 @@ export function EnergyLoadWidget() {
 
 	const totalEnergy = formatEnergy(data.summary.energyConsumptionKwh);
 
+	// Recharts mostra 1 label por ponto por padrão — com o backend agora
+	// preenchendo todo balde de 5min (mesmo sem telemetria), um dia inteiro
+	// vira ~288 pontos e os labels colidem/ficam ilegíveis. Calcula um
+	// intervalo fixo pra sempre mostrar ~8 labels, não importa quantos
+	// pontos existam — mantém o espaçamento visual do eixo previsível.
+	const MAX_VISIBLE_TICKS = 8;
+	const xAxisTickInterval =
+		chartData.length > MAX_VISIBLE_TICKS
+			? Math.ceil(chartData.length / MAX_VISIBLE_TICKS)
+			: 0;
+
 	return (
 		<div className="rounded-xl border border-border-subtle/20 bg-surface-container p-5 flex flex-col transition-all duration-200 hover:border-primary/25 hover:shadow-lg hover:shadow-black/30">
 			<div className="flex items-center justify-between mb-6">
@@ -112,46 +123,61 @@ export function EnergyLoadWidget() {
 					<ResponsiveContainer width="100%" height="100%">
 						<AreaChart
 							data={chartData}
-							margin={{ top: 0, right: 0, left: -20, bottom: 0 }}
+							margin={{ top: 8, right: 8, left: -20, bottom: 0 }}
 						>
 							<defs>
 								<linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
 									<stop
-										offset="5%"
+										offset="0%"
 										stopColor="var(--color-primary)"
-										stopOpacity={0.3}
+										stopOpacity={0.35}
 									/>
 									<stop
-										offset="95%"
+										offset="60%"
+										stopColor="var(--color-primary)"
+										stopOpacity={0.08}
+									/>
+									<stop
+										offset="100%"
 										stopColor="var(--color-primary)"
 										stopOpacity={0}
 									/>
 								</linearGradient>
 							</defs>
 							<CartesianGrid
-								strokeDasharray="3 3"
+								strokeDasharray="3 6"
 								stroke="var(--color-border-subtle)"
-								strokeOpacity={0.2}
+								strokeOpacity={0.15}
 								vertical={false}
 							/>
 							<XAxis
 								dataKey="time"
 								stroke="var(--color-muted-foreground)"
-								fontSize={12}
+								fontSize={11}
 								tickLine={false}
 								axisLine={false}
+								tickMargin={10}
+								interval={xAxisTickInterval}
+								padding={{ left: 12, right: 12 }}
 							/>
 							<YAxis
 								stroke="var(--color-muted-foreground)"
-								fontSize={12}
+								fontSize={11}
 								tickLine={false}
 								axisLine={false}
+								tickMargin={6}
+								width={48}
 								tickFormatter={(kw: number) => {
 									const power = formatPower(kw);
 									return `${power.value}${power.unit}`;
 								}}
 							/>
 							<Tooltip
+								cursor={{
+									stroke: "var(--color-border-subtle)",
+									strokeWidth: 1,
+									strokeDasharray: "3 3",
+								}}
 								contentStyle={{
 									backgroundColor: "var(--color-surface-high)",
 									borderColor: "rgba(70,70,75,0.3)",
@@ -175,9 +201,16 @@ export function EnergyLoadWidget() {
 								type="monotone"
 								dataKey="value"
 								stroke="var(--color-primary)"
-								strokeWidth={3}
+								strokeWidth={2}
+								strokeLinecap="round"
+								strokeLinejoin="round"
 								fillOpacity={1}
 								fill="url(#colorValue)"
+								activeDot={{
+									r: 4,
+									stroke: "var(--color-surface-container)",
+									strokeWidth: 2,
+								}}
 								isAnimationActive={false}
 							/>
 						</AreaChart>
