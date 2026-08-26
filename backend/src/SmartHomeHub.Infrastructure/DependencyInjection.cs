@@ -51,6 +51,8 @@ public static class DependencyInjection
         services.AddSingleton<ISpotifyOAuthStateStore, SpotifyOAuthStateStore>();
         services.AddHttpClient<ISpotifyMediaService, SpotifyMediaService>();
 
+        services.AddSingleton<IAutomationEventQueue, AutomationEventQueue>();
+
         var firebaseProjectId = configuration["Firebase:ProjectId"];
 
         services

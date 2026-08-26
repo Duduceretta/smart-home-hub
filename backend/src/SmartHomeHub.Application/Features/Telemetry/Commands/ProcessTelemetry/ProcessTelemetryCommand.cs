@@ -1,8 +1,10 @@
+using System.Diagnostics;
 using System.Text.Json;
 using Mediator;
 using Microsoft.EntityFrameworkCore;
 using SmartHomeHub.Application.Common.Interfaces;
 using SmartHomeHub.Application.Features.Dashboards.ActivityLog;
+using SmartHomeHub.Application.Features.Telemetry.Events;
 using SmartHomeHub.Domain.Common.Primitives;
 using SmartHomeHub.Domain.Entities;
 
@@ -21,7 +23,8 @@ public record TelemetryPayload(
 
 public class ProcessTelemetryCommandHandler(
     IAppDbContext dbContext,
-    IRealtimeNotificationService notificationService
+    IRealtimeNotificationService notificationService,
+    IPublisher publisher
 ) : ICommandHandler<ProcessTelemetryCommand, Result>
 {
     private static readonly JsonSerializerOptions _jsonOptions = new()
@@ -95,11 +98,6 @@ public class ProcessTelemetryCommandHandler(
 
             dbContext.DeviceTelemetryLogs.Add(telemetryLog);
 
-            // device.IsOn muda a cada payload mock (mesmo sem transição real),
-            // então gatear em wasOn/wasOnline evita disparar DeviceStatusChanged
-            // pra todo device a cada tick — sem isso, o worker mock (~12
-            // devices a cada 5s) inunda o frontend de invalidações de
-            // dashboardKeys.overview()/activityLogs() sem debounce.
             var statusChanged = wasOn != device.IsOn || !wasOnline;
 
             if (statusChanged)
@@ -125,6 +123,20 @@ public class ProcessTelemetryCommandHandler(
             }
 
             await dbContext.SaveChangesAsync(cancellationToken);
+
+            var traceId = Activity.Current?.Id ?? Guid.NewGuid().ToString();
+
+            await publisher.Publish(
+                new TelemetryProcessedEvent(
+                    device.Id,
+                    device.User.ExternalAuthUid,
+                    device.IsOn,
+                    telemetry.PowerUsageWatts,
+                    telemetry.TemperatureCelsius,
+                    traceId
+                ),
+                cancellationToken
+            );
 
             if (statusChanged)
             {
