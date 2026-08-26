@@ -13,6 +13,7 @@ using SmartHomeHub.Infrastructure.HealthCheck;
 using SmartHomeHub.Infrastructure.Messaging;
 using SmartHomeHub.Infrastructure.Persistence;
 using SmartHomeHub.Infrastructure.Realtime.Services;
+using SmartHomeHub.Infrastructure.Scheduling;
 using SmartHomeHub.Infrastructure.Services;
 
 namespace SmartHomeHub.Infrastructure;
@@ -58,6 +59,8 @@ public static class DependencyInjection
 
         services.AddHostedService<AutomationExecutionWorker>();
         services.AddScoped<IAutomationActionDispatcher, AutomationActionDispatcher>();
+        services.AddScoped<IAutomationSchedulerService, AutomationSchedulerService>();
+        services.AddScoped<IAutomationTimeTriggerJob, AutomationTimeTriggerJob>();
 
         services.AddHangfire(config =>
             config

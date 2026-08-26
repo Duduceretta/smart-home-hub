@@ -1,4 +1,3 @@
-using System.Text.Json;
 using Hangfire;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
@@ -8,8 +7,6 @@ using Microsoft.Extensions.Logging;
 using SmartHomeHub.Application.Common.Interfaces;
 using SmartHomeHub.Application.Features.Automations.Engine;
 using SmartHomeHub.Application.Features.Telemetry.Events;
-using SmartHomeHub.Domain.Entities;
-using SmartHomeHub.Domain.ValueObjects;
 
 namespace SmartHomeHub.Infrastructure.BackgroundJobs;
 
@@ -20,11 +17,6 @@ public sealed class AutomationExecutionWorker(
     IMemoryCache memoryCache
 ) : BackgroundService
 {
-    private static readonly JsonSerializerOptions _jsonOptions = new()
-    {
-        PropertyNameCaseInsensitive = true,
-    };
-
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         logger.LogInformation("Iniciando Worker de Automações (Channel Consumer)...");
@@ -78,7 +70,13 @@ public sealed class AutomationExecutionWorker(
             {
                 if (rulesEngine.Evaluate(automation, context))
                 {
-                    DispatchActionsSafely(automation, @event.TraceId, jobClient, logger);
+                    AutomationDispatchHelper.DispatchActionsSafely(
+                        automation,
+                        @event.TraceId,
+                        jobClient,
+                        memoryCache,
+                        logger
+                    );
                 }
             }
             catch (Exception ex)
@@ -92,55 +90,6 @@ public sealed class AutomationExecutionWorker(
                     @event.TraceId
                 );
             }
-        }
-    }
-
-    private void DispatchActionsSafely(
-        Automation automation,
-        string traceId,
-        IBackgroundJobClient jobClient,
-        ILogger logger
-    )
-    {
-        // ---------------------------------------------------------
-        // COOLDOWN GUARD: Previne o "Automation Storm"
-        // ---------------------------------------------------------
-        var cooldownKey = $"cooldown_automation_{automation.Id}";
-        if (memoryCache.TryGetValue(cooldownKey, out _))
-        {
-            logger.LogDebug("Automação {Id} ignorada pelo Cooldown Guard.", automation.Id);
-            return;
-        }
-
-        // Trava a automação por 5 segundos. Nenhuma nova telemetria fará ela disparar nesse intervalo.
-        memoryCache.Set(cooldownKey, true, TimeSpan.FromSeconds(5));
-
-        var payload = JsonSerializer.Deserialize<AutomationPayload>(
-            automation.RulePayload,
-            _jsonOptions
-        );
-        if (payload?.Actions == null)
-            return;
-
-        foreach (var action in payload.Actions)
-        {
-            // Transfere a responsabilidade para o Hangfire (durabilidade + retry automático)
-            jobClient.Enqueue<IAutomationActionDispatcher>(dispatcher =>
-                dispatcher.DispatchAsync(
-                    automation.Id,
-                    action.DeviceId,
-                    automation.User.ExternalAuthUid,
-                    action.DesiredState,
-                    traceId
-                )
-            );
-
-            logger.LogInformation(
-                "Ação enfileirada no Hangfire: DeviceId={DeviceId}, DesiredState={State}, TraceId={TraceId}",
-                action.DeviceId,
-                action.DesiredState,
-                traceId
-            );
         }
     }
 }
