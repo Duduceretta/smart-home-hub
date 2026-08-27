@@ -3,6 +3,8 @@ import { handleApplicationError } from "@/core/errors/app.errors";
 import type { PagedResponse } from "@/core/types/pagination.types";
 import type {
 	Automation,
+	AutomationExecutionEvent,
+	AutomationWeekdayExecutionCount,
 	CreateAutomationPayload,
 	UpdateAutomationPayload,
 } from "../types/automations.types";
@@ -57,6 +59,48 @@ export async function fetchAutomationById(id: string): Promise<Automation> {
 		throw handleApplicationError(
 			error,
 			"Não foi possível encontrar os detalhes da automação solicitada.",
+		);
+	}
+}
+
+/**
+ * Fetches the paginated execution history (success/failure) of an automation.
+ */
+export async function fetchAutomationExecutionHistory(
+	automationId: string,
+	page = 1,
+	pageSize = 10,
+): Promise<PagedResponse<AutomationExecutionEvent>> {
+	try {
+		const { data } = await apiClient.get<
+			PagedResponse<AutomationExecutionEvent>
+		>(`/automations/${automationId}/history`, { params: { page, pageSize } });
+		return data;
+	} catch (error: unknown) {
+		throw handleApplicationError(
+			error,
+			"Não foi possível carregar o histórico de execução da automação.",
+		);
+	}
+}
+
+/**
+ * Fetches the execution count per weekday (last `sinceDays`, default 30).
+ */
+export async function fetchAutomationWeekdayExecutions(
+	automationId: string,
+	sinceDays = 30,
+): Promise<AutomationWeekdayExecutionCount[]> {
+	try {
+		const { data } = await apiClient.get<AutomationWeekdayExecutionCount[]>(
+			`/automations/${automationId}/executions/by-weekday`,
+			{ params: { days: sinceDays } },
+		);
+		return data;
+	} catch (error: unknown) {
+		throw handleApplicationError(
+			error,
+			"Não foi possível carregar as execuções por dia da semana.",
 		);
 	}
 }

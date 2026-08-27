@@ -11,6 +11,14 @@ export interface Automation {
 	schemaVersion: number;
 	createdAt: string;
 	updatedAt: string | null;
+	/**
+	 * Timestamp da última execução (sucesso ou falha) registrada pelo backend
+	 * como SystemEvent(AutomationExecuted). Null = nunca executou. Derivado
+	 * no backend a partir do log de atividade, não é uma coluna própria.
+	 */
+	lastExecutedAt: string | null;
+	/** true se alguma execução de hoje (UTC) falhou. */
+	hasFailedToday: boolean;
 }
 
 /**
@@ -119,6 +127,29 @@ export interface AutomationView {
 	rulePayload: string;
 	createdAt: string;
 	updatedAt: string | null;
+	lastExecutedAt: string | null;
+	hasFailedToday: boolean;
+}
+
+/**
+ * Uma execução registrada (sucesso ou falha) — espelha ActivityLogEntryDto
+ * do backend, servido tanto por `GET /automations/{id}/history` quanto (a
+ * mesma linha, resumida) pela Linha do Tempo global do dashboard.
+ */
+export interface AutomationExecutionEvent {
+	id: string;
+	deviceId: string | null;
+	eventType: string;
+	title: string;
+	description: string;
+	timestamp: string;
+	isAlert: boolean;
+}
+
+/** Contagem de execuções por dia da semana — sempre os 7 dias, zerados quando não há execução. */
+export interface AutomationWeekdayExecutionCount {
+	dayOfWeek: number;
+	count: number;
 }
 
 // --- Tipos de estado efêmero de UI (lista/filtros) ---

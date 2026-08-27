@@ -52,7 +52,11 @@ export interface DashboardOverviewResponse {
  * Espelha `ActivityEventTypes` em
  * `Features/Dashboards/ActivityLog/ActivityLogMessages.cs` (backend).
  */
-export type ActivityEventType = "DeviceStatus" | "DeviceMedia" | "Spotify";
+export type ActivityEventType =
+	| "DeviceStatus"
+	| "DeviceMedia"
+	| "Spotify"
+	| "AutomationExecuted";
 
 /**
  * Entrada real da Linha do Tempo — persistida como SystemEvent no backend,
@@ -65,15 +69,17 @@ export interface ActivityLogEntry {
 	title: string;
 	description: string;
 	timestamp: string;
+	/** true = execução de automação que falhou (ou outro evento marcado como alerta). */
+	isAlert: boolean;
 }
 
 /**
  * Recorte mínimo de `Automation` (feature `automations`) pro card de
  * automações do dashboard — cópia local dos campos usados, não um import
  * cross-feature (regra de ouro do FSD: features nunca importam tipos/hooks
- * umas das outras diretamente). O backend não rastreia execução/disparo de
- * automações ainda, então `updatedAt` é o único proxy real disponível pra
- * "atividade recente" — atualizado tanto ao editar quanto ao ligar/desligar.
+ * umas das outras diretamente). `lastExecutedAt` já é dado real (o backend
+ * registra execução via SystemEvent/AutomationExecuted); `updatedAt`
+ * continua como fallback pra automações que nunca chegaram a executar.
  */
 export interface DashboardAutomationSummary {
 	id: string;
@@ -81,4 +87,5 @@ export interface DashboardAutomationSummary {
 	isActive: boolean;
 	updatedAt: string | null;
 	createdAt: string;
+	lastExecutedAt: string | null;
 }

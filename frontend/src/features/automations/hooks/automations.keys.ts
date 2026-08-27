@@ -14,4 +14,10 @@ export const automationsKeys = {
 	details: () => [...automationsKeys.all, "detail"] as const,
 	detail: (id: string) => [...automationsKeys.details(), id] as const,
 	pickerDevices: () => [...automationsKeys.all, "picker-devices"] as const,
+	executionHistories: () =>
+		[...automationsKeys.all, "execution-history"] as const,
+	executionHistory: (id: string, page: number, pageSize: number) =>
+		[...automationsKeys.executionHistories(), id, { page, pageSize }] as const,
+	weekdayExecutions: (id: string, sinceDays: number) =>
+		[...automationsKeys.all, "weekday-executions", id, sinceDays] as const,
 };

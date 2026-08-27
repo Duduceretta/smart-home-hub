@@ -1,5 +1,6 @@
-import { Clock, MonitorPlay, Music, Power } from "lucide-react";
+import { Bot, Clock, MonitorPlay, Music, Power } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { ActivityTimelineRow } from "@/core/components/activity/ActivityTimelineRow";
 import { useActivityLog } from "../hooks/useActivityLog";
 import type { ActivityEventType } from "../types/dashboard.types";
 import { getRelativeTime } from "../utils/relativeTime";
@@ -25,6 +26,11 @@ const EVENT_STYLE: Record<
 		icon: Music,
 		color: "text-[#1DB954]",
 		border: "border-[#1DB954]",
+	},
+	AutomationExecuted: {
+		icon: Bot,
+		color: "text-warm",
+		border: "border-warm",
 	},
 };
 
@@ -84,33 +90,24 @@ export function ActivityLogTimeline() {
 						<div className="absolute left-[11px] top-2 bottom-2 w-px bg-border-subtle/20" />
 						{entries.map((entry) => {
 							const style = EVENT_STYLE[entry.eventType] ?? DEFAULT_EVENT_STYLE;
-							const Icon = style.icon;
 							return (
-								<div
+								<ActivityTimelineRow
 									key={entry.id}
-									className="relative z-10 flex gap-4 items-start"
-								>
-									<div
-										className={`w-6 h-6 rounded-full bg-surface-high border-2 flex items-center justify-center shrink-0 mt-0.5 ${style.border}`}
-									>
-										<Icon className={`w-3 h-3 ${style.color}`} />
-									</div>
-									<div className="flex flex-col min-w-0">
-										<span className="text-sm text-foreground truncate">
-											{entry.title}
-										</span>
-										<span className="text-xs text-muted-foreground truncate">
-											{entry.description}
-										</span>
-										<span className="text-xs text-muted-foreground/60 mt-0.5 uppercase">
-											{getRelativeTime(
-												entry.timestamp,
-												i18n.language || "pt-BR",
-												t("activityLog.justNow", "Agora mesmo"),
-											)}
-										</span>
-									</div>
-								</div>
+									icon={style.icon}
+									iconColorClassName={
+										entry.isAlert ? "text-alert-foreground" : style.color
+									}
+									borderColorClassName={
+										entry.isAlert ? "border-alert-foreground" : style.border
+									}
+									title={entry.title}
+									description={entry.description}
+									relativeTime={getRelativeTime(
+										entry.timestamp,
+										i18n.language || "pt-BR",
+										t("activityLog.justNow", "Agora mesmo"),
+									)}
+								/>
 							);
 						})}
 					</div>

@@ -49,6 +49,7 @@ export function createActivityLogEntryMock(
 		title: "Lâmpada da Sala ligado",
 		description: "Ambiente: Sala de Estar",
 		timestamp: "2026-08-26T12:00:00Z",
+		isAlert: false,
 	};
 
 	return {

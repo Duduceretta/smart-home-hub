@@ -8,12 +8,12 @@ import { DashboardErrorState } from "./DashboardErrorState";
 const VISIBLE_COUNT = 3;
 
 /**
- * Mostra as 3 automações ativas atualizadas mais recentemente (criação ou
- * edição, incluindo ligar/desligar — o backend não rastreia disparo/execução
- * de automações ainda, então `updatedAt` é o único proxy real disponível).
- * "Ver todas as automações" leva pra tela cheia; os itens da lista aqui não
- * são clicáveis individualmente (a tela de Automações não suporta seleção
- * via URL ainda).
+ * Mostra as 3 automações ativas executadas mais recentemente de verdade
+ * (`lastExecutedAt`, vindo de SystemEvent/AutomationExecuted no backend) —
+ * cai pra `updatedAt`/`createdAt` só pras automações que nunca chegaram a
+ * disparar ainda. "Ver todas as automações" leva pra tela cheia; os itens
+ * da lista aqui não são clicáveis individualmente (a tela de Automações não
+ * suporta seleção via URL ainda).
  *
  * O botão "Ver todas" fica ancorado no rodapé do card (`mt-auto`). Skeleton
  * só aparece no carregamento inicial (`isLoading`) — quando há menos de 3
@@ -66,8 +66,12 @@ export function ActiveAutomationsCard() {
 	const recentActive = [...automations]
 		.filter((a) => a.isActive)
 		.sort((a, b) => {
-			const aTime = new Date(a.updatedAt ?? a.createdAt).getTime();
-			const bTime = new Date(b.updatedAt ?? b.createdAt).getTime();
+			const aTime = new Date(
+				a.lastExecutedAt ?? a.updatedAt ?? a.createdAt,
+			).getTime();
+			const bTime = new Date(
+				b.lastExecutedAt ?? b.updatedAt ?? b.createdAt,
+			).getTime();
 			return bTime - aTime;
 		})
 		.slice(0, VISIBLE_COUNT);
@@ -137,13 +141,20 @@ export function ActiveAutomationsCard() {
 									</p>
 									<p className="flex items-center gap-1.5 truncate text-xs text-muted-foreground">
 										<span className="h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-500" />
-										{t("automations.updatedAt", {
-											time: getRelativeTime(
-												automation.updatedAt ?? automation.createdAt,
-												i18n.language || "pt-BR",
-												t("activityLog.justNow", "Agora mesmo"),
-											),
-										})}
+										{t(
+											automation.lastExecutedAt
+												? "automations.executedAt"
+												: "automations.updatedAt",
+											{
+												time: getRelativeTime(
+													automation.lastExecutedAt ??
+														automation.updatedAt ??
+														automation.createdAt,
+													i18n.language || "pt-BR",
+													t("activityLog.justNow", "Agora mesmo"),
+												),
+											},
+										)}
 									</p>
 								</div>
 							</div>

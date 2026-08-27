@@ -105,6 +105,44 @@ describe("ActiveAutomationsCard Integration Tests", () => {
 		expect(screen.queryByText("Automação Antiga")).not.toBeInTheDocument();
 	});
 
+	it("ActiveAutomationsCard_LastExecutedAtPresent_ShouldSortByExecutionNotUpdate", async () => {
+		// Arrange — a2 foi atualizada por último, mas a1 EXECUTOU por último;
+		// deve ordenar por execução real, não por edição.
+		mockAutomations([
+			{
+				id: "a1",
+				name: "Executada Recentemente",
+				isActive: true,
+				createdAt: "2026-01-01T00:00:00Z",
+				updatedAt: "2026-01-01T00:00:00Z",
+				lastExecutedAt: "2026-01-10T00:00:00Z",
+			},
+			{
+				id: "a2",
+				name: "Só Editada Recentemente",
+				isActive: true,
+				createdAt: "2026-01-01T00:00:00Z",
+				updatedAt: "2026-01-09T00:00:00Z",
+				lastExecutedAt: null,
+			},
+		]);
+
+		// Act
+		renderCard();
+		await screen.findByText("Executada Recentemente");
+
+		// Assert
+		const names = screen
+			.getAllByText(/Recentemente$/)
+			.map((el) => el.textContent);
+		expect(names).toEqual([
+			"Executada Recentemente",
+			"Só Editada Recentemente",
+		]);
+		expect(screen.getByText(/^Executada há/)).toBeInTheDocument();
+		expect(screen.getByText(/^Atualizada há/)).toBeInTheDocument();
+	});
+
 	it("ActiveAutomationsCard_ViewAllClicked_ShouldNavigateToAutomationsPage", async () => {
 		// Arrange
 		mockAutomations([

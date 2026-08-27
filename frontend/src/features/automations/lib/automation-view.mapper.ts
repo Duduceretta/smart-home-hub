@@ -133,5 +133,7 @@ export function mapAutomationToView(
 		rulePayload: automation.rulePayload,
 		createdAt: automation.createdAt,
 		updatedAt: automation.updatedAt,
+		lastExecutedAt: automation.lastExecutedAt,
+		hasFailedToday: automation.hasFailedToday,
 	};
 }

@@ -1,10 +1,19 @@
-import { ArrowDown, ArrowLeft, Copy, Pencil, Trash2, Zap } from "lucide-react";
+import {
+	AlertTriangle,
+	ArrowDown,
+	ArrowLeft,
+	Copy,
+	Pencil,
+	Trash2,
+	Zap,
+} from "lucide-react";
 import { Button } from "@/core/components/ui/button";
 import { Switch } from "@/core/components/ui/switch";
 import { cn } from "@/core/utils";
 import { AUTOMATION_TRIGGER_ICON } from "../constants/automations.constants";
 import { formatRelativeTime } from "../lib/format-relative-time";
 import type { AutomationView } from "../types/automations.types";
+import { AutomationExecutionSection } from "./AutomationExecutionSection";
 
 interface AutomationDetailPanelProps {
 	automation: AutomationView | null;
@@ -88,6 +97,12 @@ export function AutomationDetailPanel({
 										? "Ativa"
 										: "Inativa"}
 							</span>
+							{automation.hasFailedToday && (
+								<span className="mt-1 inline-flex w-fit items-center gap-1 rounded-full bg-alert/20 px-2 py-1 text-xs font-medium text-alert-foreground">
+									<AlertTriangle className="h-3 w-3" />
+									Falhou hoje
+								</span>
+							)}
 						</div>
 					</div>
 
@@ -185,11 +200,7 @@ export function AutomationDetailPanel({
 							)}
 						</div>
 
-						{/* Sem histórico de execução: o backend ainda não rastreia
-					quando/se uma automação disparou (não existe telemetria de
-					execução hoje, só de dispositivos) — em vez de fingir esse
-					dado, mostramos os metadados reais que a API já retorna. */}
-						<div className="grid grid-cols-2 gap-4">
+						<div className="grid grid-cols-3 gap-4">
 							<div className="rounded-lg border border-border-subtle/20 bg-surface-container p-4">
 								<div className="mb-1 text-xs font-medium uppercase tracking-wider text-muted-foreground">
 									Criada
@@ -208,7 +219,17 @@ export function AutomationDetailPanel({
 										: "Nunca"}
 								</p>
 							</div>
+							<div className="rounded-lg border border-border-subtle/20 bg-surface-container p-4">
+								<div className="mb-1 text-xs font-medium uppercase tracking-wider text-muted-foreground">
+									Última execução
+								</div>
+								<p className="text-sm text-foreground">
+									{formatRelativeTime(automation.lastExecutedAt)}
+								</p>
+							</div>
 						</div>
+
+						<AutomationExecutionSection automationId={automation.id} />
 					</div>
 				</div>
 				<div className="pointer-events-none absolute inset-x-0 bottom-0 h-8 bg-gradient-to-t from-surface-low to-transparent" />

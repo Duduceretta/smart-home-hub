@@ -42,6 +42,7 @@
 		"addSlotTitle": "Add automation",
 		"addSlotSubtitle": "Slot available",
 		"updatedAt": "Updated {{time}}",
+		"executedAt": "Executed {{time}}",
 		"viewAll": "View all automations",
 		"errorTitle": "Couldn't load automations",
 		"errorSubtitle": "Check your connection and try again."

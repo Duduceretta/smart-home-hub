@@ -42,6 +42,7 @@
 		"addSlotTitle": "Adicionar automação",
 		"addSlotSubtitle": "Espaço disponível",
 		"updatedAt": "Atualizada {{time}}",
+		"executedAt": "Executada {{time}}",
 		"viewAll": "Ver todas as automações",
 		"errorTitle": "Não foi possível carregar as automações",
 		"errorSubtitle": "Verifique sua conexão e tente novamente."
