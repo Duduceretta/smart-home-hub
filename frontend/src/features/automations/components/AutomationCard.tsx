@@ -1,123 +1,90 @@
-import { Bot, MoreVertical, Pencil, Trash2 } from "lucide-react";
-import { useMemo } from "react";
-import { useTranslation } from "react-i18next";
-import {
-	DropdownMenu,
-	DropdownMenuContent,
-	DropdownMenuItem,
-	DropdownMenuTrigger,
-} from "@/core/components/ui/dropdown-menu";
-import { useDeleteAutomation } from "../hooks/useDeleteAutomation";
-import { useAutomationsUIStore } from "../store/automations-ui.store";
-import type { Automation, AutomationPayload } from "../types/automations.types";
+import { Switch } from "@/core/components/ui/switch";
+import { cn } from "@/core/utils";
+import { AUTOMATION_TRIGGER_ICON } from "../constants/automations.constants";
+import type { AutomationView } from "../types/automations.types";
 
 interface AutomationCardProps {
-	automation: Automation;
+	automation: AutomationView;
+	isSelected: boolean;
+	onSelect: (id: string) => void;
+	onToggle: (id: string, nextValue: boolean) => void;
 }
 
-function parsePayload(rulePayload: string): AutomationPayload | null {
-	try {
-		return JSON.parse(rulePayload) as AutomationPayload;
-	} catch {
-		return null;
-	}
-}
-
-export const AutomationCard: React.FC<AutomationCardProps> = ({
+/**
+ * Item compacto da coluna esquerda (modo Cards) — o toggle ativar/desativar
+ * mora aqui também (além do painel de detalhe), sincronizado pelo mesmo
+ * estado do pai. O card só seleciona ao clicar fora do toggle.
+ */
+export function AutomationCard({
 	automation,
-}) => {
-	const { t } = useTranslation(["automations", "common"]);
-	const openEditSheet = useAutomationsUIStore((state) => state.openEditSheet);
-	const { mutate: deleteAutomation, isPending } = useDeleteAutomation();
-
-	const payload = useMemo(
-		() => parsePayload(automation.rulePayload),
-		[automation.rulePayload],
-	);
-	const trigger = payload?.triggers?.[0];
-	const actionsCount = payload?.actions?.length ?? 0;
-
-	const triggerSummary = !payload
-		? t("card.invalidPayload")
-		: trigger?.type === "time"
-			? t("card.triggerSummary.time", { cron: trigger.cronExpression })
-			: trigger?.type === "device_state"
-				? t("card.triggerSummary.deviceState")
-				: t("card.triggerSummary.none");
-
-	const handleDelete = () => {
-		if (confirm(t("card.confirmDelete", { name: automation.name }))) {
-			deleteAutomation(automation.id);
-		}
-	};
+	isSelected,
+	onSelect,
+	onToggle,
+}: AutomationCardProps) {
+	const TriggerIcon = AUTOMATION_TRIGGER_ICON[automation.triggerKind];
+	const isDimmed = !automation.isActive && !automation.isDraft;
 
 	return (
-		<div className="group relative flex flex-col justify-between rounded-xl border border-border-subtle/20 bg-surface-container p-5 transition-all duration-200 hover:border-primary/25 hover:shadow-lg hover:shadow-black/30">
-			<div className="flex items-start justify-between">
-				<div className="flex h-12 w-12 items-center justify-center rounded-full bg-surface-high text-primary transition-transform duration-300 group-hover:scale-110">
-					<Bot className="h-6 w-6" />
-				</div>
-
-				<DropdownMenu>
-					<DropdownMenuTrigger asChild>
-						<button
-							type="button"
-							aria-label={t("card.optionsAriaLabel")}
-							className="rounded-full p-1.5 text-muted-foreground transition-colors hover:bg-surface-high hover:text-foreground cursor-pointer outline-none"
-						>
-							<MoreVertical className="h-5 w-5" />
-						</button>
-					</DropdownMenuTrigger>
-
-					<DropdownMenuContent align="end" className="w-36">
-						<DropdownMenuItem
-							onClick={() => openEditSheet(automation)}
-							className="cursor-pointer gap-2 text-xs"
-						>
-							<Pencil className="h-3.5 w-3.5" />
-							{t("common:actions.edit")}
-						</DropdownMenuItem>
-
-						<DropdownMenuItem
-							onClick={handleDelete}
-							disabled={isPending}
-							variant="destructive"
-							className="cursor-pointer gap-2 text-xs"
-						>
-							<Trash2 className="h-3.5 w-3.5" />
-							{isPending ? t("card.deleting") : t("common:actions.delete")}
-						</DropdownMenuItem>
-					</DropdownMenuContent>
-				</DropdownMenu>
+		// biome-ignore lint/a11y/useSemanticElements: precisa envolver o Switch (um <button> real do Radix) — button-dentro-de-button é inválido, então o card vira role="button" e o toggle para propagação pra não disparar a seleção
+		<div
+			role="button"
+			tabIndex={0}
+			data-automation-item
+			onClick={() => onSelect(automation.id)}
+			onKeyDown={(event) => {
+				if (event.key !== "Enter" && event.key !== " ") return;
+				event.preventDefault();
+				onSelect(automation.id);
+			}}
+			aria-current={isSelected}
+			className={cn(
+				"flex w-full items-center gap-3 rounded-lg border p-3 text-left transition-colors cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-ring/50",
+				isSelected
+					? "border-primary/40 bg-primary/5"
+					: "border-border-subtle/20 bg-surface-container hover:border-primary/25",
+			)}
+		>
+			<div
+				className={cn(
+					"flex h-8 w-8 shrink-0 items-center justify-center rounded-full",
+					automation.isActive && !automation.isDraft
+						? "bg-primary/15 text-primary"
+						: "bg-muted text-muted-foreground",
+				)}
+			>
+				<TriggerIcon className="h-4 w-4" />
 			</div>
 
-			<div className="mt-4 flex flex-1 flex-col gap-1">
-				<h3 className="text-lg font-semibold tracking-tight text-foreground">
-					{automation.name}
-				</h3>
-				<div className="flex items-center gap-2 text-xs text-muted-foreground">
-					<span className="relative flex h-2 w-2">
-						{automation.isActive && (
-							<span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-75" />
-						)}
-						<span
-							className={`relative inline-flex h-2 w-2 rounded-full ${
-								automation.isActive ? "bg-primary" : "bg-surface-highest"
-							}`}
-						/>
-					</span>
-					<span>
-						{automation.isActive ? t("card.active") : t("card.inactive")}
-					</span>
+			<div className={cn("min-w-0 flex-1", isDimmed && "opacity-60")}>
+				<div className="flex items-center gap-1.5">
+					<p className="truncate text-sm font-medium text-foreground">
+						{automation.name}
+					</p>
+					{automation.isDraft && (
+						<span className="shrink-0 rounded-full border border-border-subtle/40 px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
+							Incompleta
+						</span>
+					)}
 				</div>
-				<p className="mt-1 text-xs text-muted-foreground">{triggerSummary}</p>
+				<p className="truncate text-xs text-muted-foreground">
+					{automation.triggerSummary}
+				</p>
 			</div>
 
-			<div className="mt-4 flex items-center gap-2 border-t border-border-subtle/20 pt-3">
-				<span className="rounded bg-surface-high px-2 py-0.5 font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
-					{t("card.actionsCount", { count: actionsCount })}
+			{!automation.isDraft && (
+				// biome-ignore lint/a11y/noStaticElementInteractions: só existe pra isolar o clique do Switch da seleção do card (stopPropagation)
+				<span
+					className="shrink-0"
+					onClick={(event) => event.stopPropagation()}
+					onKeyDown={(event) => event.stopPropagation()}
+				>
+					<Switch
+						checked={automation.isActive}
+						onCheckedChange={(checked) => onToggle(automation.id, checked)}
+						aria-label={`${automation.isActive ? "Desativar" : "Ativar"} automação ${automation.name}`}
+					/>
 				</span>
-			</div>
+			)}
 		</div>
 	);
-};
+}

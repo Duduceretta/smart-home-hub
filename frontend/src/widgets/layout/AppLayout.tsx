@@ -26,10 +26,18 @@ export function AppLayout() {
 				<Header />
 
 				{/* Área de Conteúdo Rolável */}
-				<div className="flex-1 overflow-y-auto w-full p-4 sm:p-6 lg:p-8 scrollbar-hide">
+				<div className="flex-1 overflow-y-auto w-full p-4 sm:p-6 lg:p-8 [scrollbar-gutter:stable]">
 					<div
 						key={location.pathname}
-						className="w-full pb-20 md:pb-0 motion-safe:animate-in motion-safe:fade-in motion-safe:duration-200"
+						className={cn(
+							"w-full pb-20 md:pb-0 motion-safe:animate-in motion-safe:fade-in motion-safe:duration-200",
+							// Automações precisa de altura definida pra fazer o
+							// split-view com scroll interno próprio na lista e no
+							// painel de detalhe (não scroll de página, como as
+							// outras rotas). h-full só nessa rota — as demais
+							// mantêm a classe idêntica de antes.
+							location.pathname.startsWith("/automations") && "h-full",
+						)}
 					>
 						<Outlet />
 					</div>

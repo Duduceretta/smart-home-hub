@@ -100,3 +100,41 @@ export interface AutomationPayload {
 	conditions: AutomationConditionNode | null;
 	actions: AutomationAction[];
 }
+
+/**
+ * Modelo de exibição derivado de `Automation` + a lista de dispositivos —
+ * resume o `rulePayload` (JSON opaco) em texto legível pra lista/detalhe.
+ * Não inclui histórico de execução: o backend ainda não rastreia isso (ver
+ * `DeviceTelemetryLog`/roadmap), então a UI não finge ter esse dado.
+ */
+export interface AutomationView {
+	id: string;
+	name: string;
+	isActive: boolean;
+	isDraft: boolean;
+	triggerKind: "schedule" | "sensor";
+	triggerSummary: string;
+	conditionSummary: string | null;
+	actionSummaries: string[];
+	rulePayload: string;
+	createdAt: string;
+	updatedAt: string | null;
+}
+
+// --- Tipos de estado efêmero de UI (lista/filtros) ---
+// Vivem aqui (não dentro dos componentes que os usam) porque tanto a store
+// Zustand quanto os componentes de apresentação (AutomationFilterChips,
+// AutomationListPanel) precisam importá-los — definir num componente e o
+// outro lado importar de lá criaria uma dependência invertida.
+
+export type AutomationFilter =
+	| "all"
+	| "active"
+	| "inactive"
+	| "schedule"
+	| "sensor"
+	| "draft";
+
+export type AutomationSort = "name" | "status";
+
+export type AutomationViewMode = "cards" | "list";
