@@ -153,8 +153,8 @@ export function AutomationsView() {
 	};
 
 	return (
-		<div className="flex h-full flex-col gap-3">
-			<div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+		<div className="flex h-full flex-col gap-6">
+			<div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
 				<div className="flex flex-col gap-1">
 					<h1 className="text-3xl font-semibold tracking-tight text-foreground">
 						Automações
@@ -173,14 +173,14 @@ export function AutomationsView() {
 							value={query}
 							onChange={(event) => setQuery(event.target.value)}
 							placeholder="Buscar automação..."
-							className="h-8 w-56 rounded-lg border border-border-subtle/20 bg-surface-container pl-8 pr-3 text-xs text-foreground placeholder:text-muted-foreground outline-none transition-colors focus:border-primary/50 focus:ring-1 focus:ring-primary/50"
+							className="h-8 w-56 rounded-lg border border-border-subtle/20 bg-surface-container pl-8 pr-3 text-sm text-foreground placeholder:text-muted-foreground outline-none transition-colors focus:border-primary/50 focus:ring-1 focus:ring-primary/50"
 						/>
 					</div>
 
 					<button
 						type="button"
 						onClick={openCreateWizard}
-						className="inline-flex items-center gap-2 rounded-full bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground shadow-[0_0_16px_rgba(197,198,207,0.2)] transition-all hover:bg-primary/90 hover:shadow-[0_0_20px_rgba(197,198,207,0.3)] cursor-pointer active:scale-[0.98]"
+						className="inline-flex items-center gap-2 rounded-full bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow-[0_0_16px_rgba(197,198,207,0.2)] transition-all hover:bg-primary/90 hover:shadow-[0_0_20px_rgba(197,198,207,0.3)] cursor-pointer active:scale-[0.98]"
 					>
 						<Plus className="h-4 w-4" />
 						Nova Automação
@@ -197,7 +197,7 @@ export function AutomationsView() {
 					<button
 						type="button"
 						onClick={() => refetchAutomations()}
-						className="mt-1 rounded-md border border-border-subtle/30 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-foreground transition-colors hover:bg-surface-high cursor-pointer"
+						className="mt-1 rounded-md border border-border-subtle/30 px-3 py-2 text-xs font-medium uppercase tracking-wider text-foreground transition-colors hover:bg-surface-high cursor-pointer"
 					>
 						Tentar novamente
 					</button>

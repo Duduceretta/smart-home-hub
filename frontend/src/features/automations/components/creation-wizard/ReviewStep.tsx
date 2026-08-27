@@ -78,8 +78,8 @@ export function ReviewStep({
 	return (
 		<div className="flex flex-1 flex-col gap-4">
 			<div>
-				<h2 className="text-sm font-semibold text-foreground">Tudo pronto?</h2>
-				<p className="mt-0.5 text-[11px] text-muted-foreground">
+				<h2 className="text-lg font-medium text-foreground">Tudo pronto?</h2>
+				<p className="mt-0.5 text-sm text-muted-foreground">
 					Revise as configurações e dê um nome pra automação.
 				</p>
 			</div>
@@ -98,15 +98,15 @@ export function ReviewStep({
 				/>
 			</div>
 
-			<div className="rounded-lg border border-border-subtle/20 bg-surface-container p-3">
-				<div className="mb-1.5 flex items-center justify-between">
-					<span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+			<div className="rounded-lg border border-border-subtle/20 bg-surface-high p-4">
+				<div className="mb-2 flex items-center justify-between">
+					<span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
 						Gatilho
 					</span>
 					<button
 						type="button"
 						onClick={() => goToStep(2)}
-						className="inline-flex items-center gap-1 text-[11px] text-primary hover:underline cursor-pointer"
+						className="inline-flex items-center gap-1 text-sm text-primary hover:underline cursor-pointer"
 					>
 						<Pencil className="h-3 w-3" />
 						Editar
@@ -117,15 +117,15 @@ export function ReviewStep({
 				</p>
 			</div>
 
-			<div className="rounded-lg border border-border-subtle/20 bg-surface-container p-3">
-				<div className="mb-1.5 flex items-center justify-between">
-					<span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+			<div className="rounded-lg border border-border-subtle/20 bg-surface-high p-4">
+				<div className="mb-2 flex items-center justify-between">
+					<span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
 						Ações
 					</span>
 					<button
 						type="button"
 						onClick={() => goToStep(3)}
-						className="inline-flex items-center gap-1 text-[11px] text-primary hover:underline cursor-pointer"
+						className="inline-flex items-center gap-1 text-sm text-primary hover:underline cursor-pointer"
 					>
 						<Pencil className="h-3 w-3" />
 						Editar
@@ -135,7 +135,7 @@ export function ReviewStep({
 					{state.actions.map((action) => (
 						<li
 							key={action.id}
-							className="flex items-center gap-1.5 text-sm text-foreground"
+							className="flex items-center gap-1 text-sm text-foreground"
 						>
 							<Zap className="h-3 w-3 shrink-0 text-muted-foreground" />
 							{action.desiredState ? "Ligar" : "Desligar"}{" "}
@@ -145,12 +145,12 @@ export function ReviewStep({
 				</ul>
 			</div>
 
-			<div className="flex items-center justify-between rounded-lg border border-border-subtle/20 bg-surface-container p-3">
+			<div className="flex items-center justify-between rounded-lg border border-border-subtle/20 bg-surface-high p-4">
 				<div>
 					<p className="text-sm font-medium text-foreground">
 						Ativar imediatamente
 					</p>
-					<p className="text-[11px] text-muted-foreground">
+					<p className="text-sm text-muted-foreground">
 						Se desligado, a automação fica salva mas pausada.
 					</p>
 				</div>

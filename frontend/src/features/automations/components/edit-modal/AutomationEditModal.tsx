@@ -27,8 +27,8 @@ function FormSection({
 	children: React.ReactNode;
 }) {
 	return (
-		<div className="flex flex-col gap-3">
-			<h3 className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+		<div className="flex flex-col gap-2">
+			<h3 className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
 				{title}
 			</h3>
 			{children}
@@ -105,7 +105,7 @@ export function AutomationEditModal() {
 		>
 			<DialogContent className="gap-0 overflow-hidden rounded-2xl p-0 sm:max-w-2xl">
 				<div className="flex max-h-[85vh] flex-col">
-					<div className="flex items-start gap-3 border-b border-border-subtle/20 p-6 pb-4">
+					<div className="flex items-start gap-4 border-b border-border-subtle/20 p-6 pb-4">
 						<span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/15 text-primary ring-1 ring-primary/30">
 							<Pencil className="h-5 w-5" />
 						</span>
@@ -117,81 +117,86 @@ export function AutomationEditModal() {
 						</DialogHeader>
 					</div>
 
-					<div className="flex-1 overflow-y-auto p-6">
-						<div className="flex flex-col gap-6">
-							<FormGlobalError error={updateAutomation.error?.message} />
+					<div className="relative min-h-0 flex-1">
+						<div className="h-full overflow-y-auto p-6">
+							<div className="flex flex-col gap-6">
+								<FormGlobalError error={updateAutomation.error?.message} />
 
-							<FormSection title="Nome da automação">
-								<input
-									id="automation-name"
-									ref={nameInputRef}
-									type="text"
-									value={form.state.name}
-									onChange={(event) => form.setName(event.target.value)}
-									placeholder="Ex: Desligar tudo à noite"
-									maxLength={150}
-									className="h-8 w-full rounded-lg border border-border-subtle/20 bg-surface-container px-2.5 text-sm text-foreground outline-none transition-colors focus:border-primary/50 focus:ring-1 focus:ring-primary/50"
-								/>
-							</FormSection>
+								<FormSection title="Nome da automação">
+									<input
+										id="automation-name"
+										ref={nameInputRef}
+										type="text"
+										value={form.state.name}
+										onChange={(event) => form.setName(event.target.value)}
+										placeholder="Ex: Desligar tudo à noite"
+										maxLength={150}
+										className="h-8 w-full rounded-lg border border-border-subtle/20 bg-surface-high px-3 text-sm text-foreground outline-none transition-colors focus:border-primary/50 focus:ring-1 focus:ring-primary/50"
+									/>
+								</FormSection>
 
-							<FormSection title="Gatilho">
-								{/* Tipo fixo — só exibição, sem interação (ver docblock do
+								<FormSection title="Gatilho">
+									{/* Tipo fixo — só exibição, sem interação (ver docblock do
 								componente pra motivo). */}
-								{triggerSourceOption && TriggerIcon && (
-									<div className="flex items-center gap-3 rounded-lg border border-border-subtle/20 bg-surface-container p-3">
-										<span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/15 text-primary">
-											<TriggerIcon className="h-4 w-4" />
-										</span>
-										<div className="min-w-0">
-											<p className="text-sm font-medium text-foreground">
-												{triggerSourceOption.label}
-											</p>
-											<p className="text-[11px] text-muted-foreground">
-												O tipo de gatilho não pode ser alterado depois de
-												criado.
-											</p>
+									{triggerSourceOption && TriggerIcon && (
+										<div className="flex items-center gap-4 rounded-lg border border-border-subtle/20 bg-surface-high p-4">
+											<span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/15 text-primary">
+												<TriggerIcon className="h-4 w-4" />
+											</span>
+											<div className="min-w-0">
+												<p className="text-sm font-medium text-foreground">
+													{triggerSourceOption.label}
+												</p>
+												<p className="text-sm text-muted-foreground">
+													O tipo de gatilho não pode ser alterado depois de
+													criado.
+												</p>
+											</div>
 										</div>
-									</div>
-								)}
+									)}
 
-								{form.state.triggerSource ? (
-									<TriggerConfigStep
+									{form.state.triggerSource ? (
+										<TriggerConfigStep
+											form={form}
+											devices={devices}
+											isLoadingDevices={isLoadingDevices}
+										/>
+									) : (
+										<p className="rounded-lg border border-dashed border-alert/40 bg-alert/10 p-4 text-xs text-alert-foreground">
+											Não foi possível interpretar a configuração de gatilho
+											dessa automação.
+										</p>
+									)}
+								</FormSection>
+
+								<FormSection title="Ações">
+									<ActionsStep
 										form={form}
 										devices={devices}
 										isLoadingDevices={isLoadingDevices}
 									/>
-								) : (
-									<p className="rounded-lg border border-dashed border-alert/40 bg-alert/10 p-3 text-xs text-alert-foreground">
-										Não foi possível interpretar a configuração de gatilho dessa
-										automação.
-									</p>
-								)}
-							</FormSection>
+								</FormSection>
 
-							<FormSection title="Ações">
-								<ActionsStep
-									form={form}
-									devices={devices}
-									isLoadingDevices={isLoadingDevices}
-								/>
-							</FormSection>
-
-							<FormSection title="Status">
-								<div className="flex items-center justify-between rounded-lg border border-border-subtle/20 bg-surface-container p-3">
-									<div>
-										<p className="text-sm font-medium text-foreground">Ativa</p>
-										<p className="text-[11px] text-muted-foreground">
-											Se desligado, a automação fica salva mas pausada.
-										</p>
+								<FormSection title="Status">
+									<div className="flex items-center justify-between rounded-lg border border-border-subtle/20 bg-surface-high p-4">
+										<div>
+											<p className="text-sm font-medium text-foreground">
+												Ativa
+											</p>
+											<p className="text-sm text-muted-foreground">
+												Se desligado, a automação fica salva mas pausada.
+											</p>
+										</div>
+										<Switch
+											checked={form.state.activateImmediately}
+											onCheckedChange={form.setActivateImmediately}
+											aria-label="Automação ativa"
+										/>
 									</div>
-									<Switch
-										checked={form.state.activateImmediately}
-										onCheckedChange={form.setActivateImmediately}
-										aria-label="Automação ativa"
-									/>
-								</div>
-							</FormSection>
+								</FormSection>
+							</div>
 						</div>
+						<div className="pointer-events-none absolute inset-x-0 bottom-0 h-8 bg-gradient-to-t from-popover to-transparent" />
 					</div>
 
 					<div className="flex items-center justify-end gap-2 border-t border-border-subtle/20 bg-surface-low p-4">

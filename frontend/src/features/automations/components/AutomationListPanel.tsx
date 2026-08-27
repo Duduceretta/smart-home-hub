@@ -128,9 +128,9 @@ export function AutomationListPanel({
 	};
 
 	return (
-		<div className="flex h-full max-h-full w-full flex-col overflow-hidden rounded-lg border border-border-subtle/20 bg-surface-low">
+		<div className="flex h-full max-h-full w-full flex-col overflow-hidden rounded-xl border border-border-subtle/20 bg-surface-low">
 			<div className="flex shrink-0 items-center justify-between border-b border-border-subtle/20 px-3 py-2.5">
-				<span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+				<span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
 					{automations.length} automaç{automations.length === 1 ? "ão" : "ões"}
 				</span>
 
@@ -179,7 +179,9 @@ export function AutomationListPanel({
 				onKeyDown={handleKeyDown}
 				className={cn(
 					"flex-1 overflow-y-auto scrollbar-thin",
-					viewMode === "cards" ? "space-y-2 p-3" : "",
+					viewMode === "cards"
+						? "space-y-2 p-4"
+						: "divide-y divide-border-subtle/10",
 				)}
 			>
 				{automations.length === 0 ? (
@@ -211,10 +213,8 @@ export function AutomationListPanel({
 				{isLoadingMore && (
 					<div
 						className={cn(
-							"flex items-center justify-center gap-1.5 text-[11px] text-muted-foreground",
-							viewMode === "cards"
-								? "py-3"
-								: "h-11 border-b border-border-subtle/10",
+							"flex items-center justify-center gap-1 text-sm text-muted-foreground",
+							viewMode === "cards" ? "py-3" : "h-11",
 						)}
 					>
 						<Loader2 className="h-3 w-3 animate-spin" />

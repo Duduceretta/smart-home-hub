@@ -84,7 +84,7 @@ export function AutomationCreationWizard() {
 					{/* Coluna esquerda: contexto + stepper */}
 					<div className="flex w-[32%] shrink-0 flex-col justify-between border-r border-border-subtle/20 bg-surface-low p-6">
 						<div className="flex flex-col gap-6">
-							<div className="flex flex-col gap-3">
+							<div className="flex flex-col gap-4">
 								<span className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/15 text-primary ring-1 ring-primary/30">
 									<Zap className="h-5 w-5" />
 								</span>
@@ -101,97 +101,100 @@ export function AutomationCreationWizard() {
 					</div>
 
 					{/* Coluna direita: conteúdo do passo atual */}
-					<div className="flex min-w-0 flex-1 flex-col overflow-y-auto p-6">
-						<div
-							ref={contentRef}
-							key={state.step}
-							className="flex flex-1 flex-col motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-right-3 motion-safe:duration-300 motion-safe:ease-out"
-						>
-							{state.step === 1 && (
-								<>
-									<TriggerSourceStep
-										selected={state.triggerSource}
-										onSelect={wizard.selectTriggerSource}
-									/>
-									<div className="mt-4 flex items-center justify-end border-t border-border-subtle/20 pt-4">
-										<Button
-											type="button"
-											disabled={
-												!state.triggerSource ||
-												TRIGGER_SOURCE_OPTIONS.find(
-													(o) => o.value === state.triggerSource,
-												)?.comingSoon
-											}
-											onClick={() => wizard.goToStep(2)}
-										>
-											Próximo
-										</Button>
-									</div>
-								</>
-							)}
+					<div className="relative flex min-w-0 flex-1 flex-col overflow-hidden">
+						<div className="flex flex-1 flex-col overflow-y-auto p-6">
+							<div
+								ref={contentRef}
+								key={state.step}
+								className="flex flex-1 flex-col motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-right-3 motion-safe:duration-300 motion-safe:ease-out"
+							>
+								{state.step === 1 && (
+									<>
+										<TriggerSourceStep
+											selected={state.triggerSource}
+											onSelect={wizard.selectTriggerSource}
+										/>
+										<div className="mt-4 flex items-center justify-end border-t border-border-subtle/20 pt-4">
+											<Button
+												type="button"
+												disabled={
+													!state.triggerSource ||
+													TRIGGER_SOURCE_OPTIONS.find(
+														(o) => o.value === state.triggerSource,
+													)?.comingSoon
+												}
+												onClick={() => wizard.goToStep(2)}
+											>
+												Próximo
+											</Button>
+										</div>
+									</>
+								)}
 
-							{state.step === 2 && (
-								<>
-									<TriggerConfigStep
-										form={wizard}
+								{state.step === 2 && (
+									<>
+										<TriggerConfigStep
+											form={wizard}
+											devices={devices}
+											isLoadingDevices={isLoadingDevices}
+										/>
+										<div className="mt-4 flex items-center justify-between border-t border-border-subtle/20 pt-4">
+											<Button
+												type="button"
+												variant="outline"
+												onClick={() => wizard.goToStep(1)}
+											>
+												Voltar
+											</Button>
+											<Button
+												type="button"
+												disabled={!isTriggerConfigValid}
+												onClick={() => wizard.goToStep(3)}
+											>
+												Próximo
+											</Button>
+										</div>
+									</>
+								)}
+
+								{state.step === 3 && (
+									<>
+										<ActionsStep
+											form={wizard}
+											devices={devices}
+											isLoadingDevices={isLoadingDevices}
+										/>
+										<div className="mt-4 flex items-center justify-between border-t border-border-subtle/20 pt-4">
+											<Button
+												type="button"
+												variant="outline"
+												onClick={() => wizard.goToStep(2)}
+											>
+												Voltar
+											</Button>
+											<Button
+												type="button"
+												disabled={!isActionsStepValid}
+												onClick={() => wizard.goToStep(4)}
+											>
+												Próximo
+											</Button>
+										</div>
+									</>
+								)}
+
+								{state.step === 4 && (
+									<ReviewStep
+										wizard={wizard}
 										devices={devices}
-										isLoadingDevices={isLoadingDevices}
+										onSubmit={handleSubmit}
+										isSubmitting={createAutomation.isPending}
+										submitError={createAutomation.error?.message}
 									/>
-									<div className="mt-4 flex items-center justify-between border-t border-border-subtle/20 pt-4">
-										<Button
-											type="button"
-											variant="outline"
-											onClick={() => wizard.goToStep(1)}
-										>
-											Voltar
-										</Button>
-										<Button
-											type="button"
-											disabled={!isTriggerConfigValid}
-											onClick={() => wizard.goToStep(3)}
-										>
-											Próximo
-										</Button>
-									</div>
-								</>
-							)}
-
-							{state.step === 3 && (
-								<>
-									<ActionsStep
-										form={wizard}
-										devices={devices}
-										isLoadingDevices={isLoadingDevices}
-									/>
-									<div className="mt-4 flex items-center justify-between border-t border-border-subtle/20 pt-4">
-										<Button
-											type="button"
-											variant="outline"
-											onClick={() => wizard.goToStep(2)}
-										>
-											Voltar
-										</Button>
-										<Button
-											type="button"
-											disabled={!isActionsStepValid}
-											onClick={() => wizard.goToStep(4)}
-										>
-											Próximo
-										</Button>
-									</div>
-								</>
-							)}
-
-							{state.step === 4 && (
-								<ReviewStep
-									wizard={wizard}
-									devices={devices}
-									onSubmit={handleSubmit}
-									isSubmitting={createAutomation.isPending}
-									submitError={createAutomation.error?.message}
-								/>
-							)}
+								)}
+							</div>
 						</div>
+						<div className="pointer-events-none absolute inset-x-0 bottom-0 h-8 bg-gradient-to-t from-popover to-transparent" />
 					</div>
 				</div>
 			</DialogContent>

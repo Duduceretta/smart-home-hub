@@ -80,10 +80,10 @@ export function ActionsStep({
 	return (
 		<div className="flex flex-1 flex-col gap-4">
 			<div>
-				<h2 className="text-sm font-semibold text-foreground">
+				<h2 className="text-lg font-medium text-foreground">
 					O que deve acontecer?
 				</h2>
-				<p className="mt-0.5 text-[11px] text-muted-foreground">
+				<p className="mt-0.5 text-sm text-muted-foreground">
 					Adicione uma ou mais ações que essa automação executa.
 				</p>
 			</div>
@@ -93,7 +93,7 @@ export function ActionsStep({
 					{state.actions.map((action) => (
 						<li
 							key={action.id}
-							className="flex items-center gap-3 rounded-lg border border-border-subtle/20 bg-surface-container p-3"
+							className="flex items-center gap-4 rounded-lg border border-border-subtle/20 bg-surface-high p-4"
 						>
 							<span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/15 text-primary">
 								<Zap className="h-4 w-4" />
@@ -128,7 +128,7 @@ export function ActionsStep({
 			)}
 
 			{isAdding ? (
-				<div className="flex flex-col gap-3 rounded-lg border border-border-subtle/20 bg-surface-container p-3">
+				<div className="flex flex-col gap-4 rounded-lg border border-border-subtle/20 bg-surface-high p-4">
 					<div className="flex flex-col gap-1.5">
 						<Label>Dispositivo</Label>
 						<Select

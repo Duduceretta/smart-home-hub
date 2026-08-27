@@ -35,11 +35,11 @@ export function AutomationWizardStepper({
 				const isLast = index === SEGMENTS.length - 1;
 
 				return (
-					<li key={segment.label} className="flex gap-3">
+					<li key={segment.label} className="flex gap-4">
 						<div className="flex flex-col items-center">
 							<span
 								className={cn(
-									"flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[11px] font-semibold transition-all duration-300 ease-out",
+									"flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-semibold transition-all duration-300 ease-out",
 									isActive
 										? "scale-110 bg-primary/15 text-primary ring-1 ring-primary/50"
 										: isCompleted
@@ -67,7 +67,7 @@ export function AutomationWizardStepper({
 							>
 								{segment.label}
 							</p>
-							<p className="mt-0.5 text-[11px] text-muted-foreground">
+							<p className="mt-0.5 text-sm text-muted-foreground">
 								{segment.description}
 							</p>
 						</div>

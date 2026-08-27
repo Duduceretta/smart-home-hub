@@ -99,7 +99,7 @@ export function TriggerConfigStep({
 					/>
 				</div>
 
-				<div className="grid grid-cols-3 gap-3">
+				<div className="grid grid-cols-3 gap-4">
 					<div className="flex flex-col gap-1.5">
 						<Label>Métrica</Label>
 						<Select
@@ -156,7 +156,7 @@ export function TriggerConfigStep({
 								updateSensorConfig({ value: event.target.value })
 							}
 							placeholder="Ex: 28"
-							className="h-8 w-full rounded-lg border border-border-subtle/20 bg-surface-container px-2.5 text-sm text-foreground outline-none transition-colors focus:border-primary/50 focus:ring-1 focus:ring-primary/50"
+							className="h-8 w-full rounded-lg border border-border-subtle/20 bg-surface-high px-3 text-sm text-foreground outline-none transition-colors focus:border-primary/50 focus:ring-1 focus:ring-primary/50"
 						/>
 					</div>
 				</div>
@@ -208,7 +208,7 @@ export function TriggerConfigStep({
 								"rounded-lg border px-3 py-2 text-xs font-medium transition-colors cursor-pointer",
 								deviceConfig.desiredIsOn
 									? "border-primary/40 bg-primary/10 text-primary"
-									: "border-border-subtle/20 bg-surface-container text-muted-foreground hover:text-foreground",
+									: "border-border-subtle/20 bg-surface-high text-muted-foreground hover:text-foreground",
 							)}
 						>
 							Ligado
@@ -221,7 +221,7 @@ export function TriggerConfigStep({
 								"rounded-lg border px-3 py-2 text-xs font-medium transition-colors cursor-pointer",
 								!deviceConfig.desiredIsOn
 									? "border-primary/40 bg-primary/10 text-primary"
-									: "border-border-subtle/20 bg-surface-container text-muted-foreground hover:text-foreground",
+									: "border-border-subtle/20 bg-surface-high text-muted-foreground hover:text-foreground",
 							)}
 						>
 							Desligado
@@ -257,13 +257,13 @@ export function TriggerConfigStep({
 					onChange={(event) =>
 						updateScheduleConfig({ time: event.target.value })
 					}
-					className="h-8 w-40 rounded-lg border border-border-subtle/20 bg-surface-container px-2.5 text-sm text-foreground outline-none transition-colors focus:border-primary/50 focus:ring-1 focus:ring-primary/50"
+					className="h-8 w-40 rounded-lg border border-border-subtle/20 bg-surface-high px-3 text-sm text-foreground outline-none transition-colors focus:border-primary/50 focus:ring-1 focus:ring-primary/50"
 				/>
 			</div>
 
 			<div className="flex flex-col gap-1.5">
 				<Label>Dias da semana</Label>
-				<div className="flex flex-wrap gap-1.5">
+				<div className="flex flex-wrap gap-2">
 					{WEEKDAY_OPTIONS.map((day) => {
 						const isSelected = scheduleConfig.weekdays.includes(day.value);
 						return (
@@ -277,7 +277,7 @@ export function TriggerConfigStep({
 									"flex h-8 w-8 items-center justify-center rounded-full text-xs font-medium transition-colors cursor-pointer",
 									isSelected
 										? "bg-primary/15 text-primary ring-1 ring-primary/40"
-										: "bg-surface-container text-muted-foreground hover:text-foreground",
+										: "bg-surface-high text-muted-foreground hover:text-foreground",
 								)}
 							>
 								{day.short}
@@ -310,15 +310,15 @@ function SectionHeader({
 }) {
 	return (
 		<div>
-			<h2 className="text-sm font-semibold text-foreground">{title}</h2>
-			<p className="mt-0.5 text-[11px] text-muted-foreground">{subtitle}</p>
+			<h2 className="text-lg font-medium text-foreground">{title}</h2>
+			<p className="mt-0.5 text-sm text-muted-foreground">{subtitle}</p>
 		</div>
 	);
 }
 
 function ConfigPreview({ children }: { children: React.ReactNode }) {
 	return (
-		<div className="rounded-lg border border-border-subtle/20 bg-surface-container p-3 text-sm text-foreground">
+		<div className="rounded-lg border border-border-subtle/20 bg-surface-high p-4 text-sm text-foreground">
 			{children}
 		</div>
 	);

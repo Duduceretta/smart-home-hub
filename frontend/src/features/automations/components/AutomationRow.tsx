@@ -39,7 +39,7 @@ export function AutomationRow({
 			}}
 			aria-current={isSelected}
 			className={cn(
-				"flex h-11 w-full items-center gap-2 border-b border-border-subtle/10 px-2 text-left transition-colors cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-ring/50",
+				"flex h-11 w-full items-center gap-2 px-3 text-left transition-colors cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-ring/50",
 				isSelected ? "bg-primary/5" : "hover:bg-surface-high",
 			)}
 		>
@@ -68,12 +68,12 @@ export function AutomationRow({
 			</span>
 
 			{automation.isDraft ? (
-				<span className="shrink-0 text-[10px] font-medium text-muted-foreground">
+				<span className="shrink-0 text-xs font-medium text-muted-foreground">
 					Incompleta
 				</span>
 			) : (
 				<>
-					<span className="shrink-0 text-[11px] text-muted-foreground">
+					<span className="shrink-0 text-xs text-muted-foreground">
 						{formatRelativeTime(automation.updatedAt ?? automation.createdAt)}
 					</span>
 					{/** biome-ignore lint/a11y/noStaticElementInteractions: só existe pra isolar o clique do Switch da seleção da linha (stopPropagation) */}

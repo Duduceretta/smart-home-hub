@@ -59,7 +59,7 @@ export function AutomationFilterChips({
 
 	return (
 		<div className="flex flex-wrap items-center justify-between gap-2">
-			<div className="flex flex-wrap items-center gap-1.5">
+			<div className="flex flex-wrap items-center gap-2">
 				{chips.map((chip) => (
 					<button
 						key={chip.value}
@@ -67,7 +67,7 @@ export function AutomationFilterChips({
 						onClick={() => onFilterChange(chip.value)}
 						aria-pressed={filter === chip.value}
 						className={cn(
-							"inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium transition-colors cursor-pointer",
+							"inline-flex h-8 items-center gap-1 rounded-full border px-3 text-sm font-medium transition-colors cursor-pointer",
 							filter === chip.value
 								? "border-primary/40 bg-primary/10 text-primary"
 								: "border-border-subtle/20 bg-surface-container text-muted-foreground hover:text-foreground",
@@ -76,7 +76,7 @@ export function AutomationFilterChips({
 						{chip.label}
 						<span
 							className={cn(
-								"rounded-full px-1.5 text-[10px]",
+								"rounded-full px-2 text-xs",
 								filter === chip.value
 									? "bg-primary/20"
 									: "bg-surface-high text-muted-foreground",
@@ -92,7 +92,7 @@ export function AutomationFilterChips({
 				value={sort}
 				onValueChange={(value) => onSortChange(value as AutomationSort)}
 			>
-				<SelectTrigger className="h-7 gap-1.5 text-xs" size="sm">
+				<SelectTrigger className="h-8 gap-2 text-sm" size="sm">
 					<ArrowUpDown className="h-3 w-3 text-muted-foreground" />
 					<SelectValue />
 				</SelectTrigger>
