@@ -17,6 +17,8 @@ Monorepo de Casa Inteligente de alta performance composto por Backend em C# (.NE
 - **Checagem de Tipos / Build**: `npm run build`
 - **Linter & Validação**: `npm run lint` (Biome)
 - **Formatação**: `npm run format` (Biome)
+- **Testes Unitários**: `npm run test` (watch) / `npm run test:run` (single run) / `npm run test:coverage` — Vitest. Specs ficam em `__tests__/` junto do código testado (ex: `src/features/dashboard/utils/__tests__/formatEnergy.spec.ts`).
+- **Testes E2E**: `npm run test:e2e` (Playwright, headless) / `npm run test:e2e:ui` (modo interativo) / `npm run test:e2e:report`. Specs ficam em `e2e/*.spec.ts` na raiz do frontend (ex: `e2e/dashboard.spec.ts`, `e2e/devices.spec.ts`), com fixtures/helpers em `e2e/support/`.
 
 ### Infraestrutura Local
 - **Subir Containers**: `docker-compose up -d` (PostgreSQL + TimescaleDB + Mosquitto)
