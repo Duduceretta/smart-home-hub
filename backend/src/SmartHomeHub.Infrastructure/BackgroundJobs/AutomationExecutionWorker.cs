@@ -1,3 +1,4 @@
+using System.Text.Json;
 using Hangfire;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
@@ -7,6 +8,7 @@ using Microsoft.Extensions.Logging;
 using SmartHomeHub.Application.Common.Interfaces;
 using SmartHomeHub.Application.Features.Automations.Engine;
 using SmartHomeHub.Application.Features.Telemetry.Events;
+using SmartHomeHub.Domain.ValueObjects;
 
 namespace SmartHomeHub.Infrastructure.BackgroundJobs;
 
@@ -68,6 +70,19 @@ public sealed class AutomationExecutionWorker(
         {
             try
             {
+                // Automações puramente por horário (só TimeTrigger, sem
+                // DeviceStateTrigger) não devem ser reavaliadas a cada
+                // telemetria — isso é papel exclusivo do AutomationTimeTriggerJob
+                // (cron). Sem este filtro, uma automação de horário sem
+                // Conditions compila pra "sempre verdadeiro" e dispara a cada
+                // evento de telemetria de qualquer dispositivo.
+                var payload = JsonSerializer.Deserialize<AutomationPayload>(
+                    automation.RulePayload,
+                    AutomationPayloadJsonOptions.Default
+                );
+                if (payload == null || !payload.HasDeviceStateTrigger())
+                    continue;
+
                 if (rulesEngine.Evaluate(automation, context))
                 {
                     AutomationDispatchHelper.DispatchActionsSafely(

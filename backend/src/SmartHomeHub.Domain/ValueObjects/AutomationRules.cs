@@ -47,6 +47,14 @@ public static class AutomationPayloadExtensions
     // criaria duas fontes de verdade divergentes para a mesma automação.
     public static string? GetTimeTriggerCronExpression(this AutomationPayload payload) =>
         payload.Triggers?.OfType<TimeTrigger>().FirstOrDefault()?.CronExpression;
+
+    // Sem isso, o worker de telemetria avaliaria também automações puramente
+    // por horário (sem DeviceStateTrigger) a cada evento de qualquer
+    // dispositivo — e como um gatilho de tempo puro não tem Conditions, o
+    // compiler resolve pra "sempre verdadeiro", disparando a automação a
+    // cada poucos segundos em vez de só no horário agendado.
+    public static bool HasDeviceStateTrigger(this AutomationPayload payload) =>
+        payload.Triggers?.OfType<DeviceStateTrigger>().Any() ?? false;
 }
 
 // Fonte única das JsonSerializerOptions usadas para (des)serializar
