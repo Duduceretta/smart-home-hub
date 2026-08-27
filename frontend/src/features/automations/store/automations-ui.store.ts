@@ -27,15 +27,15 @@ interface AutomationsUIState {
 	selectedId: string | null;
 	setSelectedId: (id: string | null) => void;
 
-	// Create Sheet Modal State
-	isCreateSheetOpen: boolean;
-	openCreateSheet: () => void;
-	closeCreateSheet: () => void;
+	// Create Wizard Modal State
+	isCreateWizardOpen: boolean;
+	openCreateWizard: () => void;
+	closeCreateWizard: () => void;
 
-	// Edit Sheet Modal State
+	// Edit Modal State
 	editingAutomation: Automation | null;
-	openEditSheet: (automation: Automation) => void;
-	closeEditSheet: () => void;
+	openEditModal: (automation: Automation) => void;
+	closeEditModal: () => void;
 }
 
 /**
@@ -49,7 +49,7 @@ export const useAutomationsUIStore = create<AutomationsUIState>((set) => ({
 	sort: "name",
 	viewMode: "cards",
 	selectedId: null,
-	isCreateSheetOpen: false,
+	isCreateWizardOpen: false,
 	editingAutomation: null,
 
 	// Filter Actions
@@ -64,11 +64,11 @@ export const useAutomationsUIStore = create<AutomationsUIState>((set) => ({
 	// Selection actions
 	setSelectedId: (selectedId) => set({ selectedId }),
 
-	// Create Sheet Actions
-	openCreateSheet: () => set({ isCreateSheetOpen: true }),
-	closeCreateSheet: () => set({ isCreateSheetOpen: false }),
+	// Create Wizard Actions
+	openCreateWizard: () => set({ isCreateWizardOpen: true }),
+	closeCreateWizard: () => set({ isCreateWizardOpen: false }),
 
-	// Edit Sheet Actions
-	openEditSheet: (automation) => set({ editingAutomation: automation }),
-	closeEditSheet: () => set({ editingAutomation: null }),
+	// Edit Modal Actions
+	openEditModal: (automation) => set({ editingAutomation: automation }),
+	closeEditModal: () => set({ editingAutomation: null }),
 }));

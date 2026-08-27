@@ -1,6 +1,5 @@
 import { AlertTriangle, Loader2, Plus, Search } from "lucide-react";
 import { useEffect, useMemo } from "react";
-import { toast } from "sonner";
 import { cn } from "@/core/utils";
 import { useAutomations } from "../hooks/useAutomations";
 import { useCreateAutomation } from "../hooks/useCreateAutomation";
@@ -14,6 +13,8 @@ import { AutomationDetailPanel } from "./AutomationDetailPanel";
 import { AutomationFilterChips } from "./AutomationFilterChips";
 import { AutomationListPanel } from "./AutomationListPanel";
 import { AutomationSummaryBar } from "./AutomationSummaryBar";
+import { AutomationCreationWizard } from "./creation-wizard/AutomationCreationWizard";
+import { AutomationEditModal } from "./edit-modal/AutomationEditModal";
 
 /**
  * View de Automações — master-detail (split-view) fixo, inspirado em
@@ -40,10 +41,13 @@ import { AutomationSummaryBar } from "./AutomationSummaryBar";
  *
  * Dados reais via `useAutomations` — `rulePayload` (JSON opaco) é resumido
  * em texto pela `AutomationView` (ver `automation-view.mapper.ts`), usando
- * `usePickerDevices` pra trocar IDs de dispositivo por nomes. Criar/editar
- * automação ainda não tem UI conectada (o formulário atual — Sheet — vai
- * ser substituído por um wizard tipo o de descoberta de dispositivos), daí
- * os placeholders em `handleCreate`/`handleEdit`.
+ * `usePickerDevices` pra trocar IDs de dispositivo por nomes. Criar usa o
+ * `AutomationCreationWizard` (wizard de 4 passos); editar usa o
+ * `AutomationEditModal` (formulário único, sem stepper) — os dois
+ * compartilham a mesma lógica de gatilho/ações via `automation-form-reducer.ts`.
+ * `handleEdit` busca a `Automation` crua (com `rulePayload`) no array
+ * original, já que o modal de edição precisa do payload completo, não do
+ * resumo em texto da `AutomationView`.
  */
 export function AutomationsView() {
 	const {
@@ -69,6 +73,8 @@ export function AutomationsView() {
 		setViewMode,
 		selectedId,
 		setSelectedId,
+		openCreateWizard,
+		openEditModal,
 	} = useAutomationsUIStore();
 
 	const automationViews = useMemo(
@@ -126,10 +132,11 @@ export function AutomationsView() {
 		deleteAutomation.mutate(id);
 	};
 
-	const handleEdit = (automation: AutomationView) => {
-		toast.info(
-			`Edição de "${automation.name}" ainda não conectada — o formulário de edição está sendo refeito.`,
+	const handleEdit = (automationView: AutomationView) => {
+		const automation = (automations ?? []).find(
+			(a) => a.id === automationView.id,
 		);
+		if (automation) openEditModal(automation);
 	};
 
 	const handleDuplicate = (automation: AutomationView) => {
@@ -142,12 +149,6 @@ export function AutomationsView() {
 			{
 				onSuccess: (data) => setSelectedId(data.automationId),
 			},
-		);
-	};
-
-	const handleCreate = () => {
-		toast.info(
-			"Criação de automação ainda não conectada — o formulário está sendo refeito.",
 		);
 	};
 
@@ -178,7 +179,7 @@ export function AutomationsView() {
 
 					<button
 						type="button"
-						onClick={handleCreate}
+						onClick={openCreateWizard}
 						className="inline-flex items-center gap-2 rounded-full bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground shadow-[0_0_16px_rgba(197,198,207,0.2)] transition-all hover:bg-primary/90 hover:shadow-[0_0_20px_rgba(197,198,207,0.3)] cursor-pointer active:scale-[0.98]"
 					>
 						<Plus className="h-4 w-4" />
@@ -258,6 +259,9 @@ export function AutomationsView() {
 					</div>
 				</>
 			)}
+
+			<AutomationCreationWizard />
+			<AutomationEditModal />
 		</div>
 	);
 }
