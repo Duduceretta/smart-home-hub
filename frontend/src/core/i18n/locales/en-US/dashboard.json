@@ -10,7 +10,7 @@
 		"onlineDevices": "Online Devices",
 		"activeOf": "/ {{total}} active",
 		"averageTemperature": "Average Temperature",
-		"securityAlerts": "Security Alerts",
+		"securityAlerts": "Security",
 		"alertsUnit": "alerts",
 		"energyConsumptionSubtitle": "Accumulated today",
 		"energyEstimatedTitle": "Includes estimated consumption from devices without a real power sensor (e.g. TV)",

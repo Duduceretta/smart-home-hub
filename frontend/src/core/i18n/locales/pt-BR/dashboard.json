@@ -10,7 +10,7 @@
 		"onlineDevices": "Dispositivos Online",
 		"activeOf": "/ {{total}} ativos",
 		"averageTemperature": "Temperatura Média",
-		"securityAlerts": "Alertas de Segurança",
+		"securityAlerts": "Segurança",
 		"alertsUnit": "alertas",
 		"energyConsumptionSubtitle": "Acumulado hoje",
 		"energyEstimatedTitle": "Inclui consumo estimado de dispositivos sem sensor de energia (ex: TV)",

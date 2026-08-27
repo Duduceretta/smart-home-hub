@@ -52,30 +52,32 @@ export function StatusHubSummary() {
 					</span>
 					<Zap className="w-4 h-4 shrink-0 text-warm" />
 				</div>
-				<div>
-					<span
-						className="text-2xl font-semibold text-foreground"
-						title={
-							summary.isEnergyEstimated
-								? t(
-										"metrics.energyEstimatedTitle",
-										"Inclui consumo estimado de dispositivos sem sensor de energia (ex: TV)",
-									)
-								: undefined
-						}
-					>
-						{summary.isEnergyEstimated && "~"}
-						{energy.value}
-					</span>
-					<span className="text-xs text-muted-foreground ml-1">
-						{energy.unit}
+				<div className="flex flex-col gap-0.5">
+					<div>
+						<span
+							className="text-2xl font-semibold text-foreground"
+							title={
+								summary.isEnergyEstimated
+									? t(
+											"metrics.energyEstimatedTitle",
+											"Inclui consumo estimado de dispositivos sem sensor de energia (ex: TV)",
+										)
+									: undefined
+							}
+						>
+							{summary.isEnergyEstimated && "~"}
+							{energy.value}
+						</span>
+						<span className="text-xs text-muted-foreground ml-1">
+							{energy.unit}
+						</span>
+					</div>
+					<span className="text-xs text-muted-foreground/60">
+						{t("metrics.energyConsumptionSubtitle", "Acumulado hoje")}
+						{summary.isEnergyEstimated &&
+							` · ${t("metrics.energyEstimatedShort", "inclui estimativa")}`}
 					</span>
 				</div>
-				<span className="text-xs text-muted-foreground/60">
-					{t("metrics.energyConsumptionSubtitle", "Acumulado hoje")}
-					{summary.isEnergyEstimated &&
-						` · ${t("metrics.energyEstimatedShort", "inclui estimativa")}`}
-				</span>
 			</div>
 
 			<div className="rounded-xl border border-primary/30 bg-surface-container p-4 flex flex-col justify-between gap-4 relative overflow-hidden transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/50 hover:shadow-lg hover:shadow-black/30">
@@ -86,21 +88,23 @@ export function StatusHubSummary() {
 					</span>
 					<Wifi className="w-4 h-4 shrink-0 text-primary" />
 				</div>
-				<div className="relative z-10">
-					<span className="text-2xl font-semibold text-primary">
-						{summary.onlineDevicesCount}
-					</span>
-					<span className="text-xs text-muted-foreground ml-1">
-						{t("metrics.activeOf", { total: summary.totalDevicesCount })}
-					</span>
-				</div>
-				<div className="h-1 w-full rounded-full bg-background overflow-hidden relative z-10">
-					<div
-						className="h-full rounded-full bg-primary shadow-[0_0_6px_rgba(197,198,207,0.4)]"
-						style={{
-							width: `${summary.totalDevicesCount > 0 ? (summary.onlineDevicesCount / summary.totalDevicesCount) * 100 : 0}%`,
-						}}
-					/>
+				<div className="relative z-10 flex flex-col gap-3">
+					<div>
+						<span className="text-2xl font-semibold text-primary">
+							{summary.onlineDevicesCount}
+						</span>
+						<span className="text-xs text-muted-foreground ml-1">
+							{t("metrics.activeOf", { total: summary.totalDevicesCount })}
+						</span>
+					</div>
+					<div className="h-1 w-full rounded-full bg-background overflow-hidden">
+						<div
+							className="h-full rounded-full bg-primary shadow-[0_0_6px_rgba(197,198,207,0.4)]"
+							style={{
+								width: `${summary.totalDevicesCount > 0 ? (summary.onlineDevicesCount / summary.totalDevicesCount) * 100 : 0}%`,
+							}}
+						/>
+					</div>
 				</div>
 			</div>
 
