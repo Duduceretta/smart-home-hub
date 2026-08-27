@@ -26,7 +26,7 @@ export function AppLayout() {
 				<Header />
 
 				{/* Área de Conteúdo Rolável */}
-				<div className="flex-1 overflow-y-auto w-full p-4 sm:p-6 lg:p-8 [scrollbar-gutter:stable]">
+				<div className="flex-1 overflow-y-auto w-full p-4 sm:p-6 lg:p-8 [scrollbar-gutter:stable] scrollbar-thin">
 					<div
 						key={location.pathname}
 						className={cn(
@@ -65,7 +65,7 @@ export function AppLayout() {
 									active && "scale-110",
 								)}
 							/>
-							<span className="text-[10px] tracking-tight">{item.name}</span>
+							<span className="text-xs tracking-tight">{item.name}</span>
 						</Link>
 					);
 				})}

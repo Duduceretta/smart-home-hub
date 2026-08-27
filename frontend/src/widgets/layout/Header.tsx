@@ -11,7 +11,7 @@ export function Header() {
 	return (
 		<header className="sticky top-0 z-40 h-16 w-full border-b border-border bg-linear-to-b from-card/70 to-background/80 backdrop-blur-xl px-4 sm:px-8 flex items-center justify-between shrink-0">
 			{/* Lado Esquerdo: Toggle Mobile, Saudação & Status */}
-			<div className="flex items-center gap-3">
+			<div className="flex items-center gap-4">
 				{/* Menu Mobile */}
 				<Button
 					variant="ghost"
@@ -22,12 +22,12 @@ export function Header() {
 					<Menu className="w-5 h-5" />
 				</Button>
 
-				<div className="flex items-center gap-3">
+				<div className="flex items-center gap-4">
 					<div className="flex flex-col">
 						<span className="text-sm font-semibold tracking-tight text-foreground">
 							Olá, {firstName}
 						</span>
-						<span className="hidden sm:block text-[11px] font-medium text-muted-foreground">
+						<span className="hidden sm:block text-xs font-medium text-muted-foreground">
 							Smart Home Control
 						</span>
 					</div>
@@ -42,7 +42,7 @@ export function Header() {
 			</div>
 
 			{/* Lado Direito: Idioma, Notificações, Perfil & Logout */}
-			<div className="flex items-center gap-3 sm:gap-4">
+			<div className="flex items-center gap-4">
 				{/* Seletor de Idioma */}
 				<LanguageSelector />
 
@@ -60,7 +60,7 @@ export function Header() {
 				<div className="hidden sm:block w-px h-5 bg-border/60" />
 
 				{/* Perfil do Usuário & Logout */}
-				<div className="flex items-center gap-3">
+				<div className="flex items-center gap-4">
 					<div className="w-8 h-8 rounded-full bg-card border border-border shadow-xs overflow-hidden shrink-0 flex items-center justify-center">
 						{user?.photoURL ? (
 							<img

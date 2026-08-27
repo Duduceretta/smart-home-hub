@@ -49,7 +49,7 @@ export function Sidebar() {
 			<button
 				type="button"
 				onClick={() => setIsCollapsed(!isCollapsed)}
-				className="absolute -right-3 top-7 z-50 flex h-6 w-6 items-center justify-center rounded-full border border-border bg-popover text-muted-foreground shadow-md transition-all hover:bg-card hover:text-foreground cursor-pointer"
+				className="absolute -right-3 top-7 z-50 flex h-6 w-6 items-center justify-center rounded-full border border-border bg-surface-highest text-muted-foreground shadow-md transition-all hover:bg-card hover:text-foreground cursor-pointer"
 				title={
 					isCollapsed ? "Expandir barra lateral" : "Recolher barra lateral"
 				}
@@ -72,7 +72,7 @@ export function Sidebar() {
 				{/* Logo & Marca */}
 				<div
 					className={cn(
-						"flex items-center gap-3 transition-all duration-300 overflow-hidden",
+						"flex items-center gap-4 transition-all duration-300 overflow-hidden",
 						isCollapsed ? "justify-center px-0" : "px-1",
 					)}
 				>
@@ -84,7 +84,7 @@ export function Sidebar() {
 							<span className="font-semibold text-lg tracking-tight text-foreground truncate">
 								Smart Hub
 							</span>
-							<span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider truncate">
+							<span className="text-xs font-medium text-muted-foreground uppercase tracking-wider truncate">
 								Hub Ativo: 01
 							</span>
 						</div>
@@ -92,7 +92,7 @@ export function Sidebar() {
 				</div>
 
 				{/* Navegação Principal */}
-				<nav className="flex-1 flex flex-col gap-1.5 overflow-hidden">
+				<nav className="flex-1 flex flex-col gap-2 overflow-hidden">
 					{navItems.map((item) => {
 						const active = isActive(item.path);
 						return (
@@ -101,10 +101,10 @@ export function Sidebar() {
 								to={item.path}
 								title={isCollapsed ? item.name : undefined}
 								className={cn(
-									"flex items-center gap-3 rounded-lg text-xs font-medium transition-all duration-200",
+									"flex items-center gap-2 h-10 rounded-lg text-xs font-medium transition-all duration-200",
 									isCollapsed
-										? "justify-center p-2.5"
-										: "justify-start px-3 py-2.5",
+										? "justify-center w-10 px-0"
+										: "justify-start px-3",
 									active
 										? "bg-primary/10 text-foreground ring-1 ring-primary/30 shadow-sm font-semibold"
 										: "text-muted-foreground hover:text-foreground hover:bg-card/50",
@@ -130,10 +130,8 @@ export function Sidebar() {
 						to="/settings"
 						title={isCollapsed ? "Configurações" : undefined}
 						className={cn(
-							"flex items-center gap-3 rounded-lg text-xs font-medium transition-all duration-200 mt-auto",
-							isCollapsed
-								? "justify-center p-2.5"
-								: "justify-start px-3 py-2.5",
+							"flex items-center gap-2 h-10 rounded-lg text-xs font-medium transition-all duration-200 mt-auto",
+							isCollapsed ? "justify-center w-10 px-0" : "justify-start px-3",
 							isActive("/settings")
 								? "bg-primary/10 text-foreground ring-1 ring-primary/30 shadow-sm font-semibold"
 								: "text-muted-foreground hover:text-foreground hover:bg-card/50",
@@ -149,8 +147,8 @@ export function Sidebar() {
 			<div className="space-y-3 pt-4 border-t border-border">
 				{/* Status Real: Dispositivos Online */}
 				{!isCollapsed && totalCount > 0 && (
-					<div className="rounded-xl border border-border bg-card/60 p-4 space-y-3">
-						<div className="flex items-center justify-between text-xs font-semibold tracking-wider uppercase text-muted-foreground">
+					<div className="rounded-xl border border-border bg-surface-highest/60 p-4 space-y-3">
+						<div className="flex items-center justify-between text-xs font-medium tracking-wider uppercase text-muted-foreground">
 							<span>Dispositivos Online</span>
 							<span className="text-primary font-bold">
 								{onlineCount}/{totalCount}
@@ -165,8 +163,8 @@ export function Sidebar() {
 					type="button"
 					title={isCollapsed ? "Adicionar" : undefined}
 					className={cn(
-						"w-full flex items-center justify-center gap-2 rounded-lg bg-card/40 border border-border text-foreground font-medium text-xs transition-all hover:bg-card hover:border-primary/40 shadow-sm group cursor-pointer",
-						isCollapsed ? "h-9 w-9 p-0 mx-auto" : "px-3 py-2.5",
+						"w-full flex items-center justify-center gap-2 rounded-lg bg-surface-highest/40 border border-border text-foreground font-medium text-xs transition-all hover:bg-card hover:border-primary/40 shadow-sm group cursor-pointer",
+						isCollapsed ? "h-10 w-10 p-0 mx-auto" : "h-10 px-3",
 					)}
 				>
 					<Plus className="w-4 h-4 text-primary group-hover:scale-110 transition-transform shrink-0" />
