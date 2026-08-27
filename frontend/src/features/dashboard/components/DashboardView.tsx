@@ -1,5 +1,5 @@
 import { ChevronsDownUp, ChevronsUpDown } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import {
 	CHIP_TO_TYPES,
@@ -13,6 +13,7 @@ import { SpotifyNowPlayingCard } from "@/features/integrations/components/Spotif
 import { useRooms } from "@/features/rooms/hooks/useRooms";
 import { useDashboardOverview } from "../hooks/useDashboardOverview";
 import { useDashboardPreviewStore } from "../store/dashboard-preview.store";
+import { useDashboardUIStore } from "../store/dashboard-ui.store";
 import { ActiveAutomationsCard } from "./ActiveAutomationsCard";
 import { ActivityLogTimeline } from "./ActivityLogTimeline";
 import { CameraFeedCard } from "./CameraFeedCard";
@@ -29,7 +30,8 @@ const DEVICES_PAGE_SIZE = 200;
 
 export const DashboardView: React.FC = () => {
 	const { t } = useTranslation("dashboard");
-	const [activeChip, setActiveChip] = useState<ChipKey>("all");
+	const activeChip = useDashboardUIStore((s) => s.activeChip);
+	const setActiveChip = useDashboardUIStore((s) => s.setActiveChip);
 
 	const {
 		data: roomsData,
