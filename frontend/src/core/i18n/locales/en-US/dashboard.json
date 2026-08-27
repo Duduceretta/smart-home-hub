@@ -34,8 +34,17 @@
 		"comingSoon": "Camera integration coming soon."
 	},
 	"automations": {
-		"emptyTitle": "No automations configured yet",
-		"emptySubtitle": "Routines and automations will show up here once this feature is available."
+		"title": "Active Automations",
+		"emptyTitle": "No automations created yet",
+		"emptySubtitle": "Create automations with triggers and actions to make your home smarter.",
+		"createCta": "Create automation",
+		"noneActiveTitle": "No automation is active right now",
+		"addSlotTitle": "Add automation",
+		"addSlotSubtitle": "Slot available",
+		"updatedAt": "Updated {{time}}",
+		"viewAll": "View all automations",
+		"errorTitle": "Couldn't load automations",
+		"errorSubtitle": "Check your connection and try again."
 	},
 	"scenesBar": {
 		"arriveHome": "Arrived Home",

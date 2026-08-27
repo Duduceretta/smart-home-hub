@@ -66,3 +66,19 @@ export interface ActivityLogEntry {
 	description: string;
 	timestamp: string;
 }
+
+/**
+ * Recorte mínimo de `Automation` (feature `automations`) pro card de
+ * automações do dashboard — cópia local dos campos usados, não um import
+ * cross-feature (regra de ouro do FSD: features nunca importam tipos/hooks
+ * umas das outras diretamente). O backend não rastreia execução/disparo de
+ * automações ainda, então `updatedAt` é o único proxy real disponível pra
+ * "atividade recente" — atualizado tanto ao editar quanto ao ligar/desligar.
+ */
+export interface DashboardAutomationSummary {
+	id: string;
+	name: string;
+	isActive: boolean;
+	updatedAt: string | null;
+	createdAt: string;
+}

@@ -34,8 +34,17 @@
 		"comingSoon": "Integração de câmeras chegando em breve."
 	},
 	"automations": {
-		"emptyTitle": "Nenhuma automação configurada ainda",
-		"emptySubtitle": "Rotinas e automações vão aparecer aqui assim que essa feature estiver disponível."
+		"title": "Automações Ativas",
+		"emptyTitle": "Nenhuma automação cadastrada ainda",
+		"emptySubtitle": "Crie automações com gatilhos e ações pra deixar sua casa mais inteligente.",
+		"createCta": "Criar automação",
+		"noneActiveTitle": "Nenhuma automação ativa no momento",
+		"addSlotTitle": "Adicionar automação",
+		"addSlotSubtitle": "Espaço disponível",
+		"updatedAt": "Atualizada {{time}}",
+		"viewAll": "Ver todas as automações",
+		"errorTitle": "Não foi possível carregar as automações",
+		"errorSubtitle": "Verifique sua conexão e tente novamente."
 	},
 	"scenesBar": {
 		"arriveHome": "Cheguei em Casa",
