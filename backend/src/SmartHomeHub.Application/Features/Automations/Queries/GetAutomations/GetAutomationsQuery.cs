@@ -2,6 +2,7 @@ using Mediator;
 using Microsoft.EntityFrameworkCore;
 using SmartHomeHub.Application.Common.Interfaces;
 using SmartHomeHub.Application.Common.Pagination;
+using SmartHomeHub.Application.Features.Dashboards.ActivityLog;
 
 namespace SmartHomeHub.Application.Features.Automations.Queries.GetAutomations;
 
@@ -12,7 +13,17 @@ public record AutomationDto(
     string RulePayload,
     int SchemaVersion,
     DateTimeOffset CreatedAt,
-    DateTimeOffset? UpdatedAt
+    DateTimeOffset? UpdatedAt,
+    /// <summary>
+    /// Timestamp da última execução (sucesso ou falha) registrada como
+    /// SystemEvent(AutomationExecuted) para essa automação. Null = nunca
+    /// executou. Derivado, não é uma coluna em Automation (ver
+    /// AutomationRulesEngine — evita bombar Automation.UpdatedAt, que é a
+    /// chave de cache da condição compilada).
+    /// </summary>
+    DateTimeOffset? LastExecutedAt,
+    /// <summary>true se alguma execução de hoje (UTC) falhou.</summary>
+    bool HasFailedToday
 );
 
 public record GetAutomationsQuery(string FirebaseUid, int Page = 1, int PageSize = 10)
@@ -27,6 +38,8 @@ public class GetAutomationsQueryHandler(IAppDbContext dbContext)
         CancellationToken cancellationToken
     )
     {
+        var todayStartUtc = DateTimeOffset.UtcNow.Date;
+
         return await dbContext
             .Automations.AsNoTracking()
             .Where(automation => automation.User.ExternalAuthUid == request.FirebaseUid)
@@ -38,7 +51,21 @@ public class GetAutomationsQueryHandler(IAppDbContext dbContext)
                 automation.RulePayload,
                 automation.SchemaVersion,
                 automation.CreatedAt,
-                automation.UpdatedAt
+                automation.UpdatedAt,
+                dbContext
+                    .SystemEvents.Where(systemEvent =>
+                        systemEvent.AutomationId == automation.Id
+                        && systemEvent.EventType == ActivityEventTypes.AutomationExecuted
+                    )
+                    .OrderByDescending(systemEvent => systemEvent.Timestamp)
+                    .Select(systemEvent => (DateTimeOffset?)systemEvent.Timestamp)
+                    .FirstOrDefault(),
+                dbContext.SystemEvents.Any(systemEvent =>
+                    systemEvent.AutomationId == automation.Id
+                    && systemEvent.EventType == ActivityEventTypes.AutomationExecuted
+                    && systemEvent.IsAlert
+                    && systemEvent.Timestamp >= todayStartUtc
+                )
             ))
             .ToPagedResultAsync(request.Page, request.PageSize, cancellationToken);
     }

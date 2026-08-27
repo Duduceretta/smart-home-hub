@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
 using SmartHomeHub.Application.Common.Interfaces;
+using SmartHomeHub.Application.Features.Dashboards.ActivityLog;
 using SmartHomeHub.Application.Features.Devices.Commands.SetDeviceState;
 using SmartHomeHub.Domain.Common.Primitives;
 using SmartHomeHub.Domain.Entities;
@@ -44,6 +45,26 @@ public class AutomationActionDispatcherTests
         const string firebaseUid = "uid-123";
         const string traceId = "trace-abc";
 
+        var user = new User { Id = Guid.NewGuid(), ExternalAuthUid = firebaseUid };
+        _dbContext.Automations.Add(
+            new Automation
+            {
+                Id = automationId,
+                UserId = user.Id,
+                Name = "Desligar tudo à noite",
+                RulePayload = "{}",
+            }
+        );
+        _dbContext.Devices.Add(
+            new Device
+            {
+                Id = deviceId,
+                UserId = user.Id,
+                Name = "Tomada da Sala",
+            }
+        );
+        await _dbContext.SaveChangesAsync();
+
         _mediator.Send(Arg.Any<SetDeviceStateCommand>(), Arg.Any<CancellationToken>())
             .Returns(Result.Success());
 
@@ -61,6 +82,14 @@ public class AutomationActionDispatcherTests
                 Arg.Any<CancellationToken>()
             );
         _dbContext.IdempotencyRecords.Should().HaveCount(1);
+
+        var systemEvent = _dbContext.SystemEvents.Should().ContainSingle().Subject;
+        systemEvent.AutomationId.Should().Be(automationId);
+        systemEvent.DeviceId.Should().Be(deviceId);
+        systemEvent.EventType.Should().Be(ActivityEventTypes.AutomationExecuted);
+        systemEvent.IsAlert.Should().BeFalse();
+        systemEvent.Title.Should().Contain("Desligar tudo à noite");
+        systemEvent.Description.Should().Contain("Tomada da Sala");
     }
 
     [Fact]
@@ -89,6 +118,10 @@ public class AutomationActionDispatcherTests
                 traceId,
                 Arg.Any<CancellationToken>()
             );
+
+        var systemEvent = _dbContext.SystemEvents.Should().ContainSingle().Subject;
+        systemEvent.IsAlert.Should().BeTrue();
+        systemEvent.Description.Should().Contain(error.Description);
     }
 
     [Fact]
@@ -119,6 +152,10 @@ public class AutomationActionDispatcherTests
                 traceId,
                 Arg.Any<CancellationToken>()
             );
+
+        var systemEvent = _dbContext.SystemEvents.Should().ContainSingle().Subject;
+        systemEvent.IsAlert.Should().BeTrue();
+        systemEvent.Description.Should().Contain(exception.Message);
     }
 
     [Fact]

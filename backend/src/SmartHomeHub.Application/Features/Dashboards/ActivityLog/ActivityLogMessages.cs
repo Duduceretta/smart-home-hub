@@ -10,6 +10,7 @@ public static class ActivityEventTypes
     public const string DeviceStatus = "DeviceStatus";
     public const string DeviceMedia = "DeviceMedia";
     public const string Spotify = "Spotify";
+    public const string AutomationExecuted = "AutomationExecuted";
 }
 
 /// <summary>
@@ -95,5 +96,28 @@ public static class ActivityLogMessages
         var description = artist != null ? $"{title} — {artist}" : title;
 
         return (eventTitle, description);
+    }
+
+    /// <summary>
+    /// Resultado de uma ação disparada por automação (AutomationActionDispatcher).
+    /// Chamado tanto no caminho de sucesso quanto no de falha (lógica ou por
+    /// exceção) — o texto de erro já vem pronto do Result/exceção, não é
+    /// recalculado aqui.
+    /// </summary>
+    public static (string Title, string Description) AutomationExecutionResult(
+        string automationName,
+        string deviceName,
+        bool success,
+        string? errorMessage
+    )
+    {
+        if (success)
+            return ($"{automationName} disparou", $"Ação executada em {deviceName}.");
+
+        var description = errorMessage != null
+            ? $"Falha ao acionar {deviceName}: {errorMessage}"
+            : $"Falha ao acionar {deviceName}.";
+
+        return ($"{automationName} falhou", description);
     }
 }

@@ -2,6 +2,7 @@ using Mediator;
 using Microsoft.EntityFrameworkCore;
 using SmartHomeHub.Application.Common.Interfaces;
 using SmartHomeHub.Application.Features.Automations.Queries.GetAutomations;
+using SmartHomeHub.Application.Features.Dashboards.ActivityLog;
 
 namespace SmartHomeHub.Application.Features.Automations.Queries.GetAutomationById;
 
@@ -16,6 +17,8 @@ public class GetAutomationByIdQueryHandler(IAppDbContext dbContext)
         CancellationToken cancellationToken
     )
     {
+        var todayStartUtc = DateTimeOffset.UtcNow.Date;
+
         return await dbContext
             .Automations.AsNoTracking()
             .Where(automation =>
@@ -29,7 +32,21 @@ public class GetAutomationByIdQueryHandler(IAppDbContext dbContext)
                 automation.RulePayload,
                 automation.SchemaVersion,
                 automation.CreatedAt,
-                automation.UpdatedAt
+                automation.UpdatedAt,
+                dbContext
+                    .SystemEvents.Where(systemEvent =>
+                        systemEvent.AutomationId == automation.Id
+                        && systemEvent.EventType == ActivityEventTypes.AutomationExecuted
+                    )
+                    .OrderByDescending(systemEvent => systemEvent.Timestamp)
+                    .Select(systemEvent => (DateTimeOffset?)systemEvent.Timestamp)
+                    .FirstOrDefault(),
+                dbContext.SystemEvents.Any(systemEvent =>
+                    systemEvent.AutomationId == automation.Id
+                    && systemEvent.EventType == ActivityEventTypes.AutomationExecuted
+                    && systemEvent.IsAlert
+                    && systemEvent.Timestamp >= todayStartUtc
+                )
             ))
             .FirstOrDefaultAsync(cancellationToken);
     }

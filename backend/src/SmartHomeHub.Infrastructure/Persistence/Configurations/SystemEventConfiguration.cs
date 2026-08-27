@@ -31,6 +31,12 @@ public class SystemEventConfiguration : IEntityTypeConfiguration<SystemEvent>
             .OnDelete(DeleteBehavior.SetNull);
 
         builder
+            .HasOne(events => events.Automation)
+            .WithMany()
+            .HasForeignKey(events => events.AutomationId)
+            .OnDelete(DeleteBehavior.SetNull);
+
+        builder
             .HasIndex(events => new { events.UserId, events.Timestamp })
             .IsDescending(false, true);
     }

@@ -6,6 +6,7 @@ public class SystemEvent
     public Guid UserId { get; set; }
 
     public Guid? DeviceId { get; set; }
+    public Guid? AutomationId { get; set; }
     public string EventType { get; set; } = string.Empty;
 
     public string Title { get; set; } = string.Empty;
@@ -16,4 +17,5 @@ public class SystemEvent
 
     public User User { get; set; } = null!;
     public Device? Device { get; set; }
+    public Automation? Automation { get; set; }
 }

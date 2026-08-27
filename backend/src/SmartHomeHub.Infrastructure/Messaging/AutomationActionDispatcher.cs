@@ -5,6 +5,7 @@ using Mediator;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using SmartHomeHub.Application.Common.Interfaces;
+using SmartHomeHub.Application.Features.Dashboards.ActivityLog;
 using SmartHomeHub.Application.Features.Devices.Commands.SetDeviceState;
 using SmartHomeHub.Domain.Common.Primitives;
 using SmartHomeHub.Domain.Entities;
@@ -79,6 +80,22 @@ public sealed class AutomationActionDispatcher(
             desiredState
         );
 
+        // Nomes só pra montar o texto do log de atividade — duas leituras leves,
+        // sem tracking, fora do fluxo de negócio (SetDeviceStateCommand nem
+        // sabe que quem chamou foi uma automação).
+        var automationName =
+            await dbContext
+                .Automations.AsNoTracking()
+                .Where(automation => automation.Id == automationId)
+                .Select(automation => automation.Name)
+                .FirstOrDefaultAsync() ?? "Automação";
+        var deviceName =
+            await dbContext
+                .Devices.AsNoTracking()
+                .Where(device => device.Id == deviceId)
+                .Select(device => device.Name)
+                .FirstOrDefaultAsync() ?? "dispositivo";
+
         var command = new SetDeviceStateCommand(deviceId, firebaseUid, desiredState, traceId);
 
         Result result;
@@ -98,6 +115,14 @@ public sealed class AutomationActionDispatcher(
                 success: false,
                 ex.Message,
                 traceId
+            );
+            await LogExecutionResultAsync(
+                automationId,
+                deviceId,
+                automationName,
+                deviceName,
+                success: false,
+                ex.Message
             );
             throw;
         }
@@ -119,6 +144,14 @@ public sealed class AutomationActionDispatcher(
                 result.Error.Description,
                 traceId
             );
+            await LogExecutionResultAsync(
+                automationId,
+                deviceId,
+                automationName,
+                deviceName,
+                success: false,
+                result.Error.Description
+            );
             return;
         }
 
@@ -130,6 +163,68 @@ public sealed class AutomationActionDispatcher(
             errorMessage: null,
             traceId
         );
+        await LogExecutionResultAsync(
+            automationId,
+            deviceId,
+            automationName,
+            deviceName,
+            success: true,
+            errorMessage: null
+        );
+    }
+
+    // Persiste o resultado como SystemEvent — vira histórico de execução da
+    // automação (GetAutomationExecutionHistoryQuery) e aparece na Linha do
+    // Tempo global do dashboard (GetActivityLogQuery), do mesmo jeito que
+    // DeviceStatus/DeviceMedia/Spotify já fazem. Não bloqueia o fluxo principal:
+    // uma falha ao gravar o log de atividade não deve derrubar o dispatch.
+    private async Task LogExecutionResultAsync(
+        Guid automationId,
+        Guid deviceId,
+        string automationName,
+        string deviceName,
+        bool success,
+        string? errorMessage
+    )
+    {
+        try
+        {
+            var user = await dbContext
+                .Automations.AsNoTracking()
+                .Where(automation => automation.Id == automationId)
+                .Select(automation => automation.UserId)
+                .FirstOrDefaultAsync();
+
+            var (title, description) = ActivityLogMessages.AutomationExecutionResult(
+                automationName,
+                deviceName,
+                success,
+                errorMessage
+            );
+
+            dbContext.SystemEvents.Add(
+                new SystemEvent
+                {
+                    UserId = user,
+                    DeviceId = deviceId,
+                    AutomationId = automationId,
+                    EventType = ActivityEventTypes.AutomationExecuted,
+                    Title = title,
+                    Description = description,
+                    IsAlert = !success,
+                    Timestamp = DateTimeOffset.UtcNow,
+                }
+            );
+            await dbContext.SaveChangesAsync();
+        }
+        catch (Exception ex)
+        {
+            logger.LogWarning(
+                ex,
+                "Falha ao persistir o log de execução da automação {AutomationId}",
+                automationId
+            );
+        }
     }
 
     // Determinístico por (automação, evento de telemetria, dispositivo-alvo) — uma

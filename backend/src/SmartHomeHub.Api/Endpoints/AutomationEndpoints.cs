@@ -5,6 +5,8 @@ using SmartHomeHub.Application.Features.Automations.Commands.CreateAutomation;
 using SmartHomeHub.Application.Features.Automations.Commands.DeleteAutomation;
 using SmartHomeHub.Application.Features.Automations.Commands.UpdateAutomation;
 using SmartHomeHub.Application.Features.Automations.Queries.GetAutomationById;
+using SmartHomeHub.Application.Features.Automations.Queries.GetAutomationExecutionHistory;
+using SmartHomeHub.Application.Features.Automations.Queries.GetAutomationExecutionsByWeekday;
 using SmartHomeHub.Application.Features.Automations.Queries.GetAutomations;
 
 namespace SmartHomeHub.Api.Endpoints;
@@ -70,6 +72,70 @@ public static class AutomationEndpoints
             )
             .Produces<object>(StatusCodes.Status200OK)
             .ProducesProblem(StatusCodes.Status404NotFound);
+
+        app.MapGet(
+                "/api/automations/{id:guid}/history",
+                async (
+                    Guid id,
+                    ClaimsPrincipal userToken,
+                    IMediator mediator,
+                    CancellationToken cancellationToken,
+                    int page = 1,
+                    int pageSize = 10
+                ) =>
+                {
+                    var firebaseUid = userToken.FindFirst("user_id")?.Value;
+
+                    if (string.IsNullOrEmpty(firebaseUid))
+                        return Results.Unauthorized();
+
+                    var query = new GetAutomationExecutionHistoryQuery(
+                        id,
+                        firebaseUid,
+                        page,
+                        pageSize
+                    );
+                    var history = await mediator.Send(query, cancellationToken);
+
+                    return Results.Ok(history);
+                }
+            )
+            .RequireAuthorization()
+            .WithTags("Automations")
+            .WithSummary("Histórico de execução de uma automação")
+            .WithDescription(
+                "Retorna as execuções (sucesso/falha) já registradas dessa automação, mais recentes primeiro — mesmo formato da Linha do Tempo do dashboard, filtrado por automação."
+            )
+            .Produces<object>(StatusCodes.Status200OK);
+
+        app.MapGet(
+                "/api/automations/{id:guid}/executions/by-weekday",
+                async (
+                    Guid id,
+                    ClaimsPrincipal userToken,
+                    IMediator mediator,
+                    CancellationToken cancellationToken,
+                    int days = 30
+                ) =>
+                {
+                    var firebaseUid = userToken.FindFirst("user_id")?.Value;
+
+                    if (string.IsNullOrEmpty(firebaseUid))
+                        return Results.Unauthorized();
+
+                    var query = new GetAutomationExecutionsByWeekdayQuery(id, firebaseUid, days);
+                    var counts = await mediator.Send(query, cancellationToken);
+
+                    return Results.Ok(counts);
+                }
+            )
+            .RequireAuthorization()
+            .WithTags("Automations")
+            .WithSummary("Execuções por dia da semana")
+            .WithDescription(
+                "Retorna as 7 contagens (Domingo a Sábado, zeradas quando não há execução) de quantas vezes essa automação executou em cada dia da semana, nos últimos N dias (padrão 30)."
+            )
+            .Produces<object>(StatusCodes.Status200OK);
 
         app.MapPost(
                 "/api/automations",
