@@ -67,7 +67,7 @@ export const DevicesGlanceBar: React.FC = () => {
 			className="flex gap-2 overflow-x-auto pb-2 scrollbar-none snap-x snap-mandatory"
 		>
 			{/* 1. Chip Fixo / Informativo: Total */}
-			<div className="flex shrink-0 snap-start items-center gap-2 rounded-full bg-linear-to-b from-surface-highest to-[#2e2e2f] px-4 py-2 text-sm font-medium text-foreground shadow-sm">
+			<div className="flex shrink-0 snap-start items-center gap-2 rounded-full bg-surface-highest px-4 py-2 text-sm font-medium text-foreground shadow-sm">
 				<Cpu className="h-4 w-4 text-primary" aria-hidden="true" />
 				<span>{t("glanceBar.total", { count: metrics.total })}</span>
 			</div>
@@ -88,7 +88,7 @@ export const DevicesGlanceBar: React.FC = () => {
 				className={`flex shrink-0 snap-start items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-all shadow-sm ${
 					isLightsFilterActive
 						? "bg-warm/20 text-warm ring-1 ring-warm/50"
-						: "bg-linear-to-b from-surface-highest to-[#2e2e2f] text-foreground hover:from-[#3a3939] hover:to-[#333333]"
+						: "bg-surface-highest text-foreground hover:brightness-110"
 				}`}
 			>
 				<Lightbulb
@@ -108,7 +108,7 @@ export const DevicesGlanceBar: React.FC = () => {
 				className={`flex shrink-0 snap-start items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-all shadow-sm ${
 					onlyOn && activeTab === "Todos"
 						? "bg-primary/20 text-primary ring-1 ring-primary/50"
-						: "bg-linear-to-b from-surface-highest to-[#2e2e2f] text-foreground hover:from-[#3a3939] hover:to-[#333333]"
+						: "bg-surface-highest text-foreground hover:brightness-110"
 				}`}
 			>
 				<Zap
@@ -125,7 +125,7 @@ export const DevicesGlanceBar: React.FC = () => {
 			</button>
 
 			{/* 4. Chip Informativo: Clima */}
-			<div className="flex shrink-0 snap-start items-center gap-2 rounded-full bg-linear-to-b from-surface-highest to-[#2e2e2f] px-4 py-2 text-sm font-medium text-foreground shadow-sm">
+			<div className="flex shrink-0 snap-start items-center gap-2 rounded-full bg-surface-highest px-4 py-2 text-sm font-medium text-foreground shadow-sm">
 				<Snowflake className="h-4 w-4 text-cool" aria-hidden="true" />
 				<span>{t("glanceBar.climate", { count: metrics.climateCount })}</span>
 			</div>

@@ -20,9 +20,11 @@ const SummaryRow: React.FC<{ label: string; value: string }> = ({
 	label,
 	value,
 }) => (
-	<div className="flex items-center justify-between gap-4 py-1.5">
-		<span className="text-[11px] text-[#8a898f]">{label}</span>
-		<span className="truncate text-xs font-medium text-[#e5e2e2]">{value}</span>
+	<div className="flex items-center justify-between gap-4 py-2">
+		<span className="text-xs text-muted-foreground/60">{label}</span>
+		<span className="truncate text-xs font-medium text-foreground">
+			{value}
+		</span>
 	</div>
 );
 
@@ -31,14 +33,14 @@ const SummarySection: React.FC<{
 	title: string;
 	children: React.ReactNode;
 }> = ({ icon: Icon, title, children }) => (
-	<div className="rounded-lg border border-[#46464b]/30 bg-[#201f20] p-3">
-		<div className="flex items-center gap-2 border-b border-[#46464b]/20 pb-1.5 text-[#c5c6cf]">
+	<div className="rounded-lg border border-border-subtle/30 bg-surface-container p-4">
+		<div className="flex items-center gap-2 border-b border-border-subtle/20 pb-1.5 text-primary">
 			<Icon className="h-3.5 w-3.5" />
-			<span className="text-[11px] font-bold uppercase tracking-wider">
+			<span className="text-xs font-medium uppercase tracking-wider">
 				{title}
 			</span>
 		</div>
-		<div className="divide-y divide-[#46464b]/20">{children}</div>
+		<div className="divide-y divide-border-subtle/20">{children}</div>
 	</div>
 );
 
@@ -63,21 +65,21 @@ export const DiscoveryStepDone: React.FC = () => {
 
 	if (lastCreatedDeviceName) {
 		return (
-			<div className="flex flex-1 flex-col items-center justify-center gap-3 text-center">
+			<div className="flex flex-1 flex-col items-center justify-center gap-4 text-center">
 				<div className="relative flex h-16 w-16 items-center justify-center">
 					<span
-						className="absolute inset-0 rounded-full bg-[#c5c6cf]/25 blur-xl motion-safe:animate-in motion-safe:fade-in motion-safe:zoom-in-50 motion-safe:duration-700 motion-safe:ease-out"
+						className="absolute inset-0 rounded-full bg-primary/25 blur-xl motion-safe:animate-in motion-safe:fade-in motion-safe:zoom-in-50 motion-safe:duration-700 motion-safe:ease-out"
 						aria-hidden
 					/>
-					<span className="relative flex h-14 w-14 items-center justify-center rounded-full bg-linear-to-b from-[#3a393a] to-[#2f2e2f] text-[#c5c6cf] ring-1 ring-[#c5c6cf]/50 shadow-[0_0_16px_rgba(197,198,207,0.25)] motion-safe:animate-in motion-safe:zoom-in-50 motion-safe:duration-500 motion-safe:ease-out">
+					<span className="relative flex h-14 w-14 items-center justify-center rounded-full bg-surface-highest text-primary ring-1 ring-primary/50 shadow-[0_0_16px_rgba(197,198,207,0.25)] motion-safe:animate-in motion-safe:zoom-in-50 motion-safe:duration-500 motion-safe:ease-out">
 						<CheckCircle2 className="h-7 w-7 motion-safe:animate-in motion-safe:zoom-in-0 motion-safe:fade-in motion-safe:duration-300 motion-safe:fill-mode-backwards motion-safe:delay-[180ms]" />
 					</span>
 				</div>
 				<div className="motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-1 motion-safe:duration-300 motion-safe:fill-mode-backwards motion-safe:delay-[320ms]">
-					<p className="text-base font-semibold text-[#e5e2e2]">
+					<p className="text-base font-semibold text-foreground">
 						{t("discoveryModal.done.title")}
 					</p>
-					<p className="mt-1 text-sm text-[#c7c6cb]">
+					<p className="mt-1 text-sm text-muted-foreground">
 						{t("discoveryModal.done.subtitle", {
 							name: lastCreatedDeviceName,
 						})}
@@ -87,14 +89,14 @@ export const DiscoveryStepDone: React.FC = () => {
 					<button
 						type="button"
 						onClick={resetDiscovery}
-						className="rounded-md border border-[#27272a] bg-transparent px-4 py-2 text-xs font-medium text-[#d4d4d8] transition-colors hover:border-[#52525b] cursor-pointer"
+						className="rounded-md border border-border-subtle bg-transparent px-4 py-2 text-xs font-medium text-muted-foreground transition-colors hover:border-border-subtle cursor-pointer"
 					>
 						{t("discoveryModal.done.addAnotherButton")}
 					</button>
 					<button
 						type="button"
 						onClick={closeDiscoveryModal}
-						className="rounded-full border border-[#46464b]/30 bg-linear-to-b from-[#2a2a2a] to-[#232323] px-6 py-2 text-xs font-semibold text-[#e5e2e2] transition-colors hover:from-[#353435] hover:to-[#2a2a2a] cursor-pointer active:scale-[0.98]"
+						className="rounded-full border border-border-subtle/30 bg-surface-high px-6 py-2 text-xs font-semibold text-foreground transition-colors hover:bg-surface-highest cursor-pointer active:scale-[0.98]"
 					>
 						{t("discoveryModal.done.finishButton")}
 					</button>
@@ -123,17 +125,17 @@ export const DiscoveryStepDone: React.FC = () => {
 	return (
 		<div className="flex flex-1 flex-col gap-4">
 			<div>
-				<h2 className="text-sm font-semibold text-[#e5e2e2]">
+				<h2 className="text-sm font-semibold text-foreground">
 					{t("discoveryModal.review.sectionTitle")}
 				</h2>
-				<p className="mt-0.5 text-[11px] text-[#c7c6cb]">
+				<p className="mt-0.5 text-xs text-muted-foreground">
 					{t("discoveryModal.review.sectionSubtitle")}
 				</p>
 			</div>
 
 			<FormGlobalError error={mutationError?.message} />
 
-			<div className="flex flex-col gap-3 overflow-y-auto">
+			<div className="flex flex-col gap-4 overflow-y-auto">
 				<SummarySection
 					icon={BadgeInfo}
 					title={t("form.sections.identification")}
@@ -182,12 +184,12 @@ export const DiscoveryStepDone: React.FC = () => {
 				</SummarySection>
 			</div>
 
-			<div className="mt-auto flex items-center justify-between border-t border-[#46464b]/20 pt-4">
+			<div className="mt-auto flex items-center justify-between border-t border-border-subtle/20 pt-4">
 				<button
 					type="button"
 					onClick={() => setDiscoveryStep("configure")}
 					disabled={isPending}
-					className="rounded-md border border-[#27272a] bg-transparent px-4 py-2 text-xs font-medium text-[#d4d4d8] transition-colors hover:border-[#52525b] disabled:opacity-50 cursor-pointer"
+					className="rounded-md border border-border-subtle bg-transparent px-4 py-2 text-xs font-medium text-muted-foreground transition-colors hover:border-border-subtle disabled:opacity-50 cursor-pointer"
 				>
 					{t("discoveryModal.review.backButton")}
 				</button>
@@ -195,7 +197,7 @@ export const DiscoveryStepDone: React.FC = () => {
 					type="button"
 					onClick={handleConfirm}
 					disabled={isPending}
-					className="inline-flex items-center gap-2 rounded-full border border-[#46464b]/30 bg-linear-to-b from-[#2a2a2a] to-[#232323] px-6 py-2 text-xs font-semibold text-[#e5e2e2] transition-colors hover:from-[#353435] hover:to-[#2a2a2a] disabled:opacity-50 cursor-pointer active:scale-[0.98]"
+					className="inline-flex items-center gap-2 rounded-full border border-border-subtle/30 bg-surface-high px-6 py-2 text-xs font-semibold text-foreground transition-colors hover:bg-surface-highest disabled:opacity-50 cursor-pointer active:scale-[0.98]"
 				>
 					{isPending && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
 					{t("discoveryModal.review.confirmButton")}

@@ -50,8 +50,10 @@ export const DeviceListRow: React.FC<DeviceListRowProps> = ({ device }) => {
 	return (
 		<>
 			<div
-				className={`relative group flex items-center gap-3.5 rounded-xl p-3.5 transition-all bg-gradient-to-br from-[#1c1b1c] to-[#1c1b1c]/70 ${
-					!isOnline ? "opacity-70" : "hover:from-[#201f20] hover:to-[#1c1b1c]"
+				className={`relative group flex items-center gap-4 rounded-xl p-4 transition-all bg-gradient-to-br from-surface-low to-surface-low/70 ${
+					!isOnline
+						? "opacity-70"
+						: "hover:from-surface-container hover:to-surface-low"
 				}`}
 			>
 				{showToggle ? (
@@ -64,16 +66,16 @@ export const DeviceListRow: React.FC<DeviceListRowProps> = ({ device }) => {
 						onClick={handleToggle}
 						className={`relative z-10 flex h-9 w-9 shrink-0 items-center justify-center rounded-full transition-all cursor-pointer ${
 							!isOnline
-								? "bg-[#201f20] border border-[#46464b]/30 text-zinc-600 cursor-not-allowed"
+								? "bg-surface-container border border-border-subtle/30 text-muted-foreground/50 cursor-not-allowed"
 								: isOn
-									? "bg-[#c5c6cf] text-[#2e3037]"
-									: "bg-[#201f20] border border-[#46464b]/30 text-[#c7c6cb]"
+									? "bg-primary text-primary-foreground"
+									: "bg-surface-container border border-border-subtle/30 text-muted-foreground"
 						}`}
 					>
 						<IconComponent className="h-4 w-4" />
 					</button>
 				) : (
-					<div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#201f20] border border-[#46464b]/30 text-[#c7c6cb]">
+					<div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-surface-container border border-border-subtle/30 text-muted-foreground">
 						<IconComponent className="h-4 w-4" />
 					</div>
 				)}
@@ -83,14 +85,13 @@ export const DeviceListRow: React.FC<DeviceListRowProps> = ({ device }) => {
 					onClick={() => setIsTelemetryModalOpen(true)}
 					className="min-w-0 flex-1 text-left before:absolute before:inset-0 focus:outline-none cursor-pointer"
 				>
-					<p className="truncate text-sm font-medium text-[#e5e2e2]">
+					<p className="truncate text-sm font-medium text-foreground">
 						{device.name}
 					</p>
-					<p className="truncate text-[11px] font-semibold uppercase tracking-wider text-[#c7c6cb]">
-						{(
-							device.roomId
-								? device.room
-								: t(INTEGRATION_TYPE_LABEL_KEYS[device.integrationType])
+					<p className="truncate text-xs font-medium uppercase tracking-wider text-muted-foreground">
+						{(device.roomId
+							? device.room
+							: t(INTEGRATION_TYPE_LABEL_KEYS[device.integrationType])
 						).toUpperCase()}{" "}
 						• {device.brand.toUpperCase()}
 					</p>
@@ -98,7 +99,7 @@ export const DeviceListRow: React.FC<DeviceListRowProps> = ({ device }) => {
 
 				<div className="relative z-10 flex shrink-0 items-center gap-2">
 					{!isOnline && (
-						<span className="flex items-center gap-1 rounded-full bg-[#93000a]/20 px-2 py-1 text-[10px] font-bold tracking-wider text-[#ffb4ab]">
+						<span className="flex items-center gap-1 rounded-full bg-alert/20 px-2 py-1 text-xs font-medium tracking-wider text-alert-foreground">
 							<WifiOff className="h-3 w-3" />
 							{t("common:status.offline")}
 						</span>
@@ -109,7 +110,7 @@ export const DeviceListRow: React.FC<DeviceListRowProps> = ({ device }) => {
 							<button
 								type="button"
 								aria-label={t("card.moreOptions")}
-								className="rounded-md p-1.5 text-[#c7c6cb] transition-colors hover:bg-[#353435] hover:text-[#e5e2e2] cursor-pointer outline-none"
+								className="rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-surface-highest hover:text-foreground cursor-pointer outline-none"
 							>
 								<MoreVertical className="h-4 w-4" />
 							</button>
@@ -117,11 +118,11 @@ export const DeviceListRow: React.FC<DeviceListRowProps> = ({ device }) => {
 
 						<DropdownMenuContent
 							align="end"
-							className="w-36 border-[#46464b]/40 bg-[#201f20] text-[#e5e2e2] shadow-xl z-50"
+							className="w-36 border-border-subtle/40 bg-surface-container text-foreground shadow-xl z-50"
 						>
 							<DropdownMenuItem
 								onClick={() => openEditModal(device)}
-								className="cursor-pointer gap-2 text-xs text-[#c7c6cb] focus:bg-[#353435] focus:text-[#e5e2e2]"
+								className="cursor-pointer gap-2 text-xs text-muted-foreground focus:bg-surface-highest focus:text-foreground"
 							>
 								<Pencil className="h-3.5 w-3.5" />
 								<span>{t("common:actions.edit")}</span>
@@ -129,7 +130,7 @@ export const DeviceListRow: React.FC<DeviceListRowProps> = ({ device }) => {
 
 							<DropdownMenuItem
 								onClick={() => setIsDeleteModalOpen(true)}
-								className="cursor-pointer gap-2 text-xs text-[#ffb4ab] focus:bg-[#93000a]/20 focus:text-[#ffdad6]"
+								className="cursor-pointer gap-2 text-xs text-alert-foreground focus:bg-alert/20 focus:text-alert-foreground"
 							>
 								<Trash2 className="h-3.5 w-3.5" />
 								<span>{t("common:actions.delete")}</span>

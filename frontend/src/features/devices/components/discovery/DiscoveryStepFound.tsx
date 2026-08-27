@@ -17,10 +17,10 @@ export const DiscoveryStepFound: React.FC = () => {
 	return (
 		<div className="flex flex-1 flex-col gap-4">
 			<div className="pr-10">
-				<h2 className="text-sm font-semibold text-[#e5e2e2]">
+				<h2 className="text-sm font-semibold text-foreground">
 					{t("discoveryModal.scan.sectionTitle")}
 				</h2>
-				<p className="mt-0.5 text-[11px] text-[#c7c6cb]">
+				<p className="mt-0.5 text-xs text-muted-foreground">
 					{isScanning
 						? t("discoveryModal.scan.scanningTitle")
 						: t("discoveryModal.scan.foundCount", {
@@ -33,46 +33,46 @@ export const DiscoveryStepFound: React.FC = () => {
 				type="button"
 				onClick={triggerRescan}
 				disabled={isScanning}
-				className="flex items-center gap-3 rounded-lg border border-[#46464b]/30 bg-[#201f20] p-3 text-left transition-colors hover:bg-[#2a2a2a] disabled:cursor-not-allowed disabled:opacity-40 cursor-pointer"
+				className="flex items-center gap-4 rounded-lg border border-border-subtle/30 bg-surface-container p-4 text-left transition-colors hover:bg-surface-high disabled:cursor-not-allowed disabled:opacity-40 cursor-pointer"
 			>
-				<span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#2a2a2a] text-[#c7c6cb]">
+				<span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-surface-high text-muted-foreground">
 					<RefreshCw
 						className={`h-3.5 w-3.5 ${isScanning ? "animate-spin" : ""}`}
 					/>
 				</span>
 				<div className="min-w-0">
-					<p className="text-xs font-medium text-[#e5e2e2]">
+					<p className="text-xs font-medium text-foreground">
 						{t("discoveryModal.scan.rescanButton")}
 					</p>
-					<p className="truncate text-[11px] text-[#8a898f]">
+					<p className="truncate text-xs text-muted-foreground/60">
 						{t("discoveryModal.scan.rescanDescription")}
 					</p>
 				</div>
 			</button>
 
 			{discoveredDevices.length === 0 ? (
-				<div className="flex flex-1 flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-[#46464b]/40 py-10 text-center">
+				<div className="flex flex-1 flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-border-subtle/40 py-10 text-center">
 					{isScanning ? (
 						<>
-							<Loader2 className="h-5 w-5 animate-spin text-[#c5c6cf]" />
-							<p className="text-[11px] text-[#c7c6cb]">
+							<Loader2 className="h-5 w-5 animate-spin text-primary" />
+							<p className="text-xs text-muted-foreground">
 								{t("discoveryModal.scan.scanningSubtitle")}
 							</p>
 						</>
 					) : (
 						<>
-							<Search className="h-5 w-5 text-[#c7c6cb]" />
-							<p className="text-sm font-medium text-[#e5e2e2]">
+							<Search className="h-5 w-5 text-muted-foreground" />
+							<p className="text-sm font-medium text-foreground">
 								{t("discoveryModal.scan.emptyTitle")}
 							</p>
-							<p className="max-w-xs text-[11px] text-[#c7c6cb]">
+							<p className="max-w-xs text-xs text-muted-foreground">
 								{t("discoveryModal.scan.emptySubtitle")}
 							</p>
 						</>
 					)}
 				</div>
 			) : (
-				<div className="grid flex-1 auto-rows-min grid-cols-2 gap-3 overflow-y-auto">
+				<div className="grid flex-1 auto-rows-min grid-cols-2 gap-4 overflow-y-auto">
 					{discoveredDevices.map((device) => {
 						const Icon = INTEGRATION_ICON[device.integrationType];
 						return (
@@ -80,25 +80,25 @@ export const DiscoveryStepFound: React.FC = () => {
 								key={device.temporaryId}
 								type="button"
 								onClick={() => selectDiscoveredDevice(device)}
-								className="flex flex-col gap-1.5 rounded-lg border border-[#46464b]/30 bg-[#201f20] p-3 text-left transition-colors hover:bg-[#2a2a2a] cursor-pointer"
+								className="flex flex-col gap-1 rounded-lg border border-border-subtle/30 bg-surface-container p-4 text-left transition-colors hover:bg-surface-high cursor-pointer"
 							>
 								<div className="flex items-center gap-2">
-									<span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#2a2a2a] text-[#c5c6cf]">
+									<span className="flex h-8 w-8 items-center justify-center rounded-full bg-surface-high text-primary">
 										<Icon className="h-4 w-4" />
 									</span>
 									<div className="min-w-0">
 										<p
 											title={device.name}
-											className="truncate text-sm font-medium text-[#e5e2e2]"
+											className="truncate text-sm font-medium text-foreground"
 										>
 											{device.name}
 										</p>
-										<p className="truncate text-[11px] text-[#c7c6cb]">
+										<p className="truncate text-xs text-muted-foreground">
 											{device.brand}
 										</p>
 									</div>
 								</div>
-								<div className="flex items-center justify-between gap-2 text-[11px] text-[#c7c6cb]">
+								<div className="flex items-center justify-between gap-2 text-xs text-muted-foreground">
 									<span className="truncate">
 										{t(INTEGRATION_TYPE_LABEL_KEYS[device.integrationType])}
 									</span>
@@ -121,9 +121,9 @@ export const DiscoveryStepFound: React.FC = () => {
 					})}
 
 					{isScanning && (
-						<div className="flex flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-[#46464b]/40 p-6 text-center">
-							<Loader2 className="h-5 w-5 animate-spin text-[#c5c6cf]" />
-							<p className="text-[11px] text-[#c7c6cb]">
+						<div className="flex flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-border-subtle/40 p-6 text-center">
+							<Loader2 className="h-5 w-5 animate-spin text-primary" />
+							<p className="text-xs text-muted-foreground">
 								{t("discoveryModal.scan.scanningSubtitle")}
 							</p>
 						</div>
@@ -131,11 +131,11 @@ export const DiscoveryStepFound: React.FC = () => {
 				</div>
 			)}
 
-			<div className="mt-auto flex items-center justify-between border-t border-[#46464b]/20 pt-4">
+			<div className="mt-auto flex items-center justify-between border-t border-border-subtle/20 pt-4">
 				<button
 					type="button"
 					onClick={() => setDiscoveryStep("configure")}
-					className="inline-flex items-center gap-2 rounded-full border border-[#46464b]/30 bg-transparent px-3 py-1.5 text-[11px] font-medium text-[#c7c6cb] transition-colors hover:bg-[#201f20] hover:text-[#e5e2e2] cursor-pointer"
+					className="inline-flex items-center gap-2 rounded-full border border-border-subtle/30 h-8 bg-transparent px-3 text-xs font-medium text-muted-foreground transition-colors hover:bg-surface-container hover:text-foreground cursor-pointer"
 				>
 					<Settings2 className="h-3.5 w-3.5" />
 					{t("discoveryModal.scan.manualButton")}

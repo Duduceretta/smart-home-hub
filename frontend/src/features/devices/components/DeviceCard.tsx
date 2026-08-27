@@ -129,7 +129,7 @@ export const DeviceCard: React.FC<DeviceCardProps> = ({ device }) => {
 				<div className="flex flex-col gap-2 mt-auto pt-2">
 					<div className="flex items-center justify-between text-xs text-muted-foreground">
 						<span>{t("card.brightness", "Brilho")}</span>
-						<span className="font-bold text-foreground">
+						<span className="font-semibold text-foreground">
 							{isOn ? `${brightness}%` : "0%"}
 						</span>
 					</div>
@@ -190,10 +190,10 @@ export const DeviceCard: React.FC<DeviceCardProps> = ({ device }) => {
 							{t("card.powerUsage", "Consumo")}
 						</span>
 						<div className="flex items-baseline gap-1">
-							<span className="text-xl font-bold text-foreground tracking-tight">
+							<span className="text-xl font-semibold text-foreground tracking-tight">
 								{isOn ? 120 : 0}
 							</span>
-							<span className="text-[10px] font-semibold text-primary">W</span>
+							<span className="text-xs font-medium text-primary">W</span>
 						</div>
 					</div>
 					<div className="flex items-center justify-between text-xs border-t border-border-subtle/20 pt-2">
@@ -212,8 +212,8 @@ export const DeviceCard: React.FC<DeviceCardProps> = ({ device }) => {
 			const volumeDisabled = !isOnline || !isAdbControllable;
 
 			return (
-				<div className="flex-1 flex flex-col justify-end gap-3 mt-3">
-					<div className="flex items-center gap-3 bg-[#0e0e0f] rounded-lg p-2 border border-border-subtle/20">
+				<div className="flex-1 flex flex-col justify-end gap-4 mt-3">
+					<div className="flex items-center gap-4 bg-[#0e0e0f] rounded-lg p-2 border border-border-subtle/20">
 						<div className="w-10 h-10 rounded bg-surface-container flex items-center justify-center overflow-hidden shrink-0">
 							<div className="w-full h-full bg-linear-to-tr from-indigo-950 to-zinc-800 flex items-center justify-center">
 								<Disc3 className="w-5 h-5 text-zinc-300 opacity-60" />
@@ -225,7 +225,7 @@ export const DeviceCard: React.FC<DeviceCardProps> = ({ device }) => {
 									? media?.title
 									: t("card.noPlayback", "Sem Reprodução")}
 							</span>
-							<span className="text-[11px] text-muted-foreground truncate">
+							<span className="text-xs text-muted-foreground truncate">
 								{!isOnline
 									? t("card.deviceOffline", "Dispositivo offline")
 									: hasMedia
@@ -322,11 +322,11 @@ export const DeviceCard: React.FC<DeviceCardProps> = ({ device }) => {
 			return (
 				<div className="flex-1 flex items-center justify-between mt-3">
 					<div className="flex flex-col">
-						<span className="text-[10px] font-semibold tracking-wider text-muted-foreground uppercase mb-0.5">
+						<span className="text-xs font-medium tracking-wider text-muted-foreground uppercase mb-0.5">
 							{t("card.targetTemperature", "TEMPERATURA ALVO")}
 						</span>
 						<div className="flex items-start">
-							<span className="text-3xl font-bold tracking-tight text-foreground">
+							<span className="text-3xl font-semibold tracking-tight text-foreground">
 								{temperature}
 							</span>
 							<span className="text-sm font-semibold text-cool mt-0.5 ml-0.5">
@@ -334,8 +334,8 @@ export const DeviceCard: React.FC<DeviceCardProps> = ({ device }) => {
 							</span>
 						</div>
 					</div>
-					<div className="flex gap-2.5 relative z-20">
-						<div className="flex flex-col gap-1.5">
+					<div className="flex gap-2 relative z-20">
+						<div className="flex flex-col gap-2">
 							<button
 								type="button"
 								disabled={!isOnline}
@@ -361,7 +361,7 @@ export const DeviceCard: React.FC<DeviceCardProps> = ({ device }) => {
 								<Minus className="w-4 h-4" />
 							</button>
 						</div>
-						<div className="flex flex-col gap-1.5">
+						<div className="flex flex-col gap-2">
 							<button
 								type="button"
 								disabled={!isOnline}
@@ -406,7 +406,7 @@ export const DeviceCard: React.FC<DeviceCardProps> = ({ device }) => {
 				<span className="text-muted-foreground">
 					{t("card.state", "Estado")}
 				</span>
-				<span className="text-[10px] font-semibold tracking-wider text-muted-foreground px-2 py-0.5 bg-surface-container rounded-md">
+				<span className="text-xs font-medium tracking-wider text-muted-foreground px-2 py-1 bg-surface-container rounded-md">
 					{isOn
 						? t("common:status.on", "LIGADO")
 						: t("common:status.off", "DESLIGADO")}
@@ -424,7 +424,7 @@ export const DeviceCard: React.FC<DeviceCardProps> = ({ device }) => {
 					!isOnline
 						? "bg-linear-to-br from-surface-low to-surface-low/70 opacity-50 grayscale-[0.4] hover:-translate-y-0"
 						: isOn
-							? "bg-linear-to-br from-surface-high to-[#232323] shadow-sm ring-1 ring-border-subtle/30"
+							? "bg-surface-high shadow-sm ring-1 ring-border-subtle/30"
 							: "bg-linear-to-br from-surface-low to-surface-low/80"
 				}`}
 			>
@@ -434,8 +434,8 @@ export const DeviceCard: React.FC<DeviceCardProps> = ({ device }) => {
 				)}
 
 				{/* Topo do Card (Split-Interaction) */}
-				<div className="relative z-10 flex items-start justify-between gap-3">
-					<div className="flex items-center gap-3 min-w-0">
+				<div className="relative z-10 flex items-start justify-between gap-4">
+					<div className="flex items-center gap-4 min-w-0">
 						{/* Ícone Redondo que vira o Switch Real */}
 						{showToggle ? (
 							<button
@@ -447,7 +447,7 @@ export const DeviceCard: React.FC<DeviceCardProps> = ({ device }) => {
 								onClick={handleToggle}
 								className={`relative z-10 w-12 h-12 rounded-full flex items-center justify-center transition-all shrink-0 cursor-pointer ${
 									!isOnline
-										? "bg-surface-container border border-border-subtle/30 text-[#6e6e75] cursor-not-allowed"
+										? "bg-surface-container border border-border-subtle/30 text-muted-foreground/50 cursor-not-allowed"
 										: isOn
 											? isLight
 												? "bg-warm text-warm-foreground shadow-[0_0_8px_rgba(211,196,184,0.2)] hover:scale-105"
@@ -474,7 +474,7 @@ export const DeviceCard: React.FC<DeviceCardProps> = ({ device }) => {
 							>
 								{device.name}
 							</button>
-							<span className="text-[10px] font-semibold tracking-wider text-muted-foreground uppercase mt-1 truncate">
+							<span className="text-xs font-medium tracking-wider text-muted-foreground uppercase mt-1 truncate">
 								{(device.roomId
 									? device.room
 									: t(INTEGRATION_TYPE_LABEL_KEYS[device.integrationType])
@@ -490,21 +490,21 @@ export const DeviceCard: React.FC<DeviceCardProps> = ({ device }) => {
 					{/* Indicador "Reproduzindo"/"Offline" e Menu ⋮ */}
 					<div className="relative z-20 flex items-center gap-1">
 						{!isOnline ? (
-							<div className="flex items-center gap-1.5 mr-1">
+							<div className="flex items-center gap-1 mr-1">
 								<span className="h-1.5 w-1.5 rounded-full bg-alert-foreground shadow-[0_0_6px_rgba(255,180,171,0.5)]" />
-								<span className="text-[9px] font-bold tracking-wider text-alert-foreground">
+								<span className="text-xs font-medium tracking-wider text-alert-foreground">
 									{t("common:status.offline", "OFFLINE")}
 								</span>
 							</div>
 						) : (
 							isTv &&
 							isPlaying && (
-								<div className="flex items-center gap-1.5 mr-1">
+								<div className="flex items-center gap-1 mr-1">
 									<span className="flex h-2 w-2 relative">
 										<span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75" />
 										<span className="relative inline-flex rounded-full h-2 w-2 bg-primary" />
 									</span>
-									<span className="text-[9px] font-bold tracking-wider text-primary">
+									<span className="text-xs font-medium tracking-wider text-primary">
 										REPRODUZINDO
 									</span>
 								</div>

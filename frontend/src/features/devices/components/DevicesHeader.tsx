@@ -10,7 +10,7 @@ export const DevicesHeader: React.FC = () => {
 	);
 
 	return (
-		<div className="flex items-center justify-between gap-3">
+		<div className="flex items-center justify-between gap-4">
 			<div className="flex flex-col gap-1">
 				<h1 className="text-3xl font-semibold tracking-tight text-foreground">
 					{t("title")}
@@ -26,7 +26,7 @@ export const DevicesHeader: React.FC = () => {
 			<button
 				type="button"
 				onClick={openDiscoveryModal}
-				className="inline-flex items-center gap-2 rounded-full bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground shadow-[0_0_16px_rgba(197,198,207,0.2)] transition-all hover:bg-primary/90 hover:shadow-[0_0_20px_rgba(197,198,207,0.3)] cursor-pointer active:scale-[0.98]"
+				className="inline-flex items-center gap-2 rounded-full bg-primary px-4 py-2 text-xs font-medium text-primary-foreground shadow-[0_0_16px_rgba(197,198,207,0.2)] transition-all hover:bg-primary/90 hover:shadow-[0_0_20px_rgba(197,198,207,0.3)] cursor-pointer active:scale-[0.98]"
 			>
 				<Plus className="h-4 w-4" />
 				<span>{t("header.addButton")}</span>

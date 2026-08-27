@@ -53,15 +53,15 @@ export const DiscoveryStepper: React.FC<DiscoveryStepperProps> = ({
 				const isLast = index === STEPS.length - 1;
 
 				return (
-					<li key={step.key} className="flex gap-3">
+					<li key={step.key} className="flex gap-4">
 						<div className="flex flex-col items-center">
 							<span
-								className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[11px] font-semibold transition-all duration-300 ease-out ${
+								className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-semibold transition-all duration-300 ease-out ${
 									isActive
-										? "scale-110 bg-linear-to-b from-[#3a393a] to-[#2f2e2f] text-[#e5e2e2] ring-1 ring-[#c5c6cf]/50 shadow-[0_0_6px_rgba(197,198,207,0.15)]"
+										? "scale-110 bg-surface-highest text-foreground ring-1 ring-primary/50 shadow-[0_0_6px_rgba(197,198,207,0.15)]"
 										: isCompleted
-											? "bg-[#c5c6cf]/20 text-[#c5c6cf]"
-											: "bg-[#2a2a2a] text-[#c7c6cb]"
+											? "bg-primary/20 text-primary"
+											: "bg-surface-high text-muted-foreground"
 								}`}
 							>
 								{isCompleted ? (
@@ -72,19 +72,19 @@ export const DiscoveryStepper: React.FC<DiscoveryStepperProps> = ({
 							</span>
 							{!isLast && (
 								<div
-									className={`w-px flex-1 transition-colors duration-300 ${isCompleted ? "bg-[#c5c6cf]/40" : "bg-[#46464b]/30"}`}
+									className={`w-px flex-1 transition-colors duration-300 ${isCompleted ? "bg-primary/40" : "bg-border-subtle/30"}`}
 								/>
 							)}
 						</div>
 						<div className={`pb-6 ${isLast ? "pb-0" : ""}`}>
 							<p
 								className={`text-sm font-medium transition-colors duration-300 ${
-									isActive ? "text-[#e5e2e2]" : "text-[#c7c6cb]"
+									isActive ? "text-foreground" : "text-muted-foreground"
 								}`}
 							>
 								{t(step.titleKey)}
 							</p>
-							<p className="mt-0.5 text-[11px] text-[#8a898f]">
+							<p className="mt-0.5 text-xs text-muted-foreground/60">
 								{t(step.descriptionKey)}
 							</p>
 						</div>

@@ -136,12 +136,12 @@ export const DiscoveryStepConfigure: React.FC = () => {
 			className="flex flex-1 flex-col gap-4"
 		>
 			{selectedDiscoveredDevice && (
-				<p className="rounded-md bg-[#201f20] px-3 py-2 text-[11px] text-[#c7c6cb]">
+				<p className="rounded-md bg-surface-container px-3 py-2 text-xs text-muted-foreground">
 					{t("discoveryModal.configure.prefillNotice")}
 				</p>
 			)}
 
-			<div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+			<div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
 				<FormInput
 					id="name"
 					label={t("form.fields.name.label")}
@@ -183,7 +183,7 @@ export const DiscoveryStepConfigure: React.FC = () => {
 			</div>
 
 			<div className="flex flex-col gap-1.5">
-				<span className="text-xs font-medium text-[#c7c6cb]">
+				<span className="text-xs font-medium text-muted-foreground">
 					{t("form.fields.integrationType.label")}
 				</span>
 				<Tabs
@@ -194,10 +194,10 @@ export const DiscoveryStepConfigure: React.FC = () => {
 						})
 					}
 				>
-					<TabsList className="flex h-auto w-full flex-wrap justify-start gap-1 bg-[#201f20] p-1">
+					<TabsList className="flex h-auto w-full flex-wrap justify-start gap-1 bg-surface-container p-1">
 						{Object.entries(INTEGRATION_TYPE_LABEL_KEYS).map(
 							([value, labelKey]) => (
-								<TabsTrigger key={value} value={value} className="text-[11px]">
+								<TabsTrigger key={value} value={value} className="text-xs">
 									{t(labelKey)}
 								</TabsTrigger>
 							),
@@ -212,7 +212,7 @@ export const DiscoveryStepConfigure: React.FC = () => {
 			/>
 
 			<div className="flex flex-col gap-1.5">
-				<span className="flex items-center gap-1.5 text-xs font-medium text-[#c7c6cb]">
+				<span className="flex items-center gap-1 text-xs font-medium text-muted-foreground">
 					<Home className="h-3.5 w-3.5" />
 					{t("form.fields.room.label")}
 				</span>
@@ -222,10 +222,10 @@ export const DiscoveryStepConfigure: React.FC = () => {
 						type="button"
 						aria-pressed={!selectedRoomId}
 						onClick={() => setValue("roomId", "", { shouldValidate: true })}
-						className={`shrink-0 rounded-full px-4 py-1.5 text-xs font-medium transition-all ${
+						className={`shrink-0 h-8 rounded-full px-4 text-xs font-medium transition-all ${
 							!selectedRoomId
-								? "bg-[#c5c6cf]/20 text-[#c5c6cf] ring-1 ring-[#c5c6cf]/50"
-								: "bg-[#201f20] text-[#c7c6cb] hover:bg-[#2a2a2a] hover:text-[#e5e2e2]"
+								? "bg-primary/20 text-primary ring-1 ring-primary/50"
+								: "bg-surface-container text-muted-foreground hover:bg-surface-high hover:text-foreground"
 						}`}
 					>
 						{t("form.fields.room.none")}
@@ -240,10 +240,10 @@ export const DiscoveryStepConfigure: React.FC = () => {
 								onClick={() =>
 									setValue("roomId", room.id, { shouldValidate: true })
 								}
-								className={`shrink-0 rounded-full px-4 py-1.5 text-xs font-medium transition-all ${
+								className={`shrink-0 h-8 rounded-full px-4 text-xs font-medium transition-all ${
 									isSelected
-										? "bg-[#c5c6cf]/20 text-[#c5c6cf] ring-1 ring-[#c5c6cf]/50"
-										: "bg-[#201f20] text-[#c7c6cb] hover:bg-[#2a2a2a] hover:text-[#e5e2e2]"
+										? "bg-primary/20 text-primary ring-1 ring-primary/50"
+										: "bg-surface-container text-muted-foreground hover:bg-surface-high hover:text-foreground"
 								}`}
 							>
 								{room.name}
@@ -251,18 +251,18 @@ export const DiscoveryStepConfigure: React.FC = () => {
 						);
 					})}
 					{isLoadingRooms && (
-						<span className="text-[11px] text-[#c7c6cb]">
+						<span className="text-xs text-muted-foreground">
 							{t("form.fields.room.loading")}
 						</span>
 					)}
 				</fieldset>
 			</div>
 
-			<div className="rounded-lg border border-[#46464b]/30">
+			<div className="rounded-lg border border-border-subtle/30">
 				<button
 					type="button"
 					onClick={() => setIsAdvancedOpen((prev) => !prev)}
-					className="flex w-full items-center justify-between px-3 py-2 text-left text-xs font-medium text-[#c7c6cb] cursor-pointer"
+					className="flex w-full items-center justify-between px-3 py-2 text-left text-xs font-medium text-muted-foreground cursor-pointer"
 				>
 					{t("discoveryModal.configure.advancedSettings")}
 					<ChevronDown
@@ -271,7 +271,7 @@ export const DiscoveryStepConfigure: React.FC = () => {
 				</button>
 
 				{isAdvancedOpen && (
-					<div className="space-y-2.5 border-t border-[#46464b]/30 p-3">
+					<div className="space-y-3 border-t border-border-subtle/30 p-4">
 						{fieldVisibility.showIp && (
 							<FormInput
 								id="ipAddress"
@@ -340,17 +340,17 @@ export const DiscoveryStepConfigure: React.FC = () => {
 				)}
 			</div>
 
-			<div className="mt-auto flex items-center justify-between border-t border-[#46464b]/20 pt-4">
+			<div className="mt-auto flex items-center justify-between border-t border-border-subtle/20 pt-4">
 				<button
 					type="button"
 					onClick={() => setDiscoveryStep("scan")}
-					className="rounded-md border border-[#27272a] bg-transparent px-4 py-2 text-xs font-medium text-[#d4d4d8] transition-colors hover:border-[#52525b] cursor-pointer"
+					className="rounded-md border border-border-subtle bg-transparent px-4 py-2 text-xs font-medium text-muted-foreground transition-colors hover:border-border-subtle cursor-pointer"
 				>
 					{t("discoveryModal.configure.backButton")}
 				</button>
 				<button
 					type="submit"
-					className="inline-flex items-center gap-2 rounded-full border border-[#46464b]/30 bg-linear-to-b from-[#2a2a2a] to-[#232323] px-6 py-2 text-xs font-semibold text-[#e5e2e2] transition-colors hover:from-[#353435] hover:to-[#2a2a2a] cursor-pointer active:scale-[0.98]"
+					className="inline-flex items-center gap-2 rounded-full border border-border-subtle/30 bg-surface-high px-6 py-2 text-xs font-semibold text-foreground transition-colors hover:bg-surface-highest cursor-pointer active:scale-[0.98]"
 				>
 					{t("discoveryModal.configure.reviewButton")}
 				</button>

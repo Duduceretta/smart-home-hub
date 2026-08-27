@@ -58,7 +58,7 @@ export const DevicesToolbar: React.FC = () => {
 			{/* 1. Filtro por Cômodos (Pills) + Limpar Filtros */}
 			<div className="flex items-center gap-2 min-w-0 flex-1">
 				{rooms.length === 0 ? (
-					<p className="text-xs text-muted-foreground">
+					<p className="text-sm text-muted-foreground">
 						{t(
 							"toolbar.roomFilterEmpty",
 							"Seus filtros por cômodos aparecerão aqui quando você tiver cômodos registrados.",
@@ -74,7 +74,7 @@ export const DevicesToolbar: React.FC = () => {
 							type="button"
 							aria-pressed={selectedRoomId === null}
 							onClick={() => setSelectedRoomId(null)}
-							className={`shrink-0 rounded-full px-4 py-1.5 text-xs font-medium transition-all shadow-sm ${
+							className={`shrink-0 h-8 rounded-full px-4 text-sm font-medium transition-all shadow-sm ${
 								selectedRoomId === null
 									? "bg-primary/20 text-primary ring-1 ring-primary/50"
 									: "bg-surface-container text-muted-foreground hover:bg-surface-high hover:text-foreground"
@@ -92,7 +92,7 @@ export const DevicesToolbar: React.FC = () => {
 									type="button"
 									aria-pressed={isSelected}
 									onClick={() => setSelectedRoomId(room.id)}
-									className={`shrink-0 rounded-full px-4 py-1.5 text-xs font-medium transition-all shadow-sm ${
+									className={`shrink-0 h-8 rounded-full px-4 text-sm font-medium transition-all shadow-sm ${
 										isSelected
 											? "bg-primary/20 text-primary ring-1 ring-primary/50"
 											: "bg-surface-container text-muted-foreground hover:bg-surface-high hover:text-foreground"
@@ -109,7 +109,7 @@ export const DevicesToolbar: React.FC = () => {
 					<button
 						type="button"
 						onClick={resetFilters}
-						className="flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-surface-container hover:text-foreground cursor-pointer"
+						className="flex shrink-0 items-center h-8 gap-1 rounded-full px-3 text-sm font-medium text-muted-foreground transition-colors hover:bg-surface-container hover:text-foreground cursor-pointer"
 					>
 						<FilterX className="h-3.5 w-3.5" />
 						{t("grid.clearFilters", "Limpar filtros")}
@@ -118,7 +118,7 @@ export const DevicesToolbar: React.FC = () => {
 			</div>
 
 			{/* 2. Ações do Lado Direito: Busca + Toggle Grade/Lista */}
-			<div className="flex items-center gap-3">
+			<div className="flex items-center gap-4">
 				{/* Campo de Busca Expansível */}
 				<div className="relative flex items-center">
 					<Search
@@ -132,7 +132,7 @@ export const DevicesToolbar: React.FC = () => {
 						onChange={(e) => setQuery(e.target.value)}
 						placeholder={t("toolbar.searchPlaceholder", "Buscar...")}
 						aria-label={t("toolbar.searchAriaLabel", "Buscar dispositivos")}
-						className="w-44 rounded-full bg-surface-low py-1.5 pl-9 pr-14 text-xs text-foreground placeholder-muted-foreground/60 outline-none transition-all duration-300 focus:w-60 focus:ring-1 focus:ring-primary"
+						className="w-44 h-8 rounded-full bg-surface-low pl-9 pr-14 text-sm text-foreground placeholder-muted-foreground/60 outline-none transition-all duration-300 focus:w-60 focus:ring-1 focus:ring-primary"
 					/>
 					{query ? (
 						<button
@@ -144,7 +144,7 @@ export const DevicesToolbar: React.FC = () => {
 							<X className="h-3.5 w-3.5" />
 						</button>
 					) : (
-						<kbd className="pointer-events-none absolute right-2 flex h-5 items-center justify-center rounded bg-surface-container px-1.5 font-mono text-[9px] text-muted-foreground">
+						<kbd className="pointer-events-none absolute right-2 flex h-5 items-center justify-center rounded-sm bg-surface-container px-2 font-mono text-xs text-muted-foreground">
 							Ctrl+K
 						</kbd>
 					)}
@@ -160,7 +160,7 @@ export const DevicesToolbar: React.FC = () => {
 						aria-pressed={viewMode === "grid"}
 						aria-label={t("toolbar.viewModeGrid", "Visualização em grade")}
 						onClick={() => setViewMode("grid")}
-						className={`rounded p-1.5 transition-colors ${
+						className={`rounded-md p-1.5 transition-colors ${
 							viewMode === "grid"
 								? "bg-surface-high text-foreground shadow-sm"
 								: "text-muted-foreground hover:text-foreground"
@@ -173,7 +173,7 @@ export const DevicesToolbar: React.FC = () => {
 						aria-pressed={viewMode === "list"}
 						aria-label={t("toolbar.viewModeList", "Visualização em lista")}
 						onClick={() => setViewMode("list")}
-						className={`rounded p-1.5 transition-colors ${
+						className={`rounded-md p-1.5 transition-colors ${
 							viewMode === "list"
 								? "bg-surface-high text-foreground shadow-sm"
 								: "text-muted-foreground hover:text-foreground"

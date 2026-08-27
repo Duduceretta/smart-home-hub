@@ -32,10 +32,10 @@ export const DeviceDiscoveryModal: React.FC = () => {
 			<DialogContent className="gap-0 overflow-hidden rounded-2xl p-0 sm:max-w-5xl">
 				<div className="flex max-h-[80vh] min-h-[550px]">
 					{/* Coluna esquerda: contexto + stepper vertical */}
-					<div className="flex w-[34%] shrink-0 flex-col justify-between border-r border-[#46464b]/20 bg-[#1c1b1c] p-6">
+					<div className="flex w-[34%] shrink-0 flex-col justify-between border-r border-border-subtle/20 bg-surface-low p-6">
 						<div className="flex flex-col gap-6">
-							<div className="flex flex-col gap-3">
-								<span className="flex h-10 w-10 items-center justify-center rounded-xl bg-linear-to-br from-[#2a2a2a] to-[#201f20] text-[#c5c6cf] ring-1 ring-[#46464b]/30">
+							<div className="flex flex-col gap-4">
+								<span className="flex h-10 w-10 items-center justify-center rounded-xl bg-linear-to-br from-surface-high to-surface-container text-primary ring-1 ring-border-subtle/30">
 									<Plus className="h-5 w-5" />
 								</span>
 								<DialogHeader className="gap-1">
@@ -51,8 +51,8 @@ export const DeviceDiscoveryModal: React.FC = () => {
 							<DiscoveryStepper currentStep={discoveryStep} />
 						</div>
 
-						<div className="flex w-fit items-center gap-2 rounded-full bg-[#c5c6cf]/10 px-3 py-1.5 text-[11px] font-medium text-[#c5c6cf]">
-							<span className="h-1.5 w-1.5 animate-pulse rounded-full bg-[#c5c6cf]" />
+						<div className="flex w-fit items-center gap-2 h-8 rounded-full bg-primary/10 px-3 text-xs font-medium text-primary">
+							<span className="h-1.5 w-1.5 animate-pulse rounded-full bg-primary" />
 							{t("discoveryModal.sidebar.pairingModeActive")}
 						</div>
 					</div>
