@@ -110,18 +110,44 @@ Toda nova feature deve seguir estritamente os 5 passos:
 
 ## 🎨 UI/UX & Design System (Dark Mode First)
 
+> Padrão **universal e obrigatório** para todo o frontend (não só telas novas) — validado e aplicado em auditorias de consistência sobre Automações, `AppLayout`/Header/Sidebar, Dashboard e Dispositivos. Tabela completa com exemplos de antes/depois em `frontend/docs/ui-and-design-system.md`. **Proibido criar token novo de cor/espaçamento/raio** — usar exclusivamente os já definidos em `index.css`/`@theme inline` (`--background`, `--foreground`, `--card`, `--popover`, `--muted`, `--muted-foreground`, `--surface-container/high/highest`, `--warm`, `--alert`, `--border`, `--border-subtle`, `--radius-sm` a `--radius-4xl`).
+
 - **Paleta Oficial (Warm Dark Surface)**: substitui o preto/zinc puro anterior por tons quentes de superfície. Definida como cores oficiais do app (migração global gradual — features novas devem seguir esta paleta; um retrofit completo de componentes legados e suporte a temas personalizados fica para depois):
   - Fundo (`bg-[#141314]`), sidebar/header (mesmo tom, já aplicado em `AppLayout`/`Sidebar`/`Header`).
   - Camadas de superfície: `#1c1b1c` (low) → `#201f20` (container) → `#2a2a2a` (high) → `#353435` (highest/pills).
   - Bordas sutis: `#46464b` em opacidade baixa (`/20` a `/40`) — nunca em opacidade total, senão a linha fica marcada demais.
   - Acentos funcionais: primário/neutro `#c5c6cf` (texto `#2e3037`), iluminação (âmbar/areia) `#d3c4b8` (texto `#382f27`), clima (azul-acinzentado) `#c4c6d2` (texto `#2d303a`), alerta/offline `#93000a` (container `/20`, borda `/50`, texto `#ffb4ab`).
   - Texto: `#e5e2e2` (principal), `#c7c6cb` (secundário/labels uppercase).
-  - Glows/gradientes: sutis (`shadow-[0_0_8px_rgba(...,0.2)]`), nunca `0.3+` de opacidade — fica pesado demais. Superfícies (cards, pills, botões) podem levar leve `bg-gradient-to-b`/`to-br` entre dois tons próximos da mesma camada, nunca gradientes contrastantes.
+  - Glows/gradientes: sutis (`shadow-[0_0_8px_rgba(...,0.2)]`), nunca `0.3+` de opacidade — fica pesado demais. Superfícies (cards, pills, botões) podem levar leve `bg-gradient-to-b`/`to-br` entre dois tons próximos da mesma camada, nunca gradientes contrastantes. **Nunca usar um stop de gradiente em hex arbitrário sem token equivalente** (ex.: `from-surface-high to-[#232323]`) — achatar pra uma cor sólida do token mais próximo, ou usar `hover:brightness-110`/`95` quando precisar de "clarear/escurecer" além do tom mais claro/escuro já definido na escada.
   - Referência viva de aplicação: `src/features/devices/` (`DeviceCard.tsx`, `DevicesToolbar.tsx`, `DevicesGlanceBar.tsx`, `DevicesHeader.tsx`).
-- **Espaçamento (Grid 8px)**:
-  - Label ⇄ Input: `gap-1.5` ou `space-y-1.5`
-  - Entre campos da mesma seção: `space-y-3` a `space-y-4`
-  - Entre seções do formulário: `space-y-6`
+- **Espaçamento (grid de 4px)** — todo padding/gap deve cair em uma destas 5 paradas; eliminar valores "quebrados" (`p-3`, `p-5`, `gap-1.5`, `py-1.5`, `mb-5`) sem justificativa específica:
+  | Tamanho | Classes | Uso |
+  |---|---|---|
+  | 4px | `p-1` / `gap-1` | ícone ⇄ texto em elementos pequenos (badges, botões compactos) |
+  | 8px | `p-2` / `gap-2` | padding interno de pills de filtro; espaço entre itens de lista compacta |
+  | 16px | `p-4` / `gap-4` | padding padrão de cards, inputs de formulário, seções de modal |
+  | 24px | `p-6` / `gap-6` | padding de containers principais (painel de detalhe, corpo do modal); espaço entre seções distintas |
+  | 32px | `p-8` / `gap-8` | margem externa entre o limite da tela e o início do conteúdo principal |
+
+  Exceções sancionadas (não são "quebradas"): Label ⇄ Input `gap-1.5`/`space-y-1.5`; campos da mesma seção de formulário `space-y-3` a `space-y-4`; Input ⇄ mensagem de erro `mt-1`.
+- **Raio aninhado**: o container externo usa sempre um raio maior que o do elemento filho — nunca o mesmo raio (fica "torto") nem um filho com raio maior que o pai. Ex.: painel/lista externa `rounded-xl` → cards/blocos internos `rounded-lg` → badges/pills internos `rounded-full`. Usar somente a escada `--radius-sm/md/lg/xl/2xl/3xl/4xl`, nunca `rounded` bare (não é um dos tokens) nem valores arbitrários.
+- **Contraste de superfície (elevação)**: container pai sempre numa superfície mais escura que o filho direto, seguindo `background`/`muted` (surface-low) → `popover` (surface-container) → `card` (surface-high) → `surface-highest`, nunca o inverso. Um Dialog/modal já nasce em `bg-popover` (surface-container) — cards internos dele devem ser `bg-surface-high`, não `bg-surface-container` de novo (mesmo nível do próprio modal).
+- **Escala tipográfica**:
+  | Papel | Classes |
+  |---|---|
+  | Título principal da tela | `text-2xl` a `text-3xl`, `font-semibold` |
+  | Título de card/seção | `text-lg` a `text-xl`, `font-medium` |
+  | Corpo de texto (descrições, resumos) | `text-sm`, `font-normal`, `text-muted-foreground` |
+  | Labels/micro (status, cabeçalhos de bloco tipo "GATILHO") | `text-xs`, `font-medium`, `uppercase`, `tracking-wider` |
+
+  Nunca usar tamanho arbitrário (`text-[10px]`, `text-[11px]`) — o piso da escala é `text-xs`. Valores KPI em destaque (`text-2xl`) usam `font-semibold`, nunca `font-bold`.
+- **Componentização estrita**:
+  - Pills de filtro: `h-8` fixo, `px-3` ou `px-4`, `text-sm`, `transition-colors` no hover — nunca altura variável via `py-*`.
+  - Itens de lista (modo lista): `flex items-center justify-between`, `p-3` ou `p-4`, divisor via `divide-y` no container pai (não `border-b` por item — isso deixa borda sobrando no último item).
+  - KPIs (faixas de resumo/métricas): `flex flex-col gap-1`, label acima `text-xs uppercase text-muted-foreground` (com `truncate`/`min-w-0` se o rótulo for longo, pra não quebrar linha e desalinhar a grade), valor abaixo em destaque `text-2xl font-semibold` usando cor de destaque do design system (`text-primary`, `text-warm`, `text-cool`, `text-alert-foreground`) — nunca uma cor nova.
+- **Scroll**:
+  - Listas/painéis internos com rolagem própria usam a utilidade `.scrollbar-thin` (já definida em `animations.css`) em vez da scrollbar padrão do navegador.
+  - Modais/wizards cujo conteúdo pode cortar ao rolar ganham um indicador de fade-out: `<div className="pointer-events-none absolute inset-x-0 bottom-0 h-8 bg-gradient-to-t from-<superfície-ambiente> to-transparent" />` dentro de um wrapper `relative`, com o tom de origem igual ao `bg-*` do próprio container (`from-surface-low` num painel, `from-popover` dentro de um Dialog, etc.) — nunca uma cor fixa diferente da superfície real.
 - **Transições e Acessibilidade**:
   - Respeitar a diretiva `prefers-reduced-motion`.
   - Manter Skeletons e estados de loading (`Loader2`) proporcionais ao layout final durante requisições assíncronas.
