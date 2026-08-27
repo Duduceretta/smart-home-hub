@@ -5,14 +5,16 @@ export function SettingsPage() {
 	return (
 		<div className="flex flex-col gap-6">
 			<div>
-				<h1 className="text-xl font-bold text-[#e5e2e2]">Configurações</h1>
-				<p className="text-xs text-[#c7c6cb] mt-1">
+				<h1 className="text-3xl font-semibold tracking-tight text-foreground">
+					Configurações
+				</h1>
+				<p className="text-sm text-muted-foreground mt-1">
 					Gerencie integrações e preferências do seu hub.
 				</p>
 			</div>
 
-			<section className="flex flex-col gap-3">
-				<h2 className="text-xs font-semibold uppercase tracking-wider text-[#c7c6cb]">
+			<section className="flex flex-col gap-4">
+				<h2 className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
 					Integrações
 				</h2>
 				<SpotifyConnectCard />

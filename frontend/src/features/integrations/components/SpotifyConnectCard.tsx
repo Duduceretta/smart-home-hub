@@ -33,14 +33,14 @@ export const SpotifyConnectCard: React.FC = () => {
 	}, []);
 
 	return (
-		<div className="rounded-xl border border-[#46464b]/30 bg-linear-to-br from-[#2a2a2a] to-[#232323] p-4">
-			<div className="flex items-center gap-3">
+		<div className="rounded-xl border border-border-subtle/30 bg-surface-high p-4">
+			<div className="flex items-center gap-4">
 				<span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#1DB954]/15 text-[#1DB954]">
 					<Music2 className="h-5 w-5" />
 				</span>
 				<div className="flex flex-1 flex-col min-w-0">
-					<span className="font-semibold text-[#e5e2e2] text-sm">Spotify</span>
-					<span className="text-xs text-[#c7c6cb] truncate">
+					<span className="font-medium text-foreground text-sm">Spotify</span>
+					<span className="text-xs text-muted-foreground truncate">
 						{isLoading
 							? "Verificando conexão..."
 							: status?.connected
@@ -55,7 +55,7 @@ export const SpotifyConnectCard: React.FC = () => {
 						variant="outline"
 						disabled={isDisconnecting}
 						onClick={() => disconnect()}
-						className="border-[#46464b]/40 text-[#ffb4ab] hover:bg-[#93000a]/20"
+						className="border-border-subtle/40 text-alert-foreground hover:bg-alert/20"
 					>
 						{isDisconnecting ? (
 							<Loader2 className="h-4 w-4 animate-spin" />
