@@ -4,6 +4,7 @@ import { createSignalRConnection } from "@/core/lib/signalr";
 import { Logger } from "@/core/logger/app.logger";
 import type { PagedResponse } from "@/core/types/pagination.types";
 import { useAuthStore } from "@/features/auth/store/useAuthStore";
+import { automationsKeys } from "@/features/automations/hooks/automations.keys";
 import { dashboardKeys } from "@/features/dashboard/hooks/dashboard.keys";
 import { devicesKeys } from "@/features/devices/hooks/devices.keys";
 import type {
@@ -28,6 +29,14 @@ interface TelemetryReceivedPayload {
 	powerUsageWatts: number | null;
 	temperatureCelsius: number | null;
 	timestamp: string;
+}
+
+interface AutomationExecutionResultPayload {
+	automationId: string;
+	deviceId: string;
+	success: boolean;
+	errorMessage: string | null;
+	traceId: string;
 }
 
 export function useRealtimeListener(): void {
@@ -148,6 +157,26 @@ export function useRealtimeListener(): void {
 			},
 		);
 
+		connection.on(
+			"AutomationExecutionResult",
+			(payload: AutomationExecutionResultPayload) => {
+				Logger.info("Evento SignalR: AutomationExecutionResult", payload);
+
+				// A execução grava um SystemEvent novo (lastExecutedAt, contagem por
+				// dia da semana, histórico e badge de falha) — sem invalidar aqui,
+				// esses dados só atualizariam no próximo staleTime (até 5min na
+				// listagem), deixando a tela de Automações com "Última execução"
+				// e o gráfico de barras defasados logo após a automação disparar.
+				queryClient.invalidateQueries({ queryKey: automationsKeys.all });
+				queryClient.invalidateQueries({
+					queryKey: dashboardKeys.activityLogs(),
+				});
+				queryClient.invalidateQueries({
+					queryKey: dashboardKeys.automationsSummary(),
+				});
+			},
+		);
+
 		// Eventos perdidos durante uma queda de conexão nunca são reenviados pelo
 		// SignalR (Clients.Group(...).SendAsync é fire-and-forget, sem fila/replay).
 		// Ao reconectar, força um refetch para reconciliar qualquer mudança de
@@ -166,6 +195,10 @@ export function useRealtimeListener(): void {
 			});
 			queryClient.invalidateQueries({ queryKey: dashboardKeys.overview() });
 			queryClient.invalidateQueries({ queryKey: dashboardKeys.activityLogs() });
+			queryClient.invalidateQueries({ queryKey: automationsKeys.all });
+			queryClient.invalidateQueries({
+				queryKey: dashboardKeys.automationsSummary(),
+			});
 		});
 
 		connection.onclose((error) => {
