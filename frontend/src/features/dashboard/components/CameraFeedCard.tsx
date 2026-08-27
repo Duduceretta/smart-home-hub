@@ -11,9 +11,9 @@ export function CameraFeedCard() {
 
 	return (
 		<div className="rounded-xl border border-border-subtle/20 bg-surface-container overflow-hidden transition-all duration-200 hover:border-primary/25 hover:shadow-lg hover:shadow-black/30">
-			<div className="flex items-center gap-2 px-4 py-3 border-b border-border-subtle/20">
+			<div className="flex items-center gap-2 px-4 py-2 border-b border-border-subtle/20">
 				<Shield className="w-3.5 h-3.5 text-alert-foreground" />
-				<span className="text-xs font-semibold text-foreground">
+				<span className="text-xs font-medium text-foreground">
 					{t("cameraFeed.title", "Aether Secure")}
 				</span>
 			</div>
@@ -28,15 +28,15 @@ export function CameraFeedCard() {
 				<div className="absolute inset-0 flex items-center justify-center text-white/15">
 					<Video className="h-9 w-9" />
 				</div>
-				<div className="absolute top-2 left-2 flex items-center gap-1.5 bg-black/60 px-2 py-0.5 rounded">
+				<div className="absolute top-2 left-2 flex items-center gap-1 bg-black/60 px-2 py-1 rounded-sm">
 					<span className="h-1.5 w-1.5 rounded-full bg-alert-foreground animate-pulse" />
-					<span className="font-mono text-[8px] text-white font-bold tracking-widest">
+					<span className="font-mono text-xs text-white font-bold tracking-widest">
 						{t("cameraFeed.liveLabel", "LIVE")}
 					</span>
 				</div>
 			</div>
-			<div className="p-3">
-				<p className="text-[10px] text-muted-foreground/60">
+			<div className="p-4">
+				<p className="text-xs text-muted-foreground/60">
 					{t(
 						"cameraFeed.comingSoon",
 						"Integração de câmeras chegando em breve.",

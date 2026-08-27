@@ -88,7 +88,7 @@ export function RoomDeviceSection({
 		<Collapsible
 			open={expanded}
 			onOpenChange={(open) => setRoomExpanded(roomKey, open)}
-			className="flex flex-col gap-3"
+			className="flex flex-col gap-4"
 		>
 			<div className="flex w-full items-center justify-between border-b border-border-subtle/20 pb-2">
 				<button
@@ -97,10 +97,10 @@ export function RoomDeviceSection({
 					className="flex items-center gap-2 cursor-pointer group"
 				>
 					<RoomIcon className="w-4 h-4 text-primary/80 group-hover:text-primary transition-colors" />
-					<h3 className="text-[10px] font-semibold tracking-wider text-muted-foreground uppercase">
+					<h3 className="text-xs font-medium tracking-wider text-muted-foreground uppercase">
 						{title}
 					</h3>
-					<span className="text-[10px] text-muted-foreground/60">
+					<span className="text-xs text-muted-foreground/60">
 						({devices.length})
 					</span>
 					{energyUsageKwh !== undefined &&
@@ -108,7 +108,7 @@ export function RoomDeviceSection({
 							const energy = formatEnergy(energyUsageKwh);
 							return (
 								<span
-									className="text-[10px] font-medium text-warm"
+									className="text-xs font-medium text-warm"
 									title={
 										energyUsageIsEstimated
 											? t(
@@ -153,7 +153,7 @@ export function RoomDeviceSection({
 				</div>
 			</div>
 
-			<CollapsibleContent className="flex flex-col gap-3">
+			<CollapsibleContent className="flex flex-col gap-4">
 				<div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
 					{previewDevices.map((device) => (
 						<DeviceCard key={device.id} device={device} />
@@ -164,7 +164,7 @@ export function RoomDeviceSection({
 					<button
 						type="button"
 						onClick={handleViewAll}
-						className="flex items-center justify-center gap-1.5 rounded-lg border border-border-subtle/20 bg-surface-container py-2 text-xs font-medium text-muted-foreground transition-colors hover:bg-surface-high hover:text-foreground cursor-pointer"
+						className="flex items-center justify-center gap-1 rounded-lg border border-border-subtle/20 bg-surface-container py-2 text-xs font-medium text-muted-foreground transition-colors hover:bg-surface-high hover:text-foreground cursor-pointer"
 					>
 						{t("roomSection.viewAllDevices", "Ver todos os dispositivos")}
 						<ChevronRight className="h-3.5 w-3.5" />

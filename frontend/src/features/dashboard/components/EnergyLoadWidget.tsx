@@ -19,7 +19,7 @@ export function EnergyLoadWidget() {
 
 	if (isLoading) {
 		return (
-			<div className="rounded-xl border border-border-subtle/20 bg-surface-container p-5 flex flex-col animate-pulse">
+			<div className="rounded-xl border border-border-subtle/20 bg-surface-container p-4 flex flex-col animate-pulse">
 				<div className="h-4 w-48 bg-surface-high rounded-md mb-6" />
 				<div className="flex-1 min-h-62.5 w-full bg-surface-high/40 rounded-xl" />
 			</div>
@@ -28,7 +28,7 @@ export function EnergyLoadWidget() {
 
 	if (isError || !data) {
 		return (
-			<div className="rounded-xl border border-border-subtle/20 bg-surface-container p-5 flex flex-col justify-center h-62.5">
+			<div className="rounded-xl border border-border-subtle/20 bg-surface-container p-4 flex flex-col justify-center h-62.5">
 				<DashboardErrorState
 					title={t(
 						"energyChart.errorTitle",
@@ -70,22 +70,22 @@ export function EnergyLoadWidget() {
 			: 0;
 
 	return (
-		<div className="rounded-xl border border-border-subtle/20 bg-surface-container p-5 flex flex-col transition-all duration-200 hover:border-primary/25 hover:shadow-lg hover:shadow-black/30">
+		<div className="rounded-xl border border-border-subtle/20 bg-surface-container p-4 flex flex-col transition-all duration-200 hover:border-primary/25 hover:shadow-lg hover:shadow-black/30">
 			<div className="flex items-center justify-between mb-6">
-				<div className="flex flex-col gap-0.5">
+				<div className="flex flex-col gap-1">
 					<div className="flex items-center gap-2">
 						<div className="w-1.5 h-5 bg-primary rounded-full" />
 						<h3 className="text-sm font-medium text-foreground">
 							{t("energyChart.title", "Potência ao vivo")}
 						</h3>
 					</div>
-					<span className="text-[10px] text-muted-foreground/60 pl-3.5">
+					<span className="text-xs text-muted-foreground/60 pl-3.5">
 						{t("energyChart.subtitle", "Quanto a casa está puxando agora")}
 					</span>
 				</div>
-				<div className="flex flex-col items-end gap-0.5">
+				<div className="flex flex-col items-end gap-1">
 					<span
-						className="text-[10px] font-semibold tracking-wider text-primary bg-primary/10 px-2.5 py-1 rounded-md border border-primary/20"
+						className="text-xs font-medium tracking-wider text-primary bg-primary/10 px-3 py-1 rounded-md border border-primary/20"
 						title={
 							data.summary.isEnergyEstimated
 								? t(
@@ -98,7 +98,7 @@ export function EnergyLoadWidget() {
 						{data.summary.isEnergyEstimated && "~"}
 						{totalEnergy.value} {totalEnergy.unit}
 					</span>
-					<span className="text-[10px] text-muted-foreground/60">
+					<span className="text-xs text-muted-foreground/60">
 						{t("energyChart.totalSubtitle", "Acumulado hoje")}
 					</span>
 				</div>
@@ -108,7 +108,7 @@ export function EnergyLoadWidget() {
 				className={`w-full flex flex-col justify-center ${chartData.length === 0 ? "h-32" : "h-62.5"}`}
 			>
 				{chartData.length === 0 ? (
-					<div className="flex flex-col items-center justify-center gap-1.5 py-4 text-center">
+					<div className="flex flex-col items-center justify-center gap-1 py-4 text-center">
 						<div className="flex h-9 w-9 items-center justify-center rounded-full bg-surface-high text-muted-foreground">
 							<Activity className="h-4 w-4" />
 						</div>

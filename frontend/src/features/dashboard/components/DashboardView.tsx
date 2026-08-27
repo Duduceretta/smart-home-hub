@@ -150,7 +150,7 @@ export const DashboardView: React.FC = () => {
 						<button
 							type="button"
 							onClick={() => setAllRoomsExpanded(roomKeys, !allRoomsExpanded)}
-							className="flex items-center gap-1.5 self-end rounded-md px-2 py-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground transition-colors hover:bg-surface-high hover:text-foreground cursor-pointer"
+							className="flex items-center gap-1 self-end rounded-md px-2 py-1 text-xs font-medium uppercase tracking-wider text-muted-foreground transition-colors hover:bg-surface-high hover:text-foreground cursor-pointer"
 						>
 							{allRoomsExpanded ? (
 								<ChevronsDownUp className="h-3.5 w-3.5" />

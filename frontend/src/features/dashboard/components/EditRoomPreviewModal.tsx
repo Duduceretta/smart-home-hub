@@ -84,44 +84,47 @@ export function EditRoomPreviewModal({
 					</DialogDescription>
 				</DialogHeader>
 
-				<div className="flex flex-col gap-2 max-h-80 overflow-y-auto">
-					{devices.map((device) => {
-						const isSelected = draft.includes(device.id);
-						const width = deviceUnitWidth(device.type);
-						const disabled =
-							!isSelected && usedUnits + width > ROW_CAPACITY_UNITS;
-						const Icon = DEVICE_CONFIG[device.type].icon;
+				<div className="relative">
+					<div className="flex flex-col gap-2 max-h-80 overflow-y-auto scrollbar-thin">
+						{devices.map((device) => {
+							const isSelected = draft.includes(device.id);
+							const width = deviceUnitWidth(device.type);
+							const disabled =
+								!isSelected && usedUnits + width > ROW_CAPACITY_UNITS;
+							const Icon = DEVICE_CONFIG[device.type].icon;
 
-						return (
-							<label
-								key={device.id}
-								className={`flex items-center gap-3 rounded-lg border p-3 transition-colors ${
-									disabled
-										? "border-border-subtle/20 opacity-40 cursor-not-allowed"
-										: "border-border-subtle/20 hover:bg-surface-high cursor-pointer"
-								} ${isSelected ? "bg-surface-high border-primary/40" : "bg-surface-low"}`}
-							>
-								<input
-									type="checkbox"
-									checked={isSelected}
-									disabled={disabled}
-									onChange={() => toggleDevice(device)}
-									className="h-4 w-4 accent-primary cursor-pointer disabled:cursor-not-allowed"
-								/>
-								<Icon className="h-4 w-4 text-muted-foreground shrink-0" />
-								<div className="flex flex-col min-w-0">
-									<span className="text-sm font-medium text-foreground truncate">
-										{device.name}
-									</span>
-									<span className="text-[10px] text-muted-foreground/60">
-										{width === 2
-											? t("roomSection.wideCard", "ocupa a linha inteira")
-											: t("roomSection.normalCard", "1 coluna")}
-									</span>
-								</div>
-							</label>
-						);
-					})}
+							return (
+								<label
+									key={device.id}
+									className={`flex items-center gap-4 rounded-lg border p-4 transition-colors ${
+										disabled
+											? "border-border-subtle/20 opacity-40 cursor-not-allowed"
+											: "border-border-subtle/20 hover:bg-surface-highest cursor-pointer"
+									} ${isSelected ? "bg-surface-highest border-primary/40" : "bg-surface-high"}`}
+								>
+									<input
+										type="checkbox"
+										checked={isSelected}
+										disabled={disabled}
+										onChange={() => toggleDevice(device)}
+										className="h-4 w-4 accent-primary cursor-pointer disabled:cursor-not-allowed"
+									/>
+									<Icon className="h-4 w-4 text-muted-foreground shrink-0" />
+									<div className="flex flex-col min-w-0">
+										<span className="text-sm font-medium text-foreground truncate">
+											{device.name}
+										</span>
+										<span className="text-xs text-muted-foreground/60">
+											{width === 2
+												? t("roomSection.wideCard", "ocupa a linha inteira")
+												: t("roomSection.normalCard", "1 coluna")}
+										</span>
+									</div>
+								</label>
+							);
+						})}
+					</div>
+					<div className="pointer-events-none absolute inset-x-0 bottom-0 h-8 bg-gradient-to-t from-surface-container to-transparent" />
 				</div>
 
 				<DialogFooter className="bg-transparent border-t-0 pt-0">
