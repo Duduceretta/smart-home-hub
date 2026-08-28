@@ -1,6 +1,7 @@
 using Mediator;
 using Microsoft.EntityFrameworkCore;
 using SmartHomeHub.Application.Common.Interfaces;
+using SmartHomeHub.Application.Common.Telemetry;
 using SmartHomeHub.Domain.Common.Primitives;
 
 namespace SmartHomeHub.Application.Features.Dashboards.Queries.GetDashboardOverview;
@@ -135,38 +136,22 @@ public sealed class GetDashboardOverviewQueryHandler(IAppDbContext dbContext)
             .Where(log => log.Timestamp >= startOfDayUtc && log.PowerUsageWatts.HasValue)
             .ToList();
 
-        DateTimeOffset FloorToBucket(DateTimeOffset timestamp)
-        {
-            var flooredMinute = (timestamp.Minute / bucketMinutes) * bucketMinutes;
-            return new DateTimeOffset(
-                timestamp.Year,
-                timestamp.Month,
-                timestamp.Day,
-                timestamp.Hour,
-                flooredMinute,
-                0,
-                TimeSpan.Zero
-            );
-        }
-
         // Energia (kWh) é potência × tempo, não a soma bruta das amostras de
         // Watts — como a telemetria chega a cada poucos segundos, somar as
         // amostras direto infla o total proporcionalmente à frequência de
         // leitura (10 leituras de 50W num balde de 5min não são "500W", são
         // só 50W sustentados). Por isso: 1) reduz cada (dispositivo, balde) à
         // potência MÉDIA nesse balde — elimina a distorção da frequência de
-        // amostragem — e só então 2) soma a potência média dos dispositivos
-        // concorrentes no balde e multiplica pela duração do balde em horas.
-        var deviceBucketAverages = rawEnergyLogs
-            .GroupBy(log => (Bucket: FloorToBucket(log.Timestamp), log.DeviceId))
-            .Select(group => new
-            {
-                group.Key.Bucket,
-                group.Key.DeviceId,
-                AverageWatts = group.Average(x => x.PowerUsageWatts!.Value),
-                IsEstimated = group.Any(x => x.IsEstimated),
-            })
-            .ToList();
+        // amostragem (ver TelemetryBucketing, reaproveitado também por
+        // GetRoomEnergyQuery) — e só então 2) soma a potência média dos
+        // dispositivos concorrentes no balde e multiplica pela duração do
+        // balde em horas.
+        var deviceBucketAverages = TelemetryBucketing.BuildDeviceBucketAverages(
+            rawEnergyLogs.Select(log =>
+                (log.Timestamp, log.DeviceId, log.PowerUsageWatts, log.IsEstimated)
+            ),
+            bucketMinutes
+        );
 
         var bucketDurationHours = bucketMinutes / 60.0;
 

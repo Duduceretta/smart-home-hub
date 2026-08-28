@@ -4,7 +4,10 @@ using SmartHomeHub.Api.Extensions;
 using SmartHomeHub.Application.Features.Rooms.Commands.CreateRoom;
 using SmartHomeHub.Application.Features.Rooms.Commands.DeleteRoom;
 using SmartHomeHub.Application.Features.Rooms.Commands.UpdateRoom;
+using SmartHomeHub.Application.Features.Rooms.Queries.GetRoomAutomations;
 using SmartHomeHub.Application.Features.Rooms.Queries.GetRoomById;
+using SmartHomeHub.Application.Features.Rooms.Queries.GetRoomClimate;
+using SmartHomeHub.Application.Features.Rooms.Queries.GetRoomEnergy;
 using SmartHomeHub.Application.Features.Rooms.Queries.GetRooms;
 
 namespace SmartHomeHub.Api.Endpoints;
@@ -182,6 +185,101 @@ public static class RoomEndpoints
                 "Realiza a exclusão lógica do ambiente. Dispositivos atrelados a ele terão a propriedade RoomId definida como nula automaticamente (se configurado)."
             )
             .Produces(StatusCodes.Status204NoContent)
+            .ProducesProblem(StatusCodes.Status404NotFound);
+
+        app.MapGet(
+                "/api/rooms/{id:guid}/climate",
+                async (
+                    Guid id,
+                    ClaimsPrincipal userToken,
+                    IMediator mediator,
+                    CancellationToken cancellationToken
+                ) =>
+                {
+                    var firebaseUid = userToken.FindFirst("user_id")?.Value;
+
+                    if (string.IsNullOrEmpty(firebaseUid))
+                        return Results.Unauthorized();
+
+                    var query = new GetRoomClimateQuery(id, firebaseUid);
+                    var result = await mediator.Send(query, cancellationToken);
+
+                    return result.IsFailure ? result.ToProblemDetails() : Results.Ok(result.Value);
+                }
+            )
+            .RequireAuthorization()
+            .WithTags("Rooms")
+            .WithSummary("Última leitura de temperatura e umidade do ambiente")
+            .WithDescription(
+                "Retorna a leitura de temperatura/umidade mais recente entre os sensores/termostatos deste "
+                    + "ambiente (mesma linha de telemetria para as duas grandezas). hasClimateSensor=false "
+                    + "quando o ambiente não tem nenhum dispositivo desse tipo — o front-end deve omitir a "
+                    + "seção de clima nesse caso, sem espaço reservado."
+            )
+            .Produces<object>(StatusCodes.Status200OK)
+            .ProducesProblem(StatusCodes.Status404NotFound);
+
+        app.MapGet(
+                "/api/rooms/{id:guid}/energy",
+                async (
+                    Guid id,
+                    ClaimsPrincipal userToken,
+                    IMediator mediator,
+                    CancellationToken cancellationToken,
+                    string? range
+                ) =>
+                {
+                    var firebaseUid = userToken.FindFirst("user_id")?.Value;
+
+                    if (string.IsNullOrEmpty(firebaseUid))
+                        return Results.Unauthorized();
+
+                    var query = new GetRoomEnergyQuery(id, firebaseUid, range);
+                    var result = await mediator.Send(query, cancellationToken);
+
+                    return result.IsFailure ? result.ToProblemDetails() : Results.Ok(result.Value);
+                }
+            )
+            .RequireAuthorization()
+            .WithTags("Rooms")
+            .WithSummary("Consumo de energia do ambiente")
+            .WithDescription(
+                "Gráfico de potência média (kW) por balde de 5min, somando só os dispositivos deste ambiente. "
+                    + "range aceita '24h' (padrão) ou '7d'. hasEnergyData=false quando nenhum dispositivo do "
+                    + "ambiente reportou consumo no período — o front-end deve omitir a seção de gráfico."
+            )
+            .Produces<object>(StatusCodes.Status200OK)
+            .ProducesProblem(StatusCodes.Status400BadRequest)
+            .ProducesProblem(StatusCodes.Status404NotFound);
+
+        app.MapGet(
+                "/api/rooms/{id:guid}/automations",
+                async (
+                    Guid id,
+                    ClaimsPrincipal userToken,
+                    IMediator mediator,
+                    CancellationToken cancellationToken
+                ) =>
+                {
+                    var firebaseUid = userToken.FindFirst("user_id")?.Value;
+
+                    if (string.IsNullOrEmpty(firebaseUid))
+                        return Results.Unauthorized();
+
+                    var query = new GetRoomAutomationsQuery(id, firebaseUid);
+                    var result = await mediator.Send(query, cancellationToken);
+
+                    return result.IsFailure ? result.ToProblemDetails() : Results.Ok(result.Value);
+                }
+            )
+            .RequireAuthorization()
+            .WithTags("Rooms")
+            .WithSummary("Automações vinculadas ao ambiente")
+            .WithDescription(
+                "Retorna as automações do usuário cujo gatilho, condição ou ação referenciam algum "
+                    + "dispositivo deste ambiente (cruzamento feito no RulePayload de cada automação)."
+            )
+            .Produces<object>(StatusCodes.Status200OK)
             .ProducesProblem(StatusCodes.Status404NotFound);
     }
 }
