@@ -121,7 +121,7 @@ public class AutomationCommandHandlersTests
             RulePayload = NoTriggerPayload,
         };
         _dbContext.Automations.Add(automation);
-        await _dbContext.SaveChangesAsync();
+        await _dbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         var handler = new UpdateAutomationCommandHandler(_dbContext, _schedulerService);
 
@@ -151,7 +151,7 @@ public class AutomationCommandHandlersTests
             RulePayload = NoTriggerPayload,
         };
         _dbContext.Automations.Add(automation);
-        await _dbContext.SaveChangesAsync();
+        await _dbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         var handler = new UpdateAutomationCommandHandler(_dbContext, _schedulerService);
 
@@ -182,7 +182,7 @@ public class AutomationCommandHandlersTests
             IsActive = true,
         };
         _dbContext.Automations.Add(automation);
-        await _dbContext.SaveChangesAsync();
+        await _dbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         var handler = new UpdateAutomationCommandHandler(_dbContext, _schedulerService);
 
@@ -212,7 +212,7 @@ public class AutomationCommandHandlersTests
             RulePayload = NoTriggerPayload,
         };
         _dbContext.Automations.Add(automation);
-        await _dbContext.SaveChangesAsync();
+        await _dbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         var handler = new DeleteAutomationCommandHandler(_dbContext, _schedulerService);
 
@@ -226,7 +226,7 @@ public class AutomationCommandHandlersTests
 
         var stillThereIgnoringFilters = await _dbContext
             .Automations.IgnoreQueryFilters()
-            .FirstAsync(a => a.Id == automation.Id);
+            .FirstAsync(a => a.Id == automation.Id, cancellationToken: TestContext.Current.CancellationToken);
         stillThereIgnoringFilters.IsDeleted.Should().BeTrue();
     }
 

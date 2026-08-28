@@ -63,7 +63,7 @@ public class AutomationActionDispatcherTests
                 Name = "Tomada da Sala",
             }
         );
-        await _dbContext.SaveChangesAsync();
+        await _dbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         _mediator.Send(Arg.Any<SetDeviceStateCommand>(), Arg.Any<CancellationToken>())
             .Returns(Result.Success());

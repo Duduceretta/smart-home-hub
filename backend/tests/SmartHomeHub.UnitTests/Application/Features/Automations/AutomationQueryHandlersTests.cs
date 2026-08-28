@@ -45,7 +45,7 @@ public class AutomationQueryHandlersTests
                 RulePayload = Payload,
             }
         );
-        await _dbContext.SaveChangesAsync();
+        await _dbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         var handler = new GetAutomationsQueryHandler(_dbContext);
         var result = await handler.Handle(
@@ -67,9 +67,9 @@ public class AutomationQueryHandlersTests
             RulePayload = Payload,
         };
         _dbContext.Automations.Add(automation);
-        await _dbContext.SaveChangesAsync();
+        await _dbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
         _dbContext.Automations.Remove(automation);
-        await _dbContext.SaveChangesAsync();
+        await _dbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         var handler = new GetAutomationsQueryHandler(_dbContext);
         var result = await handler.Handle(
@@ -92,7 +92,7 @@ public class AutomationQueryHandlersTests
             RulePayload = Payload,
         };
         _dbContext.Automations.Add(automation);
-        await _dbContext.SaveChangesAsync();
+        await _dbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         var handler = new GetAutomationByIdQueryHandler(_dbContext);
         var result = await handler.Handle(
@@ -115,7 +115,7 @@ public class AutomationQueryHandlersTests
             IsActive = false,
         };
         _dbContext.Automations.Add(automation);
-        await _dbContext.SaveChangesAsync();
+        await _dbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         var handler = new GetAutomationByIdQueryHandler(_dbContext);
         var result = await handler.Handle(
