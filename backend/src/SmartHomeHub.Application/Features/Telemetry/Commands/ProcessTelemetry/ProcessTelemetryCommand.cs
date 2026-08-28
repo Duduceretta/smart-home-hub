@@ -18,6 +18,7 @@ public record TelemetryPayload(
     string? SignalStrength,
     double? PowerUsageWatts,
     double? TemperatureCelsius,
+    double? HumidityPercent = null,
     string? IpAddress = null
 );
 
@@ -94,6 +95,7 @@ public class ProcessTelemetryCommandHandler(
                 SignalStrength = telemetry.SignalStrength,
                 PowerUsageWatts = telemetry.PowerUsageWatts,
                 TemperatureCelsius = telemetry.TemperatureCelsius,
+                HumidityPercent = telemetry.HumidityPercent,
             };
 
             dbContext.DeviceTelemetryLogs.Add(telemetryLog);

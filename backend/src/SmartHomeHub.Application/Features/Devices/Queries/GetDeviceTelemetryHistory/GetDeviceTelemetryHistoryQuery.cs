@@ -10,6 +10,7 @@ public record DeviceTelemetryPointDto(
     DateTimeOffset Timestamp,
     double? PowerUsageWatts,
     double? TemperatureCelsius,
+    double? HumidityPercent,
     int? Voltage,
     bool IsOn
 );
@@ -55,7 +56,10 @@ public class GetDeviceTelemetryHistoryQueryHandler(IAppDbContext dbContext)
     {
         var user = await dbContext
             .Users.AsNoTracking()
-            .FirstOrDefaultAsync(user => user.ExternalAuthUid == request.FirebaseUid, cancellationToken);
+            .FirstOrDefaultAsync(
+                user => user.ExternalAuthUid == request.FirebaseUid,
+                cancellationToken
+            );
 
         if (user == null)
             return Result.Failure<DeviceTelemetryHistoryDto>(
@@ -93,6 +97,7 @@ public class GetDeviceTelemetryHistoryQueryHandler(IAppDbContext dbContext)
                 log.Timestamp,
                 log.PowerUsageWatts,
                 log.TemperatureCelsius,
+                log.HumidityPercent,
                 log.Voltage,
                 log.IsOn
             ))

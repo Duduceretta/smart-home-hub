@@ -12,6 +12,7 @@ public class DeviceTelemetryLog
     public string? SignalStrength { get; set; }
 
     public double? TemperatureCelsius { get; set; }
+    public double? HumidityPercent { get; set; }
     public double? PowerUsageWatts { get; set; }
 
     // Dispositivos sem sensor de energia real (ex: TV controlada via ADB/Cast,

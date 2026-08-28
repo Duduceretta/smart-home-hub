@@ -84,7 +84,8 @@ public sealed class MockTelemetryWorker(
                 Voltage: null,
                 SignalStrength: "strong",
                 PowerUsageWatts: null,
-                TemperatureCelsius: Math.Round(18 + Random.Shared.NextDouble() * 10, 1)
+                TemperatureCelsius: Math.Round(18 + Random.Shared.NextDouble() * 10, 1),
+                HumidityPercent: Math.Round(30 + Random.Shared.NextDouble() * 40, 1)
             ),
             DeviceType.Television => new TelemetryPayload(
                 IsOn: device.IsOn,
