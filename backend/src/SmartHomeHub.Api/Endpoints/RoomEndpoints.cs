@@ -3,7 +3,9 @@ using Mediator;
 using SmartHomeHub.Api.Extensions;
 using SmartHomeHub.Application.Features.Rooms.Commands.CreateRoom;
 using SmartHomeHub.Application.Features.Rooms.Commands.DeleteRoom;
+using SmartHomeHub.Application.Features.Rooms.Commands.SetRoomDevicesPower;
 using SmartHomeHub.Application.Features.Rooms.Commands.UpdateRoom;
+using SmartHomeHub.Application.Features.Rooms.Queries.GetRoomActivityLog;
 using SmartHomeHub.Application.Features.Rooms.Queries.GetRoomAutomations;
 using SmartHomeHub.Application.Features.Rooms.Queries.GetRoomById;
 using SmartHomeHub.Application.Features.Rooms.Queries.GetRoomClimate;
@@ -278,6 +280,99 @@ public static class RoomEndpoints
             .WithDescription(
                 "Retorna as automações do usuário cujo gatilho, condição ou ação referenciam algum "
                     + "dispositivo deste ambiente (cruzamento feito no RulePayload de cada automação)."
+            )
+            .Produces<object>(StatusCodes.Status200OK)
+            .ProducesProblem(StatusCodes.Status404NotFound);
+
+        app.MapPost(
+                "/api/rooms/{id:guid}/devices/turn-on",
+                async (
+                    Guid id,
+                    ClaimsPrincipal userToken,
+                    IMediator mediator,
+                    CancellationToken cancellationToken
+                ) =>
+                {
+                    var firebaseUid = userToken.FindFirst("user_id")?.Value;
+
+                    if (string.IsNullOrEmpty(firebaseUid))
+                        return Results.Unauthorized();
+
+                    var command = new SetRoomDevicesPowerCommand(id, firebaseUid, true);
+                    var result = await mediator.Send(command, cancellationToken);
+
+                    return result.IsFailure ? result.ToProblemDetails() : Results.Ok(result.Value);
+                }
+            )
+            .RequireAuthorization()
+            .WithTags("Rooms")
+            .WithSummary("Liga todos os dispositivos atuadores do ambiente")
+            .WithDescription(
+                "Dispara o mesmo comando do toggle individual (SetDeviceStateCommand) em paralelo "
+                    + "para cada dispositivo atuador (Light/Switch/Thermostat/Lock/Alarm/Television) "
+                    + "online do ambiente que ainda não está ligado. Sensores/câmeras são ignorados."
+            )
+            .Produces<object>(StatusCodes.Status200OK)
+            .ProducesProblem(StatusCodes.Status404NotFound);
+
+        app.MapPost(
+                "/api/rooms/{id:guid}/devices/turn-off",
+                async (
+                    Guid id,
+                    ClaimsPrincipal userToken,
+                    IMediator mediator,
+                    CancellationToken cancellationToken
+                ) =>
+                {
+                    var firebaseUid = userToken.FindFirst("user_id")?.Value;
+
+                    if (string.IsNullOrEmpty(firebaseUid))
+                        return Results.Unauthorized();
+
+                    var command = new SetRoomDevicesPowerCommand(id, firebaseUid, false);
+                    var result = await mediator.Send(command, cancellationToken);
+
+                    return result.IsFailure ? result.ToProblemDetails() : Results.Ok(result.Value);
+                }
+            )
+            .RequireAuthorization()
+            .WithTags("Rooms")
+            .WithSummary("Desliga todos os dispositivos atuadores do ambiente")
+            .WithDescription(
+                "Mesmo comportamento de /devices/turn-on, invertido: desliga todo atuador online "
+                    + "do ambiente que ainda não está desligado."
+            )
+            .Produces<object>(StatusCodes.Status200OK)
+            .ProducesProblem(StatusCodes.Status404NotFound);
+
+        app.MapGet(
+                "/api/rooms/{id:guid}/events",
+                async (
+                    Guid id,
+                    ClaimsPrincipal userToken,
+                    IMediator mediator,
+                    CancellationToken cancellationToken,
+                    int page = 1,
+                    int pageSize = 10
+                ) =>
+                {
+                    var firebaseUid = userToken.FindFirst("user_id")?.Value;
+
+                    if (string.IsNullOrEmpty(firebaseUid))
+                        return Results.Unauthorized();
+
+                    var query = new GetRoomActivityLogQuery(id, firebaseUid, page, pageSize);
+                    var result = await mediator.Send(query, cancellationToken);
+
+                    return result.IsFailure ? result.ToProblemDetails() : Results.Ok(result.Value);
+                }
+            )
+            .RequireAuthorization()
+            .WithTags("Rooms")
+            .WithSummary("Linha do tempo de eventos deste ambiente")
+            .WithDescription(
+                "Mesmo formato de GET /dashboard/activity-log, paginado, filtrado no banco pelos "
+                    + "eventos cujo dispositivo pertence a este ambiente — mais recentes primeiro."
             )
             .Produces<object>(StatusCodes.Status200OK)
             .ProducesProblem(StatusCodes.Status404NotFound);
