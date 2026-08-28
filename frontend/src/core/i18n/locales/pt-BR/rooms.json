@@ -30,7 +30,9 @@
 		"kitchen": "Cozinha",
 		"media": "Mídia/Eletro",
 		"garage": "Garagem",
-		"bathroom": "Banheiro"
+		"bathroom": "Banheiro",
+		"garden": "Jardim",
+		"office": "Escritório"
 	},
 	"form": {
 		"fields": {

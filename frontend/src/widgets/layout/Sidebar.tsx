@@ -41,7 +41,16 @@ export function Sidebar() {
 	return (
 		<aside
 			className={cn(
-				"hidden md:flex flex-col h-full border-r border-border bg-linear-to-b from-card/70 to-card/40 backdrop-blur-xl z-50 shrink-0 relative transition-[width] duration-300 ease-in-out text-foreground",
+				// Sem backdrop-blur: como a sidebar nunca fica sobreposta a outro
+				// conteúdo (é o primeiro item do flex, não um overlay), o blur não
+				// mudava nada visualmente — só forçava o navegador a recalcular o
+				// backdrop a cada frame do resize, sendo o principal custo de
+				// performance da animação. A translucidez original (/70, /40)
+				// continua aqui — sem o blur por trás pra suavizar ela é só alpha
+				// blend direto contra o fundo, mas como o fundo é sólido (nada
+				// dinâmico atrás da sidebar), o resultado visual fica bem próximo
+				// do original mesmo sem o blur.
+				"hidden md:flex flex-col h-full border-r border-border bg-linear-to-b from-card/70 to-card/40 z-50 shrink-0 relative transition-[width] duration-200 ease-out text-foreground will-change-[width]",
 				isCollapsed ? "w-20 p-4" : "w-72 p-6",
 			)}
 		>
@@ -70,25 +79,26 @@ export function Sidebar() {
 				)}
 			>
 				{/* Logo & Marca */}
-				<div
-					className={cn(
-						"flex items-center gap-4 transition-all duration-300 overflow-hidden",
-						isCollapsed ? "justify-center px-0" : "px-1",
-					)}
-				>
+				<div className="flex items-center gap-4 overflow-hidden px-1">
 					<div className="h-9 w-9 rounded-xl bg-accent border border-border flex items-center justify-center text-primary shadow-sm shrink-0">
 						<Home className="w-5 h-5" />
 					</div>
-					{!isCollapsed && (
-						<div className="flex flex-col min-w-0 transition-opacity duration-200">
-							<span className="font-semibold text-lg tracking-tight text-foreground truncate">
-								Smart Hub
-							</span>
-							<span className="text-xs font-medium text-muted-foreground uppercase tracking-wider truncate">
-								Hub Ativo: 01
-							</span>
-						</div>
-					)}
+					{/* Sempre montado — só encolhe/desaparece junto com a largura da
+					 * sidebar (max-w+opacity), em vez de sumir de uma vez (unmount)
+					 * no meio da transição de width. */}
+					<div
+						className={cn(
+							"flex flex-col min-w-0 overflow-hidden transition-[max-width,opacity] duration-200 ease-out",
+							isCollapsed ? "max-w-0 opacity-0" : "max-w-40 opacity-100",
+						)}
+					>
+						<span className="font-semibold text-lg tracking-tight text-foreground truncate">
+							Smart Hub
+						</span>
+						<span className="text-xs font-medium text-muted-foreground uppercase tracking-wider truncate">
+							Hub Ativo: 01
+						</span>
+					</div>
 				</div>
 
 				{/* Navegação Principal */}
@@ -101,10 +111,7 @@ export function Sidebar() {
 								to={item.path}
 								title={isCollapsed ? item.name : undefined}
 								className={cn(
-									"flex items-center gap-2 h-10 rounded-lg text-xs font-medium transition-all duration-200",
-									isCollapsed
-										? "justify-center w-10 px-0"
-										: "justify-start px-3",
+									"flex items-center gap-2 h-10 rounded-lg px-3 text-xs font-medium overflow-hidden transition-colors duration-150",
 									active
 										? "bg-primary/10 text-foreground ring-1 ring-primary/30 shadow-sm font-semibold"
 										: "text-muted-foreground hover:text-foreground hover:bg-card/50",
@@ -116,11 +123,14 @@ export function Sidebar() {
 										active ? "text-primary" : "text-muted-foreground",
 									)}
 								/>
-								{!isCollapsed && (
-									<span className="truncate transition-opacity duration-200">
-										{item.name}
-									</span>
-								)}
+								<span
+									className={cn(
+										"truncate transition-[max-width,opacity] duration-200 ease-out",
+										isCollapsed ? "max-w-0 opacity-0" : "max-w-40 opacity-100",
+									)}
+								>
+									{item.name}
+								</span>
 							</Link>
 						);
 					})}
@@ -130,24 +140,39 @@ export function Sidebar() {
 						to="/settings"
 						title={isCollapsed ? "Configurações" : undefined}
 						className={cn(
-							"flex items-center gap-2 h-10 rounded-lg text-xs font-medium transition-all duration-200 mt-auto",
-							isCollapsed ? "justify-center w-10 px-0" : "justify-start px-3",
+							"flex items-center gap-2 h-10 rounded-lg px-3 text-xs font-medium overflow-hidden transition-colors duration-150 mt-auto",
 							isActive("/settings")
 								? "bg-primary/10 text-foreground ring-1 ring-primary/30 shadow-sm font-semibold"
 								: "text-muted-foreground hover:text-foreground hover:bg-card/50",
 						)}
 					>
 						<Settings className="w-4 h-4 shrink-0" />
-						{!isCollapsed && <span className="truncate">Configurações</span>}
+						<span
+							className={cn(
+								"truncate transition-[max-width,opacity] duration-200 ease-out",
+								isCollapsed ? "max-w-0 opacity-0" : "max-w-40 opacity-100",
+							)}
+						>
+							Configurações
+						</span>
 					</Link>
 				</nav>
 			</div>
 
 			{/* Rodapé: Widget de Status & Ação Rápida */}
 			<div className="space-y-3 pt-4 border-t border-border">
-				{/* Status Real: Dispositivos Online */}
-				{!isCollapsed && totalCount > 0 && (
-					<div className="rounded-xl border border-border bg-surface-highest/60 p-4 space-y-3">
+				{/* Status Real: Dispositivos Online — sempre montado quando há
+				 * dispositivos, só encolhe/funde junto com o resto (evita o
+				 * bloco inteiro sumir de golpe no meio da transição). */}
+				{totalCount > 0 && (
+					<div
+						className={cn(
+							"rounded-xl bg-surface-highest/60 space-y-3 overflow-hidden transition-[max-height,opacity] duration-200 ease-out",
+							isCollapsed
+								? "max-h-0 opacity-0 border-0 p-0"
+								: "max-h-40 opacity-100 border border-border p-4",
+						)}
+					>
 						<div className="flex items-center justify-between text-xs font-medium tracking-wider uppercase text-muted-foreground">
 							<span>Dispositivos Online</span>
 							<span className="text-primary font-bold">
@@ -162,13 +187,17 @@ export function Sidebar() {
 				<button
 					type="button"
 					title={isCollapsed ? "Adicionar" : undefined}
-					className={cn(
-						"w-full flex items-center justify-center gap-2 rounded-lg bg-surface-highest/40 border border-border text-foreground font-medium text-xs transition-all hover:bg-card hover:border-primary/40 shadow-sm group cursor-pointer",
-						isCollapsed ? "h-10 w-10 p-0 mx-auto" : "h-10 px-3",
-					)}
+					className="w-full flex h-10 items-center justify-center gap-2 overflow-hidden rounded-lg border border-border bg-surface-highest/40 px-3 text-xs font-medium text-foreground shadow-sm transition-colors duration-150 hover:bg-card hover:border-primary/40 group cursor-pointer"
 				>
 					<Plus className="w-4 h-4 text-primary group-hover:scale-110 transition-transform shrink-0" />
-					{!isCollapsed && <span>Adicionar</span>}
+					<span
+						className={cn(
+							"truncate transition-[max-width,opacity] duration-200 ease-out",
+							isCollapsed ? "max-w-0 opacity-0" : "max-w-40 opacity-100",
+						)}
+					>
+						Adicionar
+					</span>
 				</button>
 			</div>
 		</aside>

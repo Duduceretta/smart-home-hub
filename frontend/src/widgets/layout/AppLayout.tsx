@@ -7,6 +7,7 @@ import { Sidebar } from "./Sidebar";
 export function AppLayout() {
 	const location = useLocation();
 	const isActive = (path: string) => location.pathname.includes(path);
+	const isRoomsRoute = location.pathname.startsWith("/rooms");
 
 	const mobileNavItems = [
 		{ name: "Início", path: "/dashboard", icon: LayoutDashboard },
@@ -31,12 +32,13 @@ export function AppLayout() {
 						key={location.pathname}
 						className={cn(
 							"w-full pb-20 md:pb-0 motion-safe:animate-in motion-safe:fade-in motion-safe:duration-200",
-							// Automações precisa de altura definida pra fazer o
-							// split-view com scroll interno próprio na lista e no
-							// painel de detalhe (não scroll de página, como as
-							// outras rotas). h-full só nessa rota — as demais
-							// mantêm a classe idêntica de antes.
-							location.pathname.startsWith("/automations") && "h-full",
+							// Automações e Ambientes precisam de altura definida pra
+							// fazer o split-view rolar por dentro (lista e painel de
+							// detalhe cada um com seu próprio scroll), não a página
+							// inteira, como as outras rotas fazem. h-full só nessas
+							// rotas — as demais mantêm a classe idêntica de antes.
+							(location.pathname.startsWith("/automations") || isRoomsRoute) &&
+								"h-full",
 						)}
 					>
 						<Outlet />

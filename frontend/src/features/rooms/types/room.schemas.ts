@@ -9,10 +9,7 @@ export const roomBaseSchema = z.object({
 		.trim()
 		.min(1, "O nome do ambiente é obrigatório.")
 		.max(50, "O nome do ambiente não pode passar de 50 caracteres."),
-	icon: z
-		.string()
-		.trim()
-		.min(1, "O ícone do ambiente é obrigatório."),
+	icon: z.string().trim().min(1, "O ícone do ambiente é obrigatório."),
 });
 
 export const createRoomSchema = roomBaseSchema;

@@ -23,3 +23,5 @@ export interface UpdateRoomPayload {
 	name: string;
 	icon?: string | null;
 }
+
+export type RoomsViewMode = "cards" | "list";

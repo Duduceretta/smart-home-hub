@@ -1,4 +1,14 @@
-import { Armchair, Bath, Bed, Car, CookingPot, Home, Tv } from "lucide-react";
+import {
+	Armchair,
+	Bath,
+	Bed,
+	Briefcase,
+	Car,
+	CookingPot,
+	Home,
+	Trees,
+	Tv,
+} from "lucide-react";
 import type { ComponentType } from "react";
 
 export type RoomIconLabelKey =
@@ -7,7 +17,9 @@ export type RoomIconLabelKey =
 	| "icons.kitchen"
 	| "icons.media"
 	| "icons.garage"
-	| "icons.bathroom";
+	| "icons.bathroom"
+	| "icons.garden"
+	| "icons.office";
 
 export interface RoomIconOption {
 	id: string;
@@ -27,6 +39,8 @@ export const ROOM_ICON_OPTIONS: RoomIconOption[] = [
 	{ id: "tv", labelKey: "icons.media", icon: Tv },
 	{ id: "garage", labelKey: "icons.garage", icon: Car },
 	{ id: "bathtub", labelKey: "icons.bathroom", icon: Bath },
+	{ id: "garden", labelKey: "icons.garden", icon: Trees },
+	{ id: "office", labelKey: "icons.office", icon: Briefcase },
 ];
 
 /**
@@ -43,5 +57,7 @@ export const ROOM_ICON_MAP: Record<
 	tv: Tv,
 	garage: Car,
 	bathtub: Bath,
+	garden: Trees,
+	office: Briefcase,
 	default: Home,
 };

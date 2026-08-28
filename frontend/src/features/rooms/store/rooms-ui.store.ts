@@ -10,15 +10,21 @@ interface RoomsUIState {
 	setQuery: (query: string) => void;
 	resetFilters: () => void;
 
-	// Create Sheet Modal State
-	isCreateSheetOpen: boolean;
-	openCreateSheet: () => void;
-	closeCreateSheet: () => void;
-
-	// Edit Sheet Modal State
+	// Create/Edit Dialog State — o `RoomFormDialog` (único, criação+edição) lê os três campos
+	// abaixo pra decidir modo (`editingRoom` presente = "edit") e se deve
+	// abrir com o scroll já posicionado na seção de dispositivos (usado pelo
+	// botão "+ Adicionar Dispositivo a este Ambiente" do `RoomDetailPanel`).
+	isCreateDialogOpen: boolean;
 	editingRoom: Room | null;
-	openEditSheet: (room: Room) => void;
-	closeEditSheet: () => void;
+	editDialogFocusDevices: boolean;
+	openCreateDialog: () => void;
+	openEditDialog: (room: Room, options?: { focusDevices?: boolean }) => void;
+	closeFormDialog: () => void;
+
+	// Delete Confirmation State
+	deletingRoom: Room | null;
+	openDeleteDialog: (room: Room) => void;
+	closeDeleteDialog: () => void;
 }
 
 /**
@@ -28,18 +34,36 @@ interface RoomsUIState {
 export const useRoomsUIStore = create<RoomsUIState>((set) => ({
 	// Default Values
 	query: "",
-	isCreateSheetOpen: false,
+	isCreateDialogOpen: false,
 	editingRoom: null,
+	editDialogFocusDevices: false,
+	deletingRoom: null,
 
 	// Filter Actions
 	setQuery: (query) => set({ query }),
 	resetFilters: () => set({ query: "" }),
 
-	// Create Sheet Actions
-	openCreateSheet: () => set({ isCreateSheetOpen: true }),
-	closeCreateSheet: () => set({ isCreateSheetOpen: false }),
+	// Create/Edit Dialog Actions
+	openCreateDialog: () =>
+		set({
+			isCreateDialogOpen: true,
+			editingRoom: null,
+			editDialogFocusDevices: false,
+		}),
+	openEditDialog: (room, options) =>
+		set({
+			editingRoom: room,
+			isCreateDialogOpen: false,
+			editDialogFocusDevices: options?.focusDevices ?? false,
+		}),
+	closeFormDialog: () =>
+		set({
+			isCreateDialogOpen: false,
+			editingRoom: null,
+			editDialogFocusDevices: false,
+		}),
 
-	// Edit Sheet Actions
-	openEditSheet: (room) => set({ editingRoom: room }),
-	closeEditSheet: () => set({ editingRoom: null }),
+	// Delete Confirmation Actions
+	openDeleteDialog: (room) => set({ deletingRoom: room }),
+	closeDeleteDialog: () => set({ deletingRoom: null }),
 }));

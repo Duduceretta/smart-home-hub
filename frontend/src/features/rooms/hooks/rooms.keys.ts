@@ -13,4 +13,13 @@ export const roomsKeys = {
 		[...roomsKeys.lists(), { filters }] as const,
 	details: () => [...roomsKeys.all, "detail"] as const,
 	detail: (id: string) => [...roomsKeys.details(), id] as const,
+	pickerDevices: () => [...roomsKeys.all, "picker-devices"] as const,
+	climate: (roomId: string) =>
+		[...roomsKeys.detail(roomId), "climate"] as const,
+	energy: (roomId: string, range: string) =>
+		[...roomsKeys.detail(roomId), "energy", range] as const,
+	automations: (roomId: string) =>
+		[...roomsKeys.detail(roomId), "automations"] as const,
+	activityLog: (roomId: string) =>
+		[...roomsKeys.detail(roomId), "activity-log"] as const,
 };
