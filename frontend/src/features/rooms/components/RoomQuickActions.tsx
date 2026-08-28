@@ -50,7 +50,7 @@ export function RoomQuickActions({ roomId, devices }: RoomQuickActionsProps) {
 		<div className="flex gap-2">
 			<Button
 				variant="outline"
-				className="flex-1"
+				className="flex-1 border-border-subtle/30 bg-surface-container hover:border-primary/40 hover:bg-surface-high"
 				disabled={!hasDeviceToTurnOn || setPower.isPending}
 				onClick={() => runBulkPower(true, "ligados")}
 			>
@@ -59,7 +59,7 @@ export function RoomQuickActions({ roomId, devices }: RoomQuickActionsProps) {
 			</Button>
 			<Button
 				variant="outline"
-				className="flex-1"
+				className="flex-1 border-border-subtle/30 bg-surface-container hover:border-primary/40 hover:bg-surface-high"
 				disabled={!hasDeviceToTurnOff || setPower.isPending}
 				onClick={() => runBulkPower(false, "desligados")}
 			>

@@ -36,12 +36,15 @@ export function RoomDeviceCard({
 
 	if (!device.isOnline) {
 		return (
-			<div className="flex items-center gap-3 rounded-lg border border-alert/50 bg-alert/10 p-4">
+			<div className="flex items-center gap-4 rounded-lg border border-alert/50 bg-alert/10 p-4 transition-colors hover:bg-alert/15">
 				<div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-alert/20 text-alert-foreground">
 					<Icon className="h-5 w-5" />
 				</div>
 				<div className="flex min-w-0 flex-col gap-0.5">
-					<span className="truncate text-sm font-medium text-foreground">
+					<span
+						title={device.name}
+						className="truncate text-sm font-medium text-foreground"
+					>
 						{device.name}
 					</span>
 					<span className="flex items-center gap-1 text-xs font-medium text-alert-foreground">
@@ -54,12 +57,15 @@ export function RoomDeviceCard({
 	}
 
 	return (
-		<div className="flex items-center gap-3 rounded-lg border border-border-subtle/20 bg-surface-container p-4">
+		<div className="flex items-center gap-4 rounded-lg border border-border-subtle/20 bg-surface-container p-4 transition-colors hover:bg-surface-high">
 			<div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-surface-high text-primary">
 				<Icon className="h-5 w-5" />
 			</div>
 			<div className="flex min-w-0 flex-1 flex-col gap-0.5">
-				<span className="truncate text-sm font-medium text-foreground">
+				<span
+					title={device.name}
+					className="truncate text-sm font-medium text-foreground"
+				>
 					{device.name}
 				</span>
 				<span

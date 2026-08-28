@@ -27,7 +27,7 @@ export function RoomDeviceGrid({ room, devices }: RoomDeviceGridProps) {
 					Nenhum dispositivo neste ambiente ainda.
 				</p>
 			) : (
-				<div className="grid grid-cols-[repeat(auto-fill,minmax(200px,1fr))] gap-3">
+				<div className="grid grid-cols-[repeat(auto-fill,minmax(240px,1fr))] gap-3">
 					{devices.map((device) => (
 						<RoomDeviceCard
 							key={device.id}

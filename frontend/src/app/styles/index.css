@@ -90,8 +90,13 @@
 	--accent: #e0e2ef;
 	--accent-foreground: #181b24;
 	--destructive: #ba1a1a;
-	--border: rgba(70, 70, 75, 0.15);
-	--input: rgba(70, 70, 75, 0.2);
+	/* --border/--input eram rgba(70,70,75,α) translúcido — sobre o
+	 --background/--card claros deste tema (#fbf8f9/#ffffff) isso dava só
+	 1.28:1 de contraste (WCAG 1.4.11 exige 3:1 pra componente de UI).
+	 Trocado por cinza sólido com viés quente (R>G>B) calibrado pra ≥3:1
+	 contra os dois — ver relatório de contraste na entrega. */
+	--border: #90847a;
+	--input: #857a6f;
 	--ring: #2e3037;
 	--chart-1: #353435;
 	--chart-2: #76757b;
@@ -106,7 +111,7 @@
 	--sidebar-primary-foreground: #ffffff;
 	--sidebar-accent: #e0e2ef;
 	--sidebar-accent-foreground: #181b24;
-	--sidebar-border: rgba(70, 70, 75, 0.15);
+	--sidebar-border: #90847a;
 	--sidebar-ring: #2e3037;
 
 	--surface-highest: #e8e6e7;
@@ -147,8 +152,15 @@
 
 	--destructive: #ffb4ab;
 
-	--border: rgba(70, 70, 75, 0.25);
-	--input: rgba(70, 70, 75, 0.35);
+	/* --border/--input eram rgba(70,70,75,α) translúcido — alpha baixo
+	 (0.25-0.35) sobre um --background/--card já muito escuros (#141314/
+	 #2a2a2a) sempre resulta em contraste insuficiente (~1.14:1 contra
+	 --background, ~1.10:1 contra --card — WCAG 1.4.11 exige 3:1 pra
+	 componente de UI), não importa o alpha dentro dessa faixa. Trocado por
+	 cinza sólido com viés quente (R>G>B, mesma família de --warm) calibrado
+	 pra ≥3:1 contra os dois — ver relatório de contraste na entrega. */
+	--border: #7d766e;
+	--input: #8c8479;
 	--ring: #c5c6cf;
 
 	--chart-1: #c5c6cf;
@@ -165,13 +177,16 @@
 	--sidebar-primary-foreground: #2e3037;
 	--sidebar-accent: #201f20;
 	--sidebar-accent-foreground: #e5e2e2;
-	--sidebar-border: rgba(70, 70, 75, 0.25);
+	--sidebar-border: #7d766e;
 	--sidebar-ring: #c5c6cf;
 
 	/* Tokens novos do design system (sem equivalente shadcn prévio) —
-     valores exatos da paleta Warm Dark Surface documentada no CLAUDE.md. */
+     valores exatos da paleta Warm Dark Surface documentada no CLAUDE.md,
+     exceto --border-subtle: era #46464b sólido, mas ainda escuro demais
+     (~1.98:1 contra --background, WCAG exige 3:1) — subido mantendo o
+     viés quente. */
 	--surface-highest: #353435;
-	--border-subtle: #46464b;
+	--border-subtle: #837a70;
 	--warm: #d3c4b8;
 	--warm-foreground: #382f27;
 	--alert: #93000a;

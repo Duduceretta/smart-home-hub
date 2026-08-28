@@ -49,17 +49,21 @@ export function RoomClimateSection({ roomId }: RoomClimateSectionProps) {
 				value={
 					data.temperatureCelsius !== null
 						? `${data.temperatureCelsius}°C`
-						: "--"
+						: "Sem sensor"
 				}
 				accentClassName="text-cool"
+				isUnavailable={data.temperatureCelsius === null}
 			/>
 			<RoomKpiCard
 				icon={Droplets}
 				label="Umidade"
 				value={
-					data.humidityPercent !== null ? `${data.humidityPercent}%` : "--"
+					data.humidityPercent !== null
+						? `${data.humidityPercent}%`
+						: "Sem sensor"
 				}
 				accentClassName="text-cool"
+				isUnavailable={data.humidityPercent === null}
 			/>
 		</div>
 	);

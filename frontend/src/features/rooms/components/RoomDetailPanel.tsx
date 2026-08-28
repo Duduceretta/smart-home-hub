@@ -37,32 +37,29 @@ export function RoomDetailPanel({ room, devices }: RoomDetailPanelProps) {
 
 	return (
 		<div className="flex h-full max-h-full flex-col overflow-hidden rounded-xl border border-border-subtle/20 bg-surface-low">
-			<div className="flex shrink-0 items-center justify-between gap-4 border-b border-border-subtle/20 p-6">
-				<div className="flex min-w-0 items-center gap-4">
-					<div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-surface-high text-primary">
-						<Icon className="h-6 w-6" />
-					</div>
-					<div className="min-w-0">
+			<div className="flex shrink-0 items-center gap-4 border-b border-border-subtle/20 p-6">
+				<div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-surface-high text-primary">
+					<Icon className="h-6 w-6" />
+				</div>
+				<div className="min-w-0">
+					<div className="flex items-center gap-2">
 						<h2 className="truncate text-xl font-medium text-foreground">
 							{room.name}
 						</h2>
-						<p className="text-sm text-muted-foreground">
-							{devices.length} dispositivo
-							{devices.length === 1 ? "" : "s"} conectado
-							{devices.length === 1 ? "" : "s"}
-						</p>
+						<Button
+							variant="outline"
+							size="xs"
+							onClick={() => openEditDialog(room)}
+						>
+							<Pencil className="h-3 w-3" />
+							Editar
+						</Button>
 					</div>
-				</div>
-
-				<div className="flex shrink-0 items-center gap-2">
-					<Button
-						variant="outline"
-						size="sm"
-						onClick={() => openEditDialog(room)}
-					>
-						<Pencil className="h-3.5 w-3.5" />
-						Editar
-					</Button>
+					<p className="text-sm text-muted-foreground">
+						{devices.length} dispositivo
+						{devices.length === 1 ? "" : "s"} conectado
+						{devices.length === 1 ? "" : "s"}
+					</p>
 				</div>
 			</div>
 
