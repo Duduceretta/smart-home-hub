@@ -264,23 +264,41 @@ export function AutomationListPanel({
 					</div>
 				)}
 
-				{/* Ghost Card para Criar Nova Automação — mesmo padrão de `RoomListPanel` */}
+				{/* Ghost Card para Criar Nova Automação — mesmo padrão de `RoomListPanel`
+				no modo cards; no modo lista acompanha a densidade do `AutomationRow`
+				(sem subtítulo, ícone/altura menores). */}
 				<button
 					type="button"
 					onClick={onCreate}
-					className="group flex h-16 w-full items-center gap-4 rounded-lg bg-surface-container/40 p-4 text-left transition-all hover:bg-surface-container cursor-pointer"
+					className={cn(
+						"group flex w-full items-center gap-3 rounded-lg bg-surface-container/40 text-left transition-all hover:bg-surface-container cursor-pointer",
+						viewMode === "cards" ? "h-16 gap-4 p-4" : "h-10 px-3 py-2",
+					)}
 				>
-					<span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-surface-high text-muted-foreground transition-colors group-hover:bg-primary/15 group-hover:text-primary">
-						<Plus className="h-4 w-4" />
+					<span
+						className={cn(
+							"flex shrink-0 items-center justify-center rounded-full bg-surface-high text-muted-foreground transition-colors group-hover:bg-primary/15 group-hover:text-primary",
+							viewMode === "cards" ? "h-8 w-8" : "h-6 w-6",
+						)}
+					>
+						<Plus
+							className={viewMode === "cards" ? "h-4 w-4" : "h-3.5 w-3.5"}
+						/>
 					</span>
-					<div className="flex flex-col">
+					{viewMode === "cards" ? (
+						<div className="flex flex-col">
+							<span className="text-sm font-medium text-foreground transition-colors group-hover:text-primary">
+								Adicionar Automação
+							</span>
+							<span className="text-xs text-muted-foreground">
+								Criar uma nova regra
+							</span>
+						</div>
+					) : (
 						<span className="text-sm font-medium text-foreground transition-colors group-hover:text-primary">
 							Adicionar Automação
 						</span>
-						<span className="text-xs text-muted-foreground">
-							Criar uma nova regra
-						</span>
-					</div>
+					)}
 				</button>
 
 				<div ref={sentinelRef} aria-hidden className="h-px" />

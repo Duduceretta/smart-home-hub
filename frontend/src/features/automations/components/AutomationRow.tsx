@@ -13,11 +13,9 @@ interface AutomationRowProps {
 
 /**
  * Linha densa estilo Gmail/tabela — duas linhas por automação (nome+status
- * numa, resumo do gatilho na outra). Era uma linha só de ~44px com o resumo
- * truncando cedo (`w-32` fixo no nome + `flex-1 truncate` no resumo) —
- * gatilhos com lista de dias da semana ("Seg, Ter, Qua às 07:00") cortavam
- * no meio. Segunda linha sem `truncate` (só `line-clamp-2`) resolve sem
- * precisar de hover/expansão — mais simples de manter. Mesma seleção do
+ * numa, resumo do gatilho na outra), `px-3 py-2` (não `p-3` do
+ * `AutomationCard`) pra ficar visivelmente mais compacta que o modo cards,
+ * já que é isso que diferencia os dois modos. Mesma seleção do
  * AutomationCard, só muda a apresentação.
  */
 export function AutomationRow({
@@ -43,16 +41,16 @@ export function AutomationRow({
 			}}
 			aria-current={isSelected}
 			className={cn(
-				"group flex w-full flex-col gap-1.5 rounded-lg border p-3 text-left transition-all cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-ring/50",
+				"group flex w-full flex-col gap-0.5 rounded-lg border px-3 py-2 text-left transition-all cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-ring/50",
 				isSelected
 					? "border-primary/40 bg-primary/10 shadow-xs"
 					: "border-transparent bg-surface-container/60 hover:bg-surface-high hover:border-border-subtle/50",
 			)}
 		>
-			<div className="flex items-center gap-2.5">
+			<div className="flex items-center gap-2">
 				<span
 					className={cn(
-						"flex h-6 w-6 shrink-0 items-center justify-center rounded-md transition-colors",
+						"flex h-5 w-5 shrink-0 items-center justify-center rounded-md transition-colors",
 						isSelected
 							? "bg-primary/15 text-primary"
 							: "bg-surface-low text-muted-foreground",
@@ -60,7 +58,7 @@ export function AutomationRow({
 				>
 					<TriggerIcon
 						className={cn(
-							"h-3.5 w-3.5 shrink-0",
+							"h-3 w-3 shrink-0",
 							automation.isActive && !automation.isDraft
 								? "text-primary"
 								: "text-muted-foreground",
@@ -85,7 +83,7 @@ export function AutomationRow({
 						Incompleta
 					</span>
 				) : (
-					<div className="flex shrink-0 items-center gap-2">
+					<div className="flex shrink-0 items-center gap-1.5">
 						<span className="text-[11px] text-muted-foreground">
 							{formatRelativeTime(automation.updatedAt ?? automation.createdAt)}
 						</span>
@@ -99,14 +97,14 @@ export function AutomationRow({
 								checked={automation.isActive}
 								onCheckedChange={(checked) => onToggle(automation.id, checked)}
 								aria-label={`${automation.isActive ? "Desativar" : "Ativar"} automação ${automation.name}`}
-								className="scale-90"
+								className="scale-75"
 							/>
 						</span>
 					</div>
 				)}
 			</div>
 
-			<span className="line-clamp-2 pl-8.5 text-xs text-muted-foreground">
+			<span className="line-clamp-1 pl-7 text-xs text-muted-foreground">
 				{automation.isDraft
 					? "Sem gatilho configurado"
 					: automation.triggerSummary}
