@@ -48,9 +48,14 @@ export function RoomLinkedAutomations({ roomId }: RoomLinkedAutomationsProps) {
 
 	return (
 		<div className="flex flex-col gap-2">
-			<h3 className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-				{t("automations.title", "Automações deste Ambiente")}
-			</h3>
+			{/* Mesmo padrão de cabeçalho com ação-à-direita do RoomEnergyChart —
+			pronto pra receber um link "Ver todas"/contador quando a lista crescer,
+			sem precisar de refatoração futura. */}
+			<div className="flex items-center justify-between">
+				<h3 className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+					{t("automations.title", "Automações deste Ambiente")}
+				</h3>
+			</div>
 
 			{isLoading ? (
 				<div className="flex flex-col gap-2">

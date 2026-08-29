@@ -19,7 +19,7 @@ export function RoomClimateSection({ roomId }: RoomClimateSectionProps) {
 
 	if (isLoading) {
 		return (
-			<div className="grid grid-cols-2 gap-4">
+			<div className="grid grid-cols-[repeat(auto-fit,minmax(140px,1fr))] gap-4">
 				{[0, 1].map((i) => (
 					<div
 						key={i}
@@ -49,7 +49,7 @@ export function RoomClimateSection({ roomId }: RoomClimateSectionProps) {
 	if (!data?.hasClimateSensor) return null;
 
 	return (
-		<div className="grid grid-cols-2 gap-4">
+		<div className="grid grid-cols-[repeat(auto-fit,minmax(140px,1fr))] gap-4">
 			<RoomKpiCard
 				icon={Thermometer}
 				label={t("climate.temperature", "Temperatura")}
