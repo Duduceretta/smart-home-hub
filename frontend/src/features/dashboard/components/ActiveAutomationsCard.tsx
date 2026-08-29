@@ -2,7 +2,7 @@ import { ChevronRight, Plus, Radio } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { useRecentAutomations } from "../hooks/useRecentAutomations";
-import { getRelativeTime } from "../utils/relativeTime";
+import { getRelativeTime } from "../lib/relativeTime";
 import { DashboardErrorState } from "./DashboardErrorState";
 
 const VISIBLE_COUNT = 3;
@@ -40,7 +40,7 @@ function AutomationEmptySlot({ onClick }: { onClick: () => void }) {
 		<button
 			type="button"
 			onClick={onClick}
-			className="group flex h-16 items-center gap-4 rounded-lg border-2 border-dashed border-border-subtle/20 p-4 text-left opacity-40 transition-all hover:opacity-100 hover:bg-surface-high cursor-pointer"
+			className="group flex h-16 items-center gap-4 rounded-lg border-2 border-dashed border-border-subtle p-4 text-left opacity-40 transition-all hover:opacity-100 hover:bg-surface-high cursor-pointer"
 		>
 			<span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-surface-high text-muted-foreground transition-colors group-hover:bg-primary/15 group-hover:text-primary">
 				<Plus className="h-4 w-4" />
@@ -79,7 +79,7 @@ export function ActiveAutomationsCard() {
 		recentActive.length > 0 ? VISIBLE_COUNT - recentActive.length : 0;
 
 	return (
-		<div className="rounded-xl border border-border-subtle/20 bg-surface-container p-4 flex flex-col gap-4 flex-1 transition-all duration-200 hover:border-primary/25 hover:shadow-lg hover:shadow-black/30">
+		<div className="rounded-xl border border-border-subtle/10 bg-surface-high p-4 flex flex-col gap-4 flex-1 transition-all duration-200 hover:border-primary/25 hover:shadow-lg hover:shadow-black/30">
 			<div className="flex items-center justify-between">
 				<h3 className="text-xs font-medium tracking-wider text-muted-foreground uppercase">
 					{t("automations.title")}
@@ -113,7 +113,7 @@ export function ActiveAutomationsCard() {
 					<button
 						type="button"
 						onClick={() => navigate("/automations")}
-						className="mt-1 rounded-md border border-border-subtle/30 px-3 py-2 text-xs font-medium uppercase tracking-wider text-foreground transition-colors hover:bg-surface-high cursor-pointer"
+						className="mt-1 rounded-md border border-border-subtle px-3 py-2 text-xs font-medium uppercase tracking-wider text-foreground transition-colors hover:bg-surface-high cursor-pointer"
 					>
 						{t("automations.createCta")}
 					</button>
@@ -130,7 +130,7 @@ export function ActiveAutomationsCard() {
 						{recentActive.map((automation) => (
 							<div
 								key={automation.id}
-								className="flex h-16 items-center gap-4 rounded-lg border border-border-subtle/20 bg-surface-high p-4"
+								className="flex h-16 items-center gap-4 rounded-lg border border-border-subtle/10 bg-surface-high p-4"
 							>
 								<span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/15 text-primary">
 									<Radio className="h-4 w-4" />
@@ -172,7 +172,7 @@ export function ActiveAutomationsCard() {
 					<button
 						type="button"
 						onClick={() => navigate("/automations")}
-						className="mt-auto flex items-center justify-center gap-1 rounded-lg border border-border-subtle/20 bg-surface-high py-2 text-xs font-medium text-muted-foreground transition-colors hover:bg-surface-highest hover:text-foreground cursor-pointer"
+						className="mt-auto flex items-center justify-center gap-1 rounded-lg border border-border-subtle bg-surface-high py-2 text-xs font-medium text-muted-foreground transition-colors hover:bg-surface-highest hover:text-foreground cursor-pointer"
 					>
 						{t("automations.viewAll")}
 						<ChevronRight className="h-3.5 w-3.5" />

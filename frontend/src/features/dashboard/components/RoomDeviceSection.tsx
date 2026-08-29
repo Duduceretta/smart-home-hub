@@ -11,9 +11,9 @@ import { DeviceCard } from "@/features/devices/components/DeviceCard";
 import { useDevicesUIStore } from "@/features/devices/store/devices-ui.store";
 import type { Device } from "@/features/devices/types/devices.types";
 import { ROOM_ICON_MAP } from "@/features/rooms/constants/rooms.constants";
+import { isWideDevice } from "../lib/deviceRowUnits";
+import { formatEnergy } from "../lib/formatEnergy";
 import { useDashboardPreviewStore } from "../store/dashboard-preview.store";
-import { isWideDevice } from "../utils/deviceRowUnits";
-import { formatEnergy } from "../utils/formatEnergy";
 import { EditRoomPreviewModal } from "./EditRoomPreviewModal";
 
 /**
@@ -90,7 +90,7 @@ export function RoomDeviceSection({
 			onOpenChange={(open) => setRoomExpanded(roomKey, open)}
 			className="flex flex-col gap-4"
 		>
-			<div className="flex w-full items-center justify-between border-b border-border-subtle/20 pb-2">
+			<div className="flex w-full items-center justify-between border-b border-border-subtle/10 pb-2">
 				<button
 					type="button"
 					onClick={() => setRoomExpanded(roomKey, !expanded)}
@@ -164,7 +164,7 @@ export function RoomDeviceSection({
 					<button
 						type="button"
 						onClick={handleViewAll}
-						className="flex items-center justify-center gap-1 rounded-lg border border-border-subtle/20 bg-surface-container py-2 text-xs font-medium text-muted-foreground transition-colors hover:bg-surface-high hover:text-foreground cursor-pointer"
+						className="flex items-center justify-center gap-1 rounded-lg border border-border-subtle bg-surface-container py-2 text-xs font-medium text-muted-foreground transition-colors hover:bg-surface-high hover:text-foreground cursor-pointer"
 					>
 						{t("roomSection.viewAllDevices", "Ver todos os dispositivos")}
 						<ChevronRight className="h-3.5 w-3.5" />

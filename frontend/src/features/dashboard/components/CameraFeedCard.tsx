@@ -10,8 +10,8 @@ export function CameraFeedCard() {
 	const { t } = useTranslation("dashboard");
 
 	return (
-		<div className="rounded-xl border border-border-subtle/20 bg-surface-container overflow-hidden transition-all duration-200 hover:border-primary/25 hover:shadow-lg hover:shadow-black/30">
-			<div className="flex items-center gap-2 px-4 py-2 border-b border-border-subtle/20">
+		<div className="rounded-xl border border-border-subtle/10 bg-surface-high overflow-hidden transition-all duration-200 hover:border-primary/25 hover:shadow-lg hover:shadow-black/30">
+			<div className="flex items-center gap-2 px-4 py-2 border-b border-border-subtle/10">
 				<Shield className="w-3.5 h-3.5 text-alert-foreground" />
 				<span className="text-xs font-medium text-foreground">
 					{t("cameraFeed.title", "Aether Secure")}

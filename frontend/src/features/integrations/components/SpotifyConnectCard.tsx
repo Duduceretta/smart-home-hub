@@ -33,7 +33,7 @@ export const SpotifyConnectCard: React.FC = () => {
 	}, []);
 
 	return (
-		<div className="rounded-xl border border-border-subtle/30 bg-surface-high p-4">
+		<div className="rounded-xl border border-border-subtle/10 bg-surface-high p-4">
 			<div className="flex items-center gap-4">
 				<span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#1DB954]/15 text-[#1DB954]">
 					<Music2 className="h-5 w-5" />
@@ -55,7 +55,7 @@ export const SpotifyConnectCard: React.FC = () => {
 						variant="outline"
 						disabled={isDisconnecting}
 						onClick={() => disconnect()}
-						className="border-border-subtle/40 text-alert-foreground hover:bg-alert/20"
+						className="border-border-subtle text-alert-foreground hover:bg-alert/20"
 					>
 						{isDisconnecting ? (
 							<Loader2 className="h-4 w-4 animate-spin" />

@@ -47,7 +47,7 @@ export function AutomationExecutionSection({
 
 	return (
 		<div className="space-y-6">
-			<div className="rounded-lg border border-border-subtle/20 bg-surface-container p-4">
+			<div className="rounded-lg border border-border-subtle/10 bg-surface-high p-4">
 				<div className="mb-4 text-xs font-medium uppercase tracking-wider text-muted-foreground">
 					Execuções por dia da semana
 				</div>
@@ -93,7 +93,7 @@ export function AutomationExecutionSection({
 									}}
 									contentStyle={{
 										backgroundColor: "var(--color-surface-high)",
-										borderColor: "rgba(70,70,75,0.3)",
+										borderColor: "var(--color-border-subtle)",
 										borderRadius: "8px",
 										color: "var(--color-foreground)",
 									}}
@@ -111,7 +111,7 @@ export function AutomationExecutionSection({
 				)}
 			</div>
 
-			<div className="rounded-lg border border-border-subtle/20 bg-surface-container p-4">
+			<div className="rounded-lg border border-border-subtle/10 bg-surface-high p-4">
 				<div className="mb-4 text-xs font-medium uppercase tracking-wider text-muted-foreground">
 					Histórico de execução
 				</div>

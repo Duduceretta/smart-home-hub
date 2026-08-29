@@ -32,7 +32,7 @@ export function DashboardErrorState({
 			<button
 				type="button"
 				onClick={onRetry}
-				className="mt-1 rounded-md border border-border-subtle/30 px-3 py-2 text-xs font-medium uppercase tracking-wider text-foreground transition-colors hover:bg-surface-high cursor-pointer"
+				className="mt-1 rounded-md border border-border-subtle px-3 py-2 text-xs font-medium uppercase tracking-wider text-foreground transition-colors hover:bg-surface-high cursor-pointer"
 			>
 				{t("actions.retry", "Tentar novamente")}
 			</button>

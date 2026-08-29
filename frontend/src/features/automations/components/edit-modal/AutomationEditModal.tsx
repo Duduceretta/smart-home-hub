@@ -105,7 +105,7 @@ export function AutomationEditModal() {
 		>
 			<DialogContent className="gap-0 overflow-hidden rounded-2xl p-0 sm:max-w-2xl">
 				<div className="flex max-h-[85vh] flex-col">
-					<div className="flex items-start gap-4 border-b border-border-subtle/20 p-6 pb-4">
+					<div className="flex items-start gap-4 border-b border-border-subtle/10 p-6 pb-4">
 						<span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/15 text-primary ring-1 ring-primary/30">
 							<Pencil className="h-5 w-5" />
 						</span>
@@ -131,7 +131,7 @@ export function AutomationEditModal() {
 										onChange={(event) => form.setName(event.target.value)}
 										placeholder="Ex: Desligar tudo à noite"
 										maxLength={150}
-										className="h-8 w-full rounded-lg border border-border-subtle/20 bg-surface-high px-3 text-sm text-foreground outline-none transition-colors focus:border-primary/50 focus:ring-1 focus:ring-primary/50"
+										className="h-8 w-full rounded-lg border border-border-subtle bg-surface-high px-3 text-sm text-foreground outline-none transition-colors focus:border-primary/50 focus:ring-1 focus:ring-primary/50"
 									/>
 								</FormSection>
 
@@ -139,7 +139,7 @@ export function AutomationEditModal() {
 									{/* Tipo fixo — só exibição, sem interação (ver docblock do
 								componente pra motivo). */}
 									{triggerSourceOption && TriggerIcon && (
-										<div className="flex items-center gap-4 rounded-lg border border-border-subtle/20 bg-surface-high p-4">
+										<div className="flex items-center gap-4 rounded-lg border border-border-subtle/10 bg-surface-high p-4">
 											<span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/15 text-primary">
 												<TriggerIcon className="h-4 w-4" />
 											</span>
@@ -178,7 +178,7 @@ export function AutomationEditModal() {
 								</FormSection>
 
 								<FormSection title="Status">
-									<div className="flex items-center justify-between rounded-lg border border-border-subtle/20 bg-surface-high p-4">
+									<div className="flex items-center justify-between rounded-lg border border-border-subtle bg-surface-high p-4">
 										<div>
 											<p className="text-sm font-medium text-foreground">
 												Ativa
@@ -199,7 +199,7 @@ export function AutomationEditModal() {
 						<div className="pointer-events-none absolute inset-x-0 bottom-0 h-8 bg-gradient-to-t from-popover to-transparent" />
 					</div>
 
-					<div className="flex items-center justify-end gap-2 border-t border-border-subtle/20 bg-surface-low p-4">
+					<div className="flex items-center justify-end gap-2 border-t border-border-subtle/10 bg-surface-low p-4">
 						<Button
 							type="button"
 							variant="outline"

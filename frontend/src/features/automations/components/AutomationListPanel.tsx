@@ -128,8 +128,8 @@ export function AutomationListPanel({
 	};
 
 	return (
-		<div className="flex h-full max-h-full w-full flex-col overflow-hidden rounded-xl border border-border-subtle/20 bg-surface-low">
-			<div className="flex shrink-0 items-center justify-between border-b border-border-subtle/20 px-3 py-2.5">
+		<div className="flex h-full max-h-full w-full flex-col overflow-hidden rounded-xl border border-border-subtle/10 bg-surface-low">
+			<div className="flex shrink-0 items-center justify-between border-b border-border-subtle/10 px-3 py-2.5">
 				<span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
 					{automations.length} automaç{automations.length === 1 ? "ão" : "ões"}
 				</span>

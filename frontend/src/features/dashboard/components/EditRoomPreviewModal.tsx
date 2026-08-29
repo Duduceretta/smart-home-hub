@@ -11,7 +11,7 @@ import {
 } from "@/core/components/ui/dialog";
 import { DEVICE_CONFIG } from "@/features/devices/constants/devices.constants";
 import type { Device } from "@/features/devices/types/devices.types";
-import { deviceUnitWidth, ROW_CAPACITY_UNITS } from "../utils/deviceRowUnits";
+import { deviceUnitWidth, ROW_CAPACITY_UNITS } from "../lib/deviceRowUnits";
 
 interface EditRoomPreviewModalProps {
 	isOpen: boolean;
@@ -71,7 +71,7 @@ export function EditRoomPreviewModal({
 
 	return (
 		<Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-			<DialogContent className="sm:max-w-md bg-surface-container border-border-subtle/40 text-foreground">
+			<DialogContent className="sm:max-w-md bg-surface-container border-border-subtle text-foreground">
 				<DialogHeader>
 					<DialogTitle className="text-foreground">
 						{t("roomSection.editTitle", "Escolher dispositivos exibidos")}
@@ -98,8 +98,8 @@ export function EditRoomPreviewModal({
 									key={device.id}
 									className={`flex items-center gap-4 rounded-lg border p-4 transition-colors ${
 										disabled
-											? "border-border-subtle/20 opacity-40 cursor-not-allowed"
-											: "border-border-subtle/20 hover:bg-surface-highest cursor-pointer"
+											? "border-border-subtle opacity-40 cursor-not-allowed"
+											: "border-border-subtle hover:bg-surface-highest cursor-pointer"
 									} ${isSelected ? "bg-surface-highest border-primary/40" : "bg-surface-high"}`}
 								>
 									<input

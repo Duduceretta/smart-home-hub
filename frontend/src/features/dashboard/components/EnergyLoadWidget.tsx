@@ -10,7 +10,7 @@ import {
 	YAxis,
 } from "recharts";
 import { useDashboardOverview } from "../hooks/useDashboardOverview";
-import { formatEnergy, formatPower } from "../utils/formatEnergy";
+import { formatEnergy, formatPower } from "../lib/formatEnergy";
 import { DashboardErrorState } from "./DashboardErrorState";
 
 export function EnergyLoadWidget() {
@@ -19,7 +19,7 @@ export function EnergyLoadWidget() {
 
 	if (isLoading) {
 		return (
-			<div className="rounded-xl border border-border-subtle/20 bg-surface-container p-4 flex flex-col animate-pulse">
+			<div className="rounded-xl border border-border-subtle/20 bg-surface-high p-4 flex flex-col animate-pulse">
 				<div className="h-4 w-48 bg-surface-high rounded-md mb-6" />
 				<div className="flex-1 min-h-62.5 w-full bg-surface-high/40 rounded-xl" />
 			</div>
@@ -28,7 +28,7 @@ export function EnergyLoadWidget() {
 
 	if (isError || !data) {
 		return (
-			<div className="rounded-xl border border-border-subtle/20 bg-surface-container p-4 flex flex-col justify-center h-62.5">
+			<div className="rounded-xl border border-border-subtle/10 bg-surface-high p-4 flex flex-col justify-center h-62.5">
 				<DashboardErrorState
 					title={t(
 						"energyChart.errorTitle",
@@ -70,7 +70,7 @@ export function EnergyLoadWidget() {
 			: 0;
 
 	return (
-		<div className="rounded-xl border border-border-subtle/20 bg-surface-container p-4 flex flex-col transition-all duration-200 hover:border-primary/25 hover:shadow-lg hover:shadow-black/30">
+		<div className="rounded-xl border border-border-subtle/10 bg-surface-high p-4 flex flex-col transition-all duration-200 hover:border-primary/25 hover:shadow-lg hover:shadow-black/30">
 			<div className="flex items-center justify-between mb-6">
 				<div className="flex flex-col gap-1">
 					<div className="flex items-center gap-2">
@@ -130,12 +130,12 @@ export function EnergyLoadWidget() {
 									<stop
 										offset="0%"
 										stopColor="var(--color-primary)"
-										stopOpacity={0.35}
+										stopOpacity={0.18}
 									/>
 									<stop
 										offset="60%"
 										stopColor="var(--color-primary)"
-										stopOpacity={0.08}
+										stopOpacity={0.04}
 									/>
 									<stop
 										offset="100%"
@@ -180,7 +180,7 @@ export function EnergyLoadWidget() {
 								}}
 								contentStyle={{
 									backgroundColor: "var(--color-surface-high)",
-									borderColor: "rgba(70,70,75,0.3)",
+									borderColor: "var(--color-border-subtle)",
 									borderRadius: "8px",
 									color: "var(--color-foreground)",
 								}}

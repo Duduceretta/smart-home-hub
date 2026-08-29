@@ -93,7 +93,7 @@ export function ActionsStep({
 					{state.actions.map((action) => (
 						<li
 							key={action.id}
-							className="flex items-center gap-4 rounded-lg border border-border-subtle/20 bg-surface-high p-4"
+							className="flex items-center gap-4 rounded-lg border border-border-subtle bg-surface-high p-4"
 						>
 							<span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/15 text-primary">
 								<Zap className="h-4 w-4" />
@@ -128,7 +128,7 @@ export function ActionsStep({
 			)}
 
 			{isAdding ? (
-				<div className="flex flex-col gap-4 rounded-lg border border-border-subtle/20 bg-surface-high p-4">
+				<div className="flex flex-col gap-4 rounded-lg border border-border-subtle bg-surface-high p-4">
 					<div className="flex flex-col gap-1.5">
 						<Label>Dispositivo</Label>
 						<Select
@@ -169,7 +169,7 @@ export function ActionsStep({
 									"rounded-lg border px-3 py-2 text-xs font-medium transition-colors cursor-pointer",
 									draft.desiredState
 										? "border-primary/40 bg-primary/10 text-primary"
-										: "border-border-subtle/20 bg-surface-low text-muted-foreground hover:text-foreground",
+										: "border-border-subtle bg-surface-low text-muted-foreground hover:text-foreground",
 								)}
 							>
 								Ligar
@@ -184,7 +184,7 @@ export function ActionsStep({
 									"rounded-lg border px-3 py-2 text-xs font-medium transition-colors cursor-pointer",
 									!draft.desiredState
 										? "border-primary/40 bg-primary/10 text-primary"
-										: "border-border-subtle/20 bg-surface-low text-muted-foreground hover:text-foreground",
+										: "border-border-subtle bg-surface-low text-muted-foreground hover:text-foreground",
 								)}
 							>
 								Desligar

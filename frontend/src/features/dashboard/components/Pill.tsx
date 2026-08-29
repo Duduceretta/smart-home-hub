@@ -19,7 +19,7 @@ export const Pill: React.FC<PillProps> = ({
 			className={`shrink-0 inline-flex h-8 items-center gap-2 rounded-full border px-4 text-sm font-medium transition-colors cursor-pointer ${
 				active
 					? "bg-primary/20 border-primary/50 text-foreground"
-					: "bg-surface-container border-border-subtle/20 text-muted-foreground hover:bg-surface-high hover:text-foreground"
+					: "bg-surface-container border-border-subtle text-muted-foreground hover:bg-surface-high hover:text-foreground"
 			} ${className}`}
 		>
 			{children}

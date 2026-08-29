@@ -70,7 +70,7 @@ export function AutomationFilterChips({
 							"inline-flex h-8 items-center gap-1 rounded-full border px-3 text-sm font-medium transition-colors cursor-pointer",
 							filter === chip.value
 								? "border-primary/40 bg-primary/10 text-primary"
-								: "border-border-subtle/20 bg-surface-container text-muted-foreground hover:text-foreground",
+								: "border-border-subtle bg-surface-container text-muted-foreground hover:text-foreground",
 						)}
 					>
 						{chip.label}

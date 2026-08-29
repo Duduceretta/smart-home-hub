@@ -80,7 +80,7 @@ const EmptyState: React.FC<EmptyStateProps> = ({
 
 	return (
 		<div className="mx-auto flex max-w-md flex-col items-center justify-center gap-4 py-16 text-center">
-			<div className="flex h-12 w-12 items-center justify-center rounded-full bg-surface-container border border-border-subtle/30 text-muted-foreground">
+			<div className="flex h-12 w-12 items-center justify-center rounded-full bg-surface-container border border-border-subtle/10 text-muted-foreground">
 				<Icon className="h-5 w-5 text-primary" />
 			</div>
 			<div>
@@ -102,7 +102,7 @@ const EmptyState: React.FC<EmptyStateProps> = ({
 				<button
 					type="button"
 					onClick={onCreate}
-					className="mt-2 inline-flex items-center gap-2 rounded-full border border-border-subtle/30 bg-surface-high px-5 py-2 text-xs font-medium text-foreground transition-colors hover:bg-surface-highest cursor-pointer active:scale-[0.98]"
+					className="mt-2 inline-flex items-center gap-2 rounded-full border border-border-subtle bg-surface-high px-5 py-2 text-xs font-medium text-foreground transition-colors hover:bg-surface-highest cursor-pointer active:scale-[0.98]"
 				>
 					<Plus className="h-4 w-4" />
 					{t("grid.createFirstDevice", "Cadastrar Primeiro Dispositivo")}
@@ -111,7 +111,7 @@ const EmptyState: React.FC<EmptyStateProps> = ({
 				<button
 					type="button"
 					onClick={onReset}
-					className="mt-2 rounded-full border border-border-subtle/50 bg-surface-container px-4 py-1.5 text-xs font-medium text-foreground transition-colors hover:bg-surface-highest cursor-pointer"
+					className="mt-2 rounded-full border border-border-subtle/10 bg-surface-container px-4 py-1.5 text-xs font-medium text-foreground transition-colors hover:bg-surface-highest cursor-pointer"
 				>
 					{t("grid.clearFilters", "Limpar filtros")}
 				</button>
@@ -126,7 +126,7 @@ const GridSkeleton: React.FC = () => (
 			(sk) => (
 				<div
 					key={sk}
-					className="flex h-44 flex-col justify-between rounded-xl border border-border-subtle/20 bg-surface-low p-4"
+					className="flex h-44 flex-col justify-between rounded-xl border border-border-subtle bg-surface-low p-4"
 				>
 					<div className="flex justify-between items-start">
 						<div className="h-12 w-12 rounded-full bg-surface-container" />
@@ -151,7 +151,7 @@ const ListSkeleton: React.FC = () => (
 		{["lsk-1", "lsk-2", "lsk-3", "lsk-4", "lsk-5"].map((sk) => (
 			<div
 				key={sk}
-				className="flex items-center justify-between p-4 rounded-xl border border-border-subtle/20 bg-surface-low"
+				className="flex items-center justify-between p-4 rounded-xl border border-border-subtle bg-surface-low"
 			>
 				<div className="flex items-center gap-4">
 					<div className="h-9 w-9 rounded-full bg-surface-container" />

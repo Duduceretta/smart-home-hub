@@ -83,7 +83,7 @@ Quando precisar de um efeito "mais claro que o tom mais claro definido" (ex.: ho
   ```tsx
   <div className="relative min-h-0 flex-1">
     <div className="h-full overflow-y-auto scrollbar-thin">{/* conteúdo */}</div>
-    <div className="pointer-events-none absolute inset-x-0 bottom-0 h-8 bg-gradient-to-t from-surface-low to-transparent" />
+    <div className="pointer-events-none absolute inset-x-0 bottom-0 h-8 bg-linear-to-t from-surface-low to-transparent" />
   </div>
   ```
   O tom inicial do gradiente (`from-*`) deve ser sempre igual ao `bg-*` real do container ambiente (`from-surface-low` num painel, `from-popover` dentro de um Dialog) — nunca uma cor fixa diferente da superfície onde o gradiente está.

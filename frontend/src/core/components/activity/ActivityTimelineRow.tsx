@@ -33,13 +33,15 @@ export function ActivityTimelineRow({
 			>
 				<Icon className={`w-3 h-3 ${iconColorClassName}`} />
 			</div>
-			<div className="flex flex-col min-w-0">
-				<span className="text-sm text-foreground truncate">{title}</span>
+			<div className="flex flex-col min-w-0 flex-1">
+				<div className="flex items-baseline justify-between gap-2">
+					<span className="text-sm text-foreground truncate">{title}</span>
+					<span className="shrink-0 text-xs text-muted-foreground/60 uppercase">
+						{relativeTime}
+					</span>
+				</div>
 				<span className="text-xs text-muted-foreground truncate">
 					{description}
-				</span>
-				<span className="text-xs text-muted-foreground/60 mt-0.5 uppercase">
-					{relativeTime}
 				</span>
 			</div>
 		</div>

@@ -156,7 +156,7 @@ export function TriggerConfigStep({
 								updateSensorConfig({ value: event.target.value })
 							}
 							placeholder="Ex: 28"
-							className="h-8 w-full rounded-lg border border-border-subtle/20 bg-surface-high px-3 text-sm text-foreground outline-none transition-colors focus:border-primary/50 focus:ring-1 focus:ring-primary/50"
+							className="h-8 w-full rounded-lg border border-border-subtle bg-surface-high px-3 text-sm text-foreground outline-none transition-colors focus:border-primary/50 focus:ring-1 focus:ring-primary/50"
 						/>
 					</div>
 				</div>
@@ -208,7 +208,7 @@ export function TriggerConfigStep({
 								"rounded-lg border px-3 py-2 text-xs font-medium transition-colors cursor-pointer",
 								deviceConfig.desiredIsOn
 									? "border-primary/40 bg-primary/10 text-primary"
-									: "border-border-subtle/20 bg-surface-high text-muted-foreground hover:text-foreground",
+									: "border-border-subtle bg-surface-high text-muted-foreground hover:text-foreground",
 							)}
 						>
 							Ligado
@@ -221,7 +221,7 @@ export function TriggerConfigStep({
 								"rounded-lg border px-3 py-2 text-xs font-medium transition-colors cursor-pointer",
 								!deviceConfig.desiredIsOn
 									? "border-primary/40 bg-primary/10 text-primary"
-									: "border-border-subtle/20 bg-surface-high text-muted-foreground hover:text-foreground",
+									: "border-border-subtle bg-surface-high text-muted-foreground hover:text-foreground",
 							)}
 						>
 							Desligado
@@ -257,7 +257,7 @@ export function TriggerConfigStep({
 					onChange={(event) =>
 						updateScheduleConfig({ time: event.target.value })
 					}
-					className="h-8 w-40 rounded-lg border border-border-subtle/20 bg-surface-high px-3 text-sm text-foreground outline-none transition-colors focus:border-primary/50 focus:ring-1 focus:ring-primary/50"
+					className="h-8 w-40 rounded-lg border border-border-subtle bg-surface-high px-3 text-sm text-foreground outline-none transition-colors focus:border-primary/50 focus:ring-1 focus:ring-primary/50"
 				/>
 			</div>
 
@@ -318,7 +318,7 @@ function SectionHeader({
 
 function ConfigPreview({ children }: { children: React.ReactNode }) {
 	return (
-		<div className="rounded-lg border border-border-subtle/20 bg-surface-high p-4 text-sm text-foreground">
+		<div className="rounded-lg border border-border-subtle/10 bg-surface-high p-4 text-sm text-foreground">
 			{children}
 		</div>
 	);

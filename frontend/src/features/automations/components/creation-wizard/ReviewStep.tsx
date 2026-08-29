@@ -98,7 +98,7 @@ export function ReviewStep({
 				/>
 			</div>
 
-			<div className="rounded-lg border border-border-subtle/20 bg-surface-high p-4">
+			<div className="rounded-lg border border-border-subtle/10 bg-surface-high p-4">
 				<div className="mb-2 flex items-center justify-between">
 					<span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
 						Gatilho
@@ -117,7 +117,7 @@ export function ReviewStep({
 				</p>
 			</div>
 
-			<div className="rounded-lg border border-border-subtle/20 bg-surface-high p-4">
+			<div className="rounded-lg border border-border-subtle/10 bg-surface-high p-4">
 				<div className="mb-2 flex items-center justify-between">
 					<span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
 						Ações
@@ -145,7 +145,7 @@ export function ReviewStep({
 				</ul>
 			</div>
 
-			<div className="flex items-center justify-between rounded-lg border border-border-subtle/20 bg-surface-high p-4">
+			<div className="flex items-center justify-between rounded-lg border border-border-subtle/10 bg-surface-high p-4">
 				<div>
 					<p className="text-sm font-medium text-foreground">
 						Ativar imediatamente
@@ -161,7 +161,7 @@ export function ReviewStep({
 				/>
 			</div>
 
-			<div className="mt-auto flex items-center justify-between border-t border-border-subtle/20 pt-4">
+			<div className="mt-auto flex items-center justify-between border-t border-border-subtle/10 pt-4">
 				<Button
 					type="button"
 					variant="outline"

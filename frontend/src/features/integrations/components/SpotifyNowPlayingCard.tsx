@@ -58,7 +58,7 @@ export const SpotifyNowPlayingCard: React.FC = () => {
 
 	if (!status?.connected) {
 		return (
-			<div className="rounded-xl border border-border-subtle/30 bg-surface-high p-4 flex flex-col items-center gap-4 text-center">
+			<div className="rounded-xl border border-border-subtle/10 bg-surface-high p-4 flex flex-col items-center gap-4 text-center">
 				<div className="flex h-11 w-11 items-center justify-center rounded-full bg-[#1DB954]/15 text-[#1DB954]">
 					<Disc3 className="w-5 h-5" />
 				</div>
@@ -84,7 +84,7 @@ export const SpotifyNowPlayingCard: React.FC = () => {
 
 	if (!playback?.title) {
 		return (
-			<div className="rounded-xl border border-border-subtle/30 bg-surface-high p-4 flex flex-col items-center gap-2 text-center">
+			<div className="rounded-xl border border-border-subtle/10 bg-surface-high p-4 flex flex-col items-center gap-2 text-center">
 				<div className="flex h-11 w-11 items-center justify-center rounded-full bg-surface-container text-muted-foreground">
 					<Disc3 className="w-5 h-5" />
 				</div>
@@ -99,7 +99,7 @@ export const SpotifyNowPlayingCard: React.FC = () => {
 	}
 
 	return (
-		<div className="rounded-xl border border-border-subtle/30 bg-surface-high p-4 flex flex-col gap-4">
+		<div className="rounded-xl border border-border-subtle/10 bg-surface-high p-4 flex flex-col gap-4">
 			<div className="flex items-center gap-4">
 				<div className="w-12 h-12 rounded-lg bg-surface-container flex items-center justify-center overflow-hidden shrink-0">
 					{playback.albumCoverUrl ? (

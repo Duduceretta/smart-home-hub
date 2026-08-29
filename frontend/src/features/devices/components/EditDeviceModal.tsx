@@ -192,7 +192,7 @@ export const EditDeviceModal: React.FC = () => {
 							onSubmit={handleSubmit(onSubmit)}
 							className="flex max-h-[85vh] flex-col"
 						>
-							<div className="flex items-start gap-4 border-b border-border-subtle/20 p-6 pb-4">
+							<div className="flex items-start gap-4 border-b border-border-subtle/10 p-6 pb-4">
 								<span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-linear-to-br from-surface-high to-surface-container text-primary ring-1 ring-border-subtle/30">
 									<Sliders className="h-5 w-5" />
 								</span>
@@ -362,7 +362,7 @@ export const EditDeviceModal: React.FC = () => {
 										</fieldset>
 									</div>
 
-									<div className="rounded-lg border border-border-subtle/30">
+									<div className="rounded-lg border border-border-subtle/10">
 										<button
 											type="button"
 											onClick={() => setIsAdvancedOpen((prev) => !prev)}
@@ -450,7 +450,7 @@ export const EditDeviceModal: React.FC = () => {
 								</div>
 							</div>
 
-							<div className="flex items-center justify-between border-t border-border-subtle/20 bg-surface-low p-4">
+							<div className="flex items-center justify-between border-t border-border-subtle/10 bg-surface-low p-4">
 								<button
 									type="button"
 									onClick={() => setIsDeleteModalOpen(true)}
@@ -466,14 +466,14 @@ export const EditDeviceModal: React.FC = () => {
 										type="button"
 										onClick={closeEditModal}
 										disabled={isBusy}
-										className="rounded-md border border-border-subtle/40 bg-transparent px-4 py-2 text-xs font-medium text-muted-foreground transition-colors hover:border-border-subtle disabled:opacity-50 cursor-pointer"
+										className="rounded-md border border-border-subtle bg-transparent px-4 py-2 text-xs font-medium text-muted-foreground transition-colors hover:border-border-subtle disabled:opacity-50 cursor-pointer"
 									>
 										{t("common:actions.cancel")}
 									</button>
 									<button
 										type="submit"
 										disabled={isBusy}
-										className="inline-flex items-center gap-2 rounded-full border border-border-subtle/30 bg-surface-high px-6 py-2 text-xs font-semibold text-foreground transition-colors hover:bg-surface-highest disabled:opacity-50 cursor-pointer active:scale-[0.98]"
+										className="inline-flex items-center gap-2 rounded-full border border-border-subtle bg-surface-high px-6 py-2 text-xs font-semibold text-foreground transition-colors hover:bg-surface-highest disabled:opacity-50 cursor-pointer active:scale-[0.98]"
 									>
 										{isUpdating && (
 											<Loader2 className="h-3.5 w-3.5 animate-spin" />

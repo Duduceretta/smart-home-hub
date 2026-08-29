@@ -33,8 +33,8 @@ const SummarySection: React.FC<{
 	title: string;
 	children: React.ReactNode;
 }> = ({ icon: Icon, title, children }) => (
-	<div className="rounded-lg border border-border-subtle/30 bg-surface-container p-4">
-		<div className="flex items-center gap-2 border-b border-border-subtle/20 pb-1.5 text-primary">
+	<div className="rounded-lg border border-border-subtle/10 bg-surface-high p-4">
+		<div className="flex items-center gap-2 border-b border-border-subtle/10 pb-1.5 text-primary">
 			<Icon className="h-3.5 w-3.5" />
 			<span className="text-xs font-medium uppercase tracking-wider">
 				{title}
@@ -96,7 +96,7 @@ export const DiscoveryStepDone: React.FC = () => {
 					<button
 						type="button"
 						onClick={closeDiscoveryModal}
-						className="rounded-full border border-border-subtle/30 bg-surface-high px-6 py-2 text-xs font-semibold text-foreground transition-colors hover:bg-surface-highest cursor-pointer active:scale-[0.98]"
+						className="rounded-full border border-border-subtle bg-surface-high px-6 py-2 text-xs font-semibold text-foreground transition-colors hover:bg-surface-highest cursor-pointer active:scale-[0.98]"
 					>
 						{t("discoveryModal.done.finishButton")}
 					</button>
@@ -184,7 +184,7 @@ export const DiscoveryStepDone: React.FC = () => {
 				</SummarySection>
 			</div>
 
-			<div className="mt-auto flex items-center justify-between border-t border-border-subtle/20 pt-4">
+			<div className="mt-auto flex items-center justify-between border-t border-border-subtle/10 pt-4">
 				<button
 					type="button"
 					onClick={() => setDiscoveryStep("configure")}
@@ -197,7 +197,7 @@ export const DiscoveryStepDone: React.FC = () => {
 					type="button"
 					onClick={handleConfirm}
 					disabled={isPending}
-					className="inline-flex items-center gap-2 rounded-full border border-border-subtle/30 bg-surface-high px-6 py-2 text-xs font-semibold text-foreground transition-colors hover:bg-surface-highest disabled:opacity-50 cursor-pointer active:scale-[0.98]"
+					className="inline-flex items-center gap-2 rounded-full border border-border-subtle bg-surface-high px-6 py-2 text-xs font-semibold text-foreground transition-colors hover:bg-surface-highest disabled:opacity-50 cursor-pointer active:scale-[0.98]"
 				>
 					{isPending && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
 					{t("discoveryModal.review.confirmButton")}

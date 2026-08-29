@@ -41,7 +41,7 @@ export function AutomationCard({
 				"flex w-full items-center gap-4 rounded-lg border p-4 text-left transition-colors cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-ring/50",
 				isSelected
 					? "border-primary/40 bg-primary/5"
-					: "border-border-subtle/20 bg-surface-container hover:border-primary/25",
+					: "border-border-subtle bg-surface-container hover:border-primary/25",
 			)}
 		>
 			<div
@@ -61,7 +61,7 @@ export function AutomationCard({
 						{automation.name}
 					</p>
 					{automation.isDraft && (
-						<span className="shrink-0 rounded-full border border-border-subtle/40 px-2 py-1 text-xs font-medium text-muted-foreground">
+						<span className="shrink-0 rounded-full border border-border-subtle px-2 py-1 text-xs font-medium text-muted-foreground">
 							Incompleta
 						</span>
 					)}

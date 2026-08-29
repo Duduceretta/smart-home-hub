@@ -43,8 +43,8 @@ export function TriggerSourceStep({
 							className={cn(
 								"flex flex-col gap-2 rounded-lg border p-4 text-left transition-colors",
 								option.comingSoon
-									? "cursor-not-allowed border-border-subtle/20 bg-surface-high/50 opacity-50"
-									: "cursor-pointer border-border-subtle/20 bg-surface-high hover:border-primary/25",
+									? "cursor-not-allowed border-border-subtle bg-surface-high/50 opacity-50"
+									: "cursor-pointer border-border-subtle bg-surface-high hover:border-primary/25",
 								isSelected &&
 									!option.comingSoon &&
 									"border-primary/40 bg-primary/5",
@@ -62,7 +62,7 @@ export function TriggerSourceStep({
 									<Icon className="h-4.5 w-4.5" />
 								</span>
 								{option.comingSoon && (
-									<span className="rounded-full border border-border-subtle/40 px-2 py-1 text-xs font-medium uppercase tracking-wider text-muted-foreground">
+									<span className="rounded-full border border-border-subtle px-2 py-1 text-xs font-medium uppercase tracking-wider text-muted-foreground">
 										Em breve
 									</span>
 								)}

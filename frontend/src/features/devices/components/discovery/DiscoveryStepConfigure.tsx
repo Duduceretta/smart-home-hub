@@ -258,7 +258,7 @@ export const DiscoveryStepConfigure: React.FC = () => {
 				</fieldset>
 			</div>
 
-			<div className="rounded-lg border border-border-subtle/30">
+			<div className="rounded-lg border border-border-subtle/10">
 				<button
 					type="button"
 					onClick={() => setIsAdvancedOpen((prev) => !prev)}
@@ -340,7 +340,7 @@ export const DiscoveryStepConfigure: React.FC = () => {
 				)}
 			</div>
 
-			<div className="mt-auto flex items-center justify-between border-t border-border-subtle/20 pt-4">
+			<div className="mt-auto flex items-center justify-between border-t border-border-subtle/10 pt-4">
 				<button
 					type="button"
 					onClick={() => setDiscoveryStep("scan")}
@@ -350,7 +350,7 @@ export const DiscoveryStepConfigure: React.FC = () => {
 				</button>
 				<button
 					type="submit"
-					className="inline-flex items-center gap-2 rounded-full border border-border-subtle/30 bg-surface-high px-6 py-2 text-xs font-semibold text-foreground transition-colors hover:bg-surface-highest cursor-pointer active:scale-[0.98]"
+					className="inline-flex items-center gap-2 rounded-full border border-border-subtle bg-surface-high px-6 py-2 text-xs font-semibold text-foreground transition-colors hover:bg-surface-highest cursor-pointer active:scale-[0.98]"
 				>
 					{t("discoveryModal.configure.reviewButton")}
 				</button>

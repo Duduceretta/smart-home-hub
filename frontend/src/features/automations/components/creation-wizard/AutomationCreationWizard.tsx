@@ -82,7 +82,7 @@ export function AutomationCreationWizard() {
 			<DialogContent className="gap-0 overflow-hidden rounded-2xl p-0 sm:max-w-4xl">
 				<div className="flex max-h-[80vh] min-h-[520px]">
 					{/* Coluna esquerda: contexto + stepper */}
-					<div className="flex w-[32%] shrink-0 flex-col justify-between border-r border-border-subtle/20 bg-surface-low p-6">
+					<div className="flex w-[32%] shrink-0 flex-col justify-between border-r border-border-subtle/10 bg-surface-low p-6">
 						<div className="flex flex-col gap-6">
 							<div className="flex flex-col gap-4">
 								<span className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/15 text-primary ring-1 ring-primary/30">
@@ -114,7 +114,7 @@ export function AutomationCreationWizard() {
 											selected={state.triggerSource}
 											onSelect={wizard.selectTriggerSource}
 										/>
-										<div className="mt-4 flex items-center justify-end border-t border-border-subtle/20 pt-4">
+										<div className="mt-4 flex items-center justify-end border-t border-border-subtle/10 pt-4">
 											<Button
 												type="button"
 												disabled={
@@ -138,7 +138,7 @@ export function AutomationCreationWizard() {
 											devices={devices}
 											isLoadingDevices={isLoadingDevices}
 										/>
-										<div className="mt-4 flex items-center justify-between border-t border-border-subtle/20 pt-4">
+										<div className="mt-4 flex items-center justify-between border-t border-border-subtle/10 pt-4">
 											<Button
 												type="button"
 												variant="outline"
@@ -164,7 +164,7 @@ export function AutomationCreationWizard() {
 											devices={devices}
 											isLoadingDevices={isLoadingDevices}
 										/>
-										<div className="mt-4 flex items-center justify-between border-t border-border-subtle/20 pt-4">
+										<div className="mt-4 flex items-center justify-between border-t border-border-subtle/10 pt-4">
 											<Button
 												type="button"
 												variant="outline"

@@ -32,7 +32,7 @@ export const DeviceDiscoveryModal: React.FC = () => {
 			<DialogContent className="gap-0 overflow-hidden rounded-2xl p-0 sm:max-w-5xl">
 				<div className="flex max-h-[80vh] min-h-[550px]">
 					{/* Coluna esquerda: contexto + stepper vertical */}
-					<div className="flex w-[34%] shrink-0 flex-col justify-between border-r border-border-subtle/20 bg-surface-low p-6">
+					<div className="flex w-[34%] shrink-0 flex-col justify-between border-r border-border-subtle/10 bg-surface-low p-6">
 						<div className="flex flex-col gap-6">
 							<div className="flex flex-col gap-4">
 								<span className="flex h-10 w-10 items-center justify-center rounded-xl bg-linear-to-br from-surface-high to-surface-container text-primary ring-1 ring-border-subtle/30">

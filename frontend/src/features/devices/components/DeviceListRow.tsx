@@ -66,16 +66,16 @@ export const DeviceListRow: React.FC<DeviceListRowProps> = ({ device }) => {
 						onClick={handleToggle}
 						className={`relative z-10 flex h-9 w-9 shrink-0 items-center justify-center rounded-full transition-all cursor-pointer ${
 							!isOnline
-								? "bg-surface-container border border-border-subtle/30 text-muted-foreground/50 cursor-not-allowed"
+								? "bg-surface-container border border-border-subtle text-muted-foreground/50 cursor-not-allowed"
 								: isOn
 									? "bg-primary text-primary-foreground"
-									: "bg-surface-container border border-border-subtle/30 text-muted-foreground"
+									: "bg-surface-container border border-border-subtle text-muted-foreground"
 						}`}
 					>
 						<IconComponent className="h-4 w-4" />
 					</button>
 				) : (
-					<div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-surface-container border border-border-subtle/30 text-muted-foreground">
+					<div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-surface-container border border-border-subtle/10 text-muted-foreground">
 						<IconComponent className="h-4 w-4" />
 					</div>
 				)}
@@ -118,7 +118,7 @@ export const DeviceListRow: React.FC<DeviceListRowProps> = ({ device }) => {
 
 						<DropdownMenuContent
 							align="end"
-							className="w-36 border-border-subtle/40 bg-surface-container text-foreground shadow-xl z-50"
+							className="w-36 border-border-subtle bg-surface-container text-foreground shadow-xl z-50"
 						>
 							<DropdownMenuItem
 								onClick={() => openEditModal(device)}

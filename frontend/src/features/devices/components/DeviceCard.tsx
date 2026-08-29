@@ -213,7 +213,7 @@ export const DeviceCard: React.FC<DeviceCardProps> = ({ device }) => {
 
 			return (
 				<div className="flex-1 flex flex-col justify-end gap-4 mt-3">
-					<div className="flex items-center gap-4 bg-[#0e0e0f] rounded-lg p-2 border border-border-subtle/20">
+					<div className="flex items-center gap-4 bg-surface-low rounded-lg p-2 border border-border-subtle">
 						<div className="w-10 h-10 rounded bg-surface-container flex items-center justify-center overflow-hidden shrink-0">
 							<div className="w-full h-full bg-linear-to-tr from-indigo-950 to-zinc-800 flex items-center justify-center">
 								<Disc3 className="w-5 h-5 text-zinc-300 opacity-60" />
@@ -344,7 +344,7 @@ export const DeviceCard: React.FC<DeviceCardProps> = ({ device }) => {
 									if (!isOnline) return;
 									setTemperature((t) => Math.min(30, t + 1));
 								}}
-								className="w-9 h-9 rounded-full bg-[#0e0e0f] border border-border-subtle/30 flex items-center justify-center text-foreground hover:bg-[#3a3939] transition-colors disabled:cursor-not-allowed disabled:hover:bg-[#0e0e0f]"
+								className="w-9 h-9 rounded-full bg-surface-low border border-border-subtle flex items-center justify-center text-foreground hover:bg-surface-highest transition-colors disabled:cursor-not-allowed disabled:hover:bg-surface-low"
 							>
 								<Plus className="w-4 h-4" />
 							</button>
@@ -356,7 +356,7 @@ export const DeviceCard: React.FC<DeviceCardProps> = ({ device }) => {
 									if (!isOnline) return;
 									setTemperature((t) => Math.max(16, t - 1));
 								}}
-								className="w-9 h-9 rounded-full bg-[#0e0e0f] border border-border-subtle/30 flex items-center justify-center text-foreground hover:bg-[#3a3939] transition-colors disabled:cursor-not-allowed disabled:hover:bg-[#0e0e0f]"
+								className="w-9 h-9 rounded-full bg-surface-low border border-border-subtle flex items-center justify-center text-foreground hover:bg-surface-highest transition-colors disabled:cursor-not-allowed disabled:hover:bg-surface-low"
 							>
 								<Minus className="w-4 h-4" />
 							</button>
@@ -373,7 +373,7 @@ export const DeviceCard: React.FC<DeviceCardProps> = ({ device }) => {
 								className={`w-9 h-9 rounded-full flex items-center justify-center transition-all disabled:cursor-not-allowed ${
 									climateMode === "cool"
 										? "bg-cool text-cool-foreground shadow-sm scale-105"
-										: "bg-[#0e0e0f] border border-border-subtle/30 text-muted-foreground hover:bg-[#3a3939]"
+										: "bg-surface-low border border-border-subtle text-muted-foreground hover:bg-surface-highest"
 								}`}
 							>
 								<Snowflake className="w-4 h-4" />
@@ -389,7 +389,7 @@ export const DeviceCard: React.FC<DeviceCardProps> = ({ device }) => {
 								className={`w-9 h-9 rounded-full flex items-center justify-center transition-all disabled:cursor-not-allowed ${
 									climateMode === "fan"
 										? "bg-cool text-cool-foreground shadow-sm scale-105"
-										: "bg-[#0e0e0f] border border-border-subtle/30 text-muted-foreground hover:bg-[#3a3939]"
+										: "bg-surface-low border border-border-subtle text-muted-foreground hover:bg-surface-highest"
 								}`}
 							>
 								<Wind className="w-4 h-4" />
@@ -447,20 +447,20 @@ export const DeviceCard: React.FC<DeviceCardProps> = ({ device }) => {
 								onClick={handleToggle}
 								className={`relative z-10 w-12 h-12 rounded-full flex items-center justify-center transition-all shrink-0 cursor-pointer ${
 									!isOnline
-										? "bg-surface-container border border-border-subtle/30 text-muted-foreground/50 cursor-not-allowed"
+										? "bg-surface-container border border-border-subtle text-muted-foreground/50 cursor-not-allowed"
 										: isOn
 											? isLight
 												? "bg-warm text-warm-foreground shadow-[0_0_8px_rgba(211,196,184,0.2)] hover:scale-105"
 												: isAc
 													? "bg-cool text-cool-foreground shadow-[0_0_8px_rgba(196,198,210,0.2)] hover:scale-105"
 													: "bg-primary text-primary-foreground shadow-[0_0_8px_rgba(197,198,207,0.2)] hover:scale-105"
-											: "bg-surface-container border border-border-subtle/30 text-muted-foreground hover:bg-surface-highest hover:text-foreground"
+											: "bg-surface-container border border-border-subtle text-muted-foreground hover:bg-surface-highest hover:text-foreground"
 								}`}
 							>
 								<IconComponent className="w-6 h-6" />
 							</button>
 						) : (
-							<div className="w-12 h-12 rounded-full bg-surface-container border border-border-subtle/30 flex items-center justify-center text-muted-foreground shrink-0">
+							<div className="w-12 h-12 rounded-full bg-surface-container border border-border-subtle/10 flex items-center justify-center text-muted-foreground shrink-0">
 								<IconComponent className="w-6 h-6" />
 							</div>
 						)}
@@ -524,7 +524,7 @@ export const DeviceCard: React.FC<DeviceCardProps> = ({ device }) => {
 
 							<DropdownMenuContent
 								align="end"
-								className="w-36 border-border-subtle/40 bg-surface-container text-foreground shadow-xl z-50"
+								className="w-36 border-border-subtle bg-surface-container text-foreground shadow-xl z-50"
 							>
 								<DropdownMenuItem
 									onClick={() => openEditModal(device)}

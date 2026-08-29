@@ -39,7 +39,7 @@ export function AutomationDetailPanel({
 }: AutomationDetailPanelProps) {
 	if (!automation) {
 		return (
-			<div className="flex h-full max-h-full min-h-[200px] flex-col items-center justify-center rounded-xl border border-dashed border-border-subtle/40 bg-surface-low text-center">
+			<div className="flex h-full max-h-full min-h-[200px] flex-col items-center justify-center rounded-xl border border-dashed border-border-subtle/10 bg-surface-low text-center">
 				<p className="text-sm text-muted-foreground">
 					Selecione uma automação pra ver os detalhes.
 				</p>
@@ -61,8 +61,8 @@ export function AutomationDetailPanel({
 	};
 
 	return (
-		<div className="flex h-full max-h-full flex-col overflow-hidden rounded-xl border border-border-subtle/20 bg-surface-low">
-			<div className="flex shrink-0 flex-col gap-4 border-b border-border-subtle/20 p-6">
+		<div className="flex h-full max-h-full flex-col overflow-hidden rounded-xl border border-border-subtle/10 bg-surface-low">
+			<div className="flex shrink-0 flex-col gap-4 border-b border-border-subtle/10 p-6">
 				<button
 					type="button"
 					onClick={onBack}
@@ -154,7 +154,7 @@ export function AutomationDetailPanel({
 			<div className="relative min-h-0 flex-1">
 				<div className="h-full overflow-y-auto p-6 [scrollbar-gutter:stable] scrollbar-thin">
 					<div key={automation.id} className="space-y-6 animate-fade-in">
-						<div className="rounded-lg border border-border-subtle/20 bg-surface-container p-4">
+						<div className="rounded-lg border border-border-subtle/10 bg-surface-high p-4">
 							<div className="mb-2 flex items-center gap-1 text-xs font-medium uppercase tracking-wider text-muted-foreground">
 								<TriggerIcon className="h-3 w-3" />
 								Gatilho
@@ -167,7 +167,7 @@ export function AutomationDetailPanel({
 						{automation.conditionSummary && (
 							<>
 								<ArrowDown className="mx-auto h-4 w-4 text-border-subtle" />
-								<div className="rounded-lg border border-border-subtle/20 bg-surface-container p-4">
+								<div className="rounded-lg border border-border-subtle/10 bg-surface-high p-4">
 									<div className="mb-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
 										Condição
 									</div>
@@ -180,7 +180,7 @@ export function AutomationDetailPanel({
 
 						<ArrowDown className="mx-auto h-4 w-4 text-border-subtle" />
 
-						<div className="rounded-lg border border-border-subtle/20 bg-surface-container p-4">
+						<div className="rounded-lg border border-border-subtle/10 bg-surface-high p-4">
 							<div className="mb-2 flex items-center gap-1 text-xs font-medium uppercase tracking-wider text-muted-foreground">
 								<Zap className="h-3 w-3" />
 								Ações
@@ -201,7 +201,7 @@ export function AutomationDetailPanel({
 						</div>
 
 						<div className="grid grid-cols-3 gap-4">
-							<div className="rounded-lg border border-border-subtle/20 bg-surface-container p-4">
+							<div className="rounded-lg border border-border-subtle/10 bg-surface-high p-4">
 								<div className="mb-1 text-xs font-medium uppercase tracking-wider text-muted-foreground">
 									Criada
 								</div>
@@ -209,7 +209,7 @@ export function AutomationDetailPanel({
 									{formatRelativeTime(automation.createdAt)}
 								</p>
 							</div>
-							<div className="rounded-lg border border-border-subtle/20 bg-surface-container p-4">
+							<div className="rounded-lg border border-border-subtle/10 bg-surface-high p-4">
 								<div className="mb-1 text-xs font-medium uppercase tracking-wider text-muted-foreground">
 									Atualizada
 								</div>
@@ -219,7 +219,7 @@ export function AutomationDetailPanel({
 										: "Nunca"}
 								</p>
 							</div>
-							<div className="rounded-lg border border-border-subtle/20 bg-surface-container p-4">
+							<div className="rounded-lg border border-border-subtle/10 bg-surface-high p-4">
 								<div className="mb-1 text-xs font-medium uppercase tracking-wider text-muted-foreground">
 									Última execução
 								</div>

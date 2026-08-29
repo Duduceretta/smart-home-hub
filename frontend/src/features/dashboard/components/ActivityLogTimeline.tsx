@@ -2,8 +2,8 @@ import { Bot, Clock, MonitorPlay, Music, Power } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { ActivityTimelineRow } from "@/core/components/activity/ActivityTimelineRow";
 import { useActivityLog } from "../hooks/useActivityLog";
+import { getRelativeTime } from "../lib/relativeTime";
 import type { ActivityEventType } from "../types/dashboard.types";
-import { getRelativeTime } from "../utils/relativeTime";
 import { DashboardErrorState } from "./DashboardErrorState";
 
 const VISIBLE_ENTRIES_LIMIT = 5;
@@ -53,7 +53,7 @@ export function ActivityLogTimeline() {
 	const entries = data?.items ?? [];
 
 	return (
-		<div className="rounded-xl border border-border-subtle/20 bg-surface-container p-4 flex flex-col flex-1 transition-all duration-200 hover:border-primary/25 hover:shadow-lg hover:shadow-black/30">
+		<div className="rounded-xl border border-border-subtle/10 bg-surface-high p-4 flex flex-col flex-1 transition-all duration-200 hover:border-primary/25 hover:shadow-lg hover:shadow-black/30">
 			<div className="flex items-center justify-between mb-6">
 				<h3 className="text-xs font-medium tracking-wider text-muted-foreground uppercase">
 					{t("activityLog.title")}

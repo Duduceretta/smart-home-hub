@@ -173,7 +173,7 @@ export function AutomationsView() {
 							value={query}
 							onChange={(event) => setQuery(event.target.value)}
 							placeholder="Buscar automação..."
-							className="h-8 w-56 rounded-lg border border-border-subtle/20 bg-surface-container pl-8 pr-3 text-sm text-foreground placeholder:text-muted-foreground outline-none transition-colors focus:border-primary/50 focus:ring-1 focus:ring-primary/50"
+							className="h-8 w-56 rounded-lg border border-border-subtle bg-surface-container pl-8 pr-3 text-sm text-foreground placeholder:text-muted-foreground outline-none transition-colors focus:border-primary/50 focus:ring-1 focus:ring-primary/50"
 						/>
 					</div>
 
@@ -197,7 +197,7 @@ export function AutomationsView() {
 					<button
 						type="button"
 						onClick={() => refetchAutomations()}
-						className="mt-1 rounded-md border border-border-subtle/30 px-3 py-2 text-xs font-medium uppercase tracking-wider text-foreground transition-colors hover:bg-surface-high cursor-pointer"
+						className="mt-1 rounded-md border border-border-subtle px-3 py-2 text-xs font-medium uppercase tracking-wider text-foreground transition-colors hover:bg-surface-high cursor-pointer"
 					>
 						Tentar novamente
 					</button>

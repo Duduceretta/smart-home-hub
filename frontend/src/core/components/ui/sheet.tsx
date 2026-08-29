@@ -47,11 +47,11 @@ const sheetVariants = cva(
 		variants: {
 			side: {
 				right:
-					"inset-y-0 right-0 h-full w-full border-l border-border-subtle/40 data-closed:slide-out-to-right data-open:slide-in-from-right sm:max-w-md",
-				left: "inset-y-0 left-0 h-full w-full border-r border-border-subtle/40 data-closed:slide-out-to-left data-open:slide-in-from-left sm:max-w-md",
-				top: "inset-x-0 top-0 h-auto border-b border-border-subtle/40 data-closed:slide-out-to-top data-open:slide-in-from-top",
+					"inset-y-0 right-0 h-full w-full border-l border-border-subtle data-closed:slide-out-to-right data-open:slide-in-from-right sm:max-w-md",
+				left: "inset-y-0 left-0 h-full w-full border-r border-border-subtle data-closed:slide-out-to-left data-open:slide-in-from-left sm:max-w-md",
+				top: "inset-x-0 top-0 h-auto border-b border-border-subtle data-closed:slide-out-to-top data-open:slide-in-from-top",
 				bottom:
-					"inset-x-0 bottom-0 h-auto border-t border-border-subtle/40 data-closed:slide-out-to-bottom data-open:slide-in-from-bottom",
+					"inset-x-0 bottom-0 h-auto border-t border-border-subtle data-closed:slide-out-to-bottom data-open:slide-in-from-bottom",
 			},
 		},
 		defaultVariants: { side: "right" },
@@ -91,7 +91,7 @@ function SheetHeader({ className, ...props }: React.ComponentProps<"div">) {
 		<div
 			data-slot="sheet-header"
 			className={cn(
-				"flex shrink-0 flex-col gap-1 border-b border-border-subtle/20 p-4",
+				"flex shrink-0 flex-col gap-1 border-b border-border-subtle/10 p-4",
 				className,
 			)}
 			{...props}
@@ -104,7 +104,7 @@ function SheetFooter({ className, ...props }: React.ComponentProps<"div">) {
 		<div
 			data-slot="sheet-footer"
 			className={cn(
-				"mt-auto flex shrink-0 justify-end gap-2 border-t border-border-subtle/20 p-4",
+				"mt-auto flex shrink-0 justify-end gap-2 border-t border-border-subtle/10 p-4",
 				className,
 			)}
 			{...props}
