@@ -119,6 +119,7 @@
 		"iconLabel": "Room icon",
 		"assignDevicesLabel": "Assign devices (optional)",
 		"discardConfirm": "Discard the changes made to this room?",
+		"discardConfirmButton": "Discard",
 		"cancel": "Cancel",
 		"createSubmit": "Create Room",
 		"editSubmit": "Save Changes"

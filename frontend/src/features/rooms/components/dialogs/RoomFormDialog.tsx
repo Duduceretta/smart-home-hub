@@ -4,6 +4,8 @@ import { useEffect, useRef, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { FormGlobalError } from "@/core/components/forms/FormGlobalError";
+import { FormSection } from "@/core/components/forms/FormSection";
+import { useConfirm } from "@/core/components/providers/ConfirmDialogProvider";
 import { Button } from "@/core/components/ui/button";
 import {
 	Dialog,
@@ -12,6 +14,7 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from "@/core/components/ui/dialog";
+import { ScrollFadeBottom } from "@/core/components/ui/scroll-fade-bottom";
 import { cn } from "@/core/utils";
 import { ROOM_ICON_OPTIONS } from "../../constants/rooms.constants";
 import { useAssignableDevices } from "../../hooks/useAssignableDevices";
@@ -26,34 +29,6 @@ import {
 } from "../../types/room.schemas";
 import type { RoomDeviceAssignmentPayload } from "../../types/rooms.types";
 import { RoomDeviceAssignmentPicker } from "./RoomDeviceAssignmentPicker";
-
-function FormSection({
-	title,
-	htmlFor,
-	children,
-}: {
-	title: string;
-	/** Quando a seção tem um único input associado, liga o rótulo a ele via
-	 * `<label htmlFor>` em vez de `<h3>` solto — sem isso o input fica sem
-	 * nome acessível (getByLabel falha, leitor de tela não anuncia nada). */
-	htmlFor?: string;
-	children: React.ReactNode;
-}) {
-	const titleClassName =
-		"text-xs font-medium uppercase tracking-wider text-muted-foreground";
-	return (
-		<div className="flex flex-col gap-2">
-			{htmlFor ? (
-				<label htmlFor={htmlFor} className={titleClassName}>
-					{title}
-				</label>
-			) : (
-				<h3 className={titleClassName}>{title}</h3>
-			)}
-			{children}
-		</div>
-	);
-}
 
 /**
  * Formulário único de criação/edição de ambiente (Dialog, sem stepper) —
@@ -78,6 +53,7 @@ export function RoomFormDialog() {
 	const createRoom = useCreateRoom();
 	const updateRoom = useUpdateRoom();
 	const assignDevice = useAssignDeviceToRoom();
+	const confirm = useConfirm();
 	const { data: devices = [], isLoading: isLoadingDevices } =
 		useAssignableDevices();
 
@@ -161,14 +137,15 @@ export function RoomFormDialog() {
 		selectedDeviceIds.some((id) => !initialDeviceIdsRef.current.includes(id));
 	const hasChanges = isDirty || isDeviceSelectionDirty;
 
-	const handleClose = () => {
+	const handleClose = async () => {
 		if (hasChanges) {
-			const confirmed = confirm(
-				t(
+			const confirmed = await confirm({
+				title: t(
 					"form.discardConfirm",
 					"Descartar as alterações feitas nesse ambiente?",
 				),
-			);
+				confirmLabel: t("form.discardConfirmButton", "Descartar"),
+			});
 			if (!confirmed) return;
 		}
 		closeFormDialog();
@@ -350,7 +327,7 @@ export function RoomFormDialog() {
 								</div>
 							</div>
 						</div>
-						<div className="pointer-events-none absolute inset-x-0 bottom-0 h-8 bg-linear-to-t from-popover to-transparent" />
+						<ScrollFadeBottom />
 					</div>
 
 					<div className="flex items-center justify-end gap-2 border-t border-border-subtle bg-surface-low/50 p-4">

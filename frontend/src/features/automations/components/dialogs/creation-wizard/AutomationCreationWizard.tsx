@@ -9,6 +9,7 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from "@/core/components/ui/dialog";
+import { ScrollFadeBottom } from "@/core/components/ui/scroll-fade-bottom";
 import { TRIGGER_SOURCE_OPTIONS } from "../../../constants/automations.constants";
 import { useAutomationWizard } from "../../../hooks/useAutomationWizard";
 import { useCreateAutomation } from "../../../hooks/useCreateAutomation";
@@ -198,7 +199,7 @@ export function AutomationCreationWizard() {
 								)}
 							</div>
 						</div>
-						<div className="pointer-events-none absolute inset-x-0 bottom-0 h-8 bg-gradient-to-t from-popover to-transparent" />
+						<ScrollFadeBottom />
 					</div>
 				</div>
 			</DialogContent>

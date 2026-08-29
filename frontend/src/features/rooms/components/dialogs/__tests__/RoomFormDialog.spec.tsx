@@ -1,5 +1,5 @@
 import { HttpResponse, http } from "msw";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 import {
 	createRoomMock,
 	createRoomPickerDeviceMock,
@@ -10,6 +10,7 @@ import {
 	screen,
 	userEvent,
 	waitFor,
+	within,
 } from "@/testing/test-utils";
 import { useRoomsUIStore } from "../../../store/rooms-ui.store";
 import { RoomFormDialog } from "../RoomFormDialog";
@@ -187,13 +188,7 @@ describe("RoomFormDialog Integration Tests", () => {
 	});
 
 	describe("descarte de alterações", () => {
-		afterEach(() => {
-			vi.restoreAllMocks();
-		});
-
 		it("RoomFormDialog_CancelWithUnsavedChangesAndConfirmDiscard_ClosesDialog", async () => {
-			vi.spyOn(window, "confirm").mockReturnValue(true);
-
 			const user = userEvent.setup();
 			renderWithProviders(<RoomFormDialog />);
 			useRoomsUIStore.getState().openCreateDialog();
@@ -204,15 +199,15 @@ describe("RoomFormDialog Integration Tests", () => {
 			);
 			await user.click(screen.getByRole("button", { name: "Cancelar" }));
 
-			expect(window.confirm).toHaveBeenCalled();
+			await screen.findByRole("alertdialog");
+			await user.click(screen.getByRole("button", { name: "Descartar" }));
+
 			await waitFor(() => {
 				expect(screen.queryByText("Novo Ambiente")).not.toBeInTheDocument();
 			});
 		});
 
 		it("RoomFormDialog_CancelWithUnsavedChangesAndDismissConfirm_KeepsDialogOpen", async () => {
-			vi.spyOn(window, "confirm").mockReturnValue(false);
-
 			const user = userEvent.setup();
 			renderWithProviders(<RoomFormDialog />);
 			useRoomsUIStore.getState().openCreateDialog();
@@ -223,7 +218,14 @@ describe("RoomFormDialog Integration Tests", () => {
 			);
 			await user.click(screen.getByRole("button", { name: "Cancelar" }));
 
-			expect(window.confirm).toHaveBeenCalled();
+			const alertDialog = await screen.findByRole("alertdialog");
+			await user.click(
+				within(alertDialog).getByRole("button", { name: "Cancelar" }),
+			);
+
+			await waitFor(() => {
+				expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument();
+			});
 			expect(screen.getByText("Novo Ambiente")).toBeInTheDocument();
 		});
 	});

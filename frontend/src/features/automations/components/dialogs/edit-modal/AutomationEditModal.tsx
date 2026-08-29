@@ -1,6 +1,7 @@
 import { Loader2, Pencil } from "lucide-react";
 import { useEffect, useRef } from "react";
 import { FormGlobalError } from "@/core/components/forms/FormGlobalError";
+import { FormSection } from "@/core/components/forms/FormSection";
 import { useConfirm } from "@/core/components/providers/ConfirmDialogProvider";
 import { Button } from "@/core/components/ui/button";
 import {
@@ -10,6 +11,7 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from "@/core/components/ui/dialog";
+import { ScrollFadeBottom } from "@/core/components/ui/scroll-fade-bottom";
 import { Switch } from "@/core/components/ui/switch";
 import { TRIGGER_SOURCE_OPTIONS } from "../../../constants/automations.constants";
 import { useEditAutomationForm } from "../../../hooks/useEditAutomationForm";
@@ -20,23 +22,6 @@ import { mapFormStateToUpdatePayload } from "../../../lib/automation-wizard-payl
 import { useAutomationsUIStore } from "../../../store/automations-ui.store";
 import { ActionsStep } from "../automation-form/ActionsStep";
 import { TriggerConfigStep } from "../automation-form/TriggerConfigStep";
-
-function FormSection({
-	title,
-	children,
-}: {
-	title: string;
-	children: React.ReactNode;
-}) {
-	return (
-		<div className="flex flex-col gap-2">
-			<h3 className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-				{title}
-			</h3>
-			{children}
-		</div>
-	);
-}
 
 /**
  * Formulário único de edição (sem stepper, sem Voltar/Próximo) — mesma
@@ -202,7 +187,7 @@ export function AutomationEditModal() {
 								</FormSection>
 							</div>
 						</div>
-						<div className="pointer-events-none absolute inset-x-0 bottom-0 h-8 bg-gradient-to-t from-popover to-transparent" />
+						<ScrollFadeBottom />
 					</div>
 
 					<div className="flex items-center justify-end gap-2 border-t border-border-subtle/10 bg-surface-low p-4">

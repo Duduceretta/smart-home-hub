@@ -119,6 +119,7 @@
 		"iconLabel": "Ícone do ambiente",
 		"assignDevicesLabel": "Atribuir dispositivos (opcional)",
 		"discardConfirm": "Descartar as alterações feitas nesse ambiente?",
+		"discardConfirmButton": "Descartar",
 		"cancel": "Cancelar",
 		"createSubmit": "Criar Ambiente",
 		"editSubmit": "Salvar Alterações"
