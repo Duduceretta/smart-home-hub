@@ -2,6 +2,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Home, Loader2 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
+import { useTranslation } from "react-i18next";
 import { FormGlobalError } from "@/core/components/forms/FormGlobalError";
 import { Button } from "@/core/components/ui/button";
 import {
@@ -12,18 +13,18 @@ import {
 	DialogTitle,
 } from "@/core/components/ui/dialog";
 import { cn } from "@/core/utils";
-import { ROOM_ICON_OPTIONS } from "../constants/rooms.constants";
-import { useAssignableDevices } from "../hooks/useAssignableDevices";
-import { useAssignDeviceToRoom } from "../hooks/useAssignDeviceToRoom";
-import { useCreateRoom } from "../hooks/useCreateRoom";
-import { useUpdateRoom } from "../hooks/useUpdateRoom";
-import { useRoomsUIStore } from "../store/rooms-ui.store";
+import { ROOM_ICON_OPTIONS } from "../../constants/rooms.constants";
+import { useAssignableDevices } from "../../hooks/useAssignableDevices";
+import { useAssignDeviceToRoom } from "../../hooks/useAssignDeviceToRoom";
+import { useCreateRoom } from "../../hooks/useCreateRoom";
+import { useUpdateRoom } from "../../hooks/useUpdateRoom";
+import { useRoomsUIStore } from "../../store/rooms-ui.store";
 import {
 	type CreateRoomFormInput,
 	type CreateRoomFormOutput,
 	createRoomSchema,
-} from "../types/room.schemas";
-import type { RoomDeviceAssignmentPayload } from "../types/room-devices.types";
+} from "../../types/room.schemas";
+import type { RoomDeviceAssignmentPayload } from "../../types/rooms.types";
 import { RoomDeviceAssignmentPicker } from "./RoomDeviceAssignmentPicker";
 
 function FormSection({
@@ -54,6 +55,7 @@ function FormSection({
  * `devices`, chamado aqui localmente pra preservar o isolamento do FSD).
  */
 export function RoomFormDialog() {
+	const { t } = useTranslation("rooms");
 	const isCreateDialogOpen = useRoomsUIStore((s) => s.isCreateDialogOpen);
 	const editingRoom = useRoomsUIStore((s) => s.editingRoom);
 	const focusDevices = useRoomsUIStore((s) => s.editDialogFocusDevices);
@@ -130,7 +132,10 @@ export function RoomFormDialog() {
 	const handleClose = () => {
 		if (hasChanges) {
 			const confirmed = confirm(
-				"Descartar as alterações feitas nesse ambiente?",
+				t(
+					"form.discardConfirm",
+					"Descartar as alterações feitas nesse ambiente?",
+				),
 			);
 			if (!confirmed) return;
 		}
@@ -207,45 +212,56 @@ export function RoomFormDialog() {
 				if (!open) handleClose();
 			}}
 		>
-			<DialogContent className="gap-0 overflow-hidden rounded-2xl p-0 sm:max-w-2xl">
+			<DialogContent className="gap-0 overflow-hidden rounded-2xl border border-border-subtle bg-popover p-0 shadow-xl sm:max-w-2xl">
 				<div className="flex max-h-[85vh] flex-col">
-					<div className="flex items-start gap-4 border-b border-border-subtle/20 p-6 pb-4">
+					<div className="flex items-start gap-4 border-b border-border-subtle bg-surface-low/30 p-6 pb-4">
 						<span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/15 text-primary ring-1 ring-primary/30">
 							<Home className="h-5 w-5" />
 						</span>
-						<DialogHeader className="gap-1">
-							<DialogTitle className="text-lg">
-								{mode === "create" ? "Novo Ambiente" : "Editar Ambiente"}
-							</DialogTitle>
-							<DialogDescription className="text-xs">
+						<DialogHeader className="gap-1 text-left">
+							<DialogTitle className="text-lg font-semibold tracking-tight text-foreground">
 								{mode === "create"
-									? "Cadastre um novo cômodo pra organizar seus dispositivos."
-									: "Altere o nome, o ícone ou os dispositivos deste ambiente."}
+									? t("form.createTitle", "Novo Ambiente")
+									: t("form.editTitle", "Editar Ambiente")}
+							</DialogTitle>
+							<DialogDescription className="text-xs text-muted-foreground">
+								{mode === "create"
+									? t(
+											"form.createDescription",
+											"Cadastre um novo cômodo pra organizar seus dispositivos.",
+										)
+									: t(
+											"form.editDescription",
+											"Altere o nome, o ícone ou os dispositivos deste ambiente.",
+										)}
 							</DialogDescription>
 						</DialogHeader>
 					</div>
 
 					<div className="relative min-h-0 flex-1">
-						<div className="h-full overflow-y-auto p-6">
+						<div className="h-full overflow-y-auto p-6 scrollbar-thin">
 							<div className="flex flex-col gap-6">
 								<FormGlobalError error={mutationError} />
 
-								<FormSection title="Nome do ambiente">
+								<FormSection title={t("form.nameLabel", "Nome do ambiente")}>
 									<input
 										id="room-name"
 										type="text"
-										placeholder="Ex: Sala de Estar, Cozinha, Escritório"
+										placeholder={t(
+											"form.namePlaceholder",
+											"Ex: Sala de Estar, Cozinha, Escritório",
+										)}
 										maxLength={50}
 										aria-invalid={!!errors.name}
-										className="h-8 w-full rounded-lg border border-border-subtle/20 bg-surface-high px-3 text-sm text-foreground outline-none transition-colors focus:border-primary/50 focus:ring-1 focus:ring-primary/50"
+										className="h-9 w-full rounded-lg border border-border-subtle bg-surface-container px-3 text-sm text-foreground placeholder:text-muted-foreground outline-none transition-colors focus:border-primary/50 focus:ring-1 focus:ring-primary/40"
 										{...register("name")}
 									/>
-									<p className="min-h-[18px] text-xs text-alert-foreground">
+									<p className="min-h-4.5 text-xs font-medium text-destructive">
 										{errors.name?.message}
 									</p>
 								</FormSection>
 
-								<FormSection title="Ícone do ambiente">
+								<FormSection title={t("form.iconLabel", "Ícone do ambiente")}>
 									<Controller
 										control={control}
 										name="icon"
@@ -260,12 +276,13 @@ export function RoomFormDialog() {
 															key={option.id}
 															type="button"
 															onClick={() => field.onChange(option.id)}
+															aria-label={t(option.labelKey, option.id)}
 															aria-pressed={isSelected}
 															className={cn(
-																"flex flex-col items-center justify-center gap-1 rounded-lg border p-2 transition-colors cursor-pointer",
+																"flex flex-col items-center justify-center gap-1 rounded-lg border p-2 transition-all cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-ring/50",
 																isSelected
-																	? "border-primary/40 bg-primary/10 text-primary"
-																	: "border-border-subtle/20 bg-surface-high text-muted-foreground hover:text-foreground",
+																	? "border-primary/50 bg-primary/10 text-primary shadow-xs"
+																	: "border-border-subtle bg-surface-container text-muted-foreground hover:bg-surface-high hover:text-foreground",
 															)}
 														>
 															<IconComponent className="h-5 w-5" />
@@ -276,14 +293,19 @@ export function RoomFormDialog() {
 										)}
 									/>
 									{errors.icon?.message && (
-										<p className="text-xs text-alert-foreground">
+										<p className="text-xs font-medium text-destructive">
 											{errors.icon.message}
 										</p>
 									)}
 								</FormSection>
 
 								<div ref={deviceSectionRef}>
-									<FormSection title="Atribuir dispositivos (opcional)">
+									<FormSection
+										title={t(
+											"form.assignDevicesLabel",
+											"Atribuir dispositivos (opcional)",
+										)}
+									>
 										<RoomDeviceAssignmentPicker
 											selectedIds={selectedDeviceIds}
 											onChange={setSelectedDeviceIds}
@@ -293,25 +315,31 @@ export function RoomFormDialog() {
 								</div>
 							</div>
 						</div>
-						<div className="pointer-events-none absolute inset-x-0 bottom-0 h-8 bg-gradient-to-t from-popover to-transparent" />
+						<div className="pointer-events-none absolute inset-x-0 bottom-0 h-8 bg-linear-to-t from-popover to-transparent" />
 					</div>
 
-					<div className="flex items-center justify-end gap-2 border-t border-border-subtle/20 bg-surface-low p-4">
+					<div className="flex items-center justify-end gap-2 border-t border-border-subtle bg-surface-low/50 p-4">
 						<Button
 							type="button"
 							variant="outline"
 							onClick={handleClose}
 							disabled={isMutating}
+							className="border-border-subtle bg-surface-container text-foreground hover:bg-surface-high"
 						>
-							Cancelar
+							{t("form.cancel", "Cancelar")}
 						</Button>
 						<Button
 							type="button"
 							onClick={handleSubmit(onSubmit)}
 							disabled={isMutating}
+							className="bg-primary text-primary-foreground shadow-xs hover:opacity-90"
 						>
-							{isMutating && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
-							{mode === "create" ? "Criar Ambiente" : "Salvar Alterações"}
+							{isMutating && (
+								<Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" />
+							)}
+							{mode === "create"
+								? t("form.createSubmit", "Criar Ambiente")
+								: t("form.editSubmit", "Salvar Alterações")}
 						</Button>
 					</div>
 				</div>

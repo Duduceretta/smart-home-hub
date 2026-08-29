@@ -1,62 +1,143 @@
 {
-	"title": "Physical Rooms",
-	"header": {
-		"subtitle": "Manage and organize your home's rooms to allocate smart devices.",
-		"addButton": "New Room"
+	"page": {
+		"title": "Rooms",
+		"subtitle": "Organize your devices by room.",
+		"errorLoad": "Could not load rooms.",
+		"retry": "Try again",
+		"loading": "Loading rooms...",
+		"emptyTitle": "No rooms yet",
+		"emptyDescription": "Create your first room to start organizing your devices.",
+		"emptyCreateButton": "Create first room"
 	},
-	"toolbar": {
-		"searchPlaceholder": "Search room by name..."
+	"summaryBar": {
+		"room_one": "room",
+		"room_other": "rooms",
+		"device_one": "device",
+		"device_other": "devices",
+		"offline": "offline"
 	},
-	"grid": {
-		"errorTitle": "Error loading physical rooms.",
-		"errorSubtitle": "Check your connection or whether the C# API service is running.",
-		"searchEmptyTitle": "No room found",
-		"searchEmptySubtitle": "No room matches your search for \"{{query}}\".",
-		"clearSearch": "Clear search",
-		"emptyTitle": "No rooms registered",
-		"emptySubtitle": "You don't have any rooms registered yet. Create the first room to start organizing your devices.",
-		"emptyCta": "Register First Room"
+	"list": {
+		"room_one": "{{count}} room",
+		"room_other": "{{count}} rooms",
+		"viewModeGroup": "List view mode",
+		"viewCards": "View as cards",
+		"viewList": "View as list",
+		"searchPlaceholder": "Search room...",
+		"newRoom": "New room",
+		"ariaList": "Room list",
+		"empty": "No rooms found.",
+		"addRoom": "Add Room",
+		"addRoomSubtitle": "Create a new room"
 	},
-	"card": {
-		"optionsAriaLabel": "Room options",
-		"deleting": "Deleting...",
-		"confirmDelete": "Are you sure you want to delete the room \"{{name}}\"?",
-		"active": "Active Room",
-		"physicalTag": "Physical Room"
+	"item": {
+		"device_one": "{{count}} device",
+		"device_other": "{{count}} devices",
+		"automation_one": "{{count}} automation",
+		"automation_other": "{{count}} automations",
+		"offlineAria_one": "{{count}} device offline",
+		"offlineAria_other": "{{count}} devices offline",
+		"deleteAria": "Delete room {{name}}"
+	},
+	"detail": {
+		"selectPrompt": "Select a room to see the details.",
+		"deviceConnected_one": "{{count}} device connected",
+		"deviceConnected_other": "{{count}} devices connected",
+		"edit": "Edit"
+	},
+	"quickActions": {
+		"turnOnAll": "Turn On All",
+		"turnOffAll": "Turn Off All",
+		"toastPartial": "{{succeeded}} of {{total}} devices {{action}} — {{failed}} failed.",
+		"toastSuccess_one": "{{count}} device {{action}}.",
+		"toastSuccess_other": "{{count}} devices {{action}}.",
+		"turnedOn": "turned on",
+		"turnedOff": "turned off"
+	},
+	"climate": {
+		"temperature": "Temperature",
+		"humidity": "Humidity",
+		"noSensor": "No sensor",
+		"errorLoad": "Could not load room climate.",
+		"retry": "Try again"
+	},
+	"energy": {
+		"title": "Energy Consumption",
+		"range24h": "24h",
+		"range7d": "7 days",
+		"errorLoad": "Could not load energy consumption.",
+		"retry": "Try again",
+		"noData": "No consumption recorded in this period.",
+		"periodTotal": "{{value}} {{unit}} in the period",
+		"estimatedSuffix": " (estimated)",
+		"tooltipConsumption": "Consumption"
+	},
+	"deviceGrid": {
+		"empty": "No devices in this room yet.",
+		"addDevice": "Add Device to this Room"
+	},
+	"deviceCard": {
+		"offline": "Offline",
+		"online": "Online",
+		"on": "On",
+		"off": "Off",
+		"control": "Control",
+		"toggleAriaOn": "Turn off {{name}}",
+		"toggleAriaOff": "Turn on {{name}}"
+	},
+	"automations": {
+		"title": "Automations for this Room",
+		"errorLoad": "Could not load automations.",
+		"retry": "Try again",
+		"empty": "No automations configured for this room.",
+		"create": "Create automation",
+		"active": "Active",
+		"inactive": "Inactive",
+		"triggerSchedule": "Schedule trigger",
+		"triggerSensor": "Device/sensor trigger",
+		"triggerUnknown": "Unidentified trigger"
+	},
+	"activity": {
+		"title": "Recent Activity",
+		"loading": "Loading...",
+		"errorLoad": "Could not load recent activity.",
+		"retry": "Try again",
+		"empty": "No recent activity."
+	},
+	"deleteDialog": {
+		"title": "Delete room",
+		"description": "Are you sure you want to delete the room \"{{name}}\"? Devices linked to it become unassigned — deleting does not remove the devices or their history.",
+		"cancel": "Cancel",
+		"confirm": "Delete"
+	},
+	"form": {
+		"createTitle": "New Room",
+		"editTitle": "Edit Room",
+		"createDescription": "Register a new room to organize your devices.",
+		"editDescription": "Change the name, icon, or devices of this room.",
+		"nameLabel": "Room name",
+		"namePlaceholder": "E.g: Living Room, Kitchen, Office",
+		"iconLabel": "Room icon",
+		"assignDevicesLabel": "Assign devices (optional)",
+		"discardConfirm": "Discard the changes made to this room?",
+		"cancel": "Cancel",
+		"createSubmit": "Create Room",
+		"editSubmit": "Save Changes"
+	},
+	"devicePicker": {
+		"searchPlaceholder": "Search device...",
+		"errorLoad": "Could not load devices.",
+		"empty": "No devices found.",
+		"selectedCount_one": "{{count}} selected",
+		"selectedCount_other": "{{count}} selected"
 	},
 	"icons": {
 		"livingRoom": "Living Room",
 		"bedroom": "Bedroom",
 		"kitchen": "Kitchen",
-		"media": "Media/Appliance",
+		"media": "Media",
 		"garage": "Garage",
 		"bathroom": "Bathroom",
 		"garden": "Garden",
 		"office": "Office"
-	},
-	"form": {
-		"fields": {
-			"name": {
-				"label": "Room Name *",
-				"placeholder": "E.g.: Living Room, Kitchen, Office"
-			},
-			"icon": {
-				"label": "Room Icon"
-			}
-		},
-		"create": {
-			"title": "Add New Room",
-			"description": "Create a new physical room to allocate and organize your smart devices.",
-			"submitButton": "Register Room"
-		},
-		"edit": {
-			"title": "Edit Room",
-			"description": "Change the name or the representative icon of this physical room.",
-			"submitButton": "Save Changes"
-		},
-		"tip": {
-			"title": "Spatial Automation Tip",
-			"description": "Newly created rooms are immediately available for linking on the Devices tab. This makes it easier to create routines like \"Turn off everything in the Living Room\"."
-		}
 	}
 }

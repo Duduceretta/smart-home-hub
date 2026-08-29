@@ -1,8 +1,9 @@
 import { Bot, Clock, MonitorPlay, Music, Power } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { ActivityTimelineRow } from "@/core/components/activity/ActivityTimelineRow";
 import { Button } from "@/core/components/ui/button";
-import { useRoomActivityLog } from "../hooks/useRoomActivityLog";
-import { getRelativeTime } from "../lib/get-relative-time";
+import { useRoomActivityLog } from "../../hooks/useRoomActivityLog";
+import { getRelativeTime } from "../../lib/get-relative-time";
 
 interface RoomActivityFeedProps {
 	roomId: string;
@@ -17,27 +18,31 @@ const EVENT_STYLE: Record<
 		color: "text-primary",
 		border: "border-primary",
 	},
-	DeviceMedia: { icon: MonitorPlay, color: "text-cool", border: "border-cool" },
+	DeviceMedia: {
+		icon: MonitorPlay,
+		color: "text-primary/90",
+		border: "border-primary/50",
+	},
 	Spotify: {
 		icon: Music,
 		color: "text-[#1DB954]",
 		border: "border-[#1DB954]",
 	},
-	AutomationExecuted: { icon: Bot, color: "text-warm", border: "border-warm" },
+	AutomationExecuted: {
+		icon: Bot,
+		color: "text-foreground",
+		border: "border-border",
+	},
 };
 
 const DEFAULT_EVENT_STYLE = {
 	icon: Clock,
 	color: "text-muted-foreground",
-	border: "border-muted-foreground",
+	border: "border-border-subtle",
 };
 
-/**
- * Eventos recentes deste ambiente — `GET /rooms/{id}/events`, já filtrado
- * no back-end pelos dispositivos do ambiente (ver GetRoomActivityLogQuery.cs).
- * Estado vazio compacto, sem altura reservada.
- */
 export function RoomActivityFeed({ roomId }: RoomActivityFeedProps) {
+	const { t } = useTranslation("rooms");
 	const {
 		data: entries = [],
 		isLoading,
@@ -48,27 +53,33 @@ export function RoomActivityFeed({ roomId }: RoomActivityFeedProps) {
 	return (
 		<div className="flex flex-col gap-2">
 			<h3 className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-				Atividade Recente
+				{t("activity.title", "Atividade Recente")}
 			</h3>
 
 			{isLoading ? (
-				<div className="rounded-lg border border-border-subtle/20 bg-surface-container p-3 text-xs text-muted-foreground">
-					Carregando...
+				<div className="rounded-lg border border-border-subtle bg-surface-container p-3 text-xs text-muted-foreground">
+					{t("activity.loading", "Carregando...")}
 				</div>
 			) : isError ? (
-				<div className="flex items-center justify-between rounded-lg border border-dashed border-border-subtle/40 p-3 text-xs text-muted-foreground">
-					<span>Não foi possível carregar a atividade recente.</span>
+				<div className="flex items-center justify-between rounded-lg border border-dashed border-border-subtle p-3 text-xs text-muted-foreground">
+					<span>
+						{t(
+							"activity.errorLoad",
+							"Não foi possível carregar a atividade recente.",
+						)}
+					</span>
 					<Button variant="ghost" size="xs" onClick={() => refetch()}>
-						Tentar de novo
+						{t("activity.retry", "Tentar de novo")}
 					</Button>
 				</div>
 			) : entries.length === 0 ? (
-				<p className="rounded-lg border border-dashed border-border-subtle/40 p-4 text-center text-xs text-muted-foreground">
-					Nenhuma atividade recente.
+				<p className="rounded-lg border border-dashed border-border-subtle bg-surface-container/20 p-4 text-center text-xs text-muted-foreground">
+					{t("activity.empty", "Nenhuma atividade recente.")}
 				</p>
 			) : (
-				<div className="relative flex flex-col gap-4 rounded-lg border border-border-subtle/20 bg-surface-container p-4">
-					<div className="absolute left-[27px] top-6 bottom-6 w-px bg-border-subtle/20" />
+				<div className="relative flex flex-col gap-4 rounded-lg border border-border-subtle bg-surface-container p-4">
+					{/* Linha vertical conectando os nós da timeline com nitidez */}
+					<div className="absolute left-6.75 top-6 bottom-6 w-px bg-border-subtle" />
 					{entries.map((entry) => {
 						const style = EVENT_STYLE[entry.eventType] ?? DEFAULT_EVENT_STYLE;
 						return (
@@ -76,10 +87,10 @@ export function RoomActivityFeed({ roomId }: RoomActivityFeedProps) {
 								key={entry.id}
 								icon={style.icon}
 								iconColorClassName={
-									entry.isAlert ? "text-alert-foreground" : style.color
+									entry.isAlert ? "text-destructive" : style.color
 								}
 								borderColorClassName={
-									entry.isAlert ? "border-alert-foreground" : style.border
+									entry.isAlert ? "border-destructive" : style.border
 								}
 								title={entry.title}
 								description={entry.description}

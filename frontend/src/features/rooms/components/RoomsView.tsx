@@ -1,16 +1,16 @@
 import { AlertTriangle, DoorOpen, Loader2, Plus } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { cn } from "@/core/utils";
 import { useAssignableDevices } from "../hooks/useAssignableDevices";
 import { useRooms } from "../hooks/useRooms";
 import { useRoomsUIStore } from "../store/rooms-ui.store";
-import type { RoomPickerDevice } from "../types/room-devices.types";
-import type { RoomsViewMode } from "../types/rooms.types";
-import { DeleteRoomAlertDialog } from "./DeleteRoomAlertDialog";
-import { RoomDetailPanel } from "./RoomDetailPanel";
-import { RoomFormDialog } from "./RoomFormDialog";
-import { RoomListPanel } from "./RoomListPanel";
-import { RoomsSummaryBar } from "./RoomsSummaryBar";
+import type { RoomPickerDevice, RoomsViewMode } from "../types/rooms.types";
+import { RoomDetailPanel } from "./detail/RoomDetailPanel";
+import { DeleteRoomAlertDialog } from "./dialogs/DeleteRoomAlertDialog";
+import { RoomFormDialog } from "./dialogs/RoomFormDialog";
+import { RoomListPanel } from "./list/RoomListPanel";
+import { RoomsSummaryBar } from "./list/RoomsSummaryBar";
 
 /**
  * View de Ambientes — duas colunas desde o topo: título/subtítulo + stats +
@@ -22,6 +22,7 @@ import { RoomsSummaryBar } from "./RoomsSummaryBar";
  * local; criação/edição/exclusão continuam na `useRoomsUIStore` (modais).
  */
 export function RoomsView() {
+	const { t } = useTranslation("rooms");
 	const {
 		data: rooms = [],
 		isLoading: isLoadingRooms,
@@ -80,53 +81,55 @@ export function RoomsView() {
 			>
 				<div className="flex shrink-0 flex-col gap-1">
 					<h1 className="text-3xl font-semibold tracking-tight text-foreground">
-						Ambientes
+						{t("page.title", "Ambientes")}
 					</h1>
 					<p className="text-sm text-muted-foreground">
-						Organize seus dispositivos por cômodo.
+						{t("page.subtitle", "Organize seus dispositivos por cômodo.")}
 					</p>
 				</div>
 
 				{isRoomsError ? (
-					<div className="flex flex-1 flex-col items-center justify-center gap-2 rounded-xl border border-alert/50 bg-alert/10 p-6 text-center">
-						<AlertTriangle className="h-6 w-6 text-alert-foreground" />
-						<p className="text-sm font-medium text-alert-foreground">
-							Não foi possível carregar os ambientes.
+					<div className="flex flex-1 flex-col items-center justify-center gap-2 rounded-xl border border-destructive/30 bg-destructive/10 p-6 text-center">
+						<AlertTriangle className="h-6 w-6 text-destructive" />
+						<p className="text-sm font-medium text-destructive">
+							{t("page.errorLoad", "Não foi possível carregar os ambientes.")}
 						</p>
 						<button
 							type="button"
 							onClick={() => refetchRooms()}
-							className="mt-1 rounded-md border border-border-subtle/30 px-3 py-2 text-xs font-medium uppercase tracking-wider text-foreground transition-colors hover:bg-surface-high cursor-pointer"
+							className="mt-2 rounded-md border border-border-subtle bg-surface-container px-3 py-1.5 text-xs font-medium uppercase tracking-wider text-foreground transition-colors hover:bg-surface-high hover:border-primary/40 cursor-pointer"
 						>
-							Tentar novamente
+							{t("page.retry", "Tentar novamente")}
 						</button>
 					</div>
 				) : isLoadingRooms ? (
 					<div className="flex flex-1 items-center justify-center gap-2 text-sm text-muted-foreground">
-						<Loader2 className="h-4 w-4 animate-spin" />
-						Carregando ambientes...
+						<Loader2 className="h-4 w-4 animate-spin text-primary" />
+						{t("page.loading", "Carregando ambientes...")}
 					</div>
 				) : rooms.length === 0 ? (
-					<div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-4 rounded-xl border border-dashed border-border-subtle/40 bg-surface-low p-6 text-center">
+					<div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-4 rounded-xl border border-dashed border-border-subtle bg-surface-container/30 p-6 text-center">
 						<div className="flex h-14 w-14 items-center justify-center rounded-full bg-surface-high text-muted-foreground">
 							<DoorOpen className="h-7 w-7" />
 						</div>
 						<div className="space-y-1">
 							<p className="text-sm font-medium text-foreground">
-								Nenhum ambiente ainda
+								{t("page.emptyTitle", "Nenhum ambiente ainda")}
 							</p>
 							<p className="text-xs text-muted-foreground">
-								Crie seu primeiro cômodo pra começar a organizar seus
-								dispositivos.
+								{t(
+									"page.emptyDescription",
+									"Crie seu primeiro cômodo pra começar a organizar seus dispositivos.",
+								)}
 							</p>
 						</div>
 						<button
 							type="button"
 							onClick={openCreateDialog}
-							className="inline-flex items-center gap-2 rounded-full bg-primary px-4 py-2 text-sm font-medium text-primary-foreground cursor-pointer"
+							className="inline-flex items-center gap-2 rounded-full bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow-xs transition-all hover:opacity-90 active:scale-95 cursor-pointer"
 						>
 							<Plus className="h-4 w-4" />
-							Criar primeiro ambiente
+							{t("page.emptyCreateButton", "Criar primeiro ambiente")}
 						</button>
 					</div>
 				) : (

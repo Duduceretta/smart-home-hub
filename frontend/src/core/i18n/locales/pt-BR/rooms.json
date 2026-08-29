@@ -1,62 +1,143 @@
 {
-	"title": "Ambientes Físicos",
-	"header": {
-		"subtitle": "Gerencie e organize os cômodos da sua residência para alocação de dispositivos inteligentes.",
-		"addButton": "Novo Ambiente"
+	"page": {
+		"title": "Ambientes",
+		"subtitle": "Organize seus dispositivos por cômodo.",
+		"errorLoad": "Não foi possível carregar os ambientes.",
+		"retry": "Tentar novamente",
+		"loading": "Carregando ambientes...",
+		"emptyTitle": "Nenhum ambiente ainda",
+		"emptyDescription": "Crie seu primeiro cômodo pra começar a organizar seus dispositivos.",
+		"emptyCreateButton": "Criar primeiro ambiente"
 	},
-	"toolbar": {
-		"searchPlaceholder": "Buscar ambiente por nome..."
+	"summaryBar": {
+		"room_one": "ambiente",
+		"room_other": "ambientes",
+		"device_one": "dispositivo",
+		"device_other": "dispositivos",
+		"offline": "offline"
 	},
-	"grid": {
-		"errorTitle": "Erro ao carregar os ambientes físicos.",
-		"errorSubtitle": "Verifique sua conexão ou se o serviço de API C# está em execução.",
-		"searchEmptyTitle": "Nenhum ambiente encontrado",
-		"searchEmptySubtitle": "Nenhum ambiente corresponde à sua busca por \"{{query}}\".",
-		"clearSearch": "Limpar busca",
-		"emptyTitle": "Nenhum ambiente cadastrado",
-		"emptySubtitle": "Você ainda não possui cômodos cadastrados na sua casa inteligente. Crie o primeiro ambiente para começar a organizar seus dispositivos.",
-		"emptyCta": "Cadastrar Primeiro Ambiente"
+	"list": {
+		"room_one": "{{count}} ambiente",
+		"room_other": "{{count}} ambientes",
+		"viewModeGroup": "Modo de visualização da lista",
+		"viewCards": "Ver como cards",
+		"viewList": "Ver como lista",
+		"searchPlaceholder": "Buscar ambiente...",
+		"newRoom": "Novo ambiente",
+		"ariaList": "Lista de ambientes",
+		"empty": "Nenhum ambiente encontrado.",
+		"addRoom": "Adicionar Ambiente",
+		"addRoomSubtitle": "Criar um novo cômodo"
 	},
-	"card": {
-		"optionsAriaLabel": "Opções do ambiente",
-		"deleting": "Excluindo...",
-		"confirmDelete": "Tem certeza que deseja excluir o ambiente \"{{name}}\"?",
-		"active": "Ambiente Ativo",
-		"physicalTag": "Ambiente Físico"
+	"item": {
+		"device_one": "{{count}} dispositivo",
+		"device_other": "{{count}} dispositivos",
+		"automation_one": "{{count}} automação",
+		"automation_other": "{{count}} automações",
+		"offlineAria_one": "{{count}} dispositivo offline",
+		"offlineAria_other": "{{count}} dispositivos offline",
+		"deleteAria": "Excluir ambiente {{name}}"
+	},
+	"detail": {
+		"selectPrompt": "Selecione um ambiente pra ver os detalhes.",
+		"deviceConnected_one": "{{count}} dispositivo conectado",
+		"deviceConnected_other": "{{count}} dispositivos conectados",
+		"edit": "Editar"
+	},
+	"quickActions": {
+		"turnOnAll": "Ligar Tudo",
+		"turnOffAll": "Desligar Tudo",
+		"toastPartial": "{{succeeded}} de {{total}} dispositivos {{action}} — {{failed}} falharam.",
+		"toastSuccess_one": "{{count}} dispositivo {{action}}.",
+		"toastSuccess_other": "{{count}} dispositivos {{action}}.",
+		"turnedOn": "ligados",
+		"turnedOff": "desligados"
+	},
+	"climate": {
+		"temperature": "Temperatura",
+		"humidity": "Umidade",
+		"noSensor": "Sem sensor",
+		"errorLoad": "Não foi possível carregar o clima do ambiente.",
+		"retry": "Tentar de novo"
+	},
+	"energy": {
+		"title": "Consumo de Energia",
+		"range24h": "24h",
+		"range7d": "7 dias",
+		"errorLoad": "Não foi possível carregar o consumo de energia.",
+		"retry": "Tentar de novo",
+		"noData": "Nenhum consumo registrado neste período.",
+		"periodTotal": "{{value}} {{unit}} no período",
+		"estimatedSuffix": " (estimado)",
+		"tooltipConsumption": "Consumo"
+	},
+	"deviceGrid": {
+		"empty": "Nenhum dispositivo neste ambiente ainda.",
+		"addDevice": "Adicionar Dispositivo a este Ambiente"
+	},
+	"deviceCard": {
+		"offline": "Offline",
+		"online": "Online",
+		"on": "Ligado",
+		"off": "Desligado",
+		"control": "Controle",
+		"toggleAriaOn": "Desligar {{name}}",
+		"toggleAriaOff": "Ligar {{name}}"
+	},
+	"automations": {
+		"title": "Automações deste Ambiente",
+		"errorLoad": "Não foi possível carregar as automações.",
+		"retry": "Tentar de novo",
+		"empty": "Nenhuma automação configurada para este ambiente.",
+		"create": "Criar automação",
+		"active": "Ativa",
+		"inactive": "Inativa",
+		"triggerSchedule": "Gatilho por horário",
+		"triggerSensor": "Gatilho por dispositivo/sensor",
+		"triggerUnknown": "Gatilho não identificado"
+	},
+	"activity": {
+		"title": "Atividade Recente",
+		"loading": "Carregando...",
+		"errorLoad": "Não foi possível carregar a atividade recente.",
+		"retry": "Tentar de novo",
+		"empty": "Nenhuma atividade recente."
+	},
+	"deleteDialog": {
+		"title": "Excluir ambiente",
+		"description": "Tem certeza que deseja excluir o ambiente \"{{name}}\"? Os dispositivos vinculados a ele ficam sem ambiente atribuído — a exclusão não apaga os dispositivos nem o histórico deles.",
+		"cancel": "Cancelar",
+		"confirm": "Excluir"
+	},
+	"form": {
+		"createTitle": "Novo Ambiente",
+		"editTitle": "Editar Ambiente",
+		"createDescription": "Cadastre um novo cômodo pra organizar seus dispositivos.",
+		"editDescription": "Altere o nome, o ícone ou os dispositivos deste ambiente.",
+		"nameLabel": "Nome do ambiente",
+		"namePlaceholder": "Ex: Sala de Estar, Cozinha, Escritório",
+		"iconLabel": "Ícone do ambiente",
+		"assignDevicesLabel": "Atribuir dispositivos (opcional)",
+		"discardConfirm": "Descartar as alterações feitas nesse ambiente?",
+		"cancel": "Cancelar",
+		"createSubmit": "Criar Ambiente",
+		"editSubmit": "Salvar Alterações"
+	},
+	"devicePicker": {
+		"searchPlaceholder": "Buscar dispositivo...",
+		"errorLoad": "Não foi possível carregar os dispositivos.",
+		"empty": "Nenhum dispositivo encontrado.",
+		"selectedCount_one": "{{count}} selecionado",
+		"selectedCount_other": "{{count}} selecionados"
 	},
 	"icons": {
-		"livingRoom": "Sala",
+		"livingRoom": "Sala de Estar",
 		"bedroom": "Quarto",
 		"kitchen": "Cozinha",
-		"media": "Mídia/Eletro",
+		"media": "Mídia",
 		"garage": "Garagem",
 		"bathroom": "Banheiro",
 		"garden": "Jardim",
 		"office": "Escritório"
-	},
-	"form": {
-		"fields": {
-			"name": {
-				"label": "Nome do Ambiente *",
-				"placeholder": "Ex: Sala de Estar, Cozinha, Escritório"
-			},
-			"icon": {
-				"label": "Ícone do Ambiente"
-			}
-		},
-		"create": {
-			"title": "Adicionar Novo Ambiente",
-			"description": "Crie um novo cômodo físico para alocar e organizar seus dispositivos inteligentes.",
-			"submitButton": "Registrar Ambiente"
-		},
-		"edit": {
-			"title": "Editar Ambiente",
-			"description": "Altere o nome ou o ícone representativo deste ambiente físico.",
-			"submitButton": "Salvar Alterações"
-		},
-		"tip": {
-			"title": "Dica de Automação Espacial",
-			"description": "Ambientes criados ficam disponíveis imediatamente para vinculação na aba de Dispositivos. Isso facilita a criação de rotinas como \"Desligar tudo na Sala\"."
-		}
 	}
 }

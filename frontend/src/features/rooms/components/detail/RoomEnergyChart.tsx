@@ -1,5 +1,6 @@
 import { Activity, Calendar } from "lucide-react";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
 	Area,
 	AreaChart,
@@ -10,16 +11,23 @@ import {
 	YAxis,
 } from "recharts";
 import { Button } from "@/core/components/ui/button";
-import { useRoomEnergy } from "../hooks/useRoomEnergy";
-import { formatRoomEnergy, formatRoomPower } from "../lib/format-room-energy";
-import type { RoomEnergyRange } from "../types/room-energy.types";
+import { useRoomEnergy } from "../../hooks/useRoomEnergy";
+import {
+	formatRoomEnergy,
+	formatRoomPower,
+} from "../../lib/format-room-energy";
+import type { RoomEnergyRange } from "../../types/rooms.types";
 
 interface RoomEnergyChartProps {
 	roomId: string;
 }
 
 const RANGES: RoomEnergyRange[] = ["24h", "7d"];
-const RANGE_LABEL: Record<RoomEnergyRange, string> = {
+const RANGE_LABEL_KEY: Record<RoomEnergyRange, string> = {
+	"24h": "energy.range24h",
+	"7d": "energy.range7d",
+};
+const RANGE_LABEL_FALLBACK: Record<RoomEnergyRange, string> = {
 	"24h": "24h",
 	"7d": "7 dias",
 };
@@ -33,6 +41,7 @@ const RANGE_LABEL: Record<RoomEnergyRange, string> = {
  * (únicos ranges aceitos por `GetRoomEnergyQuery`).
  */
 export function RoomEnergyChart({ roomId }: RoomEnergyChartProps) {
+	const { t } = useTranslation("rooms");
 	const [range, setRange] = useState<RoomEnergyRange>("24h");
 	const { data, isLoading, isError, refetch } = useRoomEnergy(roomId, range);
 
@@ -63,10 +72,10 @@ export function RoomEnergyChart({ roomId }: RoomEnergyChartProps) {
 	const totalEnergy = formatRoomEnergy(data?.totalConsumptionKwh ?? 0);
 
 	return (
-		<div className="flex flex-col gap-3 rounded-lg border border-border-subtle/20 bg-surface-container p-4">
+		<div className="flex flex-col gap-3 rounded-lg border border-border-subtle bg-surface-container p-4">
 			<div className="flex items-center justify-between">
 				<h3 className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-					Consumo de Energia
+					{t("energy.title", "Consumo de Energia")}
 				</h3>
 				<div className="flex items-center gap-1">
 					<Calendar className="mr-1 h-3 w-3 text-muted-foreground" />
@@ -77,37 +86,46 @@ export function RoomEnergyChart({ roomId }: RoomEnergyChartProps) {
 							onClick={() => setRange(r)}
 							className={`cursor-pointer rounded px-2 py-0.5 text-xs font-medium transition-colors ${
 								range === r
-									? "bg-primary text-primary-foreground"
+									? "bg-primary text-primary-foreground font-semibold shadow-xs"
 									: "text-muted-foreground hover:bg-surface-high hover:text-foreground"
 							}`}
 						>
-							{RANGE_LABEL[r]}
+							{t(RANGE_LABEL_KEY[r], RANGE_LABEL_FALLBACK[r])}
 						</button>
 					))}
 				</div>
 			</div>
 
 			{isLoading ? (
-				<div className="h-40 w-full animate-pulse rounded-lg bg-surface-high/40" />
+				<div className="h-40 w-full animate-pulse rounded-lg bg-surface-high/60" />
 			) : isError ? (
-				<div className="flex items-center justify-between rounded-lg border border-dashed border-border-subtle/40 p-3 text-xs text-muted-foreground">
-					<span>Não foi possível carregar o consumo de energia.</span>
+				<div className="flex items-center justify-between rounded-lg border border-dashed border-border-subtle p-3 text-xs text-muted-foreground">
+					<span>
+						{t(
+							"energy.errorLoad",
+							"Não foi possível carregar o consumo de energia.",
+						)}
+					</span>
 					<Button variant="ghost" size="xs" onClick={() => refetch()}>
-						Tentar de novo
+						{t("energy.retry", "Tentar de novo")}
 					</Button>
 				</div>
 			) : !data?.hasEnergyData ? (
-				<div className="flex flex-col items-center justify-center gap-1 rounded-lg border border-dashed border-border-subtle/40 py-6 text-center">
+				<div className="flex flex-col items-center justify-center gap-1 rounded-lg border border-dashed border-border-subtle bg-surface-low/30 py-6 text-center">
 					<Activity className="h-4 w-4 text-muted-foreground" />
 					<p className="text-xs text-muted-foreground">
-						Nenhum consumo registrado neste período.
+						{t("energy.noData", "Nenhum consumo registrado neste período.")}
 					</p>
 				</div>
 			) : (
 				<>
 					<span className="w-fit rounded-md border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-medium tracking-wider text-primary">
 						{data.isEnergyEstimated && "~"}
-						{totalEnergy.value} {totalEnergy.unit} no período
+						{t(
+							"energy.periodTotal",
+							`${totalEnergy.value} ${totalEnergy.unit} no período`,
+							{ value: totalEnergy.value, unit: totalEnergy.unit },
+						)}
 					</span>
 
 					<div className="h-40 w-full">
@@ -127,19 +145,19 @@ export function RoomEnergyChart({ roomId }: RoomEnergyChartProps) {
 										<stop
 											offset="0%"
 											stopColor="var(--color-primary)"
-											stopOpacity={0.35}
+											stopOpacity={0.25}
 										/>
 										<stop
 											offset="100%"
 											stopColor="var(--color-primary)"
-											stopOpacity={0}
+											stopOpacity={0.0}
 										/>
 									</linearGradient>
 								</defs>
 								<CartesianGrid
 									strokeDasharray="3 6"
 									stroke="var(--color-border-subtle)"
-									strokeOpacity={0.15}
+									strokeOpacity={0.4}
 									vertical={false}
 								/>
 								<XAxis
@@ -165,15 +183,16 @@ export function RoomEnergyChart({ roomId }: RoomEnergyChartProps) {
 								/>
 								<Tooltip
 									cursor={{
-										stroke: "var(--color-border-subtle)",
+										stroke: "var(--color-border)",
 										strokeWidth: 1,
 										strokeDasharray: "3 3",
 									}}
 									contentStyle={{
-										backgroundColor: "var(--color-surface-high)",
-										borderColor: "rgba(70,70,75,0.3)",
+										backgroundColor: "var(--color-popover)",
+										borderColor: "var(--color-border-subtle)",
 										borderRadius: "8px",
 										color: "var(--color-foreground)",
+										boxShadow: "0 4px 12px rgba(0, 0, 0, 0.2)",
 									}}
 									itemStyle={{ color: "var(--color-primary)" }}
 									formatter={(rawValue, _name, props) => {
@@ -183,8 +202,8 @@ export function RoomEnergyChart({ roomId }: RoomEnergyChartProps) {
 												?.isEstimated,
 										);
 										return [
-											`${isEstimated ? "~" : ""}${power.value} ${power.unit}${isEstimated ? " (estimado)" : ""}`,
-											"Consumo",
+											`${isEstimated ? "~" : ""}${power.value} ${power.unit}${isEstimated ? t("energy.estimatedSuffix", " (estimado)") : ""}`,
+											t("energy.tooltipConsumption", "Consumo"),
 										];
 									}}
 								/>
@@ -199,7 +218,7 @@ export function RoomEnergyChart({ roomId }: RoomEnergyChartProps) {
 									fill="url(#roomEnergyColor)"
 									activeDot={{
 										r: 4,
-										stroke: "var(--color-surface-container)",
+										stroke: "var(--color-background)",
 										strokeWidth: 2,
 									}}
 									isAnimationActive={false}

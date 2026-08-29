@@ -1,4 +1,5 @@
 import { Trash2 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import {
 	AlertDialog,
 	AlertDialogAction,
@@ -9,8 +10,8 @@ import {
 	AlertDialogHeader,
 	AlertDialogTitle,
 } from "@/core/components/ui/alert-dialog";
-import { useDeleteRoom } from "../hooks/useDeleteRoom";
-import { useRoomsUIStore } from "../store/rooms-ui.store";
+import { useDeleteRoom } from "../../hooks/useDeleteRoom";
+import { useRoomsUIStore } from "../../store/rooms-ui.store";
 
 /**
  * Confirmação de exclusão de ambiente — `useDeleteRoom` já existia
@@ -18,6 +19,7 @@ import { useRoomsUIStore } from "../store/rooms-ui.store";
  * nativo por este `AlertDialog`.
  */
 export function DeleteRoomAlertDialog() {
+	const { t } = useTranslation("rooms");
 	const deletingRoom = useRoomsUIStore((s) => s.deletingRoom);
 	const closeDeleteDialog = useRoomsUIStore((s) => s.closeDeleteDialog);
 	const { mutate: deleteRoom } = useDeleteRoom();
@@ -31,22 +33,28 @@ export function DeleteRoomAlertDialog() {
 		>
 			<AlertDialogContent>
 				<AlertDialogHeader>
-					<AlertDialogTitle>Excluir ambiente</AlertDialogTitle>
+					<AlertDialogTitle>
+						{t("deleteDialog.title", "Excluir ambiente")}
+					</AlertDialogTitle>
 					<AlertDialogDescription>
-						Tem certeza que deseja excluir o ambiente "{deletingRoom?.name}"? Os
-						dispositivos vinculados a ele ficam sem ambiente atribuído — a
-						exclusão não apaga os dispositivos nem o histórico deles.
+						{t(
+							"deleteDialog.description",
+							`Tem certeza que deseja excluir o ambiente "${deletingRoom?.name}"? Os dispositivos vinculados a ele ficam sem ambiente atribuído — a exclusão não apaga os dispositivos nem o histórico deles.`,
+							{ name: deletingRoom?.name ?? "" },
+						)}
 					</AlertDialogDescription>
 				</AlertDialogHeader>
 				<AlertDialogFooter>
-					<AlertDialogCancel>Cancelar</AlertDialogCancel>
+					<AlertDialogCancel>
+						{t("deleteDialog.cancel", "Cancelar")}
+					</AlertDialogCancel>
 					<AlertDialogAction
 						onClick={() => {
 							if (deletingRoom) deleteRoom(deletingRoom.id);
 						}}
 					>
 						<Trash2 className="h-3.5 w-3.5" />
-						Excluir
+						{t("deleteDialog.confirm", "Excluir")}
 					</AlertDialogAction>
 				</AlertDialogFooter>
 			</AlertDialogContent>

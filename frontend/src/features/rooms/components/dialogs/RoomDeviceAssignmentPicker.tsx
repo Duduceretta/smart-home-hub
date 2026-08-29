@@ -1,8 +1,9 @@
 import { Search } from "lucide-react";
 import { useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Input } from "@/core/components/ui/input";
 import { cn } from "@/core/utils";
-import { useAssignableDevices } from "../hooks/useAssignableDevices";
+import { useAssignableDevices } from "../../hooks/useAssignableDevices";
 
 interface RoomDeviceAssignmentPickerProps {
 	selectedIds: string[];
@@ -12,8 +13,8 @@ interface RoomDeviceAssignmentPickerProps {
 
 const RowSkeleton = () => (
 	<div className="flex items-center gap-3 px-3 py-2.5 animate-pulse">
-		<div className="h-4 w-4 rounded bg-surface-high" />
-		<div className="h-3 w-1/2 rounded bg-surface-high" />
+		<div className="h-4 w-4 rounded bg-surface-highest/60" />
+		<div className="h-3 w-1/2 rounded bg-surface-highest/60" />
 	</div>
 );
 
@@ -29,6 +30,7 @@ export function RoomDeviceAssignmentPicker({
 	onChange,
 	disabled,
 }: RoomDeviceAssignmentPickerProps) {
+	const { t } = useTranslation("rooms");
 	const [searchTerm, setSearchTerm] = useState("");
 	const { data: devices = [], isLoading, isError } = useAssignableDevices();
 
@@ -52,21 +54,24 @@ export function RoomDeviceAssignmentPicker({
 	};
 
 	return (
-		<div className="w-full min-w-0 space-y-1">
-			<div className="rounded-lg border border-border-subtle/20 bg-surface-high">
-				<div className="relative border-b border-border-subtle/20">
+		<div className="w-full min-w-0 space-y-1.5">
+			<div className="rounded-lg border border-border-subtle bg-surface-container overflow-hidden">
+				<div className="relative border-b border-border-subtle bg-surface-low/50">
 					<Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
 					<Input
 						type="text"
 						value={searchTerm}
 						onChange={(event) => setSearchTerm(event.target.value)}
-						placeholder="Buscar dispositivo..."
+						placeholder={t(
+							"devicePicker.searchPlaceholder",
+							"Buscar dispositivo...",
+						)}
 						disabled={disabled}
-						className="border-0 bg-transparent pl-10 focus-visible:ring-0 focus-visible:ring-offset-0"
+						className="border-0 bg-transparent pl-10 pr-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus-visible:ring-0 focus-visible:ring-offset-0"
 					/>
 				</div>
 
-				<div className="max-h-56 overflow-y-auto scrollbar-thin divide-y divide-border-subtle/10">
+				<div className="max-h-56 overflow-y-auto scrollbar-thin divide-y divide-border-subtle">
 					{isLoading && (
 						<>
 							<RowSkeleton />
@@ -76,14 +81,17 @@ export function RoomDeviceAssignmentPicker({
 					)}
 
 					{isError && (
-						<p className="px-3 py-4 text-center text-xs text-alert-foreground">
-							Não foi possível carregar os dispositivos.
+						<p className="px-3 py-4 text-center text-xs font-medium text-destructive">
+							{t(
+								"devicePicker.errorLoad",
+								"Não foi possível carregar os dispositivos.",
+							)}
 						</p>
 					)}
 
 					{!isLoading && !isError && filteredDevices.length === 0 && (
 						<p className="px-3 py-4 text-center text-xs text-muted-foreground">
-							Nenhum dispositivo encontrado.
+							{t("devicePicker.empty", "Nenhum dispositivo encontrado.")}
 						</p>
 					)}
 
@@ -97,8 +105,8 @@ export function RoomDeviceAssignmentPicker({
 									className={cn(
 										"flex cursor-pointer items-center gap-3 px-3 py-2.5 text-sm transition-colors",
 										isSelected
-											? "bg-primary/10 text-primary"
-											: "text-foreground hover:bg-surface-highest",
+											? "bg-primary/10 text-primary font-medium"
+											: "text-foreground hover:bg-surface-high",
 									)}
 								>
 									<input
@@ -106,12 +114,14 @@ export function RoomDeviceAssignmentPicker({
 										checked={isSelected}
 										onChange={() => toggleDevice(device.id)}
 										disabled={disabled}
-										className="h-3.5 w-3.5 shrink-0 accent-primary"
+										className="h-4 w-4 shrink-0 rounded border-border-subtle text-primary accent-primary focus:ring-primary/40 cursor-pointer"
 									/>
 									<span
 										className={cn(
-											"h-1.5 w-1.5 shrink-0 rounded-full",
-											device.isOn ? "bg-primary" : "bg-muted-foreground/40",
+											"h-2 w-2 shrink-0 rounded-full transition-colors",
+											device.isOn
+												? "bg-primary shadow-xs"
+												: "bg-muted-foreground/30",
 										)}
 									/>
 									<span className="min-w-0 flex-1 truncate">{device.name}</span>
@@ -125,7 +135,11 @@ export function RoomDeviceAssignmentPicker({
 			</div>
 
 			<p className="text-right text-xs text-muted-foreground">
-				{selectedIds.length} selecionado{selectedIds.length === 1 ? "" : "s"}
+				{t(
+					"devicePicker.selectedCount",
+					`${selectedIds.length} selecionado${selectedIds.length === 1 ? "" : "s"}`,
+					{ count: selectedIds.length },
+				)}
 			</p>
 		</div>
 	);

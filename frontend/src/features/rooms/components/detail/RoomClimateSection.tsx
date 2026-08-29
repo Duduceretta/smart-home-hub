@@ -1,6 +1,7 @@
 import { Droplets, Thermometer } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/core/components/ui/button";
-import { useRoomClimate } from "../hooks/useRoomClimate";
+import { useRoomClimate } from "../../hooks/useRoomClimate";
 import { RoomKpiCard } from "./RoomKpiCard";
 
 interface RoomClimateSectionProps {
@@ -13,6 +14,7 @@ interface RoomClimateSectionProps {
  * já que nem todo ambiente tem sensor/termostato.
  */
 export function RoomClimateSection({ roomId }: RoomClimateSectionProps) {
+	const { t } = useTranslation("rooms");
 	const { data, isLoading, isError, refetch } = useRoomClimate(roomId);
 
 	if (isLoading) {
@@ -21,7 +23,7 @@ export function RoomClimateSection({ roomId }: RoomClimateSectionProps) {
 				{[0, 1].map((i) => (
 					<div
 						key={i}
-						className="h-[74px] animate-pulse rounded-lg border border-border-subtle/20 bg-surface-container"
+						className="h-18.5 animate-pulse rounded-lg border border-border-subtle/20 bg-surface-high"
 					/>
 				))}
 			</div>
@@ -30,10 +32,15 @@ export function RoomClimateSection({ roomId }: RoomClimateSectionProps) {
 
 	if (isError) {
 		return (
-			<div className="flex items-center justify-between rounded-lg border border-dashed border-border-subtle/40 p-3 text-xs text-muted-foreground">
-				<span>Não foi possível carregar o clima do ambiente.</span>
+			<div className="flex items-center justify-between rounded-lg border border-dashed border-border-subtle p-3 text-xs text-muted-foreground">
+				<span>
+					{t(
+						"climate.errorLoad",
+						"Não foi possível carregar o clima do ambiente.",
+					)}
+				</span>
 				<Button variant="ghost" size="xs" onClick={() => refetch()}>
-					Tentar de novo
+					{t("climate.retry", "Tentar de novo")}
 				</Button>
 			</div>
 		);
@@ -45,24 +52,24 @@ export function RoomClimateSection({ roomId }: RoomClimateSectionProps) {
 		<div className="grid grid-cols-2 gap-4">
 			<RoomKpiCard
 				icon={Thermometer}
-				label="Temperatura"
+				label={t("climate.temperature", "Temperatura")}
 				value={
 					data.temperatureCelsius !== null
 						? `${data.temperatureCelsius}°C`
-						: "Sem sensor"
+						: t("climate.noSensor", "Sem sensor")
 				}
-				accentClassName="text-cool"
+				accentClassName="text-foreground"
 				isUnavailable={data.temperatureCelsius === null}
 			/>
 			<RoomKpiCard
 				icon={Droplets}
-				label="Umidade"
+				label={t("climate.humidity", "Umidade")}
 				value={
 					data.humidityPercent !== null
 						? `${data.humidityPercent}%`
-						: "Sem sensor"
+						: t("climate.noSensor", "Sem sensor")
 				}
-				accentClassName="text-cool"
+				accentClassName="text-foreground"
 				isUnavailable={data.humidityPercent === null}
 			/>
 		</div>
