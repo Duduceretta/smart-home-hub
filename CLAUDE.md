@@ -112,14 +112,14 @@ Toda nova feature deve seguir estritamente os 5 passos:
 
 > Padrão **universal e obrigatório** para todo o frontend (não só telas novas) — validado e aplicado em auditorias de consistência sobre Automações, `AppLayout`/Header/Sidebar, Dashboard e Dispositivos. Tabela completa com exemplos de antes/depois em `frontend/docs/ui-and-design-system.md`. **Proibido criar token novo de cor/espaçamento/raio** — usar exclusivamente os já definidos em `index.css`/`@theme inline` (`--background`, `--foreground`, `--card`, `--popover`, `--muted`, `--muted-foreground`, `--surface-container/high/highest`, `--warm`, `--alert`, `--border`, `--border-subtle`, `--radius-sm` a `--radius-4xl`).
 
-- **Paleta Oficial (Warm Dark Surface)**: substitui o preto/zinc puro anterior por tons quentes de superfície. Definida como cores oficiais do app (migração global gradual — features novas devem seguir esta paleta; um retrofit completo de componentes legados e suporte a temas personalizados fica para depois):
-  - Fundo (`bg-[#141314]`), sidebar/header (mesmo tom, já aplicado em `AppLayout`/`Sidebar`/`Header`).
-  - Camadas de superfície: `#1c1b1c` (low) → `#201f20` (container) → `#2a2a2a` (high) → `#353435` (highest/pills).
-  - Bordas sutis: `#46464b` em opacidade baixa (`/20` a `/40`) — nunca em opacidade total, senão a linha fica marcada demais.
-  - Acentos funcionais: primário/neutro `#c5c6cf` (texto `#2e3037`), iluminação (âmbar/areia) `#d3c4b8` (texto `#382f27`), clima (azul-acinzentado) `#c4c6d2` (texto `#2d303a`), alerta/offline `#93000a` (container `/20`, borda `/50`, texto `#ffb4ab`).
-  - Texto: `#e5e2e2` (principal), `#c7c6cb` (secundário/labels uppercase).
-  - Glows/gradientes: sutis (`shadow-[0_0_8px_rgba(...,0.2)]`), nunca `0.3+` de opacidade — fica pesado demais. Superfícies (cards, pills, botões) podem levar leve `bg-gradient-to-b`/`to-br` entre dois tons próximos da mesma camada, nunca gradientes contrastantes. **Nunca usar um stop de gradiente em hex arbitrário sem token equivalente** (ex.: `from-surface-high to-[#232323]`) — achatar pra uma cor sólida do token mais próximo, ou usar `hover:brightness-110`/`95` quando precisar de "clarear/escurecer" além do tom mais claro/escuro já definido na escada.
-  - Referência viva de aplicação: `src/features/devices/` (`DeviceCard.tsx`, `DevicesToolbar.tsx`, `DevicesGlanceBar.tsx`, `DevicesHeader.tsx`).
+- **Paleta Oficial (Zinc Dark Surface, definida em `index.css`)**: paleta warm anterior (`#141314`/`#d3c4b8`...) foi **substituída**. Cores reais vêm só de token (`@theme inline` em `frontend/src/app/styles/index.css`), nunca hex cru. Feature `rooms/` é a referência viva atual (substitui `devices/` como referência):
+  - Fundo (`--background: #09090b`), sidebar/header no mesmo tom.
+  - Camadas de superfície: `--muted: #121215` (low) → `--card: #18181b` (container) → `--popover: #27272a` (high) → `--surface-highest: #3f3f46` (highest/pills).
+  - Bordas: `--border: #3f3f46`, `--border-subtle: #27272a` — usar via classe semântica (`border-border`, `border-border-subtle`), nunca hex direto.
+  - Acentos funcionais: primário/neutro `--primary: #fafafa` (texto `--primary-foreground: #18181b`), destaque "warm" `--warm: #d4d4d8` (texto `--warm-foreground: #18181b`), "cool" mapeado no `primary`, alerta/offline `--alert: #ef4444` (texto `--alert-foreground: #ffffff`).
+  - Texto: `--foreground: #fafafa` (principal), `--muted-foreground: #a1a1aa` (secundário/labels uppercase).
+  - Glows/gradientes: sutis (`shadow-[0_0_8px_rgba(...,0.2)]`), nunca `0.3+` de opacidade. Superfícies (cards, pills, botões) podem levar leve `bg-gradient-to-b`/`to-br` entre dois tons próximos da mesma camada, nunca gradientes contrastantes. **Nunca usar um stop de gradiente em hex arbitrário sem token equivalente** — achatar pra cor sólida do token mais próximo, ou `hover:brightness-110`/`95` quando precisar clarear/escurecer além do tom já definido na escada.
+  - Referência viva de aplicação: `src/features/rooms/` (`RoomListItem.tsx`, `RoomDetailPanel.tsx`, `RoomKpiCard.tsx`, `RoomDeviceCard.tsx`).
 - **Espaçamento (grid de 4px)** — todo padding/gap deve cair em uma destas 5 paradas; eliminar valores "quebrados" (`p-3`, `p-5`, `gap-1.5`, `py-1.5`, `mb-5`) sem justificativa específica:
   | Tamanho | Classes | Uso |
   |---|---|---|
