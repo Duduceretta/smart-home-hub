@@ -14,8 +14,8 @@ import {
 	Wind,
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import { useTranslation } from "react-i18next";
-import { DeleteDeviceModal } from "@/core/components/modals/DeleteDeviceModal";
+import { Trans, useTranslation } from "react-i18next";
+import { useConfirm } from "@/core/components/providers/ConfirmDialogProvider";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -44,7 +44,7 @@ interface DeviceCardProps {
 
 export const DeviceCard: React.FC<DeviceCardProps> = ({ device }) => {
 	const { t } = useTranslation(["devices", "common"]);
-	const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+	const confirm = useConfirm();
 	const [isTelemetryModalOpen, setIsTelemetryModalOpen] = useState(false);
 
 	// Estados locais para controles interativos embutidos
@@ -56,6 +56,27 @@ export const DeviceCard: React.FC<DeviceCardProps> = ({ device }) => {
 	const { mutate: toggleDevice, isPending: isToggling } = useToggleDevice();
 	const { mutate: deleteDevice, isPending: isDeleting } = useDeleteDevice();
 	const openEditModal = useDevicesUIStore((s) => s.openEditModal);
+
+	const handleDeleteClick = async () => {
+		const confirmed = await confirm({
+			title: t("deleteModal.title"),
+			description: (
+				<Trans
+					t={t}
+					i18nKey="deleteModal.description"
+					values={{ name: device.name }}
+					components={{
+						bold: <span className="font-semibold text-destructive" />,
+					}}
+				/>
+			),
+			confirmLabel: t("common:actions.delete"),
+			cancelLabel: t("common:actions.cancel"),
+			variant: "destructive",
+			icon: Trash2,
+		});
+		if (confirmed) deleteDevice(device.id);
+	};
 
 	const config =
 		DEVICE_CONFIG[device.type] ?? DEVICE_CONFIG[DeviceTypeEnum.Light];
@@ -535,7 +556,8 @@ export const DeviceCard: React.FC<DeviceCardProps> = ({ device }) => {
 								</DropdownMenuItem>
 
 								<DropdownMenuItem
-									onClick={() => setIsDeleteModalOpen(true)}
+									onClick={handleDeleteClick}
+									disabled={isDeleting}
 									className="cursor-pointer gap-2 text-xs text-alert-foreground focus:bg-alert/20 focus:text-[#ffdad6]"
 								>
 									<Trash2 className="h-3.5 w-3.5" />
@@ -549,18 +571,6 @@ export const DeviceCard: React.FC<DeviceCardProps> = ({ device }) => {
 				{/* Conteúdo Dinâmico do Card */}
 				<div className="relative z-10">{renderCardBody()}</div>
 			</div>
-
-			<DeleteDeviceModal
-				isOpen={isDeleteModalOpen}
-				deviceName={device.name}
-				onClose={() => setIsDeleteModalOpen(false)}
-				isLoading={isDeleting}
-				onConfirm={() => {
-					deleteDevice(device.id, {
-						onSuccess: () => setIsDeleteModalOpen(false),
-					});
-				}}
-			/>
 
 			<DeviceTelemetrySheet
 				device={device}
