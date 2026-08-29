@@ -9,6 +9,17 @@
     }
 }
 
+@keyframes dialogFadeUp {
+    from {
+        opacity: 0;
+        transform: translate(-50%, calc(-50% + 12px)) scale(0.98);
+    }
+    to {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1);
+    }
+}
+
 @keyframes slideOutRight {
     from {
         opacity: 1;
@@ -142,6 +153,10 @@
     }
     .animate-backdrop-out {
         animation: fadeOut 0.3s ease-in forwards;
+    }
+
+	.animate-dialog-in {
+        animation: dialogFadeUp 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
     }
 }
 
