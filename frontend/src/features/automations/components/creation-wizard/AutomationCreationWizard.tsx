@@ -1,5 +1,6 @@
 import { Zap } from "lucide-react";
 import { useEffect, useRef } from "react";
+import { useConfirm } from "@/core/components/providers/ConfirmDialogProvider";
 import { Button } from "@/core/components/ui/button";
 import {
 	Dialog,
@@ -37,6 +38,7 @@ export function AutomationCreationWizard() {
 	const { data: devices = [], isLoading: isLoadingDevices } =
 		usePickerDevices();
 	const createAutomation = useCreateAutomation();
+	const confirm = useConfirm();
 
 	const contentRef = useRef<HTMLDivElement>(null);
 
@@ -51,11 +53,13 @@ export function AutomationCreationWizard() {
 		firstField?.focus();
 	}, [isOpen]);
 
-	const handleClose = () => {
+	const handleClose = async () => {
 		if (hasProgress) {
-			const confirmed = confirm(
-				"Descartar essa automação? O progresso preenchido será perdido.",
-			);
+			const confirmed = await confirm({
+				title: "Descartar essa automação?",
+				description: "O progresso preenchido será perdido.",
+				confirmLabel: "Descartar",
+			});
 			if (!confirmed) return;
 		}
 		closeCreateWizard();

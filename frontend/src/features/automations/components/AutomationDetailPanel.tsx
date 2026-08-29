@@ -7,6 +7,7 @@ import {
 	Trash2,
 	Zap,
 } from "lucide-react";
+import { useConfirm } from "@/core/components/providers/ConfirmDialogProvider";
 import { Button } from "@/core/components/ui/button";
 import { Switch } from "@/core/components/ui/switch";
 import { cn } from "@/core/utils";
@@ -37,6 +38,8 @@ export function AutomationDetailPanel({
 	onDuplicate,
 	onDelete,
 }: AutomationDetailPanelProps) {
+	const confirm = useConfirm();
+
 	if (!automation) {
 		return (
 			<div className="flex h-full max-h-full min-h-50 flex-col items-center justify-center rounded-xl border border-dashed border-border-subtle bg-surface-low text-center">
@@ -49,14 +52,15 @@ export function AutomationDetailPanel({
 
 	const TriggerIcon = AUTOMATION_TRIGGER_ICON[automation.triggerKind];
 
-	const handleDelete = () => {
-		if (
-			confirm(
-				`Tem certeza que deseja excluir a automação "${automation.name}"?`,
-			)
-		) {
-			onDelete(automation.id);
-		}
+	const handleDelete = async () => {
+		const confirmed = await confirm({
+			title: "Excluir automação?",
+			description: `Tem certeza que deseja excluir a automação "${automation.name}"? Essa ação não pode ser desfeita.`,
+			confirmLabel: "Excluir",
+			variant: "destructive",
+			icon: Trash2,
+		});
+		if (confirmed) onDelete(automation.id);
 	};
 
 	return (
@@ -152,7 +156,7 @@ export function AutomationDetailPanel({
 
 			{/* Corpo de Detalhes com Scroll sem gradiente fixo */}
 			<div className="relative min-h-0 flex-1">
-				<div className="h-full overflow-y-auto p-5 [scrollbar-gutter:stable] scrollbar-thin">
+				<div className="h-full overflow-y-auto p-5 scrollbar-gutter-stable scrollbar-thin">
 					<div key={automation.id} className="space-y-4 animate-fade-in">
 						{/* Bloco Gatilho */}
 						<div className="rounded-lg border border-border-subtle/20 bg-surface-container p-4">

@@ -1,6 +1,7 @@
 import { Loader2, Pencil } from "lucide-react";
 import { useEffect, useRef } from "react";
 import { FormGlobalError } from "@/core/components/forms/FormGlobalError";
+import { useConfirm } from "@/core/components/providers/ConfirmDialogProvider";
 import { Button } from "@/core/components/ui/button";
 import {
 	Dialog,
@@ -14,6 +15,7 @@ import { TRIGGER_SOURCE_OPTIONS } from "../../constants/automations.constants";
 import { useEditAutomationForm } from "../../hooks/useEditAutomationForm";
 import { usePickerDevices } from "../../hooks/usePickerDevices";
 import { useUpdateAutomation } from "../../hooks/useUpdateAutomation";
+import { isNameValid } from "../../lib/automation-form-reducer";
 import { mapFormStateToUpdatePayload } from "../../lib/automation-wizard-payload.mapper";
 import { useAutomationsUIStore } from "../../store/automations-ui.store";
 import { ActionsStep } from "../automation-form/ActionsStep";
@@ -58,6 +60,7 @@ export function AutomationEditModal() {
 	const { data: devices = [], isLoading: isLoadingDevices } =
 		usePickerDevices();
 	const updateAutomation = useUpdateAutomation();
+	const confirm = useConfirm();
 
 	const nameInputRef = useRef<HTMLInputElement>(null);
 
@@ -65,11 +68,14 @@ export function AutomationEditModal() {
 		if (isOpen) nameInputRef.current?.focus();
 	}, [isOpen]);
 
-	const handleClose = () => {
+	const handleClose = async () => {
 		if (form.hasChanges) {
-			const confirmed = confirm(
-				"Descartar as alterações feitas nessa automação?",
-			);
+			const confirmed = await confirm({
+				title: "Descartar alterações?",
+				description:
+					"As alterações feitas nessa automação ainda não foram salvas e serão perdidas.",
+				confirmLabel: "Descartar",
+			});
 			if (!confirmed) return;
 		}
 		closeEditModal();
@@ -93,7 +99,7 @@ export function AutomationEditModal() {
 		!form.hasChanges ||
 		!form.isTriggerConfigValid ||
 		!form.isActionsListValid ||
-		form.state.name.trim().length === 0 ||
+		!isNameValid(form.state) ||
 		updateAutomation.isPending;
 
 	return (

@@ -17,7 +17,6 @@ interface AutomationsUIState {
 	setFilter: (filter: AutomationFilter) => void;
 	sort: AutomationSort;
 	setSort: (sort: AutomationSort) => void;
-	resetFilters: () => void;
 
 	// List presentation state
 	viewMode: AutomationViewMode;
@@ -56,7 +55,6 @@ export const useAutomationsUIStore = create<AutomationsUIState>((set) => ({
 	setQuery: (query) => set({ query }),
 	setFilter: (filter) => set({ filter }),
 	setSort: (sort) => set({ sort }),
-	resetFilters: () => set({ query: "", filter: "all", sort: "name" }),
 
 	// List presentation actions
 	setViewMode: (viewMode) => set({ viewMode }),

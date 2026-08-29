@@ -9,6 +9,7 @@ import {
 	WEEKDAY_OPTIONS,
 } from "../../constants/automations.constants";
 import type { UseAutomationWizardReturn } from "../../hooks/useAutomationWizard";
+import { isNameValid } from "../../lib/automation-form-reducer";
 import type { AutomationWizardState } from "../../types/automation-wizard.types";
 import type { PickerDevice } from "../../types/automations.types";
 
@@ -21,12 +22,15 @@ const COMPARISON_LABELS: Record<string, string> = {
 	"!=": "diferente de",
 };
 
+function findDeviceName(id: string, devices: PickerDevice[]): string {
+	return devices.find((d) => d.id === id)?.name ?? "dispositivo removido";
+}
+
 function describeTrigger(
 	state: AutomationWizardState,
 	devices: PickerDevice[],
 ): string {
-	const deviceName = (id: string) =>
-		devices.find((d) => d.id === id)?.name ?? "dispositivo removido";
+	const deviceName = (id: string) => findDeviceName(id, devices);
 
 	if (state.triggerSource === "sensor") {
 		const { deviceId, metric, comparison, value } = state.sensorConfig;
@@ -72,8 +76,7 @@ export function ReviewStep({
 }: ReviewStepProps) {
 	const { state, setName, setActivateImmediately, goToStep } = wizard;
 
-	const deviceName = (id: string) =>
-		devices.find((d) => d.id === id)?.name ?? "dispositivo removido";
+	const deviceName = (id: string) => findDeviceName(id, devices);
 
 	return (
 		<div className="flex flex-1 flex-col gap-4">
@@ -173,7 +176,7 @@ export function ReviewStep({
 				<Button
 					type="button"
 					onClick={onSubmit}
-					disabled={isSubmitting || state.name.trim().length === 0}
+					disabled={isSubmitting || !isNameValid(state)}
 				>
 					{isSubmitting && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
 					Salvar Automação

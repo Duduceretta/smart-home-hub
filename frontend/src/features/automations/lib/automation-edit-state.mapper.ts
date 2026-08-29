@@ -9,23 +9,11 @@ import type {
 	AutomationPayload,
 	AutomationRule,
 } from "../types/automations.types";
-
-const DEFAULT_SENSOR_CONFIG: AutomationFormState["sensorConfig"] = {
-	deviceId: "",
-	metric: "temperature",
-	comparison: ">",
-	value: "",
-};
-
-const DEFAULT_DEVICE_CONFIG: AutomationFormState["deviceConfig"] = {
-	deviceId: "",
-	desiredIsOn: true,
-};
-
-const DEFAULT_SCHEDULE_CONFIG: AutomationFormState["scheduleConfig"] = {
-	time: "",
-	weekdays: [0, 1, 2, 3, 4, 5, 6],
-};
+import {
+	DEFAULT_DEVICE_CONFIG,
+	DEFAULT_SCHEDULE_CONFIG,
+	DEFAULT_SENSOR_CONFIG,
+} from "./automation-form-reducer";
 
 const SENSOR_METRICS: readonly SensorMetric[] = [
 	"temperature",
