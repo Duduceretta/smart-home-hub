@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
-import { fetchRoomEnergy } from "../api/room-energy.api";
-import type { RoomEnergy, RoomEnergyRange } from "../types/room-energy.types";
+import { fetchRoomEnergy } from "../api/rooms.api";
+import type { RoomEnergy, RoomEnergyRange } from "../types/rooms.types";
 import { roomsKeys } from "./rooms.keys";
 
 export function useRoomEnergy(roomId: string, range: RoomEnergyRange) {

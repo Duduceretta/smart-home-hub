@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Logger } from "@/core/logger/app.logger";
-import { toggleRoomDeviceRequest } from "../api/room-devices.api";
+import { toggleRoomDeviceRequest } from "../api/rooms.api";
 import { roomsKeys } from "./rooms.keys";
 
 /**

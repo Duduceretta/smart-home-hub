@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Logger } from "@/core/logger/app.logger";
-import { updateDeviceRoomAssignmentRequest } from "../api/room-devices.api";
-import type { RoomDeviceAssignmentPayload } from "../types/room-devices.types";
+import { updateDeviceRoomAssignmentRequest } from "../api/rooms.api";
+import type { RoomDeviceAssignmentPayload } from "../types/rooms.types";
 import { roomsKeys } from "./rooms.keys";
 
 /**

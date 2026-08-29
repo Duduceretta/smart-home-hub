@@ -1,5 +1,4 @@
-import type { RoomPickerDevice } from "../types/room-devices.types";
-import type { Room } from "../types/rooms.types";
+import type { Room, RoomPickerDevice } from "../../types/rooms.types";
 import { RoomActivityFeed } from "./RoomActivityFeed";
 import { RoomClimateSection } from "./RoomClimateSection";
 import { RoomDeviceGrid } from "./RoomDeviceGrid";

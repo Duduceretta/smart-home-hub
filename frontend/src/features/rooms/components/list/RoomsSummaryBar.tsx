@@ -1,6 +1,6 @@
+import { useTranslation } from "react-i18next";
 import { cn } from "@/core/utils";
-import type { RoomPickerDevice } from "../types/room-devices.types";
-import type { Room } from "../types/rooms.types";
+import type { Room, RoomPickerDevice } from "../../types/rooms.types";
 
 interface RoomsSummaryBarProps {
 	rooms: Room[];
@@ -13,6 +13,7 @@ interface RoomsSummaryBarProps {
  * contam só dispositivos com `roomId` atribuído (não o total da casa).
  */
 export function RoomsSummaryBar({ rooms, devices }: RoomsSummaryBarProps) {
+	const { t } = useTranslation("rooms");
 	const assignedDevices = devices.filter((device) => device.roomId);
 	const offlineCount = assignedDevices.filter(
 		(device) => !device.isOnline,
@@ -21,27 +22,29 @@ export function RoomsSummaryBar({ rooms, devices }: RoomsSummaryBarProps) {
 	return (
 		<div className="flex items-center gap-2 py-1 text-xs text-muted-foreground">
 			<span>
-				<span className="font-medium text-foreground">{rooms.length}</span>{" "}
-				ambiente{rooms.length === 1 ? "" : "s"}
+				<span className="font-semibold text-foreground">{rooms.length}</span>{" "}
+				{t("summaryBar.room", "ambiente", { count: rooms.length })}
 			</span>
-			<span className="text-border-subtle">·</span>
+			<span className="text-border">·</span>
 			<span>
-				<span className="font-medium text-foreground">
+				<span className="font-semibold text-foreground">
 					{assignedDevices.length}
 				</span>{" "}
-				dispositivo{assignedDevices.length === 1 ? "" : "s"}
+				{t("summaryBar.device", "dispositivo", {
+					count: assignedDevices.length,
+				})}
 			</span>
-			<span className="text-border-subtle">·</span>
+			<span className="text-border">·</span>
 			<span>
 				<span
 					className={cn(
-						"font-medium",
-						offlineCount > 0 ? "text-alert-foreground" : "text-foreground",
+						"font-semibold transition-colors",
+						offlineCount > 0 ? "text-destructive" : "text-foreground",
 					)}
 				>
 					{offlineCount}
 				</span>{" "}
-				offline
+				{t("summaryBar.offline", "offline")}
 			</span>
 		</div>
 	);

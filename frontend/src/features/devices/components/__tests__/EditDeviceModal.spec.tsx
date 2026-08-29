@@ -17,6 +17,7 @@ const mockRoom: Room = {
 	id: "room-01",
 	name: "Sala de Estar",
 	icon: null,
+	automationCount: 0,
 };
 
 const mockDevice: Device = {

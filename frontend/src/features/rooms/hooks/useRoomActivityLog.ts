@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
-import { fetchRoomActivityLog } from "../api/room-activity.api";
-import type { RoomActivityEntry } from "../types/room-activity.types";
+import { fetchRoomActivityLog } from "../api/rooms.api";
+import type { RoomActivityEntry } from "../types/rooms.types";
 import { roomsKeys } from "./rooms.keys";
 
 /** Eventos recentes deste ambiente — filtro feito no back-end. */

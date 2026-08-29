@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Logger } from "@/core/logger/app.logger";
-import { setRoomDevicesPowerRequest } from "../api/room-power.api";
+import { setRoomDevicesPowerRequest } from "../api/rooms.api";
 import { roomsKeys } from "./rooms.keys";
 
 /** "Ligar Tudo"/"Desligar Tudo" — POST /rooms/{id}/devices/turn-on|turn-off. */

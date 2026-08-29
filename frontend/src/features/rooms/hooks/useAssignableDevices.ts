@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
-import { fetchAssignableDevices } from "../api/room-devices.api";
-import type { RoomPickerDevice } from "../types/room-devices.types";
+import { fetchAssignableDevices } from "../api/rooms.api";
+import type { RoomPickerDevice } from "../types/rooms.types";
 import { roomsKeys } from "./rooms.keys";
 
 /**
