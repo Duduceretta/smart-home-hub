@@ -1,6 +1,6 @@
 import { Info } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { DeviceTypeEnum, IntegrationTypeEnum } from "../types/devices.types";
+import { DeviceTypeEnum, IntegrationTypeEnum } from "../../types/devices.types";
 
 const TV_MEDIA_INTEGRATIONS: IntegrationTypeEnum[] = [
 	IntegrationTypeEnum.GoogleCast,

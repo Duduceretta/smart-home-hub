@@ -23,20 +23,20 @@ import {
 	DropdownMenuTrigger,
 } from "@/core/components/ui/dropdown-menu";
 import { useDebouncedValue } from "@/core/hooks/useDebouncedValue";
-import { DEVICE_CONFIG } from "../constants/devices.constants";
-import { useDeleteDevice } from "../hooks/useDeleteDevice";
-import { useDeviceMedia } from "../hooks/useDeviceMedia";
-import { useSetDeviceVolume } from "../hooks/useSetDeviceVolume";
-import { useToggleDevice } from "../hooks/useToggleDevice";
-import { useDevicesUIStore } from "../store/devices-ui.store";
+import { DEVICE_CONFIG } from "../../constants/devices.constants";
+import { useDeleteDevice } from "../../hooks/useDeleteDevice";
+import { useDeviceMedia } from "../../hooks/useDeviceMedia";
+import { useSetDeviceVolume } from "../../hooks/useSetDeviceVolume";
+import { useToggleDevice } from "../../hooks/useToggleDevice";
+import { useDevicesUIStore } from "../../store/devices-ui.store";
 import {
 	type Device,
 	DeviceTypeEnum,
 	INTEGRATION_TYPE_LABEL_KEYS,
 	IntegrationTypeEnum,
 	isActuatorDevice,
-} from "../types/devices.types";
-import { DeviceTelemetrySheet } from "./DeviceTelemetrySheet";
+} from "../../types/devices.types";
+import { DeviceTelemetrySheet } from "../detail/DeviceTelemetrySheet";
 
 interface DeviceCardProps {
 	device: Device;

@@ -1,7 +1,7 @@
 import { Plus } from "lucide-react";
 import type React from "react";
 import { useTranslation } from "react-i18next";
-import { useDevicesUIStore } from "../store/devices-ui.store";
+import { useDevicesUIStore } from "../../store/devices-ui.store";
 
 export const DevicesHeader: React.FC = () => {
 	const { t } = useTranslation("devices");

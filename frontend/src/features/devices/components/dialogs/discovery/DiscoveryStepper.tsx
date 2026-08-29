@@ -1,6 +1,6 @@
 import { Check } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import type { DiscoveryStep } from "../../store/devices-ui.store";
+import type { DiscoveryStep } from "../../../store/devices-ui.store";
 
 const STEPS: {
 	key: DiscoveryStep;

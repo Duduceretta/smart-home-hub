@@ -9,12 +9,12 @@ import type { ComponentType } from "react";
 import { useTranslation } from "react-i18next";
 import { FormGlobalError } from "@/core/components/forms/FormGlobalError";
 import { useRooms } from "@/features/rooms/hooks/useRooms";
-import { useCreateDevice } from "../../hooks/useCreateDevice";
-import { useDevicesUIStore } from "../../store/devices-ui.store";
+import { useCreateDevice } from "../../../hooks/useCreateDevice";
+import { useDevicesUIStore } from "../../../store/devices-ui.store";
 import {
 	DEVICE_TYPE_LABEL_KEYS,
 	INTEGRATION_TYPE_LABEL_KEYS,
-} from "../../types/devices.types";
+} from "../../../types/devices.types";
 
 const SummaryRow: React.FC<{ label: string; value: string }> = ({
 	label,

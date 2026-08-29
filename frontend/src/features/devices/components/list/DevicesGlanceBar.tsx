@@ -2,9 +2,9 @@ import { AlertTriangle, Cpu, Lightbulb, Snowflake, Zap } from "lucide-react";
 import type React from "react";
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
-import { useDevices } from "../hooks/useDevices";
-import { useDevicesUIStore } from "../store/devices-ui.store";
-import { DeviceTypeEnum } from "../types/devices.types";
+import { useDevices } from "../../hooks/useDevices";
+import { useDevicesUIStore } from "../../store/devices-ui.store";
+import { DeviceTypeEnum } from "../../types/devices.types";
 
 export const DevicesGlanceBar: React.FC = () => {
 	const { t } = useTranslation("devices");

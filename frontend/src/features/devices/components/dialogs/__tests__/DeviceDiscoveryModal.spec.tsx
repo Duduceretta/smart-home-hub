@@ -10,9 +10,12 @@ import {
 	userEvent,
 	waitFor,
 } from "@/testing/test-utils";
-import { useDevicesUIStore } from "../../store/devices-ui.store";
-import type { DiscoveredDevice } from "../../types/devices.types";
-import { DeviceTypeEnum, IntegrationTypeEnum } from "../../types/devices.types";
+import { useDevicesUIStore } from "../../../store/devices-ui.store";
+import type { DiscoveredDevice } from "../../../types/devices.types";
+import {
+	DeviceTypeEnum,
+	IntegrationTypeEnum,
+} from "../../../types/devices.types";
 import { DeviceDiscoveryModal } from "../DeviceDiscoveryModal";
 
 const mockConnection = {

@@ -1,8 +1,8 @@
 import { Loader2, RefreshCw, Search, Settings2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { INTEGRATION_ICON } from "../../constants/devices.constants";
-import { useDevicesUIStore } from "../../store/devices-ui.store";
-import { INTEGRATION_TYPE_LABEL_KEYS } from "../../types/devices.types";
+import { INTEGRATION_ICON } from "../../../constants/devices.constants";
+import { useDevicesUIStore } from "../../../store/devices-ui.store";
+import { INTEGRATION_TYPE_LABEL_KEYS } from "../../../types/devices.types";
 
 export const DiscoveryStepFound: React.FC = () => {
 	const { t } = useTranslation("devices");

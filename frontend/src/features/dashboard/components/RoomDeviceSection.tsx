@@ -8,7 +8,7 @@ import {
 } from "@/core/components/ui/collapsible";
 import { cn } from "@/core/utils";
 import { UNASSIGNED_ROOM_KEY } from "@/features/dashboard/constants/dashboard.constants";
-import { DeviceCard } from "@/features/devices/components/DeviceCard";
+import { DeviceCard } from "@/features/devices/components/list/DeviceCard";
 import { useDevicesUIStore } from "@/features/devices/store/devices-ui.store";
 import type { Device } from "@/features/devices/types/devices.types";
 import { ROOM_ICON_MAP } from "@/features/rooms/constants/rooms.constants";

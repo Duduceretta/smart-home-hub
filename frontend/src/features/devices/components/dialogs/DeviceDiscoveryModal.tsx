@@ -7,8 +7,8 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from "@/core/components/ui/dialog";
-import { useDeviceDiscovery } from "../hooks/useDeviceDiscovery";
-import { useDevicesUIStore } from "../store/devices-ui.store";
+import { useDeviceDiscovery } from "../../hooks/useDeviceDiscovery";
+import { useDevicesUIStore } from "../../store/devices-ui.store";
 import { DiscoveryStepConfigure } from "./discovery/DiscoveryStepConfigure";
 import { DiscoveryStepDone } from "./discovery/DiscoveryStepDone";
 import { DiscoveryStepFound } from "./discovery/DiscoveryStepFound";

@@ -22,8 +22,8 @@ import {
 	YAxis,
 } from "recharts";
 import { SheetLayout } from "@/core/components/layouts/SheetLayout";
-import { useDeviceTelemetryHistory } from "../hooks/useDeviceTelemetryHistory";
-import type { Device, TelemetryRange } from "../types/devices.types";
+import { useDeviceTelemetryHistory } from "../../hooks/useDeviceTelemetryHistory";
+import type { Device, TelemetryRange } from "../../types/devices.types";
 
 interface DeviceTelemetrySheetProps {
 	device: Device | null;

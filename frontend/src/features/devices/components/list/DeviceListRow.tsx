@@ -8,17 +8,17 @@ import {
 	DropdownMenuItem,
 	DropdownMenuTrigger,
 } from "@/core/components/ui/dropdown-menu";
-import { DEVICE_CONFIG } from "../constants/devices.constants";
-import { useDeleteDevice } from "../hooks/useDeleteDevice";
-import { useToggleDevice } from "../hooks/useToggleDevice";
-import { useDevicesUIStore } from "../store/devices-ui.store";
+import { DEVICE_CONFIG } from "../../constants/devices.constants";
+import { useDeleteDevice } from "../../hooks/useDeleteDevice";
+import { useToggleDevice } from "../../hooks/useToggleDevice";
+import { useDevicesUIStore } from "../../store/devices-ui.store";
 import {
 	type Device,
 	DeviceTypeEnum,
 	INTEGRATION_TYPE_LABEL_KEYS,
 	isActuatorDevice,
-} from "../types/devices.types";
-import { DeviceTelemetrySheet } from "./DeviceTelemetrySheet";
+} from "../../types/devices.types";
+import { DeviceTelemetrySheet } from "../detail/DeviceTelemetrySheet";
 
 interface DeviceListRowProps {
 	device: Device;

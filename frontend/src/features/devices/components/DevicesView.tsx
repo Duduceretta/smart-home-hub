@@ -1,9 +1,9 @@
-import { DeviceDiscoveryModal } from "./DeviceDiscoveryModal";
-import { DevicesGlanceBar } from "./DevicesGlanceBar";
-import { DevicesGrid } from "./DevicesGrid";
-import { DevicesHeader } from "./DevicesHeader";
-import { DevicesToolbar } from "./DevicesToolbar";
-import { EditDeviceModal } from "./EditDeviceModal";
+import { DeviceDiscoveryModal } from "./dialogs/DeviceDiscoveryModal";
+import { EditDeviceModal } from "./dialogs/EditDeviceModal";
+import { DevicesGlanceBar } from "./list/DevicesGlanceBar";
+import { DevicesGrid } from "./list/DevicesGrid";
+import { DevicesHeader } from "./list/DevicesHeader";
+import { DevicesToolbar } from "./list/DevicesToolbar";
 
 export const DevicesView: React.FC = () => {
 	return (

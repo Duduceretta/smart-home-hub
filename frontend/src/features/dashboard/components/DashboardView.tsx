@@ -6,7 +6,7 @@ import {
 	type ChipKey,
 	UNASSIGNED_ROOM_KEY,
 } from "@/features/dashboard/constants/dashboard.constants";
-import { EditDeviceModal } from "@/features/devices/components/EditDeviceModal";
+import { EditDeviceModal } from "@/features/devices/components/dialogs/EditDeviceModal";
 import { useDevices } from "@/features/devices/hooks/useDevices";
 import type { Device } from "@/features/devices/types/devices.types";
 import { SpotifyNowPlayingCard } from "@/features/integrations/components/SpotifyNowPlayingCard";

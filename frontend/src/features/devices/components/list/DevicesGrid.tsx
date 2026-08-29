@@ -1,8 +1,8 @@
 import { ChevronLeft, ChevronRight, Cpu, Plus, Search } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useDebouncedValue } from "@/core/hooks/useDebouncedValue";
-import { useDevices } from "../hooks/useDevices";
-import { useDevicesUIStore } from "../store/devices-ui.store";
+import { useDevices } from "../../hooks/useDevices";
+import { useDevicesUIStore } from "../../store/devices-ui.store";
 import { DeviceCard } from "./DeviceCard";
 import { DeviceListRow } from "./DeviceListRow";
 

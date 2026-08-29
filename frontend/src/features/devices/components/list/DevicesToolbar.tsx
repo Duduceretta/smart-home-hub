@@ -3,7 +3,7 @@ import type React from "react";
 import { useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { useRooms } from "@/features/rooms/hooks/useRooms";
-import { useDevicesUIStore } from "../store/devices-ui.store";
+import { useDevicesUIStore } from "../../store/devices-ui.store";
 
 export const DevicesToolbar: React.FC = () => {
 	const { t } = useTranslation(["devices", "common"]);

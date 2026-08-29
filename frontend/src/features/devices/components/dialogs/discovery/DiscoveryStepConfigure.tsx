@@ -19,20 +19,20 @@ import { FormSelect } from "@/core/components/forms/FormSelect";
 import { Tabs, TabsList, TabsTrigger } from "@/core/components/ui/tabs";
 import { formatIpAddress, formatMacAddress } from "@/core/utils/formatters";
 import { useRooms } from "@/features/rooms/hooks/useRooms";
-import { INTEGRATION_FIELD_VISIBILITY } from "../../constants/devices.constants";
-import { useDevicesUIStore } from "../../store/devices-ui.store";
+import { INTEGRATION_FIELD_VISIBILITY } from "../../../constants/devices.constants";
+import { useDevicesUIStore } from "../../../store/devices-ui.store";
 import {
 	type CreateDeviceFormInput,
 	type CreateDeviceFormOutput,
 	createDeviceSchema,
-} from "../../types/device.schemas";
+} from "../../../types/device.schemas";
 import {
 	DEVICE_TYPE_LABEL_KEYS,
 	DeviceTypeEnum,
 	type DiscoveredDevice,
 	INTEGRATION_TYPE_LABEL_KEYS,
 	IntegrationTypeEnum,
-} from "../../types/devices.types";
+} from "../../../types/devices.types";
 import { TvSetupGuideCallout } from "../TvSetupGuideCallout";
 
 const EMPTY_DEFAULTS: CreateDeviceFormInput = {
