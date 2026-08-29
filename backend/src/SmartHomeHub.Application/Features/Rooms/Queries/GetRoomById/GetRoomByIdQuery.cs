@@ -20,7 +20,10 @@ public class GetRoomByIdQueryHandler(IAppDbContext dbContext)
             .Where(room =>
                 room.Id == request.RoomId && room.User.ExternalAuthUid == request.FirebaseUid
             )
-            .Select(room => new RoomDto(room.Id, room.Name, room.Icon))
+            // AutomationCount não é usado por quem consome este endpoint hoje
+            // (só GetRoomsQuery precisa dele, pra lista) — 0 fixo em vez de
+            // duplicar o cruzamento RulePayload×dispositivo aqui à toa.
+            .Select(room => new RoomDto(room.Id, room.Name, room.Icon, 0))
             .FirstOrDefaultAsync(cancellationToken);
     }
 }
