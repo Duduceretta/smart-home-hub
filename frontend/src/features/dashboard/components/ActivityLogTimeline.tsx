@@ -19,8 +19,8 @@ const EVENT_STYLE: Record<
 	},
 	DeviceMedia: {
 		icon: MonitorPlay,
-		color: "text-cool",
-		border: "border-cool",
+		color: "text-foreground",
+		border: "border-border",
 	},
 	Spotify: {
 		icon: Music,
@@ -29,19 +29,15 @@ const EVENT_STYLE: Record<
 	},
 	AutomationExecuted: {
 		icon: Bot,
-		color: "text-warm",
-		border: "border-warm",
+		color: "text-foreground",
+		border: "border-border",
 	},
 };
 
-// SystemEvent.EventType é uma coluna de texto livre — outras origens (ex:
-// alertas de segurança) podem gravar valores fora dos três tipos que a
-// Linha do Tempo estiliza hoje. Sem esse fallback, um eventType desconhecido
-// derruba o card inteiro.
 const DEFAULT_EVENT_STYLE = {
 	icon: Clock,
 	color: "text-muted-foreground",
-	border: "border-muted-foreground",
+	border: "border-border-subtle",
 };
 
 export function ActivityLogTimeline() {
@@ -53,17 +49,17 @@ export function ActivityLogTimeline() {
 	const entries = data?.items ?? [];
 
 	return (
-		<div className="rounded-xl border border-border-subtle/10 bg-surface-high p-4 flex flex-col flex-1 transition-all duration-200 hover:border-primary/25 hover:shadow-lg hover:shadow-black/30">
-			<div className="flex items-center justify-between mb-6">
-				<h3 className="text-xs font-medium tracking-wider text-muted-foreground uppercase">
+		<div className="flex flex-1 flex-col rounded-xl border border-border-subtle bg-surface-container p-4 transition-all duration-200 hover:border-border">
+			<div className="mb-6 flex items-center justify-between">
+				<h3 className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
 					{t("activityLog.title")}
 				</h3>
-				<Clock className="w-4 h-4 text-muted-foreground" />
+				<Clock className="h-4 w-4 text-muted-foreground" />
 			</div>
 
-			<div className="min-h-[320px]">
+			<div className="min-h-80">
 				{isError ? (
-					<div className="flex h-[320px] items-center justify-center">
+					<div className="flex h-80 items-center justify-center">
 						<DashboardErrorState
 							title={t(
 								"activityLog.errorTitle",
@@ -77,7 +73,7 @@ export function ActivityLogTimeline() {
 						/>
 					</div>
 				) : isLoading || entries.length === 0 ? (
-					<div className="flex h-[320px] flex-col items-center justify-center gap-2 text-center">
+					<div className="flex h-80 flex-col items-center justify-center gap-2 text-center">
 						<Clock className="h-7 w-7 text-muted-foreground" />
 						<p className="text-xs font-medium text-muted-foreground">
 							{isLoading
@@ -87,7 +83,7 @@ export function ActivityLogTimeline() {
 					</div>
 				) : (
 					<div className="relative flex flex-col gap-4">
-						<div className="absolute left-[11px] top-2 bottom-2 w-px bg-border-subtle/20" />
+						<div className="absolute bottom-2 left-2.75 top-2 w-px bg-border-subtle" />
 						{entries.map((entry) => {
 							const style = EVENT_STYLE[entry.eventType] ?? DEFAULT_EVENT_STYLE;
 							return (
@@ -95,10 +91,10 @@ export function ActivityLogTimeline() {
 									key={entry.id}
 									icon={style.icon}
 									iconColorClassName={
-										entry.isAlert ? "text-alert-foreground" : style.color
+										entry.isAlert ? "text-destructive" : style.color
 									}
 									borderColorClassName={
-										entry.isAlert ? "border-alert-foreground" : style.border
+										entry.isAlert ? "border-destructive" : style.border
 									}
 									title={entry.title}
 									description={entry.description}

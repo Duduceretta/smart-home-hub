@@ -50,7 +50,7 @@ export const DeviceListRow: React.FC<DeviceListRowProps> = ({ device }) => {
 	return (
 		<>
 			<div
-				className={`relative group flex items-center gap-4 rounded-xl p-4 transition-all bg-gradient-to-br from-surface-low to-surface-low/70 ${
+				className={`relative group flex items-center gap-4 rounded-xl p-4 transition-all bg-linear-to-br from-surface-low to-surface-low/70 ${
 					!isOnline
 						? "opacity-70"
 						: "hover:from-surface-container hover:to-surface-low"

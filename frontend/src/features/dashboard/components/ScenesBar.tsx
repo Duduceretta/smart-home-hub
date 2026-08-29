@@ -12,7 +12,7 @@ export function ScenesBar() {
 	const [activeScene, setActiveScene] = useState<string | null>(null);
 
 	return (
-		<div className="flex items-center gap-2 overflow-x-auto pb-1 md:flex-wrap md:overflow-visible">
+		<div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none md:flex-wrap md:overflow-visible">
 			{SCENES.map(({ key, labelKey, icon: Icon }) => (
 				<Pill
 					key={key}
@@ -21,8 +21,8 @@ export function ScenesBar() {
 						setActiveScene((current) => (current === key ? null : key))
 					}
 				>
-					<Icon className="w-4 h-4" />
-					{t(labelKey)}
+					<Icon className="h-4 w-4 shrink-0" />
+					<span>{t(labelKey)}</span>
 				</Pill>
 			))}
 		</div>

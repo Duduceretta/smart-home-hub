@@ -19,16 +19,16 @@ export function EnergyLoadWidget() {
 
 	if (isLoading) {
 		return (
-			<div className="rounded-xl border border-border-subtle/20 bg-surface-high p-4 flex flex-col animate-pulse">
-				<div className="h-4 w-48 bg-surface-high rounded-md mb-6" />
-				<div className="flex-1 min-h-62.5 w-full bg-surface-high/40 rounded-xl" />
+			<div className="flex flex-col rounded-xl border border-border-subtle bg-surface-container p-4 animate-pulse">
+				<div className="mb-6 h-4 w-48 rounded-md bg-surface-high" />
+				<div className="min-h-62.5 w-full flex-1 rounded-xl bg-surface-low/50" />
 			</div>
 		);
 	}
 
 	if (isError || !data) {
 		return (
-			<div className="rounded-xl border border-border-subtle/10 bg-surface-high p-4 flex flex-col justify-center h-62.5">
+			<div className="flex h-62.5 flex-col justify-center rounded-xl border border-border-subtle bg-surface-container p-4">
 				<DashboardErrorState
 					title={t(
 						"energyChart.errorTitle",
@@ -58,11 +58,6 @@ export function EnergyLoadWidget() {
 
 	const totalEnergy = formatEnergy(data.summary.energyConsumptionKwh);
 
-	// Recharts mostra 1 label por ponto por padrão — com o backend agora
-	// preenchendo todo balde de 5min (mesmo sem telemetria), um dia inteiro
-	// vira ~288 pontos e os labels colidem/ficam ilegíveis. Calcula um
-	// intervalo fixo pra sempre mostrar ~8 labels, não importa quantos
-	// pontos existam — mantém o espaçamento visual do eixo previsível.
 	const MAX_VISIBLE_TICKS = 8;
 	const xAxisTickInterval =
 		chartData.length > MAX_VISIBLE_TICKS
@@ -70,22 +65,22 @@ export function EnergyLoadWidget() {
 			: 0;
 
 	return (
-		<div className="rounded-xl border border-border-subtle/10 bg-surface-high p-4 flex flex-col transition-all duration-200 hover:border-primary/25 hover:shadow-lg hover:shadow-black/30">
-			<div className="flex items-center justify-between mb-6">
+		<div className="flex flex-col rounded-xl border border-border-subtle bg-surface-container p-4 transition-all duration-200 hover:border-border">
+			<div className="mb-6 flex items-center justify-between">
 				<div className="flex flex-col gap-1">
 					<div className="flex items-center gap-2">
-						<div className="w-1.5 h-5 bg-primary rounded-full" />
-						<h3 className="text-sm font-medium text-foreground">
+						<div className="h-4 w-1.5 rounded-full bg-primary" />
+						<h3 className="text-sm font-semibold tracking-tight text-foreground">
 							{t("energyChart.title", "Potência ao vivo")}
 						</h3>
 					</div>
-					<span className="text-xs text-muted-foreground/60 pl-3.5">
+					<span className="pl-3.5 text-xs text-muted-foreground">
 						{t("energyChart.subtitle", "Quanto a casa está puxando agora")}
 					</span>
 				</div>
 				<div className="flex flex-col items-end gap-1">
 					<span
-						className="text-xs font-medium tracking-wider text-primary bg-primary/10 px-3 py-1 rounded-md border border-primary/20"
+						className="rounded-md border border-border-subtle bg-surface-low px-2.5 py-1 text-xs font-semibold tabular-nums text-foreground"
 						title={
 							data.summary.isEnergyEstimated
 								? t(
@@ -98,14 +93,14 @@ export function EnergyLoadWidget() {
 						{data.summary.isEnergyEstimated && "~"}
 						{totalEnergy.value} {totalEnergy.unit}
 					</span>
-					<span className="text-xs text-muted-foreground/60">
+					<span className="text-[11px] text-muted-foreground">
 						{t("energyChart.totalSubtitle", "Acumulado hoje")}
 					</span>
 				</div>
 			</div>
 
 			<div
-				className={`w-full flex flex-col justify-center ${chartData.length === 0 ? "h-32" : "h-62.5"}`}
+				className={`flex w-full flex-col justify-center ${chartData.length === 0 ? "h-32" : "h-62.5"}`}
 			>
 				{chartData.length === 0 ? (
 					<div className="flex flex-col items-center justify-center gap-1 py-4 text-center">
@@ -147,7 +142,7 @@ export function EnergyLoadWidget() {
 							<CartesianGrid
 								strokeDasharray="3 6"
 								stroke="var(--color-border-subtle)"
-								strokeOpacity={0.15}
+								strokeOpacity={0.4}
 								vertical={false}
 							/>
 							<XAxis
@@ -179,10 +174,11 @@ export function EnergyLoadWidget() {
 									strokeDasharray: "3 3",
 								}}
 								contentStyle={{
-									backgroundColor: "var(--color-surface-high)",
+									backgroundColor: "var(--color-popover)",
 									borderColor: "var(--color-border-subtle)",
 									borderRadius: "8px",
 									color: "var(--color-foreground)",
+									boxShadow: "0 4px 12px rgba(0,0,0,0.3)",
 								}}
 								itemStyle={{ color: "var(--color-primary)" }}
 								formatter={(rawValue, _name, props) => {

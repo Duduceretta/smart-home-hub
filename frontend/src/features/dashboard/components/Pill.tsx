@@ -1,3 +1,5 @@
+import { cn } from "@/core/utils";
+
 interface PillProps {
 	active?: boolean;
 	onClick?: () => void;
@@ -16,11 +18,13 @@ export const Pill: React.FC<PillProps> = ({
 			type="button"
 			aria-pressed={active}
 			onClick={onClick}
-			className={`shrink-0 inline-flex h-8 items-center gap-2 rounded-full border px-4 text-sm font-medium transition-colors cursor-pointer ${
+			className={cn(
+				"inline-flex h-8 shrink-0 items-center gap-2 rounded-full border px-3.5 text-xs font-medium tracking-wide transition-all cursor-pointer shadow-xs",
 				active
-					? "bg-primary/20 border-primary/50 text-foreground"
-					: "bg-surface-container border-border-subtle text-muted-foreground hover:bg-surface-high hover:text-foreground"
-			} ${className}`}
+					? "border-primary/40 bg-primary/10 text-foreground shadow-inner"
+					: "border-border-subtle bg-surface-container text-muted-foreground hover:border-border hover:bg-surface-high hover:text-foreground",
+				className,
+			)}
 		>
 			{children}
 		</button>

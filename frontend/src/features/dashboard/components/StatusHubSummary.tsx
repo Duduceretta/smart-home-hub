@@ -10,14 +10,14 @@ export function StatusHubSummary() {
 
 	if (isLoading) {
 		return (
-			<div className="grid grid-cols-2 lg:grid-cols-4 gap-4 animate-pulse">
+			<div className="grid grid-cols-2 gap-4 lg:grid-cols-4 animate-pulse">
 				{["energy", "devices", "temperature", "alerts"].map((metricKey) => (
 					<div
 						key={`skeleton-${metricKey}`}
-						className="h-24 rounded-xl border border-border-subtle/20 bg-surface-high p-4 flex flex-col justify-between"
+						className="flex h-24 flex-col justify-between rounded-xl border border-border-subtle bg-surface-container p-4"
 					>
-						<div className="h-3 w-20 bg-surface-high rounded-md" />
-						<div className="h-6 w-16 bg-surface-high rounded-md" />
+						<div className="h-3 w-20 rounded-md bg-surface-high" />
+						<div className="h-6 w-16 rounded-md bg-surface-high" />
 					</div>
 				))}
 			</div>
@@ -44,18 +44,19 @@ export function StatusHubSummary() {
 	const energy = formatEnergy(summary.energyConsumptionKwh);
 
 	return (
-		<div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-			<div className="rounded-xl border border-border-subtle bg-surface-high p-4 flex flex-col justify-between gap-4 transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/25 hover:shadow-lg hover:shadow-black/30">
+		<div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+			{/* Card 1: Consumo Acumulado */}
+			<div className="flex flex-col justify-between gap-4 rounded-xl border border-border-subtle bg-surface-container p-4 transition-all duration-200 hover:-translate-y-0.5 hover:border-border">
 				<div className="flex items-center justify-between">
-					<span className="min-w-0 flex-1 truncate text-xs font-medium tracking-wider text-muted-foreground uppercase">
+					<span className="min-w-0 flex-1 truncate text-xs font-semibold uppercase tracking-wider text-muted-foreground">
 						{t("metrics.energyConsumption")}
 					</span>
-					<Zap className="w-4 h-4 shrink-0 text-warm" />
+					<Zap className="h-4 w-4 shrink-0 text-amber-400" />
 				</div>
 				<div className="flex flex-col gap-0.5">
 					<div>
 						<span
-							className="text-2xl font-semibold text-foreground"
+							className="text-2xl font-bold tracking-tight text-foreground"
 							title={
 								summary.isEnergyEstimated
 									? t(
@@ -68,11 +69,11 @@ export function StatusHubSummary() {
 							{summary.isEnergyEstimated && "~"}
 							{energy.value}
 						</span>
-						<span className="text-xs text-muted-foreground ml-1">
+						<span className="ml-1 text-xs font-medium text-muted-foreground">
 							{energy.unit}
 						</span>
 					</div>
-					<span className="text-xs text-muted-foreground/60">
+					<span className="truncate text-[11px] text-muted-foreground">
 						{t("metrics.energyConsumptionSubtitle", "Acumulado hoje")}
 						{summary.isEnergyEstimated &&
 							` · ${t("metrics.energyEstimatedShort", "inclui estimativa")}`}
@@ -80,26 +81,27 @@ export function StatusHubSummary() {
 				</div>
 			</div>
 
-			<div className="rounded-xl border border-primary/30 bg-surface-high p-4 flex flex-col justify-between gap-4 relative overflow-hidden transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/50 hover:shadow-lg hover:shadow-black/30">
-				<div className="absolute inset-0 bg-linear-to-br from-primary/[0.06] to-transparent pointer-events-none" />
-				<div className="flex items-center justify-between relative z-10">
-					<span className="min-w-0 flex-1 truncate text-xs font-medium tracking-wider text-muted-foreground uppercase">
+			{/* Card 2: Dispositivos Online (Card Destaque) */}
+			<div className="relative flex flex-col justify-between gap-4 overflow-hidden rounded-xl border border-primary/30 bg-surface-container p-4 transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/50">
+				<div className="pointer-events-none absolute inset-0 bg-linear-to-br from-primary/5 to-transparent" />
+				<div className="relative z-10 flex items-center justify-between">
+					<span className="min-w-0 flex-1 truncate text-xs font-semibold uppercase tracking-wider text-muted-foreground">
 						{t("metrics.onlineDevices")}
 					</span>
-					<Wifi className="w-4 h-4 shrink-0 text-primary" />
+					<Wifi className="h-4 w-4 shrink-0 text-primary" />
 				</div>
-				<div className="relative z-10 flex flex-col gap-3">
+				<div className="relative z-10 flex flex-col gap-2.5">
 					<div>
-						<span className="text-2xl font-semibold text-primary">
+						<span className="text-2xl font-bold tracking-tight text-foreground">
 							{summary.onlineDevicesCount}
 						</span>
-						<span className="text-xs text-muted-foreground ml-1">
+						<span className="ml-1 text-xs font-medium text-muted-foreground">
 							{t("metrics.activeOf", { total: summary.totalDevicesCount })}
 						</span>
 					</div>
-					<div className="h-1 w-full rounded-full bg-background overflow-hidden">
+					<div className="h-1.5 w-full overflow-hidden rounded-full bg-surface-low">
 						<div
-							className="h-full rounded-full bg-primary shadow-[0_0_6px_rgba(197,198,207,0.4)]"
+							className="h-full rounded-full bg-primary transition-all duration-500"
 							style={{
 								width: `${summary.totalDevicesCount > 0 ? (summary.onlineDevicesCount / summary.totalDevicesCount) * 100 : 0}%`,
 							}}
@@ -108,38 +110,50 @@ export function StatusHubSummary() {
 				</div>
 			</div>
 
-			<div className="rounded-xl border border-border-subtle bg-surface-high p-4 flex flex-col justify-between gap-4 transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/25 hover:shadow-lg hover:shadow-black/30">
+			{/* Card 3: Temperatura Média */}
+			<div className="flex flex-col justify-between gap-4 rounded-xl border border-border-subtle bg-surface-container p-4 transition-all duration-200 hover:-translate-y-0.5 hover:border-border">
 				<div className="flex items-center justify-between">
-					<span className="min-w-0 flex-1 truncate text-xs font-medium tracking-wider text-muted-foreground uppercase">
+					<span className="min-w-0 flex-1 truncate text-xs font-semibold uppercase tracking-wider text-muted-foreground">
 						{t("metrics.averageTemperature")}
 					</span>
-					<Thermometer className="w-4 h-4 shrink-0 text-cool" />
+					<Thermometer className="h-4 w-4 shrink-0 text-sky-400" />
 				</div>
-				<div className="flex items-baseline gap-1.5">
-					<span className="text-2xl font-semibold text-foreground">
+				<div className="flex items-baseline gap-2">
+					<span className="text-2xl font-bold tracking-tight text-foreground">
 						{Math.round(summary.averageTemperatureCelsius)}°C
 					</span>
-					<span className="text-xs font-medium text-primary bg-primary/10 px-2 py-1 rounded-full">
+					<span className="rounded-md border border-border-subtle bg-surface-low px-1.5 py-0.5 text-[11px] font-semibold tabular-nums text-foreground">
 						{summary.temperatureTrend > 0 ? "+" : ""}
 						{summary.temperatureTrend}°C
 					</span>
 				</div>
 			</div>
 
-			<div className="rounded-xl border border-border-subtle bg-surface-high p-4 flex flex-col justify-between gap-4 transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/25 hover:shadow-lg hover:shadow-black/30">
+			{/* Card 4: Alertas de Segurança */}
+			<div className="flex flex-col justify-between gap-4 rounded-xl border border-border-subtle bg-surface-container p-4 transition-all duration-200 hover:-translate-y-0.5 hover:border-border">
 				<div className="flex items-center justify-between">
-					<span className="min-w-0 flex-1 truncate text-xs font-medium tracking-wider text-muted-foreground uppercase">
+					<span className="min-w-0 flex-1 truncate text-xs font-semibold uppercase tracking-wider text-muted-foreground">
 						{t("metrics.securityAlerts")}
 					</span>
 					<ShieldAlert
-						className={`w-4 h-4 shrink-0 ${summary.activeAlertsCount > 0 ? "text-alert-foreground" : "text-muted-foreground"}`}
+						className={`h-4 w-4 shrink-0 ${
+							summary.activeAlertsCount > 0
+								? "text-destructive"
+								: "text-muted-foreground"
+						}`}
 					/>
 				</div>
 				<div>
-					<span className="text-2xl font-semibold text-foreground">
+					<span
+						className={`text-2xl font-bold tracking-tight ${
+							summary.activeAlertsCount > 0
+								? "text-destructive"
+								: "text-foreground"
+						}`}
+					>
 						{summary.activeAlertsCount}
 					</span>
-					<span className="text-xs text-muted-foreground ml-1">
+					<span className="ml-1 text-xs font-medium text-muted-foreground">
 						{t("metrics.alertsUnit")}
 					</span>
 				</div>

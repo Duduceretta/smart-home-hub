@@ -6,6 +6,7 @@ import {
 	Collapsible,
 	CollapsibleContent,
 } from "@/core/components/ui/collapsible";
+import { cn } from "@/core/utils";
 import { UNASSIGNED_ROOM_KEY } from "@/features/dashboard/constants/dashboard.constants";
 import { DeviceCard } from "@/features/devices/components/DeviceCard";
 import { useDevicesUIStore } from "@/features/devices/store/devices-ui.store";
@@ -90,25 +91,28 @@ export function RoomDeviceSection({
 			onOpenChange={(open) => setRoomExpanded(roomKey, open)}
 			className="flex flex-col gap-4"
 		>
-			<div className="flex w-full items-center justify-between border-b border-border-subtle/10 pb-2">
+			<div className="flex w-full items-center justify-between border-b border-border-subtle pb-2.5">
 				<button
 					type="button"
 					onClick={() => setRoomExpanded(roomKey, !expanded)}
-					className="flex items-center gap-2 cursor-pointer group"
+					className="group flex items-center gap-2 text-left cursor-pointer"
 				>
-					<RoomIcon className="w-4 h-4 text-primary/80 group-hover:text-primary transition-colors" />
-					<h3 className="text-xs font-medium tracking-wider text-muted-foreground uppercase">
+					<span className="flex h-6 w-6 items-center justify-center rounded-md bg-surface-container text-foreground transition-colors group-hover:bg-surface-high">
+						<RoomIcon className="h-3.5 w-3.5" />
+					</span>
+					<h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground transition-colors group-hover:text-foreground">
 						{title}
 					</h3>
-					<span className="text-xs text-muted-foreground/60">
+					<span className="text-xs text-muted-foreground">
 						({devices.length})
 					</span>
+
 					{energyUsageKwh !== undefined &&
 						(() => {
 							const energy = formatEnergy(energyUsageKwh);
 							return (
 								<span
-									className="text-xs font-medium text-warm"
+									className="ml-2 inline-flex items-center gap-1 rounded-md border border-border-subtle bg-surface-container px-2 py-0.5 text-[11px] font-medium text-foreground"
 									title={
 										energyUsageIsEstimated
 											? t(
@@ -118,8 +122,10 @@ export function RoomDeviceSection({
 											: undefined
 									}
 								>
-									{t("roomSection.energyUsage", "Consumo")}:{" "}
-									<span className="font-semibold">
+									<span className="text-muted-foreground">
+										{t("roomSection.energyUsage", "Consumo")}:
+									</span>
+									<span className="font-semibold tabular-nums">
 										{energyUsageIsEstimated && "~"}
 										{energy.value} {energy.unit}
 									</span>
@@ -136,7 +142,7 @@ export function RoomDeviceSection({
 							"roomSection.editTitle",
 							"Escolher dispositivos exibidos",
 						)}
-						className="rounded-md p-1 text-muted-foreground transition-colors hover:bg-surface-high hover:text-foreground cursor-pointer"
+						className="rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-surface-high hover:text-foreground cursor-pointer"
 					>
 						<Pencil className="h-3.5 w-3.5" />
 					</button>
@@ -144,17 +150,20 @@ export function RoomDeviceSection({
 						type="button"
 						onClick={() => setRoomExpanded(roomKey, !expanded)}
 						aria-label={t("roomSection.toggleExpand", "Expandir/recolher")}
-						className="rounded-md p-1 text-muted-foreground transition-colors hover:bg-surface-high hover:text-foreground cursor-pointer"
+						className="rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-surface-high hover:text-foreground cursor-pointer"
 					>
 						<ChevronDown
-							className={`h-4 w-4 transition-transform duration-200 ${expanded ? "" : "-rotate-90"}`}
+							className={cn(
+								"h-4 w-4 transition-transform duration-200",
+								!expanded && "-rotate-90",
+							)}
 						/>
 					</button>
 				</div>
 			</div>
 
 			<CollapsibleContent className="flex flex-col gap-4">
-				<div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+				<div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
 					{previewDevices.map((device) => (
 						<DeviceCard key={device.id} device={device} />
 					))}
@@ -164,7 +173,7 @@ export function RoomDeviceSection({
 					<button
 						type="button"
 						onClick={handleViewAll}
-						className="flex items-center justify-center gap-1 rounded-lg border border-border-subtle bg-surface-container py-2 text-xs font-medium text-muted-foreground transition-colors hover:bg-surface-high hover:text-foreground cursor-pointer"
+						className="flex items-center justify-center gap-1 rounded-lg border border-border-subtle bg-surface-container py-2 text-xs font-medium text-muted-foreground transition-all hover:border-border hover:bg-surface-high hover:text-foreground cursor-pointer shadow-xs"
 					>
 						{t("roomSection.viewAllDevices", "Ver todos os dispositivos")}
 						<ChevronRight className="h-3.5 w-3.5" />

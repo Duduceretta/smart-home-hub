@@ -142,8 +142,9 @@ export const DashboardView: React.FC = () => {
 				/>
 			</div>
 
-			<div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-				<div className="lg:col-span-8 flex flex-col gap-6 self-stretch">
+			<div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-12">
+				{/* Coluna Principal (Esquerda - 8 colunas) */}
+				<div className="flex flex-col gap-6 self-stretch lg:col-span-8">
 					<StatusHubSummary />
 
 					<EnergyLoadWidget />
@@ -152,7 +153,7 @@ export const DashboardView: React.FC = () => {
 						<button
 							type="button"
 							onClick={() => setAllRoomsExpanded(roomKeys, !allRoomsExpanded)}
-							className="flex items-center gap-1 self-end rounded-md px-2 py-1 text-xs font-medium uppercase tracking-wider text-muted-foreground transition-colors hover:bg-surface-high hover:text-foreground cursor-pointer"
+							className="flex items-center gap-1.5 self-end rounded-md border border-border-subtle bg-surface-container/50 px-2.5 py-1 text-xs font-medium uppercase tracking-wider text-muted-foreground transition-all hover:border-border hover:bg-surface-high hover:text-foreground cursor-pointer shadow-xs"
 						>
 							{allRoomsExpanded ? (
 								<ChevronsDownUp className="h-3.5 w-3.5" />
@@ -206,7 +207,8 @@ export const DashboardView: React.FC = () => {
 					<ActiveAutomationsCard />
 				</div>
 
-				<div className="lg:col-span-4 flex flex-col gap-6 sticky top-24">
+				{/* Coluna Lateral de Monitoramento (Direita - 4 colunas) */}
+				<div className="sticky top-6 flex flex-col gap-6 lg:col-span-4">
 					<CameraFeedCard />
 					<SpotifyNowPlayingCard />
 					<ActivityLogTimeline />

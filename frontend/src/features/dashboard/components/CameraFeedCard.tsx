@@ -10,33 +10,35 @@ export function CameraFeedCard() {
 	const { t } = useTranslation("dashboard");
 
 	return (
-		<div className="rounded-xl border border-border-subtle/10 bg-surface-high overflow-hidden transition-all duration-200 hover:border-primary/25 hover:shadow-lg hover:shadow-black/30">
-			<div className="flex items-center gap-2 px-4 py-2 border-b border-border-subtle/10">
-				<Shield className="w-3.5 h-3.5 text-alert-foreground" />
-				<span className="text-xs font-medium text-foreground">
+		<div className="overflow-hidden rounded-xl border border-border-subtle bg-surface-container transition-all duration-200 hover:border-border">
+			<div className="flex items-center gap-2 border-b border-border-subtle px-4 py-2.5">
+				<Shield className="h-3.5 w-3.5 text-destructive" />
+				<span className="text-xs font-semibold tracking-wide text-foreground">
 					{t("cameraFeed.title", "Aether Secure")}
 				</span>
 			</div>
-			<div className="relative aspect-video bg-[#0a0a0a] grayscale overflow-hidden">
+
+			<div className="relative aspect-video overflow-hidden bg-surface-low grayscale">
 				<div
-					className="absolute inset-0 opacity-30"
+					className="absolute inset-0 opacity-30 pointer-events-none"
 					style={{
 						backgroundImage:
 							"repeating-linear-gradient(0deg, rgba(255,255,255,0.04) 0px, rgba(255,255,255,0.04) 1px, transparent 1px, transparent 3px)",
 					}}
 				/>
-				<div className="absolute inset-0 flex items-center justify-center text-white/15">
+				<div className="absolute inset-0 flex items-center justify-center text-muted-foreground/30">
 					<Video className="h-9 w-9" />
 				</div>
-				<div className="absolute top-2 left-2 flex items-center gap-1 bg-black/60 px-2 py-1 rounded-sm">
-					<span className="h-1.5 w-1.5 rounded-full bg-alert-foreground animate-pulse" />
-					<span className="font-mono text-xs text-white font-bold tracking-widest">
+				<div className="absolute left-2.5 top-2.5 flex items-center gap-1.5 rounded bg-black/70 px-2 py-0.5 backdrop-blur-xs">
+					<span className="h-1.5 w-1.5 rounded-full bg-destructive animate-pulse" />
+					<span className="font-mono text-[10px] font-bold tracking-widest text-white">
 						{t("cameraFeed.liveLabel", "LIVE")}
 					</span>
 				</div>
 			</div>
+
 			<div className="p-4">
-				<p className="text-xs text-muted-foreground/60">
+				<p className="text-xs text-muted-foreground">
 					{t(
 						"cameraFeed.comingSoon",
 						"Integração de câmeras chegando em breve.",

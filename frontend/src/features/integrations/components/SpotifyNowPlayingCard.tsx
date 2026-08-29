@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useDebouncedValue } from "@/core/hooks/useDebouncedValue";
+import { cn } from "@/core/utils";
 import { useConnectSpotify } from "../hooks/useConnectSpotify";
 import { useSetSpotifyVolume } from "../hooks/useSetSpotifyVolume";
 import {
@@ -58,15 +59,15 @@ export const SpotifyNowPlayingCard: React.FC = () => {
 
 	if (!status?.connected) {
 		return (
-			<div className="rounded-xl border border-border-subtle/10 bg-surface-high p-4 flex flex-col items-center gap-4 text-center">
+			<div className="flex flex-col items-center gap-4 rounded-xl border border-border-subtle bg-surface-container p-4 text-center transition-all duration-200 hover:border-border">
 				<div className="flex h-11 w-11 items-center justify-center rounded-full bg-[#1DB954]/15 text-[#1DB954]">
-					<Disc3 className="w-5 h-5" />
+					<Disc3 className="h-5 w-5" />
 				</div>
 				<div>
-					<p className="text-sm font-medium text-foreground">
+					<p className="text-sm font-semibold text-foreground">
 						Spotify desconectado
 					</p>
-					<p className="text-xs text-muted-foreground mt-0.5">
+					<p className="mt-0.5 text-xs text-muted-foreground">
 						Conecte sua conta pra controlar a reprodução por aqui.
 					</p>
 				</div>
@@ -74,7 +75,7 @@ export const SpotifyNowPlayingCard: React.FC = () => {
 					type="button"
 					disabled={isConnecting}
 					onClick={() => connectSpotify()}
-					className="rounded-full bg-[#1DB954]/15 h-8 px-4 text-xs font-medium text-[#1DB954] transition-colors hover:bg-[#1DB954]/25 disabled:cursor-not-allowed disabled:opacity-40 cursor-pointer"
+					className="inline-flex h-8 items-center rounded-full bg-[#1DB954] px-4 text-xs font-bold text-black shadow-xs transition-colors hover:bg-[#1ed760] disabled:cursor-not-allowed disabled:opacity-40 cursor-pointer"
 				>
 					Conectar Spotify
 				</button>
@@ -84,11 +85,11 @@ export const SpotifyNowPlayingCard: React.FC = () => {
 
 	if (!playback?.title) {
 		return (
-			<div className="rounded-xl border border-border-subtle/10 bg-surface-high p-4 flex flex-col items-center gap-2 text-center">
-				<div className="flex h-11 w-11 items-center justify-center rounded-full bg-surface-container text-muted-foreground">
-					<Disc3 className="w-5 h-5" />
+			<div className="flex flex-col items-center gap-2 rounded-xl border border-border-subtle bg-surface-container p-4 text-center transition-all duration-200 hover:border-border">
+				<div className="flex h-11 w-11 items-center justify-center rounded-full bg-surface-high text-muted-foreground">
+					<Disc3 className="h-5 w-5" />
 				</div>
-				<p className="text-sm font-medium text-foreground">
+				<p className="text-sm font-semibold text-foreground">
 					Nada tocando no momento
 				</p>
 				<p className="text-xs text-muted-foreground">
@@ -99,9 +100,10 @@ export const SpotifyNowPlayingCard: React.FC = () => {
 	}
 
 	return (
-		<div className="rounded-xl border border-border-subtle/10 bg-surface-high p-4 flex flex-col gap-4">
-			<div className="flex items-center gap-4">
-				<div className="w-12 h-12 rounded-lg bg-surface-container flex items-center justify-center overflow-hidden shrink-0">
+		<div className="flex flex-col gap-4 rounded-xl border border-border-subtle bg-surface-container p-4 transition-all duration-200 hover:border-border">
+			{/* Faixa e Capa */}
+			<div className="flex items-center gap-3.5">
+				<div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-border-subtle bg-surface-low">
 					{playback.albumCoverUrl ? (
 						<img
 							src={playback.albumCoverUrl}
@@ -109,45 +111,46 @@ export const SpotifyNowPlayingCard: React.FC = () => {
 							className="h-full w-full object-cover"
 						/>
 					) : (
-						<Disc3 className="w-6 h-6 text-zinc-300 opacity-60" />
+						<Disc3 className="h-6 w-6 text-muted-foreground/60" />
 					)}
 				</div>
-				<div className="flex flex-col flex-1 min-w-0">
-					<span className="text-sm font-medium text-foreground truncate">
+				<div className="flex min-w-0 flex-1 flex-col">
+					<span className="truncate text-sm font-semibold text-foreground">
 						{playback.title}
 					</span>
-					<span className="text-xs text-muted-foreground truncate">
+					<span className="truncate text-xs text-muted-foreground">
 						{playback.artist}
 					</span>
 					{playback.deviceName && (
-						<span className="text-xs text-muted-foreground/60 truncate mt-0.5">
+						<span className="mt-0.5 truncate text-[11px] text-muted-foreground/70">
 							Reproduzindo em {playback.deviceName}
 						</span>
 					)}
 				</div>
 			</div>
 
-			<div className="flex items-center justify-center gap-4">
+			{/* Controles de Reprodução */}
+			<div className="flex items-center justify-center gap-3">
 				<button
 					type="button"
 					aria-label="Faixa anterior"
 					disabled={isSkippingPrevious}
 					onClick={() => skipPrevious()}
-					className="flex h-8 w-8 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-surface-container hover:text-foreground disabled:cursor-not-allowed disabled:opacity-40 cursor-pointer"
+					className="flex h-8 w-8 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-surface-high hover:text-foreground disabled:cursor-not-allowed disabled:opacity-40 cursor-pointer"
 				>
-					<SkipBack className="w-4 h-4" />
+					<SkipBack className="h-4 w-4" />
 				</button>
 				<button
 					type="button"
 					aria-label={playback.isPlaying ? "Pausar" : "Reproduzir"}
 					disabled={isToggling}
 					onClick={() => togglePlayback()}
-					className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#1DB954]/15 text-[#1DB954] transition-colors hover:bg-[#1DB954]/25 disabled:cursor-not-allowed disabled:opacity-40 cursor-pointer"
+					className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#1DB954] text-black shadow-xs transition-colors hover:bg-[#1ed760] disabled:cursor-not-allowed disabled:opacity-40 cursor-pointer"
 				>
 					{playback.isPlaying ? (
-						<Pause className="w-4 h-4 fill-current" />
+						<Pause className="h-4 w-4 fill-current" />
 					) : (
-						<Play className="w-4 h-4 fill-current ml-0.5" />
+						<Play className="ml-0.5 h-4 w-4 fill-current" />
 					)}
 				</button>
 				<button
@@ -155,18 +158,19 @@ export const SpotifyNowPlayingCard: React.FC = () => {
 					aria-label="Próxima faixa"
 					disabled={isSkippingNext}
 					onClick={() => skipNext()}
-					className="flex h-8 w-8 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-surface-container hover:text-foreground disabled:cursor-not-allowed disabled:opacity-40 cursor-pointer"
+					className="flex h-8 w-8 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-surface-high hover:text-foreground disabled:cursor-not-allowed disabled:opacity-40 cursor-pointer"
 				>
-					<SkipForward className="w-4 h-4" />
+					<SkipForward className="h-4 w-4" />
 				</button>
 			</div>
 
-			<div className="flex items-center gap-2">
-				<Volume2 className="w-4 h-4 text-muted-foreground" />
+			{/* Barra de Volume */}
+			<div className="flex items-center gap-2.5 px-1">
+				<Volume2 className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
 				<button
 					type="button"
 					aria-label="Volume"
-					className="relative z-20 block flex-1 h-1.5 rounded-full bg-[#0e0e0f] overflow-visible cursor-pointer group/slider touch-none"
+					className="group/slider relative z-20 block h-1.5 flex-1 rounded-full bg-surface-low overflow-visible cursor-pointer touch-none"
 					onPointerDown={(e) => {
 						e.currentTarget.setPointerCapture(e.pointerId);
 						setIsDragging(true);
@@ -194,15 +198,19 @@ export const SpotifyNowPlayingCard: React.FC = () => {
 					}}
 				>
 					<div
-						className={`h-full bg-[#1DB954] rounded-full relative ${isDragging ? "" : "transition-all"}`}
+						className={cn(
+							"relative h-full rounded-full bg-[#1DB954]",
+							!isDragging && "transition-all",
+						)}
 						style={{ width: `${localVolume}%` }}
 					>
 						<div
-							className={`absolute right-0 top-1/2 -translate-y-1/2 w-3 h-3 bg-[#0a3d1c] rounded-full shadow-sm transition-opacity ${
+							className={cn(
+								"absolute right-0 top-1/2 h-3 w-3 -translate-y-1/2 rounded-full bg-white shadow-xs transition-opacity",
 								isDragging
 									? "opacity-100"
-									: "opacity-0 group-hover/slider:opacity-100"
-							}`}
+									: "opacity-0 group-hover/slider:opacity-100",
+							)}
 						/>
 					</div>
 				</button>

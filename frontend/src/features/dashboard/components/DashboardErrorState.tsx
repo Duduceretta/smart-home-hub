@@ -1,5 +1,6 @@
 import { AlertTriangle } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { cn } from "@/core/utils";
 
 interface DashboardErrorStateProps {
 	title: string;
@@ -24,15 +25,18 @@ export function DashboardErrorState({
 
 	return (
 		<div
-			className={`flex flex-col items-center justify-center gap-2 rounded-xl border border-alert/50 bg-alert/10 p-6 text-center ${className ?? ""}`}
+			className={cn(
+				"flex flex-col items-center justify-center gap-2 rounded-xl border border-destructive/30 bg-destructive/10 p-6 text-center",
+				className,
+			)}
 		>
-			<AlertTriangle className="h-6 w-6 text-alert-foreground" />
-			<p className="text-sm font-medium text-alert-foreground">{title}</p>
+			<AlertTriangle className="h-6 w-6 text-destructive" />
+			<p className="text-sm font-semibold text-destructive">{title}</p>
 			<p className="max-w-xs text-xs text-muted-foreground">{subtitle}</p>
 			<button
 				type="button"
 				onClick={onRetry}
-				className="mt-1 rounded-md border border-border-subtle px-3 py-2 text-xs font-medium uppercase tracking-wider text-foreground transition-colors hover:bg-surface-high cursor-pointer"
+				className="mt-2 rounded-md border border-border-subtle bg-surface-container px-3 py-1.5 text-xs font-medium uppercase tracking-wider text-foreground transition-all hover:border-primary/40 hover:bg-surface-high cursor-pointer"
 			>
 				{t("actions.retry", "Tentar novamente")}
 			</button>
