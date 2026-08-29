@@ -39,11 +39,10 @@ export function AutomationDetailPanel({
 }: AutomationDetailPanelProps) {
 	if (!automation) {
 		return (
-			<div className="flex h-full max-h-full min-h-[200px] flex-col items-center justify-center rounded-xl border border-dashed border-border-subtle/10 bg-surface-low text-center">
+			<div className="flex h-full max-h-full min-h-50 flex-col items-center justify-center rounded-xl border border-dashed border-border-subtle bg-surface-low text-center">
 				<p className="text-sm text-muted-foreground">
 					Selecione uma automação pra ver os detalhes.
 				</p>
-				<div className="pointer-events-none absolute inset-x-0 bottom-0 h-8 bg-gradient-to-t from-surface-low to-transparent" />
 			</div>
 		);
 	}
@@ -61,48 +60,52 @@ export function AutomationDetailPanel({
 	};
 
 	return (
-		<div className="flex h-full max-h-full flex-col overflow-hidden rounded-xl border border-border-subtle/10 bg-surface-low">
-			<div className="flex shrink-0 flex-col gap-4 border-b border-border-subtle/10 p-6">
+		<div className="flex h-full max-h-full flex-col overflow-hidden rounded-xl border border-border-subtle bg-surface-low shadow-sm">
+			{/* Cabeçalho de Detalhes: Nome, Status, Toggle e Ações */}
+			<div className="flex shrink-0 flex-col gap-4 border-b border-border-subtle/50 bg-surface-container/50 p-6">
 				<button
 					type="button"
 					onClick={onBack}
-					className="inline-flex w-fit items-center gap-1 text-xs text-muted-foreground hover:text-foreground cursor-pointer lg:hidden"
+					className="inline-flex w-fit items-center gap-1 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground cursor-pointer lg:hidden"
 				>
 					<ArrowLeft className="h-3.5 w-3.5" />
 					Voltar
 				</button>
 
 				<div className="flex items-start justify-between gap-4">
-					<div className="flex min-w-0 items-center gap-4">
-						<div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-surface-high text-primary">
-							<TriggerIcon className="h-4.5 w-4.5" />
+					<div className="flex min-w-0 items-center gap-3.5">
+						<div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-surface-high text-primary shadow-xs">
+							<TriggerIcon className="h-6 w-6" />
 						</div>
 						<div className="min-w-0">
-							<h2 className="truncate text-lg font-medium text-foreground">
+							<h2 className="truncate text-xl font-semibold tracking-tight text-foreground">
 								{automation.name}
 							</h2>
-							<span
-								className={cn(
-									"text-xs font-medium uppercase tracking-wider",
-									automation.isDraft
-										? "text-muted-foreground"
+							<div className="flex items-center gap-2 mt-0.5">
+								<span
+									className={cn(
+										"text-xs font-semibold uppercase tracking-wider",
+										automation.isDraft
+											? "text-muted-foreground"
+											: automation.isActive
+												? "text-primary"
+												: "text-muted-foreground",
+									)}
+								>
+									{automation.isDraft
+										? "Incompleta"
 										: automation.isActive
-											? "text-primary"
-											: "text-muted-foreground",
-								)}
-							>
-								{automation.isDraft
-									? "Incompleta"
-									: automation.isActive
-										? "Ativa"
-										: "Inativa"}
-							</span>
-							{automation.hasFailedToday && (
-								<span className="mt-1 inline-flex w-fit items-center gap-1 rounded-full bg-alert/20 px-2 py-1 text-xs font-medium text-alert-foreground">
-									<AlertTriangle className="h-3 w-3" />
-									Falhou hoje
+											? "Ativa"
+											: "Inativa"}
 								</span>
-							)}
+
+								{automation.hasFailedToday && (
+									<span className="inline-flex items-center gap-1 rounded-md border border-destructive/30 bg-destructive/10 px-2 py-0.5 text-[11px] font-semibold text-destructive">
+										<AlertTriangle className="h-3 w-3" />
+										Falhou hoje
+									</span>
+								)}
+							</div>
 						</div>
 					</div>
 
@@ -116,83 +119,86 @@ export function AutomationDetailPanel({
 					)}
 				</div>
 
-				<div className="flex items-center gap-2">
+				<div className="flex items-center gap-2 pt-1">
 					<Button
 						variant="outline"
 						size="sm"
 						onClick={() => onEdit(automation)}
+						className="border-border-subtle bg-surface-container text-foreground hover:bg-surface-high hover:border-primary/40 cursor-pointer"
 					>
-						<Pencil className="h-3.5 w-3.5" />
+						<Pencil className="h-3.5 w-3.5 mr-1" />
 						Editar
 					</Button>
 					<Button
 						variant="outline"
 						size="sm"
 						onClick={() => onDuplicate(automation)}
+						className="border-border-subtle bg-surface-container text-foreground hover:bg-surface-high hover:border-primary/40 cursor-pointer"
 					>
-						<Copy className="h-3.5 w-3.5" />
+						<Copy className="h-3.5 w-3.5 mr-1" />
 						Duplicar
 					</Button>
 					<Button
-						variant="destructive"
+						variant="outline"
 						size="sm"
 						onClick={handleDelete}
-						className="ml-auto"
+						className="ml-auto border-destructive/30 bg-destructive/10 text-xs font-semibold text-destructive transition-all hover:bg-destructive/20 hover:border-destructive/40 cursor-pointer shadow-xs"
 					>
-						<Trash2 className="h-3.5 w-3.5" />
+						<Trash2 className="h-3.5 w-3.5 mr-1" />
 						Excluir
 					</Button>
 				</div>
 			</div>
 
-			{/* scrollbar-gutter:stable reserva o espaço da barra mesmo quando
-			o conteúdo não excede a altura — sem isso, trocar de automação
-			fazia a largura do conteúdo "pular". animate-fade-in (keyframe
-			própria, mesma família do fade do AuthLayout/sheet) em vez de
-			animate-in do tw-animate-css: esta última pisca porque começa
-			visível por um frame antes de aplicar opacity 0. */}
+			{/* Corpo de Detalhes com Scroll sem gradiente fixo */}
 			<div className="relative min-h-0 flex-1">
-				<div className="h-full overflow-y-auto p-6 [scrollbar-gutter:stable] scrollbar-thin">
-					<div key={automation.id} className="space-y-6 animate-fade-in">
-						<div className="rounded-lg border border-border-subtle/10 bg-surface-high p-4">
-							<div className="mb-2 flex items-center gap-1 text-xs font-medium uppercase tracking-wider text-muted-foreground">
-								<TriggerIcon className="h-3 w-3" />
+				<div className="h-full overflow-y-auto p-5 [scrollbar-gutter:stable] scrollbar-thin">
+					<div key={automation.id} className="space-y-4 animate-fade-in">
+						{/* Bloco Gatilho */}
+						<div className="rounded-lg border border-border-subtle/20 bg-surface-container p-4">
+							<div className="mb-2 flex items-center gap-1.5 text-xs font-medium uppercase tracking-wider text-muted-foreground">
+								<TriggerIcon className="h-3.5 w-3.5" />
 								Gatilho
 							</div>
-							<p className="text-sm text-foreground">
+							<p className="text-sm font-medium text-foreground">
 								{automation.triggerSummary}
 							</p>
 						</div>
 
+						{/* Bloco Condição (opcional) */}
 						{automation.conditionSummary && (
 							<>
-								<ArrowDown className="mx-auto h-4 w-4 text-border-subtle" />
-								<div className="rounded-lg border border-border-subtle/10 bg-surface-high p-4">
+								<ArrowDown className="mx-auto h-4 w-4 text-muted-foreground/60" />
+								<div className="rounded-lg border border-border-subtle/20 bg-surface-container p-4">
 									<div className="mb-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
 										Condição
 									</div>
-									<p className="text-sm text-foreground">
+									<p className="text-sm font-medium text-foreground">
 										{automation.conditionSummary}
 									</p>
 								</div>
 							</>
 						)}
 
-						<ArrowDown className="mx-auto h-4 w-4 text-border-subtle" />
+						<ArrowDown className="mx-auto h-4 w-4 text-muted-foreground/60" />
 
-						<div className="rounded-lg border border-border-subtle/10 bg-surface-high p-4">
-							<div className="mb-2 flex items-center gap-1 text-xs font-medium uppercase tracking-wider text-muted-foreground">
-								<Zap className="h-3 w-3" />
+						{/* Bloco Ações */}
+						<div className="rounded-lg border border-border-subtle/20 bg-surface-container p-4">
+							<div className="mb-2 flex items-center gap-1.5 text-xs font-medium uppercase tracking-wider text-muted-foreground">
+								<Zap className="h-3.5 w-3.5" />
 								Ações
 							</div>
 							{automation.actionSummaries.length === 0 ? (
-								<p className="text-sm text-muted-foreground">
+								<p className="text-xs text-muted-foreground">
 									Nenhuma ação configurada ainda.
 								</p>
 							) : (
-								<ul className="space-y-1">
+								<ul className="space-y-1.5">
 									{automation.actionSummaries.map((action) => (
-										<li key={action} className="text-sm text-foreground">
+										<li
+											key={action}
+											className="text-sm font-medium text-foreground"
+										>
 											• {action}
 										</li>
 									))}
@@ -200,39 +206,40 @@ export function AutomationDetailPanel({
 							)}
 						</div>
 
-						<div className="grid grid-cols-3 gap-4">
-							<div className="rounded-lg border border-border-subtle/10 bg-surface-high p-4">
-								<div className="mb-1 text-xs font-medium uppercase tracking-wider text-muted-foreground">
+						{/* Grid de Metadados: Criada, Atualizada, Última Execução */}
+						<div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+							<div className="rounded-lg border border-border-subtle/20 bg-surface-container p-3.5">
+								<div className="mb-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
 									Criada
 								</div>
-								<p className="text-sm text-foreground">
+								<p className="text-xs font-medium text-foreground">
 									{formatRelativeTime(automation.createdAt)}
 								</p>
 							</div>
-							<div className="rounded-lg border border-border-subtle/10 bg-surface-high p-4">
-								<div className="mb-1 text-xs font-medium uppercase tracking-wider text-muted-foreground">
+							<div className="rounded-lg border border-border-subtle/20 bg-surface-container p-3.5">
+								<div className="mb-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
 									Atualizada
 								</div>
-								<p className="text-sm text-foreground">
+								<p className="text-xs font-medium text-foreground">
 									{automation.updatedAt
 										? formatRelativeTime(automation.updatedAt)
 										: "Nunca"}
 								</p>
 							</div>
-							<div className="rounded-lg border border-border-subtle/10 bg-surface-high p-4">
-								<div className="mb-1 text-xs font-medium uppercase tracking-wider text-muted-foreground">
+							<div className="rounded-lg border border-border-subtle/20 bg-surface-container p-3.5">
+								<div className="mb-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
 									Última execução
 								</div>
-								<p className="text-sm text-foreground">
+								<p className="text-xs font-medium text-foreground">
 									{formatRelativeTime(automation.lastExecutedAt)}
 								</p>
 							</div>
 						</div>
 
+						{/* Seção de Gráficos e Histórico */}
 						<AutomationExecutionSection automationId={automation.id} />
 					</div>
 				</div>
-				<div className="pointer-events-none absolute inset-x-0 bottom-0 h-8 bg-gradient-to-t from-surface-low to-transparent" />
 			</div>
 		</div>
 	);

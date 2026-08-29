@@ -12,9 +12,13 @@ interface AutomationRowProps {
 }
 
 /**
- * Linha densa estilo Gmail/tabela — uma automação por linha, ~44px de
- * altura, sem padding vertical generoso. Mesma seleção do AutomationCard,
- * só muda a apresentação.
+ * Linha densa estilo Gmail/tabela — duas linhas por automação (nome+status
+ * numa, resumo do gatilho na outra). Era uma linha só de ~44px com o resumo
+ * truncando cedo (`w-32` fixo no nome + `flex-1 truncate` no resumo) —
+ * gatilhos com lista de dias da semana ("Seg, Ter, Qua às 07:00") cortavam
+ * no meio. Segunda linha sem `truncate` (só `line-clamp-2`) resolve sem
+ * precisar de hover/expansão — mais simples de manter. Mesma seleção do
+ * AutomationCard, só muda a apresentação.
  */
 export function AutomationRow({
 	automation,
@@ -39,58 +43,74 @@ export function AutomationRow({
 			}}
 			aria-current={isSelected}
 			className={cn(
-				"flex h-11 w-full items-center gap-2 px-3 text-left transition-colors cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-ring/50",
-				isSelected ? "bg-primary/5" : "hover:bg-surface-high",
+				"group flex w-full flex-col gap-1.5 rounded-lg border p-3 text-left transition-all cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-ring/50",
+				isSelected
+					? "border-primary/40 bg-primary/10 shadow-xs"
+					: "border-transparent bg-surface-container/60 hover:bg-surface-high hover:border-border-subtle/50",
 			)}
 		>
-			<TriggerIcon
-				className={cn(
-					"h-3.5 w-3.5 shrink-0",
-					automation.isActive && !automation.isDraft
-						? "text-primary"
-						: "text-muted-foreground",
-				)}
-			/>
+			<div className="flex items-center gap-2.5">
+				<span
+					className={cn(
+						"flex h-6 w-6 shrink-0 items-center justify-center rounded-md transition-colors",
+						isSelected
+							? "bg-primary/15 text-primary"
+							: "bg-surface-low text-muted-foreground",
+					)}
+				>
+					<TriggerIcon
+						className={cn(
+							"h-3.5 w-3.5 shrink-0",
+							automation.isActive && !automation.isDraft
+								? "text-primary"
+								: "text-muted-foreground",
+						)}
+					/>
+				</span>
 
-			<span
-				className={cn(
-					"w-32 shrink-0 truncate text-sm font-medium text-foreground",
-					isDimmed && "opacity-60",
-				)}
-			>
-				{automation.name}
-			</span>
+				<span
+					className={cn(
+						"min-w-0 flex-1 truncate text-sm",
+						isSelected
+							? "font-semibold text-foreground"
+							: "font-medium text-foreground/90 group-hover:text-foreground",
+						isDimmed && "opacity-60",
+					)}
+				>
+					{automation.name}
+				</span>
 
-			<span className="hidden min-w-0 flex-1 truncate text-xs text-muted-foreground sm:block">
+				{automation.isDraft ? (
+					<span className="shrink-0 rounded-md border border-border-subtle bg-surface-low px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
+						Incompleta
+					</span>
+				) : (
+					<div className="flex shrink-0 items-center gap-2">
+						<span className="text-[11px] text-muted-foreground">
+							{formatRelativeTime(automation.updatedAt ?? automation.createdAt)}
+						</span>
+						{/** biome-ignore lint/a11y/noStaticElementInteractions: só existe pra isolar o clique do Switch da seleção da linha (stopPropagation) */}
+						<span
+							className="shrink-0"
+							onClick={(event) => event.stopPropagation()}
+							onKeyDown={(event) => event.stopPropagation()}
+						>
+							<Switch
+								checked={automation.isActive}
+								onCheckedChange={(checked) => onToggle(automation.id, checked)}
+								aria-label={`${automation.isActive ? "Desativar" : "Ativar"} automação ${automation.name}`}
+								className="scale-90"
+							/>
+						</span>
+					</div>
+				)}
+			</div>
+
+			<span className="line-clamp-2 pl-8.5 text-xs text-muted-foreground">
 				{automation.isDraft
 					? "Sem gatilho configurado"
 					: automation.triggerSummary}
 			</span>
-
-			{automation.isDraft ? (
-				<span className="shrink-0 text-xs font-medium text-muted-foreground">
-					Incompleta
-				</span>
-			) : (
-				<>
-					<span className="shrink-0 text-xs text-muted-foreground">
-						{formatRelativeTime(automation.updatedAt ?? automation.createdAt)}
-					</span>
-					{/** biome-ignore lint/a11y/noStaticElementInteractions: só existe pra isolar o clique do Switch da seleção da linha (stopPropagation) */}
-					<span
-						className="shrink-0"
-						onClick={(event) => event.stopPropagation()}
-						onKeyDown={(event) => event.stopPropagation()}
-					>
-						<Switch
-							checked={automation.isActive}
-							onCheckedChange={(checked) => onToggle(automation.id, checked)}
-							aria-label={`${automation.isActive ? "Desativar" : "Ativar"} automação ${automation.name}`}
-							className="scale-90"
-						/>
-					</span>
-				</>
-			)}
 		</div>
 	);
 }

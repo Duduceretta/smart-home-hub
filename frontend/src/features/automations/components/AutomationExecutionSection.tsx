@@ -47,15 +47,16 @@ export function AutomationExecutionSection({
 
 	return (
 		<div className="space-y-6">
-			<div className="rounded-lg border border-border-subtle/10 bg-surface-high p-4">
+			{/* Bloco 1: Execuções por Dia da Semana */}
+			<div className="rounded-lg border border-border-subtle bg-surface-container p-4">
 				<div className="mb-4 text-xs font-medium uppercase tracking-wider text-muted-foreground">
 					Execuções por dia da semana
 				</div>
 
 				{isLoadingWeekday ? (
-					<div className="h-40 animate-pulse rounded-md bg-surface-high" />
+					<div className="h-40 w-full animate-pulse rounded-lg bg-surface-high/60" />
 				) : !hasAnyExecution ? (
-					<p className="text-sm text-muted-foreground">
+					<p className="py-4 text-center text-xs text-muted-foreground">
 						Nenhuma execução registrada nos últimos 30 dias.
 					</p>
 				) : (
@@ -68,7 +69,7 @@ export function AutomationExecutionSection({
 								<CartesianGrid
 									strokeDasharray="3 6"
 									stroke="var(--color-border-subtle)"
-									strokeOpacity={0.15}
+									strokeOpacity={0.4}
 									vertical={false}
 								/>
 								<XAxis
@@ -88,21 +89,26 @@ export function AutomationExecutionSection({
 								/>
 								<Tooltip
 									cursor={{
-										fill: "var(--color-surface-highest)",
-										opacity: 0.4,
+										fill: "var(--color-surface-high)",
+										opacity: 0.5,
 									}}
 									contentStyle={{
-										backgroundColor: "var(--color-surface-high)",
+										backgroundColor: "var(--color-popover)",
 										borderColor: "var(--color-border-subtle)",
 										borderRadius: "8px",
 										color: "var(--color-foreground)",
+										fontSize: "12px",
+										boxShadow: "0 4px 12px rgba(0, 0, 0, 0.2)",
 									}}
-									labelStyle={{ color: "var(--color-muted-foreground)" }}
+									labelStyle={{
+										color: "var(--color-muted-foreground)",
+										fontWeight: 600,
+									}}
 								/>
 								<Bar
 									dataKey="count"
 									name="Execuções"
-									fill="var(--color-warm)"
+									fill="var(--color-primary)"
 									radius={[4, 4, 0, 0]}
 								/>
 							</BarChart>
@@ -111,35 +117,36 @@ export function AutomationExecutionSection({
 				)}
 			</div>
 
-			<div className="rounded-lg border border-border-subtle/10 bg-surface-high p-4">
+			{/* Bloco 2: Histórico de Execução */}
+			<div className="rounded-lg border border-border-subtle bg-surface-container p-4">
 				<div className="mb-4 text-xs font-medium uppercase tracking-wider text-muted-foreground">
 					Histórico de execução
 				</div>
 
 				{isLoadingHistory ? (
 					<div className="space-y-3">
-						<div className="h-10 animate-pulse rounded-md bg-surface-high" />
-						<div className="h-10 animate-pulse rounded-md bg-surface-high" />
+						<div className="h-10 animate-pulse rounded-lg bg-surface-high" />
+						<div className="h-10 animate-pulse rounded-lg bg-surface-high" />
 					</div>
 				) : entries.length === 0 ? (
-					<div className="flex flex-col items-center justify-center gap-2 py-4 text-center">
+					<div className="flex flex-col items-center justify-center gap-2 py-6 text-center">
 						<Clock className="h-5 w-5 text-muted-foreground" />
-						<p className="text-sm text-muted-foreground">
+						<p className="text-xs text-muted-foreground">
 							Nenhuma execução registrada ainda.
 						</p>
 					</div>
 				) : (
 					<div className="relative flex flex-col gap-4">
-						<div className="absolute left-[11px] top-2 bottom-2 w-px bg-border-subtle/20" />
+						<div className="absolute left-2.75 top-2 bottom-2 w-px bg-border-subtle" />
 						{entries.map((entry) => (
 							<ActivityTimelineRow
 								key={entry.id}
 								icon={Bot}
 								iconColorClassName={
-									entry.isAlert ? "text-alert-foreground" : "text-warm"
+									entry.isAlert ? "text-destructive" : "text-primary"
 								}
 								borderColorClassName={
-									entry.isAlert ? "border-alert-foreground" : "border-warm"
+									entry.isAlert ? "border-destructive" : "border-primary"
 								}
 								title={entry.title}
 								description={entry.description}

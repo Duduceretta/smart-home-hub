@@ -18,21 +18,27 @@ export function AutomationSummaryBar({
 	const draftCount = automations.filter((a) => a.isDraft).length;
 
 	return (
-		<div className="flex items-center gap-2 py-1 text-xs text-muted-foreground">
+		<div className="flex items-center gap-2 py-0.5 text-xs text-muted-foreground">
 			<span>
-				<span className="font-medium text-foreground">{activeCount}</span>{" "}
+				<span className="font-semibold tabular-nums text-foreground">
+					{activeCount}
+				</span>{" "}
 				ativas
 			</span>
-			<span className="text-border-subtle">·</span>
+			<span className="text-muted-foreground/40">·</span>
 			<span>
-				<span className="font-medium text-foreground">{inactiveCount}</span>{" "}
+				<span className="font-semibold tabular-nums text-foreground">
+					{inactiveCount}
+				</span>{" "}
 				pausadas
 			</span>
 			{draftCount > 0 && (
 				<>
-					<span className="text-border-subtle">·</span>
+					<span className="text-muted-foreground/40">·</span>
 					<span>
-						<span className="font-medium text-foreground">{draftCount}</span>{" "}
+						<span className="font-semibold tabular-nums text-foreground">
+							{draftCount}
+						</span>{" "}
 						{draftCount === 1 ? "incompleta" : "incompletas"}
 					</span>
 				</>

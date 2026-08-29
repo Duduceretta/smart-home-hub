@@ -38,30 +38,42 @@ export function AutomationCard({
 			}}
 			aria-current={isSelected}
 			className={cn(
-				"flex w-full items-center gap-4 rounded-lg border p-4 text-left transition-colors cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-ring/50",
+				"group flex w-full items-center gap-3 rounded-lg border p-3 text-left transition-all cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-ring/50",
 				isSelected
-					? "border-primary/40 bg-primary/5"
-					: "border-border-subtle bg-surface-container hover:border-primary/25",
+					? "border-primary/40 bg-primary/10 shadow-xs"
+					: "border-transparent bg-surface-container/60 hover:bg-surface-high hover:border-border-subtle/50",
 			)}
 		>
 			<div
 				className={cn(
-					"flex h-8 w-8 shrink-0 items-center justify-center rounded-full",
+					"flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border transition-colors",
 					automation.isActive && !automation.isDraft
-						? "bg-primary/15 text-primary"
-						: "bg-muted text-muted-foreground",
+						? "border-primary/30 bg-primary/15 text-primary"
+						: "border-border-subtle bg-surface-low text-muted-foreground",
 				)}
 			>
 				<TriggerIcon className="h-4 w-4" />
 			</div>
 
-			<div className={cn("min-w-0 flex-1", isDimmed && "opacity-60")}>
+			<div
+				className={cn(
+					"min-w-0 flex-1 flex flex-col gap-0.5",
+					isDimmed && "opacity-60",
+				)}
+			>
 				<div className="flex items-center gap-2">
-					<p className="truncate text-sm font-medium text-foreground">
+					<p
+						className={cn(
+							"truncate text-sm",
+							isSelected
+								? "font-semibold text-foreground"
+								: "font-medium text-foreground/90 group-hover:text-foreground",
+						)}
+					>
 						{automation.name}
 					</p>
 					{automation.isDraft && (
-						<span className="shrink-0 rounded-full border border-border-subtle px-2 py-1 text-xs font-medium text-muted-foreground">
+						<span className="shrink-0 rounded-md border border-border-subtle bg-surface-low px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
 							Incompleta
 						</span>
 					)}
@@ -82,6 +94,7 @@ export function AutomationCard({
 						checked={automation.isActive}
 						onCheckedChange={(checked) => onToggle(automation.id, checked)}
 						aria-label={`${automation.isActive ? "Desativar" : "Ativar"} automação ${automation.name}`}
+						className="scale-90"
 					/>
 				</span>
 			)}
