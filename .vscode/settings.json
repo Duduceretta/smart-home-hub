@@ -7,8 +7,12 @@
 	},
 
 	"css.lint.unknownAtRules": "ignore",
+	"files.associations": {
+		"*.css": "tailwindcss"
+	},
 
-	"biome.lsp.bin": "./frontend/node_modules/@biomejs/cli-win32-x64/biome.exe",
+	"biome.lsp.bin": "${workspaceFolder}/frontend/node_modules/@biomejs/cli-win32-x64/biome.exe",
+	"biome.configurationPath": "${workspaceFolder}/frontend/biome.json",
 
 	"[csharp]": {
 		"editor.defaultFormatter": "csharpier.csharpier-vscode"
