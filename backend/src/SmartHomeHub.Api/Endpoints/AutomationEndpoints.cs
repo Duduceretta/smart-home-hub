@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using Mediator;
+using Microsoft.AspNetCore.Mvc;
 using SmartHomeHub.Api.Extensions;
 using SmartHomeHub.Application.Features.Automations.Commands.CreateAutomation;
 using SmartHomeHub.Application.Features.Automations.Commands.DeleteAutomation;
@@ -7,6 +8,7 @@ using SmartHomeHub.Application.Features.Automations.Commands.UpdateAutomation;
 using SmartHomeHub.Application.Features.Automations.Queries.GetAutomationById;
 using SmartHomeHub.Application.Features.Automations.Queries.GetAutomationExecutionHistory;
 using SmartHomeHub.Application.Features.Automations.Queries.GetAutomationExecutionsByWeekday;
+using SmartHomeHub.Application.Features.Automations.Queries.GetAutomationFilterCounts;
 using SmartHomeHub.Application.Features.Automations.Queries.GetAutomations;
 
 namespace SmartHomeHub.Api.Endpoints;
@@ -21,8 +23,13 @@ public static class AutomationEndpoints
                     ClaimsPrincipal userToken,
                     IMediator mediator,
                     CancellationToken cancellationToken,
-                    int page = 1,
-                    int pageSize = 10
+                    [FromQuery(Name = "q")] string? search = null,
+                    [FromQuery] string? status = null,
+                    [FromQuery] string? triggerKind = null,
+                    [FromQuery] bool? isDraft = null,
+                    [FromQuery] string? sort = null,
+                    [FromQuery] int page = 1,
+                    [FromQuery] int pageSize = 10
                 ) =>
                 {
                     var firebaseUid = userToken.FindFirst("user_id")?.Value;
@@ -30,7 +37,16 @@ public static class AutomationEndpoints
                     if (string.IsNullOrEmpty(firebaseUid))
                         return Results.Unauthorized();
 
-                    var query = new GetAutomationsQuery(firebaseUid, page, pageSize);
+                    var query = new GetAutomationsQuery(
+                        firebaseUid,
+                        search,
+                        status,
+                        triggerKind,
+                        isDraft,
+                        sort,
+                        page,
+                        pageSize
+                    );
                     var automations = await mediator.Send(query, cancellationToken);
 
                     return Results.Ok(automations);
@@ -40,7 +56,34 @@ public static class AutomationEndpoints
             .WithTags("Automations")
             .WithSummary("Lista todas as automações")
             .WithDescription(
-                "Retorna a lista paginada de automações cadastradas pelo usuário autenticado."
+                "Retorna a lista paginada de automações cadastradas pelo usuário autenticado, com filtro por status/gatilho/rascunho, busca por nome e ordenação — tudo resolvido server-side."
+            )
+            .Produces<object>(StatusCodes.Status200OK);
+
+        app.MapGet(
+                "/api/automations/counts",
+                async (
+                    ClaimsPrincipal userToken,
+                    IMediator mediator,
+                    CancellationToken cancellationToken
+                ) =>
+                {
+                    var firebaseUid = userToken.FindFirst("user_id")?.Value;
+
+                    if (string.IsNullOrEmpty(firebaseUid))
+                        return Results.Unauthorized();
+
+                    var query = new GetAutomationFilterCountsQuery(firebaseUid);
+                    var counts = await mediator.Send(query, cancellationToken);
+
+                    return Results.Ok(counts);
+                }
+            )
+            .RequireAuthorization()
+            .WithTags("Automations")
+            .WithSummary("Contagem de automações por categoria de filtro")
+            .WithDescription(
+                "Retorna o total e a contagem por status/gatilho/rascunho, independente de paginação — usado pela trilha de filtro e pela barra de resumo."
             )
             .Produces<object>(StatusCodes.Status200OK);
 

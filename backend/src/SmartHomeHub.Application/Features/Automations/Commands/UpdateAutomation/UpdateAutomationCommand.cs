@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using SmartHomeHub.Application.Common.Interfaces;
 using SmartHomeHub.Application.Features.Automations.Commands.CreateAutomation;
 using SmartHomeHub.Domain.Common.Primitives;
+using SmartHomeHub.Domain.Enums;
 using SmartHomeHub.Domain.ValueObjects;
 
 namespace SmartHomeHub.Application.Features.Automations.Commands.UpdateAutomation;
@@ -84,9 +85,18 @@ public class UpdateAutomationCommandHandler(
                 )
             );
 
+        var payload = JsonSerializer.Deserialize<AutomationPayload>(
+            request.RulePayload,
+            AutomationPayloadJsonOptions.Default
+        );
+        var trigger = payload?.Triggers?.FirstOrDefault();
+
         automation.Name = request.Name;
         automation.RulePayload = request.RulePayload;
         automation.IsActive = request.IsActive;
+        automation.TriggerKind =
+            trigger is TimeTrigger ? AutomationTriggerKind.Schedule : AutomationTriggerKind.Sensor;
+        automation.IsDraft = trigger is null || payload?.Actions is null || payload.Actions.Count == 0;
 
         // UpdatedAt é setado automaticamente pelo AppDbContext.SaveChangesAsync
         // para toda entidade Modified — é essa marca de tempo que invalida o
@@ -97,10 +107,6 @@ public class UpdateAutomationCommandHandler(
         // Só mexe no Hangfire depois do commit (mesmo motivo do Create): se o
         // SaveChanges falhasse, não queremos ter religado ou removido um
         // agendamento que não reflete o que está no banco.
-        var payload = JsonSerializer.Deserialize<AutomationPayload>(
-            request.RulePayload,
-            AutomationPayloadJsonOptions.Default
-        );
         var cronExpression = payload?.GetTimeTriggerCronExpression();
 
         if (request.IsActive && cronExpression != null)

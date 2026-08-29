@@ -1,8 +1,10 @@
 using Mediator;
 using Microsoft.EntityFrameworkCore;
+using SmartHomeHub.Application.Common.Extensions;
 using SmartHomeHub.Application.Common.Interfaces;
 using SmartHomeHub.Application.Common.Pagination;
 using SmartHomeHub.Application.Features.Dashboards.ActivityLog;
+using SmartHomeHub.Domain.Enums;
 
 namespace SmartHomeHub.Application.Features.Automations.Queries.GetAutomations;
 
@@ -12,6 +14,8 @@ public record AutomationDto(
     bool IsActive,
     string RulePayload,
     int SchemaVersion,
+    AutomationTriggerKind TriggerKind,
+    bool IsDraft,
     DateTimeOffset CreatedAt,
     DateTimeOffset? UpdatedAt,
     /// <summary>
@@ -26,9 +30,16 @@ public record AutomationDto(
     bool HasFailedToday
 );
 
-public record GetAutomationsQuery(string FirebaseUid, int Page = 1, int PageSize = 10)
-    : IQuery<PagedResult<AutomationDto>>,
-        IPagedQuery;
+public record GetAutomationsQuery(
+    string FirebaseUid,
+    string? Search = null,
+    string? Status = null,
+    string? TriggerKind = null,
+    bool? IsDraft = null,
+    string? Sort = null,
+    int Page = 1,
+    int PageSize = 10
+) : IQuery<PagedResult<AutomationDto>>, IPagedQuery;
 
 public class GetAutomationsQueryHandler(IAppDbContext dbContext)
     : IQueryHandler<GetAutomationsQuery, PagedResult<AutomationDto>>
@@ -43,13 +54,19 @@ public class GetAutomationsQueryHandler(IAppDbContext dbContext)
         return await dbContext
             .Automations.AsNoTracking()
             .Where(automation => automation.User.ExternalAuthUid == request.FirebaseUid)
-            .OrderBy(automation => automation.Name)
+            .FilterByStatus(request.Status)
+            .FilterByTriggerKind(request.TriggerKind)
+            .FilterByDraft(request.IsDraft)
+            .FilterBySearchTerm(request.Search)
+            .ApplySort(request.Sort)
             .Select(automation => new AutomationDto(
                 automation.Id,
                 automation.Name,
                 automation.IsActive,
                 automation.RulePayload,
                 automation.SchemaVersion,
+                automation.TriggerKind,
+                automation.IsDraft,
                 automation.CreatedAt,
                 automation.UpdatedAt,
                 dbContext

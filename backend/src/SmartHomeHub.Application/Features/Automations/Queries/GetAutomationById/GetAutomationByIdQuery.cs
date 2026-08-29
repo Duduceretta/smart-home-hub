@@ -31,6 +31,8 @@ public class GetAutomationByIdQueryHandler(IAppDbContext dbContext)
                 automation.IsActive,
                 automation.RulePayload,
                 automation.SchemaVersion,
+                automation.TriggerKind,
+                automation.IsDraft,
                 automation.CreatedAt,
                 automation.UpdatedAt,
                 dbContext

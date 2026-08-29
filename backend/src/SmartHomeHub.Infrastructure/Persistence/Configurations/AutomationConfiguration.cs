@@ -13,6 +13,11 @@ public class AutomationConfiguration : IEntityTypeConfiguration<Automation>
         builder.Property(a => a.Name).IsRequired().HasMaxLength(150);
         builder.Property(a => a.IsActive).IsRequired().HasDefaultValue(true);
         builder.Property(a => a.SchemaVersion).IsRequired().HasDefaultValue(1);
+        builder
+            .Property(a => a.TriggerKind)
+            .IsRequired()
+            .HasDefaultValue(SmartHomeHub.Domain.Enums.AutomationTriggerKind.Sensor);
+        builder.Property(a => a.IsDraft).IsRequired().HasDefaultValue(true);
 
         // Define a coluna como JSONB nativo do PostgreSQL
         builder.Property(a => a.RulePayload).IsRequired().HasColumnType("jsonb");

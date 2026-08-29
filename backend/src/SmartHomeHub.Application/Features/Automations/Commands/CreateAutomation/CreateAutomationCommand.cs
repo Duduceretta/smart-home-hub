@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using SmartHomeHub.Application.Common.Interfaces;
 using SmartHomeHub.Domain.Common.Primitives;
 using SmartHomeHub.Domain.Entities;
+using SmartHomeHub.Domain.Enums;
 using SmartHomeHub.Domain.ValueObjects;
 
 namespace SmartHomeHub.Application.Features.Automations.Commands.CreateAutomation;
@@ -68,12 +69,21 @@ public class CreateAutomationCommandHandler(
             );
         }
 
+        var payload = JsonSerializer.Deserialize<AutomationPayload>(
+            request.RulePayload,
+            AutomationPayloadJsonOptions.Default
+        );
+        var trigger = payload?.Triggers?.FirstOrDefault();
+
         var automation = new Automation
         {
             UserId = user.Id,
             Name = request.Name,
             RulePayload = request.RulePayload,
             IsActive = request.IsActive,
+            TriggerKind =
+                trigger is TimeTrigger ? AutomationTriggerKind.Schedule : AutomationTriggerKind.Sensor,
+            IsDraft = trigger is null || payload?.Actions is null || payload.Actions.Count == 0,
         };
 
         dbContext.Automations.Add(automation);
@@ -84,10 +94,6 @@ public class CreateAutomationCommandHandler(
         // rodando pra sempre.
         if (request.IsActive)
         {
-            var payload = JsonSerializer.Deserialize<AutomationPayload>(
-                request.RulePayload,
-                AutomationPayloadJsonOptions.Default
-            );
             var cronExpression = payload?.GetTimeTriggerCronExpression();
 
             if (cronExpression != null)

@@ -1,4 +1,5 @@
 using SmartHomeHub.Domain.Common.Interfaces;
+using SmartHomeHub.Domain.Enums;
 
 namespace SmartHomeHub.Domain.Entities;
 
@@ -14,6 +15,22 @@ public class Automation : IAuditableEntity, ISoftDeletable
     /// Payload estruturado em JSON contendo a árvore ECA (Event, Condition, Action).
     /// </summary>
     public string RulePayload { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Derivado de RulePayload (primeiro Trigger) no momento da escrita
+    /// (Create/UpdateAutomationCommandHandler) e persistido aqui só pra
+    /// permitir filtro/contagem em SQL — RulePayload continua sendo a fonte
+    /// de verdade, isso é uma projeção somente-leitura dela.
+    /// </summary>
+    public AutomationTriggerKind TriggerKind { get; set; } = AutomationTriggerKind.Sensor;
+
+    /// <summary>
+    /// true quando RulePayload não tem nenhum Trigger ou nenhuma Action —
+    /// mesma regra usada no editor visual pra marcar "Incompleta". Mesmo
+    /// racional de TriggerKind: derivado na escrita, persistido só pra
+    /// filtro/contagem em SQL.
+    /// </summary>
+    public bool IsDraft { get; set; } = true;
 
     /// <summary>
     /// Versão do schema do editor visual, garantindo compatibilidade retroativa.
