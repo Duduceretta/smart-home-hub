@@ -40,10 +40,14 @@ public class DeviceConfiguration : IEntityTypeConfiguration<Device>
 
         builder.HasIndex(device => device.ExternalId).IsUnique().HasFilter("\"IsDeleted\" = false");
 
+        // Cascata física proibida (CLAUDE.md) — sem .OnDelete() explícito aqui,
+        // a FK obrigatória Device.UserId herdava DeleteBehavior.Cascade por
+        // convenção do EF Core (só visível no model snapshot, nunca no código).
         builder
             .HasOne(device => device.User)
             .WithMany(user => user.Devices)
-            .HasForeignKey(device => device.UserId);
+            .HasForeignKey(device => device.UserId)
+            .OnDelete(DeleteBehavior.Restrict);
 
         builder
             .HasOne(device => device.Room)

@@ -18,11 +18,13 @@ public class RoomConfiguration : IEntityTypeConfiguration<Room>
 
         builder.Property(room => room.UpdatedAt).IsRequired(false);
 
+        // Cascata física proibida (CLAUDE.md) — desvinculação/limpeza de Rooms
+        // ao remover um User é responsabilidade de um handler futuro, não do banco.
         builder
             .HasOne(room => room.User)
             .WithMany(user => user.Rooms)
             .HasForeignKey(room => room.UserId)
-            .OnDelete(DeleteBehavior.Cascade);
+            .OnDelete(DeleteBehavior.Restrict);
 
         builder.HasQueryFilter(room => !room.IsDeleted);
     }
