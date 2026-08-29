@@ -1,5 +1,6 @@
 import { SpotifyConnectCard } from "@/features/integrations/components/SpotifyConnectCard";
 import { SpotifyNowPlayingCard } from "@/features/integrations/components/SpotifyNowPlayingCard";
+import { ThemePresetSelector } from "@/features/settings/components/ThemePresetSelector";
 
 export function SettingsPage() {
 	return (
@@ -12,6 +13,13 @@ export function SettingsPage() {
 					Gerencie integrações e preferências do seu hub.
 				</p>
 			</div>
+
+			<section className="flex flex-col gap-4">
+				<h2 className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+					Aparência
+				</h2>
+				<ThemePresetSelector />
+			</section>
 
 			<section className="flex flex-col gap-4">
 				<h2 className="text-xs font-medium uppercase tracking-wider text-muted-foreground">

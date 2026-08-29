@@ -7,6 +7,23 @@
     <title>Smart Home Hub | Ecossistema Operacional</title>
   </head>
   <body class="antialiased selection:bg-primary/20 selection:text-primary">
+    <script>
+      (() => {
+        const VALID = [
+          "zinc-minimalist",
+          "indigo",
+          "slate-cyan",
+          "github-dimmed",
+          "contrast-safe-graphite",
+        ];
+        try {
+          const preset = localStorage.getItem("app-theme-preset");
+          if (preset && VALID.indexOf(preset) !== -1 && preset !== "zinc-minimalist") {
+            document.documentElement.setAttribute("data-theme", preset);
+          }
+        } catch (_error) {}
+      })();
+    </script>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
