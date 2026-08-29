@@ -55,6 +55,47 @@ public static class AutomationPayloadExtensions
     // cada poucos segundos em vez de só no horário agendado.
     public static bool HasDeviceStateTrigger(this AutomationPayload payload) =>
         payload.Triggers?.OfType<DeviceStateTrigger>().Any() ?? false;
+
+    // Todo device referenciado pelo payload, usado pra cruzar automações
+    // com um ambiente/dispositivo específico (GetRoomsQuery,
+    // GetRoomAutomationsQuery) sem duplicar o mesmo laço de
+    // Triggers/Conditions/Actions em cada consumidor.
+    public static HashSet<Guid> GetReferencedDeviceIds(this AutomationPayload payload)
+    {
+        var referencedDeviceIds = new HashSet<Guid>();
+
+        foreach (var trigger in payload.Triggers ?? [])
+        {
+            if (trigger is DeviceStateTrigger deviceStateTrigger)
+                referencedDeviceIds.Add(deviceStateTrigger.DeviceId);
+        }
+
+        foreach (var rule in payload.Conditions?.Rules ?? [])
+            referencedDeviceIds.Add(rule.DeviceId);
+
+        foreach (var action in payload.Actions ?? [])
+            referencedDeviceIds.Add(action.DeviceId);
+
+        return referencedDeviceIds;
+    }
+
+    // RulePayload corrompido/rascunho incompleto não deve derrubar o
+    // endpoint inteiro — cada consumidor decide o que fazer com null
+    // (normalmente: ignorar essa automação e seguir pras próximas).
+    public static AutomationPayload? TryDeserializeRulePayload(string rulePayloadJson)
+    {
+        try
+        {
+            return JsonSerializer.Deserialize<AutomationPayload>(
+                rulePayloadJson,
+                AutomationPayloadJsonOptions.Default
+            );
+        }
+        catch (JsonException)
+        {
+            return null;
+        }
+    }
 }
 
 // Fonte única das JsonSerializerOptions usadas para (des)serializar

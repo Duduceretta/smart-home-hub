@@ -1,4 +1,3 @@
-using System.Text.Json;
 using Mediator;
 using Microsoft.EntityFrameworkCore;
 using SmartHomeHub.Application.Common.Interfaces;
@@ -71,34 +70,12 @@ public class GetRoomsQueryHandler(IAppDbContext dbContext)
         var referencedDeviceIdsPerAutomation = new List<HashSet<Guid>>();
         foreach (var rulePayload in automations)
         {
-            AutomationPayload? payload;
-            try
-            {
-                payload = JsonSerializer.Deserialize<AutomationPayload>(
-                    rulePayload,
-                    AutomationPayloadJsonOptions.Default
-                );
-            }
-            catch (JsonException)
-            {
-                continue;
-            }
+            var payload = AutomationPayloadExtensions.TryDeserializeRulePayload(rulePayload);
 
             if (payload == null)
                 continue;
 
-            var referencedDeviceIds = new HashSet<Guid>();
-            foreach (var trigger in payload.Triggers ?? [])
-            {
-                if (trigger is DeviceStateTrigger deviceStateTrigger)
-                    referencedDeviceIds.Add(deviceStateTrigger.DeviceId);
-            }
-            foreach (var rule in payload.Conditions?.Rules ?? [])
-                referencedDeviceIds.Add(rule.DeviceId);
-            foreach (var action in payload.Actions ?? [])
-                referencedDeviceIds.Add(action.DeviceId);
-
-            referencedDeviceIdsPerAutomation.Add(referencedDeviceIds);
+            referencedDeviceIdsPerAutomation.Add(payload.GetReferencedDeviceIds());
         }
 
         var items = pagedRooms

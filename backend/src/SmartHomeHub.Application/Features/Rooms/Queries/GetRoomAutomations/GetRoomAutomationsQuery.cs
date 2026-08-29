@@ -1,4 +1,3 @@
-using System.Text.Json;
 using FluentValidation;
 using Mediator;
 using Microsoft.EntityFrameworkCore;
@@ -102,37 +101,14 @@ public class GetRoomAutomationsQueryHandler(IAppDbContext dbContext)
 
         foreach (var automation in automations)
         {
-            AutomationPayload? payload;
-            try
-            {
-                payload = JsonSerializer.Deserialize<AutomationPayload>(
-                    automation.RulePayload,
-                    AutomationPayloadJsonOptions.Default
-                );
-            }
-            catch (JsonException)
-            {
-                // RulePayload corrompido/rascunho incompleto — não deve
-                // derrubar o endpoint inteiro, só não entra na lista.
-                continue;
-            }
+            var payload = AutomationPayloadExtensions.TryDeserializeRulePayload(
+                automation.RulePayload
+            );
 
             if (payload == null)
                 continue;
 
-            var referencedDeviceIds = new HashSet<Guid>();
-
-            foreach (var trigger in payload.Triggers ?? [])
-            {
-                if (trigger is DeviceStateTrigger deviceStateTrigger)
-                    referencedDeviceIds.Add(deviceStateTrigger.DeviceId);
-            }
-
-            foreach (var rule in payload.Conditions?.Rules ?? [])
-                referencedDeviceIds.Add(rule.DeviceId);
-
-            foreach (var action in payload.Actions ?? [])
-                referencedDeviceIds.Add(action.DeviceId);
+            var referencedDeviceIds = payload.GetReferencedDeviceIds();
 
             if (!referencedDeviceIds.Overlaps(roomDeviceIds))
                 continue;
