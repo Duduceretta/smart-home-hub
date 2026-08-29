@@ -1,13 +1,14 @@
-import { AlertTriangle, DoorOpen, Loader2, Plus } from "lucide-react";
+import { AlertTriangle, DoorOpen, Loader2, Plus, Trash2 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { useConfirm } from "@/core/components/providers/ConfirmDialogProvider";
 import { cn } from "@/core/utils";
 import { useAssignableDevices } from "../hooks/useAssignableDevices";
+import { useDeleteRoom } from "../hooks/useDeleteRoom";
 import { useRooms } from "../hooks/useRooms";
 import { useRoomsUIStore } from "../store/rooms-ui.store";
-import type { RoomPickerDevice } from "../types/rooms.types";
+import type { Room, RoomPickerDevice } from "../types/rooms.types";
 import { RoomDetailPanel } from "./detail/RoomDetailPanel";
-import { DeleteRoomAlertDialog } from "./dialogs/DeleteRoomAlertDialog";
 import { RoomFormDialog } from "./dialogs/RoomFormDialog";
 import { RoomListPanel } from "./list/RoomListPanel";
 import { RoomsSummaryBar } from "./list/RoomsSummaryBar";
@@ -39,7 +40,24 @@ export function RoomsView() {
 	const selectedRoomId = useRoomsUIStore((s) => s.selectedRoomId);
 	const setSelectedRoomId = useRoomsUIStore((s) => s.setSelectedRoomId);
 	const openCreateDialog = useRoomsUIStore((s) => s.openCreateDialog);
-	const openDeleteDialog = useRoomsUIStore((s) => s.openDeleteDialog);
+	const confirm = useConfirm();
+	const deleteRoom = useDeleteRoom();
+
+	const handleDeleteRoom = async (room: Room) => {
+		const confirmed = await confirm({
+			title: t("deleteDialog.title", "Excluir ambiente"),
+			description: t(
+				"deleteDialog.description",
+				`Tem certeza que deseja excluir o ambiente "${room.name}"? Os dispositivos vinculados a ele ficam sem ambiente atribuído — a exclusão não apaga os dispositivos nem o histórico deles.`,
+				{ name: room.name },
+			),
+			confirmLabel: t("deleteDialog.confirm", "Excluir"),
+			cancelLabel: t("deleteDialog.cancel", "Cancelar"),
+			variant: "destructive",
+			icon: Trash2,
+		});
+		if (confirmed) deleteRoom.mutate(room.id);
+	};
 
 	const visibleRooms = useMemo(() => {
 		if (!query.trim()) return rooms;
@@ -145,7 +163,7 @@ export function RoomsView() {
 								devicesByRoom={devicesByRoom}
 								selectedId={selectedRoomId}
 								onSelect={setSelectedRoomId}
-								onDelete={openDeleteDialog}
+								onDelete={handleDeleteRoom}
 								onCreate={openCreateDialog}
 								viewMode={viewMode}
 								onViewModeChange={setViewMode}
@@ -167,7 +185,6 @@ export function RoomsView() {
 			</div>
 
 			<RoomFormDialog />
-			<DeleteRoomAlertDialog />
 		</div>
 	);
 }

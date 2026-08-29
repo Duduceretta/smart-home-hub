@@ -23,11 +23,6 @@ interface RoomsUIState {
 	openCreateDialog: () => void;
 	openEditDialog: (room: Room, options?: { focusDevices?: boolean }) => void;
 	closeFormDialog: () => void;
-
-	// Delete Confirmation State
-	deletingRoom: Room | null;
-	openDeleteDialog: (room: Room) => void;
-	closeDeleteDialog: () => void;
 }
 
 /**
@@ -41,7 +36,6 @@ export const useRoomsUIStore = create<RoomsUIState>((set) => ({
 	isCreateDialogOpen: false,
 	editingRoom: null,
 	editDialogFocusDevices: false,
-	deletingRoom: null,
 
 	// Split-view Selection Actions
 	setSelectedRoomId: (selectedRoomId) => set({ selectedRoomId }),
@@ -66,8 +60,4 @@ export const useRoomsUIStore = create<RoomsUIState>((set) => ({
 			editingRoom: null,
 			editDialogFocusDevices: false,
 		}),
-
-	// Delete Confirmation Actions
-	openDeleteDialog: (room) => set({ deletingRoom: room }),
-	closeDeleteDialog: () => set({ deletingRoom: null }),
 }));

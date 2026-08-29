@@ -64,7 +64,6 @@ beforeEach(() => {
 		isCreateDialogOpen: false,
 		editingRoom: null,
 		editDialogFocusDevices: false,
-		deletingRoom: null,
 	});
 });
 
@@ -169,5 +168,88 @@ describe("RoomsView Integration Tests", () => {
 		await screen.findAllByText("Sala");
 		expect(screen.getByText("2")).toBeInTheDocument();
 		expect(screen.getByText("ambientes")).toBeInTheDocument();
+	});
+
+	// Cobertura portada de DeleteRoomAlertDialog.spec.tsx — o componente
+	// dedicado foi substituído por useConfirm() (ConfirmDialogProvider),
+	// então o fluxo de exclusão só existe mais integrado ao RoomsView real.
+	it("RoomsView_ClickDeleteIcon_ShouldRenderConfirmationWithRoomName", async () => {
+		// Arrange
+		mockRoomsList([createRoomMock({ name: "Varanda" })]);
+		mockAssignableDevices();
+		mockRoomDetailSubResources();
+		const user = userEvent.setup();
+
+		// Act
+		renderRoomsView();
+		await user.click(
+			await screen.findByRole("button", { name: "Excluir ambiente Varanda" }),
+		);
+
+		// Assert
+		expect(await screen.findByRole("alertdialog")).toBeInTheDocument();
+		expect(
+			screen.getByText(/Tem certeza que deseja excluir o ambiente "Varanda"/i),
+		).toBeInTheDocument();
+	});
+
+	it("RoomsView_ClickCancelOnDeleteConfirmation_ShouldNotCallDeleteApi", async () => {
+		// Arrange
+		mockRoomsList([createRoomMock({ name: "Varanda" })]);
+		mockAssignableDevices();
+		mockRoomDetailSubResources();
+		let deleteCalled = false;
+		server.use(
+			http.delete("*/api/rooms/:id", () => {
+				deleteCalled = true;
+				return new HttpResponse(null, { status: 204 });
+			}),
+		);
+		const user = userEvent.setup();
+
+		// Act
+		renderRoomsView();
+		await user.click(
+			await screen.findByRole("button", { name: "Excluir ambiente Varanda" }),
+		);
+		await screen.findByRole("alertdialog");
+		await user.click(screen.getByRole("button", { name: "Cancelar" }));
+
+		// Assert
+		await waitFor(() => {
+			expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument();
+		});
+		expect(deleteCalled).toBe(false);
+	});
+
+	it("RoomsView_ConfirmDeleteOnDialog_ShouldCallDeleteApiWithRoomId", async () => {
+		// Arrange
+		mockRoomsList([createRoomMock({ id: "room-to-delete", name: "Varanda" })]);
+		mockAssignableDevices();
+		mockRoomDetailSubResources();
+		let deletedId: string | null = null;
+		server.use(
+			http.delete("*/api/rooms/:id", ({ params }) => {
+				deletedId = params.id as string;
+				return new HttpResponse(null, { status: 204 });
+			}),
+		);
+		const user = userEvent.setup();
+
+		// Act
+		renderRoomsView();
+		await user.click(
+			await screen.findByRole("button", { name: "Excluir ambiente Varanda" }),
+		);
+		await screen.findByRole("alertdialog");
+		await user.click(screen.getByRole("button", { name: "Excluir" }));
+
+		// Assert
+		await waitFor(() => {
+			expect(deletedId).toBe("room-to-delete");
+		});
+		await waitFor(() => {
+			expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument();
+		});
 	});
 });
