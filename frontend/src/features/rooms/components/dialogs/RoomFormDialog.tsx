@@ -29,16 +29,27 @@ import { RoomDeviceAssignmentPicker } from "./RoomDeviceAssignmentPicker";
 
 function FormSection({
 	title,
+	htmlFor,
 	children,
 }: {
 	title: string;
+	/** Quando a seção tem um único input associado, liga o rótulo a ele via
+	 * `<label htmlFor>` em vez de `<h3>` solto — sem isso o input fica sem
+	 * nome acessível (getByLabel falha, leitor de tela não anuncia nada). */
+	htmlFor?: string;
 	children: React.ReactNode;
 }) {
+	const titleClassName =
+		"text-xs font-medium uppercase tracking-wider text-muted-foreground";
 	return (
 		<div className="flex flex-col gap-2">
-			<h3 className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-				{title}
-			</h3>
+			{htmlFor ? (
+				<label htmlFor={htmlFor} className={titleClassName}>
+					{title}
+				</label>
+			) : (
+				<h3 className={titleClassName}>{title}</h3>
+			)}
 			{children}
 		</div>
 	);
@@ -67,7 +78,8 @@ export function RoomFormDialog() {
 	const createRoom = useCreateRoom();
 	const updateRoom = useUpdateRoom();
 	const assignDevice = useAssignDeviceToRoom();
-	const { data: devices = [] } = useAssignableDevices();
+	const { data: devices = [], isLoading: isLoadingDevices } =
+		useAssignableDevices();
 
 	const isMutating =
 		createRoom.isPending || updateRoom.isPending || assignDevice.isPending;
@@ -89,31 +101,51 @@ export function RoomFormDialog() {
 	const [selectedDeviceIds, setSelectedDeviceIds] = useState<string[]>([]);
 	const initialDeviceIdsRef = useRef<string[]>([]);
 	const deviceSectionRef = useRef<HTMLDivElement>(null);
+	// Marca se a seleção inicial de dispositivos já foi sincronizada nesta
+	// "sessão" de abertura do dialog — necessário porque `devices` pode ainda
+	// não ter chegado (GET /devices em voo) no exato render em que o dialog
+	// abre em modo edição; sem essa flag separada do efeito abaixo, a seleção
+	// ficaria presa em `[]` pra sempre (o efeito de abrir/fechar não reroda
+	// a cada refetch de `devices`, de propósito).
+	const hasSyncedDeviceSelectionRef = useRef(false);
 
-	// biome-ignore lint/correctness/useExhaustiveDependencies: só deve rodar quando o Dialog abre/fecha ou troca de ambiente — não a cada refetch de `devices`
 	useEffect(() => {
 		if (!isOpen) {
 			reset();
 			setSelectedDeviceIds([]);
 			initialDeviceIdsRef.current = [];
+			hasSyncedDeviceSelectionRef.current = false;
 			return;
 		}
 
 		if (editingRoom) {
 			reset({ name: editingRoom.name, icon: editingRoom.icon ?? "chair" });
-			const assigned = devices
-				.filter((device) => device.roomId === editingRoom.id)
-				.map((device) => device.id);
-			setSelectedDeviceIds(assigned);
-			initialDeviceIdsRef.current = assigned;
 		} else {
 			reset({ name: "", icon: "chair" });
 			setSelectedDeviceIds([]);
 			initialDeviceIdsRef.current = [];
+			// Modo criação não tem dispositivos pra sincronizar.
+			hasSyncedDeviceSelectionRef.current = true;
 		}
 
 		setFocus("name");
 	}, [isOpen, editingRoom, reset, setFocus]);
+
+	// Sincroniza a seleção inicial de dispositivos assim que `devices`
+	// terminar de carregar pela primeira vez após o dialog abrir em modo
+	// edição — só uma vez por abertura (guardado por
+	// `hasSyncedDeviceSelectionRef`), não a cada refetch em segundo plano.
+	useEffect(() => {
+		if (!isOpen || !editingRoom || isLoadingDevices) return;
+		if (hasSyncedDeviceSelectionRef.current) return;
+
+		const assigned = devices
+			.filter((device) => device.roomId === editingRoom.id)
+			.map((device) => device.id);
+		setSelectedDeviceIds(assigned);
+		initialDeviceIdsRef.current = assigned;
+		hasSyncedDeviceSelectionRef.current = true;
+	}, [isOpen, editingRoom, devices, isLoadingDevices]);
 
 	useEffect(() => {
 		if (isOpen && focusDevices) {
@@ -243,7 +275,10 @@ export function RoomFormDialog() {
 							<div className="flex flex-col gap-6">
 								<FormGlobalError error={mutationError} />
 
-								<FormSection title={t("form.nameLabel", "Nome do ambiente")}>
+								<FormSection
+									title={t("form.nameLabel", "Nome do ambiente")}
+									htmlFor="room-name"
+								>
 									<input
 										id="room-name"
 										type="text"
