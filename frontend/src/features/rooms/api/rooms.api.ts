@@ -20,10 +20,13 @@ import type {
 // ---------------------------------------------------------------------------
 
 /**
- * Fetches all rooms owned by the authenticated user.
+ * Fetches all rooms owned by the authenticated user. Rooms tend to be few
+ * per household (unlike devices), so a single large page is fetched instead
+ * of implementing incremental pagination in the list panel — same
+ * pageSize=200 convention already used by `fetchAssignableDevices` below.
  * Supports both paginated PagedResponse and direct Array responses.
  */
-export async function fetchRooms(page = 1, pageSize = 10): Promise<Room[]> {
+export async function fetchRooms(page = 1, pageSize = 200): Promise<Room[]> {
 	try {
 		const { data } = await apiClient.get<PagedResponse<Room> | Room[]>(
 			"/rooms",
