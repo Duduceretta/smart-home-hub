@@ -4,7 +4,7 @@ import { cn } from "@/core/utils";
 import type {
 	AutomationView,
 	AutomationViewMode,
-} from "../types/automations.types";
+} from "../../types/automations.types";
 import { AutomationCard } from "./AutomationCard";
 import { AutomationRow } from "./AutomationRow";
 

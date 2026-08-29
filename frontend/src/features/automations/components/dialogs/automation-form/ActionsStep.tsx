@@ -10,8 +10,8 @@ import {
 	SelectValue,
 } from "@/core/components/ui/select";
 import { cn } from "@/core/utils";
-import type { AutomationFormController } from "../../types/automation-wizard.types";
-import type { PickerDevice } from "../../types/automations.types";
+import type { AutomationFormController } from "../../../types/automation-wizard.types";
+import type { PickerDevice } from "../../../types/automations.types";
 
 interface ActionsStepProps {
 	form: AutomationFormController;

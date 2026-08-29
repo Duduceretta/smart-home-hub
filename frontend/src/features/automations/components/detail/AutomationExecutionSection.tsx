@@ -9,9 +9,9 @@ import {
 	YAxis,
 } from "recharts";
 import { ActivityTimelineRow } from "@/core/components/activity/ActivityTimelineRow";
-import { useAutomationExecutionHistory } from "../hooks/useAutomationExecutionHistory";
-import { useAutomationWeekdayExecutions } from "../hooks/useAutomationWeekdayExecutions";
-import { formatRelativeTime } from "../lib/format-relative-time";
+import { useAutomationExecutionHistory } from "../../hooks/useAutomationExecutionHistory";
+import { useAutomationWeekdayExecutions } from "../../hooks/useAutomationWeekdayExecutions";
+import { formatRelativeTime } from "../../lib/format-relative-time";
 
 const WEEKDAY_LABELS = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
 const HISTORY_PAGE_SIZE = 8;

@@ -11,9 +11,9 @@ import { useConfirm } from "@/core/components/providers/ConfirmDialogProvider";
 import { Button } from "@/core/components/ui/button";
 import { Switch } from "@/core/components/ui/switch";
 import { cn } from "@/core/utils";
-import { AUTOMATION_TRIGGER_ICON } from "../constants/automations.constants";
-import { formatRelativeTime } from "../lib/format-relative-time";
-import type { AutomationView } from "../types/automations.types";
+import { AUTOMATION_TRIGGER_ICON } from "../../constants/automations.constants";
+import { formatRelativeTime } from "../../lib/format-relative-time";
+import type { AutomationView } from "../../types/automations.types";
 import { AutomationExecutionSection } from "./AutomationExecutionSection";
 
 interface AutomationDetailPanelProps {

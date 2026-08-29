@@ -1,6 +1,6 @@
 import { Check } from "lucide-react";
 import { cn } from "@/core/utils";
-import type { WizardStepNumber } from "../../types/automation-wizard.types";
+import type { WizardStepNumber } from "../../../types/automation-wizard.types";
 
 const SEGMENTS: {
 	label: string;

@@ -1,7 +1,7 @@
 import { Switch } from "@/core/components/ui/switch";
 import { cn } from "@/core/utils";
-import { AUTOMATION_TRIGGER_ICON } from "../constants/automations.constants";
-import type { AutomationView } from "../types/automations.types";
+import { AUTOMATION_TRIGGER_ICON } from "../../constants/automations.constants";
+import type { AutomationView } from "../../types/automations.types";
 
 interface AutomationCardProps {
 	automation: AutomationView;

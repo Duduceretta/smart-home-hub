@@ -7,11 +7,11 @@ import { Switch } from "@/core/components/ui/switch";
 import {
 	SENSOR_METRIC_LABELS,
 	WEEKDAY_OPTIONS,
-} from "../../constants/automations.constants";
-import type { UseAutomationWizardReturn } from "../../hooks/useAutomationWizard";
-import { isNameValid } from "../../lib/automation-form-reducer";
-import type { AutomationWizardState } from "../../types/automation-wizard.types";
-import type { PickerDevice } from "../../types/automations.types";
+} from "../../../constants/automations.constants";
+import type { UseAutomationWizardReturn } from "../../../hooks/useAutomationWizard";
+import { isNameValid } from "../../../lib/automation-form-reducer";
+import type { AutomationWizardState } from "../../../types/automation-wizard.types";
+import type { PickerDevice } from "../../../types/automations.types";
 
 const COMPARISON_LABELS: Record<string, string> = {
 	">": "maior que",

@@ -1,4 +1,4 @@
-import type { AutomationFilterCounts } from "../types/automations.types";
+import type { AutomationFilterCounts } from "../../types/automations.types";
 
 interface AutomationSummaryBarProps {
 	counts: AutomationFilterCounts | undefined;

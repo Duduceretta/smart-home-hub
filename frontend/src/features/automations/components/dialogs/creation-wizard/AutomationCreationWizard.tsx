@@ -9,12 +9,12 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from "@/core/components/ui/dialog";
-import { TRIGGER_SOURCE_OPTIONS } from "../../constants/automations.constants";
-import { useAutomationWizard } from "../../hooks/useAutomationWizard";
-import { useCreateAutomation } from "../../hooks/useCreateAutomation";
-import { usePickerDevices } from "../../hooks/usePickerDevices";
-import { mapWizardStateToCreatePayload } from "../../lib/automation-wizard-payload.mapper";
-import { useAutomationsUIStore } from "../../store/automations-ui.store";
+import { TRIGGER_SOURCE_OPTIONS } from "../../../constants/automations.constants";
+import { useAutomationWizard } from "../../../hooks/useAutomationWizard";
+import { useCreateAutomation } from "../../../hooks/useCreateAutomation";
+import { usePickerDevices } from "../../../hooks/usePickerDevices";
+import { mapWizardStateToCreatePayload } from "../../../lib/automation-wizard-payload.mapper";
+import { useAutomationsUIStore } from "../../../store/automations-ui.store";
 import { ActionsStep } from "../automation-form/ActionsStep";
 import { TriggerConfigStep } from "../automation-form/TriggerConfigStep";
 import { AutomationWizardStepper } from "./AutomationWizardStepper";

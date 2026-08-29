@@ -1,6 +1,6 @@
 import { cn } from "@/core/utils";
-import { TRIGGER_SOURCE_OPTIONS } from "../../constants/automations.constants";
-import type { TriggerSource } from "../../types/automation-wizard.types";
+import { TRIGGER_SOURCE_OPTIONS } from "../../../constants/automations.constants";
+import type { TriggerSource } from "../../../types/automation-wizard.types";
 
 interface TriggerSourceStepProps {
 	selected: TriggerSource | null;

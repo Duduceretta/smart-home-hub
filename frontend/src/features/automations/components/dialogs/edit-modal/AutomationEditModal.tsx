@@ -11,13 +11,13 @@ import {
 	DialogTitle,
 } from "@/core/components/ui/dialog";
 import { Switch } from "@/core/components/ui/switch";
-import { TRIGGER_SOURCE_OPTIONS } from "../../constants/automations.constants";
-import { useEditAutomationForm } from "../../hooks/useEditAutomationForm";
-import { usePickerDevices } from "../../hooks/usePickerDevices";
-import { useUpdateAutomation } from "../../hooks/useUpdateAutomation";
-import { isNameValid } from "../../lib/automation-form-reducer";
-import { mapFormStateToUpdatePayload } from "../../lib/automation-wizard-payload.mapper";
-import { useAutomationsUIStore } from "../../store/automations-ui.store";
+import { TRIGGER_SOURCE_OPTIONS } from "../../../constants/automations.constants";
+import { useEditAutomationForm } from "../../../hooks/useEditAutomationForm";
+import { usePickerDevices } from "../../../hooks/usePickerDevices";
+import { useUpdateAutomation } from "../../../hooks/useUpdateAutomation";
+import { isNameValid } from "../../../lib/automation-form-reducer";
+import { mapFormStateToUpdatePayload } from "../../../lib/automation-wizard-payload.mapper";
+import { useAutomationsUIStore } from "../../../store/automations-ui.store";
 import { ActionsStep } from "../automation-form/ActionsStep";
 import { TriggerConfigStep } from "../automation-form/TriggerConfigStep";
 

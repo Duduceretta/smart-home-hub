@@ -11,12 +11,12 @@ import { useUpdateAutomation } from "../hooks/useUpdateAutomation";
 import { mapAutomationToView } from "../lib/automation-view.mapper";
 import { useAutomationsUIStore } from "../store/automations-ui.store";
 import type { AutomationView } from "../types/automations.types";
-import { AutomationDetailPanel } from "./AutomationDetailPanel";
-import { AutomationFilterRail } from "./AutomationFilterRail";
-import { AutomationListPanel } from "./AutomationListPanel";
-import { AutomationSummaryBar } from "./AutomationSummaryBar";
-import { AutomationCreationWizard } from "./creation-wizard/AutomationCreationWizard";
-import { AutomationEditModal } from "./edit-modal/AutomationEditModal";
+import { AutomationDetailPanel } from "./detail/AutomationDetailPanel";
+import { AutomationCreationWizard } from "./dialogs/creation-wizard/AutomationCreationWizard";
+import { AutomationEditModal } from "./dialogs/edit-modal/AutomationEditModal";
+import { AutomationFilterRail } from "./list/AutomationFilterRail";
+import { AutomationListPanel } from "./list/AutomationListPanel";
+import { AutomationSummaryBar } from "./list/AutomationSummaryBar";
 
 /**
  * View de Automações — master-detail (split-view) fixo, inspirado em

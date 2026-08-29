@@ -10,9 +10,9 @@ import { cn } from "@/core/utils";
 import {
 	SENSOR_METRIC_LABELS,
 	WEEKDAY_OPTIONS,
-} from "../../constants/automations.constants";
-import type { AutomationFormController } from "../../types/automation-wizard.types";
-import type { PickerDevice } from "../../types/automations.types";
+} from "../../../constants/automations.constants";
+import type { AutomationFormController } from "../../../types/automation-wizard.types";
+import type { PickerDevice } from "../../../types/automations.types";
 
 const COMPARISON_OPTIONS: { value: string; label: string }[] = [
 	{ value: ">", label: "maior que" },

@@ -21,7 +21,7 @@ import type {
 	AutomationFilter,
 	AutomationFilterCounts,
 	AutomationSort,
-} from "../types/automations.types";
+} from "../../types/automations.types";
 
 interface AutomationFilterRailProps {
 	counts: AutomationFilterCounts | undefined;
