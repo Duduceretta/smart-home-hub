@@ -19,12 +19,12 @@ import {
 import { cn } from "@/core/utils";
 import type {
 	AutomationFilter,
+	AutomationFilterCounts,
 	AutomationSort,
-	AutomationView,
 } from "../types/automations.types";
 
 interface AutomationFilterRailProps {
-	automations: AutomationView[];
+	counts: AutomationFilterCounts | undefined;
 	filter: AutomationFilter;
 	onFilterChange: (filter: AutomationFilter) => void;
 	sort: AutomationSort;
@@ -53,7 +53,7 @@ interface FilterChip {
  * assim que o ponteiro sai da trilha, independente de `pinned`.
  */
 export function AutomationFilterRail({
-	automations,
+	counts,
 	filter,
 	onFilterChange,
 	sort,
@@ -78,18 +78,18 @@ export function AutomationFilterRail({
 	}, [pinned]);
 
 	const statusChips: FilterChip[] = [
-		{ value: "all", label: "Todas", icon: Filter, count: automations.length },
+		{ value: "all", label: "Todas", icon: Filter, count: counts?.total ?? 0 },
 		{
 			value: "active",
 			label: "Ativas",
 			icon: Power,
-			count: automations.filter((a) => a.isActive).length,
+			count: counts?.active ?? 0,
 		},
 		{
 			value: "inactive",
 			label: "Inativas",
 			icon: PowerOff,
-			count: automations.filter((a) => !a.isActive).length,
+			count: counts?.inactive ?? 0,
 		},
 	];
 
@@ -98,13 +98,13 @@ export function AutomationFilterRail({
 			value: "schedule",
 			label: "Por horário",
 			icon: Clock,
-			count: automations.filter((a) => a.triggerKind === "schedule").length,
+			count: counts?.schedule ?? 0,
 		},
 		{
 			value: "sensor",
 			label: "Por sensor",
 			icon: Radio,
-			count: automations.filter((a) => a.triggerKind === "sensor").length,
+			count: counts?.sensor ?? 0,
 		},
 	];
 
@@ -113,7 +113,7 @@ export function AutomationFilterRail({
 			value: "draft",
 			label: "Rascunhos",
 			icon: FileEdit,
-			count: automations.filter((a) => a.isDraft).length,
+			count: counts?.draft ?? 0,
 		},
 	];
 

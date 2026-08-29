@@ -1,6 +1,8 @@
 import { AlertTriangle, Loader2 } from "lucide-react";
 import { useEffect, useMemo } from "react";
+import { useDebouncedValue } from "@/core/hooks/useDebouncedValue";
 import { cn } from "@/core/utils";
+import { useAutomationFilterCounts } from "../hooks/useAutomationFilterCounts";
 import { useAutomations } from "../hooks/useAutomations";
 import { useCreateAutomation } from "../hooks/useCreateAutomation";
 import { useDeleteAutomation } from "../hooks/useDeleteAutomation";
@@ -33,11 +35,13 @@ import { AutomationEditModal } from "./edit-modal/AutomationEditModal";
  * voltar ao topo da lista é sempre instantâneo, independente de quantas
  * automações já foram carregadas.
  *
- * Query/filtro/ordenação/viewMode/seleção são estado efêmero de UI — vivem
- * na `useAutomationsUIStore` (Zustand), igual ao `query` de `RoomsView`,
- * não em `useState` local. Filtro/busca/ordenação são só client-side por
- * enquanto (o backend não expõe esses parâmetros na listagem ainda — vira
- * paginação/filtro server-side depois).
+ * Filtro/busca/ordenação/paginação são TODOS resolvidos server-side
+ * (`useAutomations` → `useInfiniteQuery`, mesmo padrão de `DevicesGrid`) —
+ * `filter`/`query`/`sort` da `useAutomationsUIStore` só viram parâmetros da
+ * query, nunca `.filter()`/`.sort()` local. As contagens da trilha/resumo
+ * vêm de `useAutomationFilterCounts`, uma query própria (não dá pra contar
+ * localmente sem ter a lista inteira em memória, e com scroll infinito real
+ * nunca temos isso).
  *
  * Dados reais via `useAutomations` — `rulePayload` (JSON opaco) é resumido
  * em texto pela `AutomationView` (ver `automation-view.mapper.ts`), usando
@@ -50,18 +54,6 @@ import { AutomationEditModal } from "./edit-modal/AutomationEditModal";
  * resumo em texto da `AutomationView`.
  */
 export function AutomationsView() {
-	const {
-		data: automations,
-		isLoading: isLoadingAutomations,
-		isError: isAutomationsError,
-		refetch: refetchAutomations,
-	} = useAutomations();
-	const { data: devices = [] } = usePickerDevices();
-
-	const updateAutomation = useUpdateAutomation();
-	const deleteAutomation = useDeleteAutomation();
-	const createAutomation = useCreateAutomation();
-
 	const {
 		query,
 		setQuery,
@@ -77,39 +69,56 @@ export function AutomationsView() {
 		openEditModal,
 	} = useAutomationsUIStore();
 
+	const debouncedQuery = useDebouncedValue(query, 300);
+
+	// `filter` (UI, um valor só por vez) vira os parâmetros de
+	// `GetAutomationsQuery` — nunca os 3 preenchidos juntos.
+	const listFilters = useMemo(
+		() => ({
+			search: debouncedQuery,
+			status:
+				filter === "active"
+					? ("active" as const)
+					: filter === "inactive"
+						? ("inactive" as const)
+						: undefined,
+			triggerKind:
+				filter === "schedule" || filter === "sensor" ? filter : undefined,
+			isDraft: filter === "draft" ? true : undefined,
+			sort,
+		}),
+		[debouncedQuery, filter, sort],
+	);
+
+	const {
+		data: automations,
+		isLoading: isLoadingAutomations,
+		isError: isAutomationsError,
+		refetch: refetchAutomations,
+		fetchNextPage,
+		hasNextPage,
+		isFetchingNextPage,
+	} = useAutomations(listFilters);
+	const { data: devices = [] } = usePickerDevices();
+	const { data: filterCounts } = useAutomationFilterCounts();
+
+	const updateAutomation = useUpdateAutomation();
+	const deleteAutomation = useDeleteAutomation();
+	const createAutomation = useCreateAutomation();
+
 	const automationViews = useMemo(
 		() => (automations ?? []).map((a) => mapAutomationToView(a, devices)),
 		[automations, devices],
 	);
 
-	const visibleAutomations = useMemo(() => {
-		let result = automationViews;
-
-		if (filter === "active") result = result.filter((a) => a.isActive);
-		else if (filter === "inactive") result = result.filter((a) => !a.isActive);
-		else if (filter === "draft") result = result.filter((a) => a.isDraft);
-		else if (filter === "schedule" || filter === "sensor")
-			result = result.filter((a) => a.triggerKind === filter);
-
-		if (query.trim()) {
-			const search = query.trim().toLowerCase();
-			result = result.filter((a) => a.name.toLowerCase().includes(search));
-		}
-
-		return [...result].sort((a, b) => {
-			if (sort === "status") return Number(b.isActive) - Number(a.isActive);
-			return a.name.localeCompare(b.name);
-		});
-	}, [automationViews, filter, query, sort]);
-
-	// Seleção padrão: o PRIMEIRO item da lista ordenada/filtrada visível, não
-	// o primeiro do array bruto — sort default é por nome. Também recupera a
-	// seleção automaticamente depois de excluir/filtrar o item selecionado.
+	// Seleção padrão: o PRIMEIRO item da página carregada, já que a
+	// ordenação/filtro vêm prontos do backend. Também recupera a seleção
+	// automaticamente depois de excluir/filtrar o item selecionado.
 	useEffect(() => {
-		if (selectedId === null && visibleAutomations.length > 0) {
-			setSelectedId(visibleAutomations[0].id);
+		if (selectedId === null && automationViews.length > 0) {
+			setSelectedId(automationViews[0].id);
 		}
-	}, [selectedId, visibleAutomations, setSelectedId]);
+	}, [selectedId, automationViews, setSelectedId]);
 
 	const selectedAutomation =
 		automationViews.find((a) => a.id === selectedId) ?? null;
@@ -199,11 +208,11 @@ export function AutomationsView() {
 					</div>
 				) : (
 					<>
-						<AutomationSummaryBar automations={automationViews} />
+						<AutomationSummaryBar counts={filterCounts} />
 
 						<div className="flex min-h-0 flex-1 items-start gap-3">
 							<AutomationFilterRail
-								automations={automationViews}
+								counts={filterCounts}
 								filter={filter}
 								onFilterChange={setFilter}
 								sort={sort}
@@ -212,7 +221,7 @@ export function AutomationsView() {
 
 							<div className="h-full min-w-0 flex-1">
 								<AutomationListPanel
-									automations={visibleAutomations}
+									automations={automationViews}
 									selectedId={selectedId}
 									onSelect={setSelectedId}
 									viewMode={viewMode}
@@ -221,7 +230,10 @@ export function AutomationsView() {
 									onCreate={openCreateWizard}
 									query={query}
 									onQueryChange={setQuery}
-									resetKey={`${filter}|${sort}|${query.trim().toLowerCase()}`}
+									onLoadMore={fetchNextPage}
+									hasMore={hasNextPage}
+									isLoadingMore={isFetchingNextPage}
+									resetKey={`${filter}|${sort}|${debouncedQuery}`}
 								/>
 							</div>
 						</div>

@@ -15,6 +15,9 @@ export function useDeleteAutomation() {
 		mutationFn: (id: string) => deleteAutomationRequest(id),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: automationsKeys.lists() });
+			queryClient.invalidateQueries({
+				queryKey: automationsKeys.filterCounts(),
+			});
 			toast.success("Automação removida com sucesso!");
 		},
 		onError: (error: Error) => {

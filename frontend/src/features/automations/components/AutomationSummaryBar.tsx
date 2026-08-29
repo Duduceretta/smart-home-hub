@@ -1,21 +1,21 @@
-import type { AutomationView } from "../types/automations.types";
+import type { AutomationFilterCounts } from "../types/automations.types";
 
 interface AutomationSummaryBarProps {
-	automations: AutomationView[];
+	counts: AutomationFilterCounts | undefined;
 }
 
 /**
  * Faixa de contexto rápido — uma linha, sem card dedicado. Densidade sobre
  * respiro: isso não é um dashboard, é só "quantas ativas, pausadas, quantas
- * incompletas" pra orientar o olhar antes do grid. Sem métrica de "falhas
- * hoje" — o backend não rastreia execução ainda (ver `AutomationView`).
+ * incompletas" pra orientar o olhar antes do grid. Contagens vêm de
+ * `useAutomationFilterCounts` (query própria, agregada no backend) — nunca
+ * `.filter().length` sobre a lista carregada, que com scroll infinito real
+ * nunca tem todos os itens em memória.
  */
-export function AutomationSummaryBar({
-	automations,
-}: AutomationSummaryBarProps) {
-	const activeCount = automations.filter((a) => a.isActive).length;
-	const inactiveCount = automations.length - activeCount;
-	const draftCount = automations.filter((a) => a.isDraft).length;
+export function AutomationSummaryBar({ counts }: AutomationSummaryBarProps) {
+	const activeCount = counts?.active ?? 0;
+	const inactiveCount = counts?.inactive ?? 0;
+	const draftCount = counts?.draft ?? 0;
 
 	return (
 		<div className="flex items-center gap-2 py-0.5 text-xs text-muted-foreground">

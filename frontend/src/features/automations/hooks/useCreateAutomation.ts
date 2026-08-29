@@ -17,6 +17,9 @@ export function useCreateAutomation() {
 			createAutomationRequest(payload),
 		onSuccess: (data) => {
 			queryClient.invalidateQueries({ queryKey: automationsKeys.lists() });
+			queryClient.invalidateQueries({
+				queryKey: automationsKeys.filterCounts(),
+			});
 			toast.success(data.message || "Automação criada com sucesso!");
 		},
 		onError: (error: Error) => {

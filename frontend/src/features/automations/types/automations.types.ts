@@ -1,7 +1,24 @@
 /**
+ * AutomationTriggerKind mapping matching C# backend enum integers (mesmo
+ * padrão de `DeviceTypeEnum` em `devices.types.ts`) — o backend serializa
+ * enums como número, não string.
+ */
+export const AutomationTriggerKindEnum = {
+	Schedule: 1,
+	Sensor: 2,
+} as const;
+
+export type AutomationTriggerKindEnum =
+	(typeof AutomationTriggerKindEnum)[keyof typeof AutomationTriggerKindEnum];
+
+/**
  * Represents the automation read-model (AutomationDto) returned by the C# API.
  * `rulePayload` is the ECA tree serialized as a JSON string — never a nested
  * object in the HTTP envelope, mirroring how the backend stores/returns it.
+ * `triggerKind`/`isDraft` são derivados do payload só na escrita
+ * (Create/UpdateAutomationCommandHandler) e persistidos como colunas reais —
+ * permitem filtro/contagem em SQL sem o cliente precisar baixar tudo e
+ * parsear `rulePayload` pra descobrir.
  */
 export interface Automation {
 	id: string;
@@ -9,6 +26,8 @@ export interface Automation {
 	isActive: boolean;
 	rulePayload: string;
 	schemaVersion: number;
+	triggerKind: AutomationTriggerKindEnum;
+	isDraft: boolean;
 	createdAt: string;
 	updatedAt: string | null;
 	/**
@@ -19,6 +38,20 @@ export interface Automation {
 	lastExecutedAt: string | null;
 	/** true se alguma execução de hoje (UTC) falhou. */
 	hasFailedToday: boolean;
+}
+
+/**
+ * Contagem por categoria de filtro (GetAutomationFilterCountsQuery) — vem de
+ * uma query própria, independente da paginação da listagem, porque com
+ * scroll infinito o cliente nunca tem a lista inteira em memória pra contar.
+ */
+export interface AutomationFilterCounts {
+	total: number;
+	active: number;
+	inactive: number;
+	schedule: number;
+	sensor: number;
+	draft: number;
 }
 
 /**

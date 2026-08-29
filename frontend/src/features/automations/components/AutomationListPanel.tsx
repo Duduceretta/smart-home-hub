@@ -1,5 +1,5 @@
 import { LayoutGrid, List, Loader2, Plus, Search } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { cn } from "@/core/utils";
 import type {
 	AutomationView,
@@ -18,13 +18,17 @@ interface AutomationListPanelProps {
 	onCreate: () => void;
 	query: string;
 	onQueryChange: (query: string) => void;
+	/** Busca a próxima página no backend (`useInfiniteQuery.fetchNextPage`). */
+	onLoadMore: () => void;
+	hasMore: boolean;
+	isLoadingMore: boolean;
 	/**
 	 * Assinatura de filtro/busca/ordenação vinda do pai — usada só pra saber
-	 * QUANDO reiniciar a paginação pro topo. Não usar a referência de
+	 * QUANDO rolar a lista de volta pro topo. Não usar a referência de
 	 * `automations` pra isso: ela muda a cada toggle/duplicar/criar (o
-	 * array é recriado), o que reiniciaria o scroll incremental toda vez
-	 * que qualquer automação mudasse de estado, não só quando o resultado
-	 * filtrado realmente muda.
+	 * array é recriado), o que rolaria a lista toda vez que qualquer
+	 * automação mudasse de estado, não só quando o resultado filtrado
+	 * realmente muda.
 	 */
 	resetKey: string;
 }
@@ -33,16 +37,7 @@ const isMac =
 	typeof navigator !== "undefined" &&
 	/Mac|iPhone|iPad/.test(navigator.platform);
 
-/**
- * Tamanho do lote carregado por vez. A base mockada tem ~13 itens — 6
- * deixava só metade visível na primeira tela, dando impressão de lista
- * incompleta/quebrada em vez de scroll incremental. 10 preenche a
- * primeira tela quase inteira e ainda sobra pra ver o carregamento do
- * segundo lote disparar.
- */
-const BATCH_SIZE = 10;
 const LOAD_MORE_ROOT_MARGIN = "200px";
-const SIMULATED_LATENCY_MS = 350;
 
 /**
  * Coluna esquerda do split-view — tem scroll próprio contido (não a página
@@ -51,8 +46,9 @@ const SIMULATED_LATENCY_MS = 350;
  * carregar muitos lotes. Com scroll contido nessa altura fixa, voltar ao
  * topo da lista é sempre instantâneo. O carregamento incremental usa
  * IntersectionObserver com `root` apontando pro próprio container rolável
- * (não a viewport da página) — dispara só quando o sentinel entra na área
- * visível DESSE container specificamente.
+ * (não a viewport da página) — dispara `onLoadMore` (busca de verdade no
+ * backend, `fetchNextPage` do `useInfiniteQuery`) só quando o sentinel
+ * entra na área visível DESSE container especificamente.
  */
 export function AutomationListPanel({
 	automations,
@@ -64,13 +60,14 @@ export function AutomationListPanel({
 	onCreate,
 	query,
 	onQueryChange,
+	onLoadMore,
+	hasMore,
+	isLoadingMore,
 	resetKey,
 }: AutomationListPanelProps) {
 	const containerRef = useRef<HTMLDivElement>(null);
 	const searchInputRef = useRef<HTMLInputElement>(null);
 	const sentinelRef = useRef<HTMLDivElement>(null);
-	const [visibleCount, setVisibleCount] = useState(BATCH_SIZE);
-	const [isLoadingMore, setIsLoadingMore] = useState(false);
 
 	useEffect(() => {
 		const handleGlobalKeyDown = (event: KeyboardEvent) => {
@@ -83,21 +80,20 @@ export function AutomationListPanel({
 		return () => window.removeEventListener("keydown", handleGlobalKeyDown);
 	}, []);
 
-	// Reseta a paginação só quando filtro/busca/ordenação mudam de verdade
-	// (ver comentário de `resetKey` na prop) — não a cada mutação dos dados.
+	// Rola a lista de volta pro topo só quando filtro/busca/ordenação mudam
+	// de verdade (ver comentário de `resetKey` na prop) — não a cada
+	// mutação dos dados.
 	// biome-ignore lint/correctness/useExhaustiveDependencies: resetKey não é lido no corpo de propósito — só dispara o reset quando muda, padrão comum de "reset on change"
 	useEffect(() => {
-		setVisibleCount(BATCH_SIZE);
+		containerRef.current?.scrollTo({ top: 0 });
 	}, [resetKey]);
 
-	const visibleAutomations = automations.slice(0, visibleCount);
-	const hasMore = visibleCount < automations.length;
 	const hasMoreRef = useRef(hasMore);
 	hasMoreRef.current = hasMore;
 	const isLoadingMoreRef = useRef(isLoadingMore);
 	isLoadingMoreRef.current = isLoadingMore;
-	const totalCountRef = useRef(automations.length);
-	totalCountRef.current = automations.length;
+	const onLoadMoreRef = useRef(onLoadMore);
+	onLoadMoreRef.current = onLoadMore;
 
 	// Observer criado uma vez (sentinel é um nó estável no fim da lista) —
 	// as checagens de hasMore/isLoadingMore usam refs pra sempre ler o
@@ -115,13 +111,7 @@ export function AutomationListPanel({
 				) {
 					return;
 				}
-				setIsLoadingMore(true);
-				setTimeout(() => {
-					setVisibleCount((count) =>
-						Math.min(count + BATCH_SIZE, totalCountRef.current),
-					);
-					setIsLoadingMore(false);
-				}, SIMULATED_LATENCY_MS);
+				onLoadMoreRef.current();
 			},
 			{ root: containerRef.current, rootMargin: LOAD_MORE_ROOT_MARGIN },
 		);
@@ -241,7 +231,7 @@ export function AutomationListPanel({
 						Nenhuma automação encontrada.
 					</p>
 				) : viewMode === "cards" ? (
-					visibleAutomations.map((automation) => (
+					automations.map((automation) => (
 						<AutomationCard
 							key={automation.id}
 							automation={automation}
@@ -251,7 +241,7 @@ export function AutomationListPanel({
 						/>
 					))
 				) : (
-					visibleAutomations.map((automation) => (
+					automations.map((automation) => (
 						<AutomationRow
 							key={automation.id}
 							automation={automation}

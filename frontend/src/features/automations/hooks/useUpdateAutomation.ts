@@ -25,6 +25,9 @@ export function useUpdateAutomation() {
 			queryClient.invalidateQueries({
 				queryKey: automationsKeys.detail(updatedAutomation.id),
 			});
+			queryClient.invalidateQueries({
+				queryKey: automationsKeys.filterCounts(),
+			});
 			toast.success("Automação atualizada com sucesso!");
 		},
 		onError: (error: Error) => {

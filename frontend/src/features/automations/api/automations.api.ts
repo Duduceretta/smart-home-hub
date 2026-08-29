@@ -1,47 +1,75 @@
 import { apiClient } from "@/core/api/api.client";
 import { handleApplicationError } from "@/core/errors/app.errors";
 import type { PagedResponse } from "@/core/types/pagination.types";
+import type { AutomationsListFilters } from "../hooks/automations.keys";
 import type {
 	Automation,
 	AutomationExecutionEvent,
+	AutomationFilterCounts,
 	AutomationWeekdayExecutionCount,
 	CreateAutomationPayload,
 	UpdateAutomationPayload,
 } from "../types/automations.types";
 
+export interface FetchAutomationsParams extends AutomationsListFilters {
+	page?: number;
+	pageSize?: number;
+}
+
 /**
- * Fetches all automations owned by the authenticated user.
- * Supports both paginated PagedResponse and direct Array responses.
+ * Fetches automations owned by the authenticated user — filtro
+ * (status/gatilho/rascunho), busca e ordenação todos resolvidos
+ * server-side, sem filtragem/paginação client-side (mesmo padrão de
+ * `fetchDevices`).
  */
-export async function fetchAutomations(
+export async function fetchAutomations({
+	search,
+	status,
+	triggerKind,
+	isDraft,
+	sort,
 	page = 1,
 	pageSize = 10,
-): Promise<Automation[]> {
+}: FetchAutomationsParams = {}): Promise<PagedResponse<Automation>> {
 	try {
-		const { data } = await apiClient.get<
-			PagedResponse<Automation> | Automation[]
-		>("/automations", {
-			params: { page, pageSize },
-		});
-
-		if (
-			data &&
-			typeof data === "object" &&
-			"items" in data &&
-			Array.isArray(data.items)
-		) {
-			return data.items;
-		}
-
-		if (Array.isArray(data)) {
-			return data;
-		}
-
-		return [];
+		const { data } = await apiClient.get<PagedResponse<Automation>>(
+			"/automations",
+			{
+				params: {
+					q: search || undefined,
+					status,
+					triggerKind,
+					isDraft,
+					sort,
+					page,
+					pageSize,
+				},
+			},
+		);
+		return data;
 	} catch (error: unknown) {
 		throw handleApplicationError(
 			error,
 			"Não foi possível carregar a lista de automações.",
+		);
+	}
+}
+
+/**
+ * Fetches the total + per-category counts (ativas/inativas/por horário/por
+ * sensor/rascunhos) — independente da paginação, usado pela trilha de
+ * filtro e pela barra de resumo.
+ */
+export async function fetchAutomationFilterCounts(): Promise<AutomationFilterCounts> {
+	try {
+		const { data } = await apiClient.get<AutomationFilterCounts>(
+			"/automations/counts",
+		);
+		return data;
+	} catch (error: unknown) {
+		throw handleApplicationError(
+			error,
+			"Não foi possível carregar as contagens de automações.",
 		);
 	}
 }

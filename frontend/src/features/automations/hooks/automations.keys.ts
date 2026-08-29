@@ -1,5 +1,15 @@
+/**
+ * Filtros aceitos por `GET /automations`, resolvidos server-side —
+ * `status`/`triggerKind`/`isDraft` espelham os parâmetros de
+ * `GetAutomationsQuery` (C#), não um `AutomationFilter` de UI (esse é um só
+ * valor por vez, os 3 nunca vêm preenchidos juntos na prática).
+ */
 export interface AutomationsListFilters {
-	query?: string;
+	search?: string;
+	status?: "active" | "inactive";
+	triggerKind?: "schedule" | "sensor";
+	isDraft?: boolean;
+	sort?: "name" | "status";
 }
 
 /**
@@ -11,6 +21,7 @@ export const automationsKeys = {
 	lists: () => [...automationsKeys.all, "list"] as const,
 	list: (filters: AutomationsListFilters = {}) =>
 		[...automationsKeys.lists(), { filters }] as const,
+	filterCounts: () => [...automationsKeys.all, "filter-counts"] as const,
 	details: () => [...automationsKeys.all, "detail"] as const,
 	detail: (id: string) => [...automationsKeys.details(), id] as const,
 	pickerDevices: () => [...automationsKeys.all, "picker-devices"] as const,

@@ -1,10 +1,11 @@
-import type {
-	Automation,
-	AutomationPayload,
-	AutomationView,
-	ConditionComparison,
-	ConditionProperty,
-	PickerDevice,
+import {
+	type Automation,
+	type AutomationPayload,
+	AutomationTriggerKindEnum,
+	type AutomationView,
+	type ConditionComparison,
+	type ConditionProperty,
+	type PickerDevice,
 } from "../types/automations.types";
 
 const WEEKDAY_PRESETS: Record<string, string> = {
@@ -78,10 +79,12 @@ function describeDevice(
 }
 
 /**
- * Desserializa `automation.rulePayload` e resume trigger/condições/ações em
- * texto legível, usando a lista de dispositivos pra trocar IDs por nomes.
- * Payload inválido ou vazio (JSON corrompido, sem triggers/ações) marca a
- * automação como incompleta em vez de quebrar a tela.
+ * Desserializa `automation.rulePayload` só pra resumir trigger/condições/
+ * ações em texto legível (usando a lista de dispositivos pra trocar IDs por
+ * nomes) — `isDraft`/`triggerKind` NÃO são derivados daqui, vêm prontos do
+ * backend (`Automation.isDraft`/`triggerKind`, colunas persistidas), já que
+ * são usados pra filtro/contagem server-side e precisam ser a mesma fonte
+ * de verdade da paginação.
  */
 export function mapAutomationToView(
 	automation: Automation,
@@ -125,8 +128,11 @@ export function mapAutomationToView(
 		id: automation.id,
 		name: automation.name,
 		isActive: automation.isActive,
-		isDraft: !trigger || actionSummaries.length === 0,
-		triggerKind: isTimeTrigger ? "schedule" : "sensor",
+		isDraft: automation.isDraft,
+		triggerKind:
+			automation.triggerKind === AutomationTriggerKindEnum.Schedule
+				? "schedule"
+				: "sensor",
 		triggerSummary,
 		conditionSummary,
 		actionSummaries,
