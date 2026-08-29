@@ -5,7 +5,7 @@ import { cn } from "@/core/utils";
 import { useAssignableDevices } from "../hooks/useAssignableDevices";
 import { useRooms } from "../hooks/useRooms";
 import { useRoomsUIStore } from "../store/rooms-ui.store";
-import type { RoomPickerDevice, RoomsViewMode } from "../types/rooms.types";
+import type { RoomPickerDevice } from "../types/rooms.types";
 import { RoomDetailPanel } from "./detail/RoomDetailPanel";
 import { DeleteRoomAlertDialog } from "./dialogs/DeleteRoomAlertDialog";
 import { RoomFormDialog } from "./dialogs/RoomFormDialog";
@@ -18,8 +18,10 @@ import { RoomsSummaryBar } from "./list/RoomsSummaryBar";
  * largura fixa, painel de detalhe ocupando a coluna direita, nivelado com o
  * título. Busca e criação de ambiente vivem só dentro do `RoomListPanel`
  * (topo da lista, mais o ghost card no fim) — não há mais controles no
- * header da página. `selectedRoomId`/`viewMode`/`query` são `useState`
- * local; criação/edição/exclusão continuam na `useRoomsUIStore` (modais).
+ * header da página. `selectedRoomId`/`viewMode` vivem na `useRoomsUIStore`
+ * (mesmo racional de devices-ui.store.ts); `query` é `useState` local por
+ * não precisar sobreviver a navegação/remontagem. Criação/edição/exclusão
+ * também na store (modais).
  */
 export function RoomsView() {
 	const { t } = useTranslation("rooms");
@@ -32,9 +34,10 @@ export function RoomsView() {
 	const { data: allDevices = [] } = useAssignableDevices();
 
 	const [query, setQuery] = useState("");
-	const [viewMode, setViewMode] = useState<RoomsViewMode>("cards");
-	const [selectedRoomId, setSelectedRoomId] = useState<string | null>(null);
-
+	const viewMode = useRoomsUIStore((s) => s.viewMode);
+	const setViewMode = useRoomsUIStore((s) => s.setViewMode);
+	const selectedRoomId = useRoomsUIStore((s) => s.selectedRoomId);
+	const setSelectedRoomId = useRoomsUIStore((s) => s.setSelectedRoomId);
 	const openCreateDialog = useRoomsUIStore((s) => s.openCreateDialog);
 	const openDeleteDialog = useRoomsUIStore((s) => s.openDeleteDialog);
 
@@ -53,7 +56,7 @@ export function RoomsView() {
 		) {
 			setSelectedRoomId(visibleRooms[0]?.id ?? null);
 		}
-	}, [selectedRoomId, visibleRooms]);
+	}, [selectedRoomId, visibleRooms, setSelectedRoomId]);
 
 	const devicesByRoom = useMemo(() => {
 		const map = new Map<string, RoomPickerDevice[]>();

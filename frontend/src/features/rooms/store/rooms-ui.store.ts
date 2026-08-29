@@ -1,14 +1,17 @@
 import { create } from "zustand";
-import type { Room } from "../types/rooms.types";
+import type { Room, RoomsViewMode } from "../types/rooms.types";
 
 /**
  * Interface defining the temporary UI state and actions for the Rooms feature.
  */
 interface RoomsUIState {
-	// Search and Filtering State
-	query: string;
-	setQuery: (query: string) => void;
-	resetFilters: () => void;
+	// Split-view Selection State — mesmo racional de `selectedRoomId`/`viewMode`
+	// em devices-ui.store.ts: seleção/modo de visualização é estado de UI
+	// efêmero, não pertence a um useState local do componente de página.
+	selectedRoomId: string | null;
+	viewMode: RoomsViewMode;
+	setSelectedRoomId: (roomId: string | null) => void;
+	setViewMode: (mode: RoomsViewMode) => void;
 
 	// Create/Edit Dialog State — o `RoomFormDialog` (único, criação+edição) lê os três campos
 	// abaixo pra decidir modo (`editingRoom` presente = "edit") e se deve
@@ -33,15 +36,16 @@ interface RoomsUIState {
  */
 export const useRoomsUIStore = create<RoomsUIState>((set) => ({
 	// Default Values
-	query: "",
+	selectedRoomId: null,
+	viewMode: "cards",
 	isCreateDialogOpen: false,
 	editingRoom: null,
 	editDialogFocusDevices: false,
 	deletingRoom: null,
 
-	// Filter Actions
-	setQuery: (query) => set({ query }),
-	resetFilters: () => set({ query: "" }),
+	// Split-view Selection Actions
+	setSelectedRoomId: (selectedRoomId) => set({ selectedRoomId }),
+	setViewMode: (viewMode) => set({ viewMode }),
 
 	// Create/Edit Dialog Actions
 	openCreateDialog: () =>
