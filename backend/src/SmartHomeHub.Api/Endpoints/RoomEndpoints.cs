@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using Mediator;
 using SmartHomeHub.Api.Extensions;
+using SmartHomeHub.Application.Common.Pagination;
 using SmartHomeHub.Application.Features.Rooms.Commands.CreateRoom;
 using SmartHomeHub.Application.Features.Rooms.Commands.DeleteRoom;
 using SmartHomeHub.Application.Features.Rooms.Commands.SetRoomDevicesPower;
@@ -45,7 +46,8 @@ public static class RoomEndpoints
             .WithDescription(
                 "Retorna a lista de todos os ambientes cadastrados pelo usuário autenticado."
             )
-            .Produces<object>(StatusCodes.Status200OK);
+            .Produces<PagedResult<RoomDto>>(StatusCodes.Status200OK)
+            .ProducesProblem(StatusCodes.Status401Unauthorized);
 
         app.MapGet(
                 "/api/rooms/{id:guid}",

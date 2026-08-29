@@ -1,3 +1,4 @@
+using Mapster;
 using Mediator;
 using Microsoft.EntityFrameworkCore;
 using SmartHomeHub.Application.Common.Interfaces;
@@ -20,10 +21,10 @@ public class GetRoomByIdQueryHandler(IAppDbContext dbContext)
             .Where(room =>
                 room.Id == request.RoomId && room.User.ExternalAuthUid == request.FirebaseUid
             )
-            // AutomationCount não é usado por quem consome este endpoint hoje
-            // (só GetRoomsQuery precisa dele, pra lista) — 0 fixo em vez de
-            // duplicar o cruzamento RulePayload×dispositivo aqui à toa.
-            .Select(room => new RoomDto(room.Id, room.Name, room.Icon, 0))
+            // AutomationCount fixado em 0 pela config Room->RoomDto do
+            // Mapster (MapsterConfiguration.cs) — só GetRoomsQuery precisa
+            // do cruzamento RulePayload×dispositivo de verdade, pra lista.
+            .ProjectToType<RoomDto>()
             .FirstOrDefaultAsync(cancellationToken);
     }
 }
