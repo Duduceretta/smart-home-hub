@@ -64,7 +64,10 @@ function mapDiscoveredDeviceToFormDefaults(
 		roomId: "",
 		macAddress: device.macAddress ?? "",
 		localKey: "",
-		protocolVersion: "",
+		// Preenchido automaticamente quando o próprio broadcast do dispositivo já
+		// indica a versão do protocolo Tuya (discovery v3.4/v3.5) — evita a detecção
+		// manual que foi necessária pra lâmpada de teste antes desse suporte existir.
+		protocolVersion: device.additionalProperties?.tuya_protocol_version ?? "",
 		dpsPowerKey: "",
 		clientKey: "",
 	};
