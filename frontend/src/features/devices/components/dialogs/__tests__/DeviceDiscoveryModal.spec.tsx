@@ -53,6 +53,7 @@ const mockDiscovered: DiscoveredDevice = {
 	macAddress: null,
 	signalStrength: null,
 	additionalProperties: null,
+	upnpServices: null,
 };
 
 const mockDiscoveredUuid: DiscoveredDevice = {
@@ -66,6 +67,7 @@ const mockDiscoveredUuid: DiscoveredDevice = {
 	macAddress: null,
 	signalStrength: null,
 	additionalProperties: null,
+	upnpServices: null,
 };
 
 beforeEach(() => {

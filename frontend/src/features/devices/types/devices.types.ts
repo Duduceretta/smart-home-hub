@@ -202,4 +202,17 @@ export interface DiscoveredDevice {
 	macAddress: string | null;
 	signalStrength: number | null;
 	additionalProperties: Record<string, string> | null;
+	/**
+	 * SSDP only: root devices/serviços UPnP individuais agrupados sob este
+	 * dispositivo físico (ex: DIAL, AVTransport) — preservado para ações de
+	 * controle futuras que precisem do endpoint/Location específico. Não
+	 * renderizado na UI ainda.
+	 */
+	upnpServices: UpnpServiceInfo[] | null;
+}
+
+export interface UpnpServiceInfo {
+	usn: string | null;
+	searchTarget: string | null;
+	location: string | null;
 }
