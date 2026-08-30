@@ -24,6 +24,7 @@
 		"clearSearchAriaLabel": "Clear search",
 		"roomFilterEmpty": "Your room filters will appear here once you have rooms registered.",
 		"roomFilterAriaLabel": "Filter by room",
+		"filterRailAriaLabel": "Device filters",
 		"roomFilterAll": "All",
 		"viewModeLabel": "View mode",
 		"viewModeGrid": "Grid view",

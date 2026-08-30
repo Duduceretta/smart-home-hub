@@ -11,7 +11,6 @@ import { useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { useDebouncedValue } from "@/core/hooks/useDebouncedValue";
 import { cn } from "@/core/utils";
-import { useRooms } from "@/features/rooms/hooks/useRooms";
 import { useDevices } from "../../hooks/useDevices";
 import { useDevicesUIStore } from "../../store/devices-ui.store";
 import { DeviceListItem } from "./DeviceListItem";
@@ -79,8 +78,11 @@ interface DeviceListPanelProps {
  * Coluna esquerda do split-view de Dispositivos — mesmo wrapper/estrutura do
  * `RoomListPanel` (feature `rooms`): busca com Ctrl+K/⌘K, segmented control
  * cards/lista, scrollbar oculta. Reúne o que antes vivia em
- * `DevicesToolbar.tsx` (filtro por ambiente, busca, toggle de visualização)
- * e `DevicesGrid.tsx` (busca paginada + paginação), ambos removidos.
+ * `DevicesToolbar.tsx` (busca, toggle de visualização) e `DevicesGrid.tsx`
+ * (busca paginada + paginação), ambos removidos. O filtro por ambiente saiu
+ * daqui — agora é a `DeviceRoomFilterRail` ao lado, mesmo padrão de trilha
+ * de `AutomationFilterRail` (feature `automations`); `selectedRoomId` segue
+ * lido direto da store aqui só pra alimentar a query de `useDevices`.
  */
 export function DeviceListPanel({
 	selectedId,
@@ -91,14 +93,12 @@ export function DeviceListPanel({
 	const containerRef = useRef<HTMLDivElement>(null);
 	const searchInputRef = useRef<HTMLInputElement>(null);
 
-	const { data: rooms = [] } = useRooms();
 	const {
 		query,
 		setQuery,
 		activeTab,
 		statusFilter,
 		selectedRoomId,
-		setSelectedRoomId,
 		onlyOn,
 		viewMode,
 		setViewMode,
@@ -247,43 +247,6 @@ export function DeviceListPanel({
 						<Plus className="h-4 w-4" />
 					</button>
 				</div>
-
-				{rooms.length > 0 && (
-					<fieldset className="flex items-center gap-2 overflow-x-auto border-0 p-0 m-0 py-0.5 scrollbar-none">
-						<legend className="sr-only">
-							{t("toolbar.roomFilterAriaLabel", "Filtrar por cômodo")}
-						</legend>
-						<button
-							type="button"
-							aria-pressed={selectedRoomId === null}
-							onClick={() => setSelectedRoomId(null)}
-							className={cn(
-								"h-8 shrink-0 rounded-full px-3 text-sm transition-colors",
-								selectedRoomId === null
-									? "bg-primary/15 font-semibold text-primary ring-1 ring-primary/40"
-									: "bg-surface-high font-medium text-muted-foreground hover:bg-surface-highest hover:text-foreground",
-							)}
-						>
-							{t("toolbar.roomFilterAll", "Todos")}
-						</button>
-						{rooms.map((room) => (
-							<button
-								key={room.id}
-								type="button"
-								aria-pressed={selectedRoomId === room.id}
-								onClick={() => setSelectedRoomId(room.id)}
-								className={cn(
-									"h-8 shrink-0 rounded-full px-3 text-sm transition-colors",
-									selectedRoomId === room.id
-										? "bg-primary/15 font-semibold text-primary ring-1 ring-primary/40"
-										: "bg-surface-high font-medium text-muted-foreground hover:bg-surface-highest hover:text-foreground",
-								)}
-							>
-								{room.name}
-							</button>
-						))}
-					</fieldset>
-				)}
 			</div>
 
 			{/* biome-ignore lint/a11y/useSemanticElements: container só encaminha ArrowUp/Down pro item focado, não é um form <fieldset> */}

@@ -24,6 +24,7 @@
 		"clearSearchAriaLabel": "Limpar busca",
 		"roomFilterEmpty": "Seus filtros por cômodos aparecerão aqui quando você tiver cômodos registrados.",
 		"roomFilterAriaLabel": "Filtrar por cômodo",
+		"filterRailAriaLabel": "Filtros de dispositivos",
 		"roomFilterAll": "Todos",
 		"viewModeLabel": "Modo de visualização",
 		"viewModeGrid": "Visualização em grade",
