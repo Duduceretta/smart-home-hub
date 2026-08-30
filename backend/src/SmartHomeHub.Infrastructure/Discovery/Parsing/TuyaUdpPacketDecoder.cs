@@ -11,22 +11,19 @@ public static class TuyaUdpPacketDecoder
     private static readonly byte[] Prefix = [0x00, 0x00, 0x55, 0xAA];
     private static readonly byte[] Suffix = [0x00, 0x00, 0xAA, 0x55];
 
-    // Magic bytes do protocolo Tuya v3.4/v3.5 (frame novo, payload AES-GCM em vez de
-    // AES-ECB). Confirmado por captura real em 2026-08-30: uma lâmpada WiFi Tuya na rede
-    // transmite broadcast com esse prefixo/sufixo, não 0x55AA/0xAA55 — por isso cai direto
-    // no `return null` de prefixo abaixo e nunca chega a tentar descriptografar. Suporte a
-    // esse formato NÃO está implementado (decodificação AES-GCM/nonce/tag ainda não escrita)
-    // — as duas constantes abaixo servem só pra identificar esse caso no log de diagnóstico.
-    private static readonly byte[] V34Prefix = [0x00, 0x00, 0x66, 0x99];
-    private static readonly byte[] V34Suffix = [0x00, 0x00, 0x99, 0x66];
+    // Magic bytes do frame de anúncio broadcast v3.4/v3.5 (payload AES-GCM em vez de
+    // AES-ECB). Confirmado por captura real + descriptografia com o tinytuya em
+    // 2026-08-30 (mesma chave fixa do broadcast v3.3, framing igual ao canal de
+    // controle do TuyaSessionProtocolClient, mas sem sessão — decripta direto com a
+    // chave fixa, não com uma session key negociada).
+    private static readonly byte[] GcmPrefix = [0x00, 0x00, 0x66, 0x99];
+    private static readonly byte[] GcmSuffix = [0x00, 0x00, 0x99, 0x66];
 
-    // Chave de broadcast fixa e pública do protocolo UDP Tuya (não é segredo do usuário).
-    // TODO: confirmado em 2026-08-30 lendo o fonte do tinytuya (udp_helper.py) que a chave
-    // real usada lá é MD5("yGAdlopoPVldABfn"), não a string crua como aqui. Suspeita forte
-    // de que isso É PARTE do motivo do discovery v3.3 nunca ter funcionado — corrigir e
-    // validar contra um dispositivo v3.3 real antes de mexer (fora de escopo desta tarefa,
-    // que trata do canal de comando v3.4/v3.5, não do discovery).
-    private static readonly byte[] BroadcastKey = "yGAdlopoPVldABfn"u8.ToArray();
+    // Chave de broadcast fixa e pública do protocolo UDP Tuya (não é segredo do
+    // usuário — é a mesma para qualquer instalação). Confirmado lendo o fonte do
+    // tinytuya (udp_helper.py): é MD5("yGAdlopoPVldABfn"), não a string crua — usada
+    // tanto pro ECB do frame 55AA quanto pro GCM do frame 6699.
+    private static readonly byte[] BroadcastKey = MD5.HashData("yGAdlopoPVldABfn"u8.ToArray());
 
     // logger é opcional pra não forçar todo caller a ter um ILogger à mão (ex: testes),
     // mas é o único jeito de ver por que um pacote foi descartado — antes disso as falhas
@@ -38,20 +35,6 @@ public static class TuyaUdpPacketDecoder
         ILogger? logger = null
     )
     {
-        if (
-            datagram.Length >= 8
-            && datagram.AsSpan(0, 4).SequenceEqual(V34Prefix)
-            && datagram.AsSpan(^4).SequenceEqual(V34Suffix)
-        )
-        {
-            logger?.LogDebug(
-                "Pacote Tuya UDP de {SourceIp}:{SourcePort} usa protocolo v3.4/v3.5 (magic 0x6699) — decodificação não suportada, descartado.",
-                sourceIp,
-                sourcePort
-            );
-            return null;
-        }
-
         try
         {
             return TryParseCore(datagram, sourcePort, sourceIp);
@@ -74,6 +57,12 @@ public static class TuyaUdpPacketDecoder
 
     private static DiscoveredDeviceDto? TryParseCore(byte[] datagram, int sourcePort, string sourceIp)
     {
+        if (datagram.Length >= 8 && datagram.AsSpan(0, 4).SequenceEqual(GcmPrefix) && datagram.AsSpan(^4).SequenceEqual(GcmSuffix))
+        {
+            var gcmJson = DecodeGcmBroadcast(datagram);
+            return gcmJson is null ? null : BuildDto(gcmJson, sourceIp);
+        }
+
         if (datagram.Length < Prefix.Length + Suffix.Length + 8)
         {
             return null;
@@ -102,11 +91,49 @@ public static class TuyaUdpPacketDecoder
 
         var json = sourcePort == 6667 ? DecryptAesEcb(payloadBytes) : System.Text.Encoding.UTF8.GetString(payloadBytes);
 
-        if (string.IsNullOrWhiteSpace(json))
+        return string.IsNullOrWhiteSpace(json) ? null : BuildDto(json, sourceIp);
+    }
+
+    // Frame 6699: prefix(4) + unknown(2) + seqno(4) + cmd(4) + length(4) = header de 18
+    // bytes, seguido de nonce(12) + ciphertext + tag(16) + suffix(4). AAD do GCM = bytes
+    // [4..18) do header (exclui o prefixo) — mesmo layout do TuyaSessionProtocolClient,
+    // mas com BroadcastKey fixa em vez de session key negociada por handshake.
+    public static string? DecodeGcmBroadcast(byte[] datagram)
+    {
+        const int headerLen = 18;
+        const int tagLen = 16;
+
+        if (datagram.Length < headerLen + 12 + tagLen + 4)
         {
             return null;
         }
 
+        var nonce = datagram[headerLen..(headerLen + 12)];
+        var ciphertext = datagram[(headerLen + 12)..^(tagLen + 4)];
+        var tag = datagram[^(tagLen + 4)..^4];
+        var aad = datagram.AsSpan(4, headerLen - 4);
+
+        var plain = new byte[ciphertext.Length];
+        using (var gcm = new AesGcm(BroadcastKey, tagLen))
+        {
+            gcm.Decrypt(nonce, ciphertext, tag, plain, aad);
+        }
+
+        // Payloads de anúncio não carregam o prefixo de retcode(4) usado nas respostas
+        // de comando — confirmado por captura real (payload já começa direto com '{').
+        // Ainda assim replica a heurística do tinytuya (no_retcode=None) por segurança:
+        // se não começar com '{' mas os 4 bytes seguintes começarem, é retcode.
+        var json = System.Text.Encoding.UTF8.GetString(plain).TrimEnd('\0');
+        if (json.Length > 4 && json[0] != '{' && json[4] == '{')
+        {
+            json = json[4..];
+        }
+
+        return string.IsNullOrWhiteSpace(json) ? null : json;
+    }
+
+    private static DiscoveredDeviceDto? BuildDto(string json, string sourceIp)
+    {
         using var document = JsonDocument.Parse(json);
         var root = document.RootElement;
 
