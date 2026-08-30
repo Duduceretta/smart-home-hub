@@ -114,6 +114,11 @@
 				"placeholder": "Tuya local key",
 				"editHint": "Leave blank to keep the currently saved key."
 			},
+			"protocolVersion": {
+				"label": "Tuya Protocol Version",
+				"placeholder": "3.3 / 3.4 / 3.5",
+				"editHint": "Leave blank to keep the currently saved version."
+			},
 			"dpsPowerKey": {
 				"label": "DPS Power Key",
 				"placeholder": "20"

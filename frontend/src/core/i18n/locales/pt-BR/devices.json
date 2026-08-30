@@ -114,6 +114,11 @@
 				"placeholder": "Chave local da Tuya",
 				"editHint": "Deixe em branco para manter a chave já salva."
 			},
+			"protocolVersion": {
+				"label": "Versão do Protocolo Tuya",
+				"placeholder": "3.3 / 3.4 / 3.5",
+				"editHint": "Deixe em branco para manter a versão já salva."
+			},
 			"dpsPowerKey": {
 				"label": "DPS Power Key",
 				"placeholder": "20"

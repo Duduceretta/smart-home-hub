@@ -109,6 +109,7 @@ export interface IntegrationFieldVisibility {
 	showIp: boolean;
 	showMac: boolean;
 	showLocalKey: boolean;
+	showProtocolVersion: boolean;
 	showDpsPowerKey: boolean;
 	showClientKey: boolean;
 	/** Only enforced on create — the edit form treats every network field as optional. */
@@ -131,6 +132,7 @@ export const INTEGRATION_FIELD_VISIBILITY: Record<
 		showIp: true,
 		showMac: true,
 		showLocalKey: false,
+		showProtocolVersion: false,
 		showDpsPowerKey: false,
 		showClientKey: false,
 		requireIpOnCreate: false,
@@ -140,6 +142,7 @@ export const INTEGRATION_FIELD_VISIBILITY: Record<
 		showIp: true,
 		showMac: false,
 		showLocalKey: true,
+		showProtocolVersion: false,
 		showDpsPowerKey: true,
 		showClientKey: false,
 		requireIpOnCreate: true,
@@ -149,6 +152,7 @@ export const INTEGRATION_FIELD_VISIBILITY: Record<
 		showIp: true,
 		showMac: true,
 		showLocalKey: false,
+		showProtocolVersion: false,
 		showDpsPowerKey: false,
 		showClientKey: false,
 		requireIpOnCreate: true,
@@ -158,6 +162,7 @@ export const INTEGRATION_FIELD_VISIBILITY: Record<
 		showIp: true,
 		showMac: true,
 		showLocalKey: false,
+		showProtocolVersion: false,
 		showDpsPowerKey: false,
 		showClientKey: true,
 		requireIpOnCreate: true,
@@ -167,6 +172,7 @@ export const INTEGRATION_FIELD_VISIBILITY: Record<
 		showIp: false,
 		showMac: false,
 		showLocalKey: false,
+		showProtocolVersion: false,
 		showDpsPowerKey: false,
 		showClientKey: false,
 		requireIpOnCreate: false,
@@ -176,6 +182,7 @@ export const INTEGRATION_FIELD_VISIBILITY: Record<
 		showIp: true,
 		showMac: false,
 		showLocalKey: false,
+		showProtocolVersion: false,
 		showDpsPowerKey: false,
 		showClientKey: false,
 		requireIpOnCreate: true,
@@ -185,6 +192,7 @@ export const INTEGRATION_FIELD_VISIBILITY: Record<
 		showIp: true,
 		showMac: false,
 		showLocalKey: false,
+		showProtocolVersion: false,
 		showDpsPowerKey: false,
 		showClientKey: false,
 		requireIpOnCreate: true,
@@ -194,6 +202,7 @@ export const INTEGRATION_FIELD_VISIBILITY: Record<
 		showIp: true,
 		showMac: false,
 		showLocalKey: true,
+		showProtocolVersion: true,
 		showDpsPowerKey: true,
 		showClientKey: false,
 		requireIpOnCreate: true,
@@ -203,6 +212,7 @@ export const INTEGRATION_FIELD_VISIBILITY: Record<
 		showIp: true,
 		showMac: true,
 		showLocalKey: false,
+		showProtocolVersion: false,
 		showDpsPowerKey: false,
 		showClientKey: false,
 		requireIpOnCreate: false,
@@ -212,6 +222,7 @@ export const INTEGRATION_FIELD_VISIBILITY: Record<
 		showIp: true,
 		showMac: true,
 		showLocalKey: false,
+		showProtocolVersion: false,
 		showDpsPowerKey: false,
 		showClientKey: false,
 		requireIpOnCreate: true,

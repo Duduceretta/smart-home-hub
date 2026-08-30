@@ -104,6 +104,7 @@ export interface CreateDevicePayload {
 	ipAddress?: string | null;
 	macAddress?: string | null;
 	localKey?: string | null;
+	protocolVersion?: string | null;
 	dpsPowerKey?: string | null;
 	clientKey?: string | null;
 }
@@ -123,6 +124,7 @@ export interface UpdateDevicePayload {
 	ipAddress?: string | null;
 	macAddress?: string | null;
 	localKey?: string | null;
+	protocolVersion?: string | null;
 	dpsPowerKey?: string | null;
 	clientKey?: string | null;
 }

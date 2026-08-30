@@ -76,6 +76,14 @@ export const deviceBaseSchema = z.object({
 		.optional()
 		.transform((val) => (val && val !== "" ? val : undefined)),
 
+	// "3.3" | "3.4" | "3.5" — versão do protocolo local Tuya (ver
+	// IntegrationTypeExtensions/TuyaProtocolClientFactory no backend).
+	protocolVersion: z
+		.string()
+		.trim()
+		.optional()
+		.transform((val) => (val && val !== "" ? val : undefined)),
+
 	dpsPowerKey: z
 		.string()
 		.trim()

@@ -46,6 +46,7 @@ const EMPTY_DEFAULTS: CreateDeviceFormInput = {
 	roomId: "",
 	macAddress: "",
 	localKey: "",
+	protocolVersion: "",
 	dpsPowerKey: "",
 	clientKey: "",
 };
@@ -63,6 +64,7 @@ function mapDiscoveredDeviceToFormDefaults(
 		roomId: "",
 		macAddress: device.macAddress ?? "",
 		localKey: "",
+		protocolVersion: "",
 		dpsPowerKey: "",
 		clientKey: "",
 	};
@@ -330,6 +332,17 @@ export const DiscoveryStepConfigure: React.FC = () => {
                                 icon={<KeyRound className="h-4 w-4" />}
                                 error={errors.localKey?.message}
                                 registration={register("localKey")}
+                            />
+                        )}
+
+                        {fieldVisibility.showProtocolVersion && (
+                            <FormInput
+                                id="protocolVersion"
+                                label={t("form.fields.protocolVersion.label")}
+                                placeholder={t("form.fields.protocolVersion.placeholder")}
+                                icon={<KeyRound className="h-4 w-4" />}
+                                error={errors.protocolVersion?.message}
+                                registration={register("protocolVersion")}
                             />
                         )}
 
