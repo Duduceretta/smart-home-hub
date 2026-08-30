@@ -10,7 +10,10 @@ using SmartHomeHub.Application.Features.Devices.Commands.SetDeviceVolume;
 using SmartHomeHub.Application.Features.Devices.Commands.ToggleDevice;
 using SmartHomeHub.Application.Features.Devices.Commands.UpdateDevice;
 using SmartHomeHub.Application.Features.Devices.Common;
+using SmartHomeHub.Application.Features.Devices.Queries.GetDeviceActivityLog;
+using SmartHomeHub.Application.Features.Devices.Queries.GetDeviceAutomations;
 using SmartHomeHub.Application.Features.Devices.Queries.GetDeviceById;
+using SmartHomeHub.Application.Features.Devices.Queries.GetDeviceEnergy;
 using SmartHomeHub.Application.Features.Devices.Queries.GetDeviceMediaState;
 using SmartHomeHub.Application.Features.Devices.Queries.GetDevices;
 using SmartHomeHub.Application.Features.Devices.Queries.GetDeviceTelemetryHistory;
@@ -196,6 +199,98 @@ public static class DeviceEndpoints
             )
             .Produces<object>(StatusCodes.Status200OK)
             .ProducesProblem(StatusCodes.Status400BadRequest)
+            .ProducesProblem(StatusCodes.Status404NotFound);
+
+        app.MapGet(
+                "/api/devices/{id:guid}/energy",
+                async (
+                    Guid id,
+                    ClaimsPrincipal userToken,
+                    IMediator mediator,
+                    CancellationToken cancellationToken,
+                    string? range
+                ) =>
+                {
+                    var firebaseUid = userToken.FindFirst("user_id")?.Value;
+                    if (string.IsNullOrEmpty(firebaseUid))
+                        return Results.Unauthorized();
+
+                    var query = new GetDeviceEnergyQuery(id, firebaseUid, range);
+                    var result = await mediator.Send(query, cancellationToken);
+
+                    return result.IsFailure ? result.ToProblemDetails() : Results.Ok(result.Value);
+                }
+            )
+            .RequireAuthorization()
+            .WithTags("⚡ Dispositivos")
+            .WithSummary("Consumo de energia do dispositivo")
+            .WithDescription(
+                "Gráfico de potência média (kW) por balde de 5min deste dispositivo. range aceita "
+                    + "'24h' (padrão) ou '7d'. hasEnergyData=false quando o dispositivo não reportou "
+                    + "consumo no período — o front-end deve omitir a seção de gráfico."
+            )
+            .Produces<object>(StatusCodes.Status200OK)
+            .ProducesProblem(StatusCodes.Status400BadRequest)
+            .ProducesProblem(StatusCodes.Status404NotFound);
+
+        app.MapGet(
+                "/api/devices/{id:guid}/automations",
+                async (
+                    Guid id,
+                    ClaimsPrincipal userToken,
+                    IMediator mediator,
+                    CancellationToken cancellationToken
+                ) =>
+                {
+                    var firebaseUid = userToken.FindFirst("user_id")?.Value;
+                    if (string.IsNullOrEmpty(firebaseUid))
+                        return Results.Unauthorized();
+
+                    var query = new GetDeviceAutomationsQuery(id, firebaseUid);
+                    var result = await mediator.Send(query, cancellationToken);
+
+                    return result.IsFailure ? result.ToProblemDetails() : Results.Ok(result.Value);
+                }
+            )
+            .RequireAuthorization()
+            .WithTags("⚡ Dispositivos")
+            .WithSummary("Automações vinculadas ao dispositivo")
+            .WithDescription(
+                "Retorna as automações do usuário cujo gatilho, condição ou ação referenciam este "
+                    + "dispositivo (cruzamento feito no RulePayload de cada automação)."
+            )
+            .Produces<object>(StatusCodes.Status200OK)
+            .ProducesProblem(StatusCodes.Status404NotFound);
+
+        app.MapGet(
+                "/api/devices/{id:guid}/events",
+                async (
+                    Guid id,
+                    ClaimsPrincipal userToken,
+                    IMediator mediator,
+                    CancellationToken cancellationToken,
+                    int page = 1,
+                    int pageSize = 10
+                ) =>
+                {
+                    var firebaseUid = userToken.FindFirst("user_id")?.Value;
+                    if (string.IsNullOrEmpty(firebaseUid))
+                        return Results.Unauthorized();
+
+                    var query = new GetDeviceActivityLogQuery(id, firebaseUid, page, pageSize);
+                    var result = await mediator.Send(query, cancellationToken);
+
+                    return result.IsFailure ? result.ToProblemDetails() : Results.Ok(result.Value);
+                }
+            )
+            .RequireAuthorization()
+            .WithTags("⚡ Dispositivos")
+            .WithSummary("Linha do tempo de eventos deste dispositivo")
+            .WithDescription(
+                "Mesmo formato de GET /dashboard/activity-log, paginado, filtrado pelos eventos "
+                    + "deste dispositivo — mais recentes primeiro."
+            )
+            .Produces<object>(StatusCodes.Status200OK)
             .ProducesProblem(StatusCodes.Status404NotFound);
 
         app.MapPost(
