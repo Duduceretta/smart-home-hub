@@ -1,5 +1,6 @@
 using System.Security.Cryptography;
 using System.Text.Json;
+using Microsoft.Extensions.Logging;
 using SmartHomeHub.Application.Features.Devices.Common;
 using SmartHomeHub.Domain.Enums;
 
@@ -10,18 +11,63 @@ public static class TuyaUdpPacketDecoder
     private static readonly byte[] Prefix = [0x00, 0x00, 0x55, 0xAA];
     private static readonly byte[] Suffix = [0x00, 0x00, 0xAA, 0x55];
 
-    // Chave de broadcast fixa e pública do protocolo UDP Tuya (não é segredo do usuário,
-    // é a mesma chave usada por qualquer implementação open-source do protocolo v3.3).
+    // Magic bytes do protocolo Tuya v3.4/v3.5 (frame novo, payload AES-GCM em vez de
+    // AES-ECB). Confirmado por captura real em 2026-08-30: uma lâmpada WiFi Tuya na rede
+    // transmite broadcast com esse prefixo/sufixo, não 0x55AA/0xAA55 — por isso cai direto
+    // no `return null` de prefixo abaixo e nunca chega a tentar descriptografar. Suporte a
+    // esse formato NÃO está implementado (decodificação AES-GCM/nonce/tag ainda não escrita)
+    // — as duas constantes abaixo servem só pra identificar esse caso no log de diagnóstico.
+    private static readonly byte[] V34Prefix = [0x00, 0x00, 0x66, 0x99];
+    private static readonly byte[] V34Suffix = [0x00, 0x00, 0x99, 0x66];
+
+    // Chave de broadcast fixa e pública do protocolo UDP Tuya (não é segredo do usuário).
+    // TODO: confirmado em 2026-08-30 lendo o fonte do tinytuya (udp_helper.py) que a chave
+    // real usada lá é MD5("yGAdlopoPVldABfn"), não a string crua como aqui. Suspeita forte
+    // de que isso É PARTE do motivo do discovery v3.3 nunca ter funcionado — corrigir e
+    // validar contra um dispositivo v3.3 real antes de mexer (fora de escopo desta tarefa,
+    // que trata do canal de comando v3.4/v3.5, não do discovery).
     private static readonly byte[] BroadcastKey = "yGAdlopoPVldABfn"u8.ToArray();
 
-    public static DiscoveredDeviceDto? TryParse(byte[] datagram, int sourcePort, string sourceIp)
+    // logger é opcional pra não forçar todo caller a ter um ILogger à mão (ex: testes),
+    // mas é o único jeito de ver por que um pacote foi descartado — antes disso as falhas
+    // (exceção de decode ou magic bytes desconhecidos) eram 100% silenciosas.
+    public static DiscoveredDeviceDto? TryParse(
+        byte[] datagram,
+        int sourcePort,
+        string sourceIp,
+        ILogger? logger = null
+    )
     {
+        if (
+            datagram.Length >= 8
+            && datagram.AsSpan(0, 4).SequenceEqual(V34Prefix)
+            && datagram.AsSpan(^4).SequenceEqual(V34Suffix)
+        )
+        {
+            logger?.LogDebug(
+                "Pacote Tuya UDP de {SourceIp}:{SourcePort} usa protocolo v3.4/v3.5 (magic 0x6699) — decodificação não suportada, descartado.",
+                sourceIp,
+                sourcePort
+            );
+            return null;
+        }
+
         try
         {
             return TryParseCore(datagram, sourcePort, sourceIp);
         }
-        catch (Exception)
+        catch (Exception ex)
         {
+            var hexPrefix = Convert.ToHexString(datagram.AsSpan(0, Math.Min(32, datagram.Length)));
+            logger?.LogWarning(
+                ex,
+                "Falha ao decodificar pacote Tuya UDP de {SourceIp}:{SourcePort} ({Length} bytes, prefixo hex {HexPrefix}): {ExceptionMessage}",
+                sourceIp,
+                sourcePort,
+                datagram.Length,
+                hexPrefix,
+                ex.Message
+            );
             return null;
         }
     }
