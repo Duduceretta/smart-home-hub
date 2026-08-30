@@ -19,6 +19,7 @@ public record UpdateDeviceCommand(
     string? IpAddress = null,
     string? MacAddress = null,
     string? LocalKey = null,
+    string? ProtocolVersion = null,
     string? DpsPowerKey = null,
     string? ClientKey = null
 ) : ICommand<Result>;
@@ -117,6 +118,9 @@ public class UpdateDeviceCommandHandler(IAppDbContext dbContext)
 
         if (!string.IsNullOrWhiteSpace(request.LocalKey))
             device.Configuration.LocalKey = request.LocalKey;
+
+        if (!string.IsNullOrWhiteSpace(request.ProtocolVersion))
+            device.Configuration.ProtocolVersion = request.ProtocolVersion;
 
         if (!string.IsNullOrWhiteSpace(request.DpsPowerKey))
             device.Configuration.DpsPowerKey = request.DpsPowerKey;

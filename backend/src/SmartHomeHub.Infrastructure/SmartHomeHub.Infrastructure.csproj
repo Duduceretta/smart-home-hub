@@ -13,6 +13,7 @@
     <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.3" />
     <PackageReference Include="Sharpcaster" Version="3.0.0" />
+    <PackageReference Include="TuyaNet" Version="1.0.3" />
   </ItemGroup>
 
   <PropertyGroup>

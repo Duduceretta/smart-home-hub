@@ -21,6 +21,7 @@ public record CreateDeviceCommand(
     string? IpAddress = null,
     string? MacAddress = null,
     string? LocalKey = null,
+    string? ProtocolVersion = null,
     string? DpsPowerKey = null,
     string? ClientKey = null
 ) : ICommand<Result<Guid>>;
@@ -104,6 +105,7 @@ public class CreateDeviceCommandHandler(
                 IpAddress = request.IpAddress,
                 MacAddress = request.MacAddress,
                 LocalKey = request.LocalKey,
+                ProtocolVersion = request.ProtocolVersion,
                 DpsPowerKey = request.DpsPowerKey ?? "20",
                 ClientKey = request.ClientKey,
             },

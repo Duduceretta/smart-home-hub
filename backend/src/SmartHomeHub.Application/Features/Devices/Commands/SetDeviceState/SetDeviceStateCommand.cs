@@ -43,6 +43,7 @@ public partial class SetDeviceStateCommandHandler(
     IGoogleTvService googleTvService,
     IChromecastWakeService chromecastWakeService,
     IWakeOnLanService wakeOnLanService,
+    ITuyaLocalControlService tuyaLocalControlService,
     IRealtimeNotificationService notificationService
 ) : ICommandHandler<SetDeviceStateCommand, Result>
 {
@@ -74,6 +75,11 @@ public partial class SetDeviceStateCommandHandler(
 
         // A partir daqui, a lógica de comunicação de hardware é quase idêntica ao antigo Toggle,
         // mas utilizando request.DesiredState em vez de inverter o valor.
+
+        // Para TuyaLocal, o estado que efetivamente persiste é o confirmado pelo dispositivo
+        // via protocolo local — não a intenção do request (item 7: sem confirmação real, sem
+        // atualizar como "ligado").
+        var confirmedIsOn = request.DesiredState;
 
         if (device.Type == DeviceType.Television)
         {
@@ -129,6 +135,62 @@ public partial class SetDeviceStateCommandHandler(
                 }
             }
         }
+        else if (device.IntegrationType == IntegrationType.TuyaLocal)
+        {
+            if (string.IsNullOrWhiteSpace(device.Configuration.LocalKey))
+            {
+                return Result.Failure(
+                    new Error(
+                        "Device.MissingConfiguration",
+                        "O dispositivo Tuya não tem local_key configurada."
+                    )
+                );
+            }
+
+            var connection = new TuyaDeviceConnectionInfo(
+                device.ExternalId,
+                device.Configuration.LocalKey,
+                device.Configuration.IpAddress,
+                device.Configuration.DpsPowerKey,
+                device.Configuration.ProtocolVersion
+            );
+
+            var tuyaResult = await tuyaLocalControlService.SetPowerStateAsync(
+                connection,
+                request.DesiredState,
+                cancellationToken
+            );
+
+            if (tuyaResult.IsFailure)
+            {
+                if (tuyaResult.Error.Code == "Device.Offline")
+                {
+                    device.IsOnline = false;
+                    await dbContext.SaveChangesAsync(cancellationToken);
+                    await notificationService.NotifyDeviceStatusChangedAsync(
+                        request.FirebaseUid,
+                        device.Id,
+                        device.IsOn,
+                        device.IsOnline,
+                        cancellationToken
+                    );
+                }
+
+                return Result.Failure(tuyaResult.Error);
+            }
+
+            var outcome = tuyaResult.Value;
+            confirmedIsOn = outcome.ConfirmedIsOn;
+
+            if (outcome.ResolvedIpAddress is not null)
+                device.Configuration.IpAddress = outcome.ResolvedIpAddress;
+
+            if (outcome.ResolvedDpsPowerKey is not null)
+                device.Configuration.DpsPowerKey = outcome.ResolvedDpsPowerKey;
+
+            device.IsOnline = true;
+            device.LastSeenAt = DateTimeOffset.UtcNow;
+        }
         else // Outros hardwares via MQTT
         {
             var commandPayload = JsonSerializer.Serialize(
@@ -139,7 +201,7 @@ public partial class SetDeviceStateCommandHandler(
         }
 
         // Atualiza estado e salva evento
-        device.IsOn = request.DesiredState;
+        device.IsOn = confirmedIsOn;
 
         var (title, description) = ActivityLogMessages.DeviceStatusChanged(
             device.Name,

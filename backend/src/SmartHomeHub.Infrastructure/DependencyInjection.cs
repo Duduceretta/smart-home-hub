@@ -15,6 +15,7 @@ using SmartHomeHub.Infrastructure.Persistence;
 using SmartHomeHub.Infrastructure.Realtime.Services;
 using SmartHomeHub.Infrastructure.Scheduling;
 using SmartHomeHub.Infrastructure.Services;
+using SmartHomeHub.Infrastructure.Tuya;
 
 namespace SmartHomeHub.Infrastructure;
 
@@ -41,9 +42,22 @@ public static class DependencyInjection
 
         services.AddTransient<IDeviceDiscoveryScanner, MdnsDiscoveryScanner>();
         services.AddTransient<IDeviceDiscoveryScanner, SsdpDiscoveryScanner>();
-        services.AddTransient<IDeviceDiscoveryScanner, TuyaUdpDiscoveryScanner>();
+        // Registrado também pelo tipo concreto: TuyaLocalControlService precisa reaproveitar
+        // o mesmo scanner (com o mesmo ReuseAddress já configurado) pra redescoberta de IP,
+        // em vez de abrir um segundo listener concorrente nas portas 6666/6667.
+        services.AddTransient<TuyaUdpDiscoveryScanner>();
+        services.AddTransient<IDeviceDiscoveryScanner>(provider =>
+            provider.GetRequiredService<TuyaUdpDiscoveryScanner>()
+        );
+        services.AddTransient<ITuyaUdpDiscoveryScanner>(provider =>
+            provider.GetRequiredService<TuyaUdpDiscoveryScanner>()
+        );
         services.AddTransient<IDeviceDiscoveryScanner, MqttDiscoveryScanner>();
         services.AddSingleton<IDeviceDiscoveryManager, DeviceDiscoveryManager>();
+
+        services.AddTransient<TuyaNetProtocolClient>();
+        services.AddTransient<ITuyaProtocolClientFactory, TuyaProtocolClientFactory>();
+        services.AddTransient<ITuyaLocalControlService, TuyaLocalControlService>();
 
         services.AddSignalR();
         services.AddScoped<IRealtimeNotificationService, RealtimeNotificationService>();

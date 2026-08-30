@@ -489,3 +489,11 @@ playwright-report/
 playwright/.cache/
 test-results/
 blob-report/
+
+# Scripts de diagnóstico de protocolo Tuya (podem conter local_key real de
+# dispositivos do usuário durante validação E2E) — nunca devem ir pro repo.
+# Rede de segurança: a prática seguida é manter esses scripts só fora do repo
+# (scratchpad da sessão), mas isso cobre o caso de alguém criar um aqui dentro.
+**/tuya-diag*/
+**/*.tuya-e2e.py
+**/gen_golden_vectors.py.bak

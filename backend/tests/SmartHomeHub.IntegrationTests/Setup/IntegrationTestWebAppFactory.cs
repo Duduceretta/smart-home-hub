@@ -99,6 +99,8 @@ public class IntegrationTestWebAppFactory : WebApplicationFactory<Program>, IAsy
             services.AddSingleton(_ => Substitute.For<IGoogleTvService>());
             services.RemoveAll<IChromecastWakeService>();
             services.AddSingleton(_ => Substitute.For<IChromecastWakeService>());
+            services.RemoveAll<ITuyaLocalControlService>();
+            services.AddSingleton(_ => Substitute.For<ITuyaLocalControlService>());
 
             // Spotify: substitui o cliente HTTP real (troca de token, GET /me/player etc)
             // por um spy NSubstitute — o ISpotifyOAuthStateStore continua real (só um

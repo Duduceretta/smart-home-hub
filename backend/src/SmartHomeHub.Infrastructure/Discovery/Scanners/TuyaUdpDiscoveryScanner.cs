@@ -10,7 +10,9 @@ using SmartHomeHub.Infrastructure.Discovery.Parsing;
 
 namespace SmartHomeHub.Infrastructure.Discovery.Scanners;
 
-public sealed class TuyaUdpDiscoveryScanner(ILogger<TuyaUdpDiscoveryScanner> logger) : IDeviceDiscoveryScanner
+public sealed class TuyaUdpDiscoveryScanner(ILogger<TuyaUdpDiscoveryScanner> logger)
+    : IDeviceDiscoveryScanner,
+        ITuyaUdpDiscoveryScanner
 {
     private static readonly int[] ListenPorts = [6666, 6667];
 
@@ -65,12 +67,24 @@ public sealed class TuyaUdpDiscoveryScanner(ILogger<TuyaUdpDiscoveryScanner> log
             var parsed = TuyaUdpPacketDecoder.TryParse(
                 result.Buffer,
                 port,
-                result.RemoteEndPoint.Address.ToString()
+                result.RemoteEndPoint.Address.ToString(),
+                logger
             );
 
             if (parsed is not null)
             {
                 await writer.WriteAsync(parsed, cancellationToken);
+            }
+            else
+            {
+                // DIAGNÓSTICO TEMPORÁRIO: torna visível quando um pacote chegou na porta Tuya
+                // mas foi descartado (estrutura inválida ou decode falhou — ver log do decoder acima).
+                logger.LogDebug(
+                    "Pacote recebido em {SourceIp}:{Port} descartado pelo decoder Tuya ({Length} bytes)",
+                    result.RemoteEndPoint.Address,
+                    port,
+                    result.Buffer.Length
+                );
             }
         }
     }

@@ -222,6 +222,7 @@ public static class DeviceEndpoints
                         request.IpAddress,
                         request.MacAddress,
                         request.LocalKey,
+                        request.ProtocolVersion,
                         request.DpsPowerKey,
                         request.ClientKey
                     );
@@ -309,6 +310,7 @@ public static class DeviceEndpoints
                         request.IpAddress,
                         request.MacAddress,
                         request.LocalKey,
+                        request.ProtocolVersion,
                         request.DpsPowerKey,
                         request.ClientKey
                     );
@@ -436,6 +438,7 @@ public record CreateDeviceRequest(
     string? IpAddress = null,
     string? MacAddress = null,
     string? LocalKey = null,
+    string? ProtocolVersion = null,
     string? DpsPowerKey = null,
     string? ClientKey = null
 );
@@ -454,6 +457,7 @@ public record UpdateDeviceRequest(
     string? IpAddress = null,
     string? MacAddress = null,
     string? LocalKey = null,
+    string? ProtocolVersion = null,
     string? DpsPowerKey = null,
     string? ClientKey = null
 );
