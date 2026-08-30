@@ -109,6 +109,18 @@ public sealed class DeviceDiscoveryManager(
         CancellationToken cancellationToken
     )
     {
+        // DIAGNÓSTICO TEMPORÁRIO: confirma que um scanner decodificou um pacote com
+        // sucesso ANTES de qualquer filtro (dedup da sessão, já-cadastrado) suprimir
+        // a exibição — útil pra testar mudanças no decoder sem precisar desvincular
+        // um dispositivo já cadastrado e funcionando.
+        logger.LogDebug(
+            "Pacote decodificado com sucesso: {DeviceName} ({ExternalId}, {IntegrationType}) via {SourceIp} — ainda não filtrado por dedup/já-cadastrado",
+            discovered.Name,
+            discovered.ExternalId,
+            discovered.IntegrationType,
+            discovered.IpAddress
+        );
+
         if (!session.SeenExternalIds.TryAdd(discovered.ExternalId, 0))
         {
             return;
