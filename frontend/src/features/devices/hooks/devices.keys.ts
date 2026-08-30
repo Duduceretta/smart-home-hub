@@ -30,4 +30,12 @@ export const devicesKeys = {
 		[...devicesKeys.telemetries(), id, { range }] as const,
 	medias: () => [...devicesKeys.all, "media"] as const,
 	media: (id: string) => [...devicesKeys.medias(), id] as const,
+	energies: () => [...devicesKeys.all, "energy"] as const,
+	energy: (id: string, range: string) =>
+		[...devicesKeys.energies(), id, { range }] as const,
+	linkedAutomations: () => [...devicesKeys.all, "linked-automations"] as const,
+	linkedAutomationsFor: (id: string) =>
+		[...devicesKeys.linkedAutomations(), id] as const,
+	activityLogs: () => [...devicesKeys.all, "activity-log"] as const,
+	activityLog: (id: string) => [...devicesKeys.activityLogs(), id] as const,
 };

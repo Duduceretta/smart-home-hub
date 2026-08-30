@@ -22,7 +22,60 @@
 		"searchPlaceholder": "Search...",
 		"searchAriaLabel": "Search device",
 		"clearSearchAriaLabel": "Clear search",
-		"roomFilterEmpty": "Your room filters will appear here once you have rooms registered."
+		"roomFilterEmpty": "Your room filters will appear here once you have rooms registered.",
+		"roomFilterAriaLabel": "Filter by room",
+		"roomFilterAll": "All",
+		"viewModeLabel": "View mode",
+		"viewModeGrid": "Grid view",
+		"viewModeList": "List view"
+	},
+	"list": {
+		"count_one": "{{count}} device",
+		"count_other": "{{count}} devices",
+		"ariaList": "Device list"
+	},
+	"detail": {
+		"selectPrompt": "Select a device to see the details.",
+		"edit": "Edit"
+	},
+	"controls": {
+		"title": "Controls",
+		"brightness": "Brightness",
+		"dimmerOnlyHint": "This device does not report color (RGB) support — brightness only.",
+		"targetTemperature": "Target Temperature",
+		"powerUsage": "Usage",
+		"voltage": "Voltage",
+		"volume": "Volume"
+	},
+	"energy": {
+		"title": "Energy Consumption",
+		"range24h": "24h",
+		"range7d": "7 days",
+		"errorLoad": "Could not load energy consumption.",
+		"retry": "Try again",
+		"noData": "No consumption recorded in this period.",
+		"periodTotal": "{{value}} {{unit}} in the period",
+		"estimatedSuffix": " (estimated)",
+		"tooltipConsumption": "Consumption"
+	},
+	"automations": {
+		"title": "Automations using this device",
+		"errorLoad": "Could not load automations.",
+		"retry": "Try again",
+		"empty": "No automations configured for this device.",
+		"create": "Create automation",
+		"active": "Active",
+		"inactive": "Inactive",
+		"triggerSchedule": "Schedule trigger",
+		"triggerSensor": "Device/sensor trigger",
+		"triggerUnknown": "Unidentified trigger"
+	},
+	"activity": {
+		"title": "Recent Activity",
+		"loading": "Loading...",
+		"errorLoad": "Could not load recent activity.",
+		"retry": "Try again",
+		"empty": "No recent activity."
 	},
 	"categories": {
 		"all": "All",

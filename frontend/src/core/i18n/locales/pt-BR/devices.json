@@ -22,7 +22,60 @@
 		"searchPlaceholder": "Buscar...",
 		"searchAriaLabel": "Buscar dispositivo",
 		"clearSearchAriaLabel": "Limpar busca",
-		"roomFilterEmpty": "Seus filtros por cômodos aparecerão aqui quando você tiver cômodos registrados."
+		"roomFilterEmpty": "Seus filtros por cômodos aparecerão aqui quando você tiver cômodos registrados.",
+		"roomFilterAriaLabel": "Filtrar por cômodo",
+		"roomFilterAll": "Todos",
+		"viewModeLabel": "Modo de visualização",
+		"viewModeGrid": "Visualização em grade",
+		"viewModeList": "Visualização em lista"
+	},
+	"list": {
+		"count_one": "{{count}} dispositivo",
+		"count_other": "{{count}} dispositivos",
+		"ariaList": "Lista de dispositivos"
+	},
+	"detail": {
+		"selectPrompt": "Selecione um dispositivo pra ver os detalhes.",
+		"edit": "Editar"
+	},
+	"controls": {
+		"title": "Controles",
+		"brightness": "Brilho",
+		"dimmerOnlyHint": "Este dispositivo não reporta suporte a cor (RGB) — apenas brilho.",
+		"targetTemperature": "Temperatura Alvo",
+		"powerUsage": "Consumo",
+		"voltage": "Tensão",
+		"volume": "Volume"
+	},
+	"energy": {
+		"title": "Consumo de Energia",
+		"range24h": "24h",
+		"range7d": "7 dias",
+		"errorLoad": "Não foi possível carregar o consumo de energia.",
+		"retry": "Tentar de novo",
+		"noData": "Nenhum consumo registrado neste período.",
+		"periodTotal": "{{value}} {{unit}} no período",
+		"estimatedSuffix": " (estimado)",
+		"tooltipConsumption": "Consumo"
+	},
+	"automations": {
+		"title": "Automações que usam este dispositivo",
+		"errorLoad": "Não foi possível carregar as automações.",
+		"retry": "Tentar de novo",
+		"empty": "Nenhuma automação configurada para este dispositivo.",
+		"create": "Criar automação",
+		"active": "Ativa",
+		"inactive": "Inativa",
+		"triggerSchedule": "Gatilho por horário",
+		"triggerSensor": "Gatilho por dispositivo/sensor",
+		"triggerUnknown": "Gatilho não identificado"
+	},
+	"activity": {
+		"title": "Atividade Recente",
+		"loading": "Carregando...",
+		"errorLoad": "Não foi possível carregar a atividade recente.",
+		"retry": "Tentar de novo",
+		"empty": "Nenhuma atividade recente."
 	},
 	"categories": {
 		"all": "Todos",

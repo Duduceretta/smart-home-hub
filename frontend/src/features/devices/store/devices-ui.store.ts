@@ -30,6 +30,9 @@ interface DevicesUIState {
 	viewMode: ViewModeType;
 	page: number;
 
+	/** Item selecionado no painel master-detail (não confundir com o filtro `selectedRoomId`). */
+	selectedDeviceId: string | null;
+
 	setQuery: (query: string) => void;
 	setActiveTab: (tab: string) => void;
 	setStatusFilter: (filter: StatusFilterType) => void;
@@ -37,6 +40,7 @@ interface DevicesUIState {
 	toggleOnlyOn: () => void;
 	setViewMode: (mode: ViewModeType) => void;
 	setPage: (page: number) => void;
+	setSelectedDeviceId: (deviceId: string | null) => void;
 	resetFilters: () => void;
 
 	// Edit Modal State
@@ -81,6 +85,7 @@ export const useDevicesUIStore = create<DevicesUIState>((set) => ({
 	onlyOn: false,
 	viewMode: "grid",
 	page: 1,
+	selectedDeviceId: null,
 	editingDevice: null,
 	isDiscoveryModalOpen: false,
 	discoveryStep: "scan",
@@ -108,6 +113,7 @@ export const useDevicesUIStore = create<DevicesUIState>((set) => ({
 	toggleOnlyOn: () => set((state) => ({ onlyOn: !state.onlyOn, page: 1 })),
 	setViewMode: (viewMode) => set({ viewMode }),
 	setPage: (page) => set({ page }),
+	setSelectedDeviceId: (selectedDeviceId) => set({ selectedDeviceId }),
 	resetFilters: () =>
 		set({
 			query: "",

@@ -6,6 +6,10 @@ import type {
 	CreateDevicePayload,
 	CreateDeviceResponse,
 	Device,
+	DeviceActivityEntry,
+	DeviceEnergy,
+	DeviceEnergyRange,
+	DeviceLinkedAutomation,
 	DeviceMediaState,
 	DeviceTelemetryHistory,
 	TelemetryRange,
@@ -234,6 +238,75 @@ export async function setDeviceVolumeRequest({
 		throw handleApplicationError(
 			error,
 			"Não foi possível ajustar o volume da TV.",
+		);
+	}
+}
+
+/**
+ * Quantidade de eventos exibidos no mini-feed de atividade do dispositivo
+ * (mesmo limite de `ROOM_ACTIVITY_VISIBLE_LIMIT` na feature `rooms`).
+ */
+const DEVICE_ACTIVITY_VISIBLE_LIMIT = 8;
+
+/**
+ * `GET /devices/{id}/energy` — consumo do dispositivo, em baldes de 5min.
+ */
+export async function fetchDeviceEnergy(
+	deviceId: string,
+	range: DeviceEnergyRange,
+): Promise<DeviceEnergy> {
+	try {
+		const { data } = await apiClient.get<DeviceEnergy>(
+			`/devices/${deviceId}/energy`,
+			{ params: { range } },
+		);
+		return data;
+	} catch (error: unknown) {
+		throw handleApplicationError(
+			error,
+			"Não foi possível carregar o consumo de energia do dispositivo.",
+		);
+	}
+}
+
+/**
+ * `GET /devices/{id}/automations` — automações cujo gatilho/condição/ação
+ * referenciam este dispositivo. Cruzamento feito no back-end (ver
+ * GetDeviceAutomationsQuery.cs).
+ */
+export async function fetchDeviceAutomations(
+	deviceId: string,
+): Promise<DeviceLinkedAutomation[]> {
+	try {
+		const { data } = await apiClient.get<DeviceLinkedAutomation[]>(
+			`/devices/${deviceId}/automations`,
+		);
+		return data;
+	} catch (error: unknown) {
+		throw handleApplicationError(
+			error,
+			"Não foi possível carregar as automações vinculadas.",
+		);
+	}
+}
+
+/**
+ * `GET /devices/{id}/events` — eventos já filtrados no back-end por este
+ * dispositivo (ver GetDeviceActivityLogQuery.cs), mais recentes primeiro.
+ */
+export async function fetchDeviceActivityLog(
+	deviceId: string,
+): Promise<DeviceActivityEntry[]> {
+	try {
+		const { data } = await apiClient.get<PagedResponse<DeviceActivityEntry>>(
+			`/devices/${deviceId}/events`,
+			{ params: { page: 1, pageSize: DEVICE_ACTIVITY_VISIBLE_LIMIT } },
+		);
+		return data.items ?? [];
+	} catch (error: unknown) {
+		throw handleApplicationError(
+			error,
+			"Não foi possível carregar a atividade recente.",
 		);
 	}
 }

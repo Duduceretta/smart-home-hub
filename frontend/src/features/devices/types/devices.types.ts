@@ -216,3 +216,58 @@ export interface UpnpServiceInfo {
 	searchTarget: string | null;
 	location: string | null;
 }
+
+export type DeviceEnergyRange = "24h" | "7d";
+
+/**
+ * Espelha `DeviceEnergyChartPointDto`/`DeviceEnergyResponseDto` (C#,
+ * GetDeviceEnergyQuery.cs). `value` é potência MÉDIA (kW) do balde de
+ * 5min deste dispositivo — mesmo shape de `RoomEnergy` na feature `rooms`,
+ * duplicado localmente por isolamento do FSD.
+ */
+export interface DeviceEnergyChartPoint {
+	timestamp: string;
+	value: number;
+	isEstimated: boolean;
+}
+
+export interface DeviceEnergy {
+	hasEnergyData: boolean;
+	chart: DeviceEnergyChartPoint[];
+	totalConsumptionKwh: number;
+	isEnergyEstimated: boolean;
+}
+
+export type DeviceAutomationTriggerKind = "schedule" | "sensor" | "unknown";
+
+/**
+ * Espelha `DeviceAutomationDto` (GetDeviceAutomationsQuery.cs) — o
+ * cruzamento com as automações que referenciam este dispositivo já vem
+ * pronto do back-end.
+ */
+export interface DeviceLinkedAutomation {
+	id: string;
+	name: string;
+	isActive: boolean;
+	triggerKind: DeviceAutomationTriggerKind;
+}
+
+/**
+ * Formato mínimo de evento de atividade filtrado por dispositivo — espelha
+ * `ActivityLogEntry` da feature `dashboard` (isolamento do FSD, mesmo
+ * padrão de `RoomActivityEntry` na feature `rooms`).
+ */
+export interface DeviceActivityEntry {
+	id: string;
+	deviceId: string | null;
+	eventType:
+		| "DeviceStatus"
+		| "DeviceMedia"
+		| "Spotify"
+		| "AutomationExecuted"
+		| string;
+	title: string;
+	description: string;
+	timestamp: string;
+	isAlert: boolean;
+}
