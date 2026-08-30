@@ -32,12 +32,14 @@ export function AppLayout() {
 						key={location.pathname}
 						className={cn(
 							"w-full pb-20 md:pb-0 motion-safe:animate-in motion-safe:fade-in motion-safe:duration-200",
-							// Automações e Ambientes precisam de altura definida pra
-							// fazer o split-view rolar por dentro (lista e painel de
-							// detalhe cada um com seu próprio scroll), não a página
-							// inteira, como as outras rotas fazem. h-full só nessas
-							// rotas — as demais mantêm a classe idêntica de antes.
-							(location.pathname.startsWith("/automations") || isRoomsRoute) &&
+							// Automações, Ambientes e Dispositivos precisam de altura
+							// definida pra fazer o split-view rolar por dentro (lista e
+							// painel de detalhe cada um com seu próprio scroll), não a
+							// página inteira, como as outras rotas fazem. h-full só
+							// nessas rotas — as demais mantêm a classe idêntica de antes.
+							(location.pathname.startsWith("/automations") ||
+								location.pathname.startsWith("/devices") ||
+								isRoomsRoute) &&
 								"h-full",
 						)}
 					>
