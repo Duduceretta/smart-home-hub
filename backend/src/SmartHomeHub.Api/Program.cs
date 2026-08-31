@@ -1,4 +1,4 @@
-using Hangfire;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi;
 using Scalar.AspNetCore;
 using Serilog;
@@ -9,6 +9,7 @@ using SmartHomeHub.Api.Workers;
 using SmartHomeHub.Application;
 using SmartHomeHub.Infrastructure;
 using SmartHomeHub.Infrastructure.BackgroundJobs;
+using SmartHomeHub.Infrastructure.Persistence;
 
 Log.Logger = new LoggerConfiguration()
     .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
@@ -97,6 +98,12 @@ try
     });
 
     var app = builder.Build();
+
+    using (var scope = app.Services.CreateScope())
+    {
+        var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        await dbContext.Database.MigrateAsync();
+    }
 
     // 2. ATIVAÇÃO DO MIDDLEWARE DE CORS (Deve vir ANTES de Authentication/Authorization)
     app.UseCors("AllowFrontendLocal");
