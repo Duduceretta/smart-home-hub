@@ -1,5 +1,14 @@
 # 🏠 Smart Home Hub IoT — Diretrizes & Padrões do Projeto
 
+> Este arquivo segue o padrão `AGENTS.md`, lido automaticamente pelo
+> **Google Antigravity** (desde a versão 1.20.5) e por outras ferramentas
+> agentic compatíveis (Claude Code, Cursor, Codex, etc.) — é a camada de
+> contexto portátil entre ferramentas. Se quiser regras específicas só do
+> Antigravity (não compartilhadas com outras ferramentas), elas vivem
+> separadamente em `GEMINI.md` (raiz do projeto) ou em `.agent/rules/`
+> (regras adicionais de workspace) — este arquivo aqui é o que deve
+> funcionar igual em qualquer agente que o time usar.
+
 Monorepo de Casa Inteligente de alta performance composto por Backend em C# (.NET 10) e Frontend em React 19 + TypeScript + Tailwind CSS.
 
 ---
