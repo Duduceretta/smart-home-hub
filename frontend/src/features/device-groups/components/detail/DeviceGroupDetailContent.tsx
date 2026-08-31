@@ -3,7 +3,8 @@ import { useTranslation } from "react-i18next";
 import type { DeviceGroup } from "../../types/device-groups.types";
 import { DeviceGroupDeviceGrid } from "./DeviceGroupDeviceGrid";
 import { DeviceGroupKpiCard } from "./DeviceGroupKpiCard";
-import { DeviceGroupQuickActions } from "./DeviceGroupQuickActions";
+import { DeviceGroupLinkedAutomations } from "./DeviceGroupLinkedAutomations";
+import { DeviceGroupMasterControl } from "./DeviceGroupMasterControl";
 
 interface DeviceGroupDetailContentProps {
 	group: DeviceGroup;
@@ -11,7 +12,7 @@ interface DeviceGroupDetailContentProps {
 
 /**
  * Body of the device group detail panel.
- * Contains quick bulk power actions, group-level metric KPIs, and the devices grid.
+ * Contains Master Group Control, group-level metric KPIs, devices grid, and linked automations.
  */
 export function DeviceGroupDetailContent({
 	group,
@@ -25,8 +26,8 @@ export function DeviceGroupDetailContent({
 	return (
 		<div className="min-h-0 flex-1 overflow-y-auto px-6 pt-6 pb-8 scrollbar-thin">
 			<div className="flex flex-col gap-6">
-				{/* Bulk power actions */}
-				<DeviceGroupQuickActions devices={group.devices} />
+				{/* Compact Master Group Control (Power + Collective Brightness) */}
+				<DeviceGroupMasterControl groupId={group.id} devices={group.devices} />
 
 				{/* Group Summary KPIs */}
 				<div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
@@ -54,6 +55,9 @@ export function DeviceGroupDetailContent({
 
 				{/* Group Devices Grid */}
 				<DeviceGroupDeviceGrid group={group} devices={group.devices} />
+
+				{/* Linked Automations Block */}
+				<DeviceGroupLinkedAutomations groupId={group.id} />
 			</div>
 		</div>
 	);

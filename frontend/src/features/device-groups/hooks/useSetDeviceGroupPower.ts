@@ -1,15 +1,17 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import type { AppError } from "@/core/errors/app.errors";
-import { setDeviceGroupBulkPowerRequest } from "../api/device-groups.api";
-import type {
-	DeviceGroupBulkPowerResult,
-	DeviceInGroup,
-} from "../types/device-groups.types";
+import { setDeviceGroupPowerRequest } from "../api/device-groups.api";
+import type { DeviceGroupBulkPowerResult } from "../types/device-groups.types";
 import { deviceGroupsKeys } from "./device-groups.keys";
 
+interface SetDeviceGroupPowerVariables {
+	groupId: string;
+	desiredState: boolean;
+}
+
 /**
- * Executes a bulk power command ("Ligar Todos" / "Desligar Todos")
- * across all actuator devices in a group.
+ * Executes a server-side bulk power command ("Ligar Todos" / "Desligar Todos")
+ * across all actuator devices in a group via `POST /api/device-groups/{id}/devices/turn-on|turn-off`.
  */
 export function useSetDeviceGroupPower() {
 	const queryClient = useQueryClient();
@@ -17,10 +19,10 @@ export function useSetDeviceGroupPower() {
 	return useMutation<
 		DeviceGroupBulkPowerResult,
 		AppError,
-		{ devices: DeviceInGroup[]; desiredState: boolean }
+		SetDeviceGroupPowerVariables
 	>({
-		mutationFn: ({ devices, desiredState }) =>
-			setDeviceGroupBulkPowerRequest(devices, desiredState),
+		mutationFn: ({ groupId, desiredState }) =>
+			setDeviceGroupPowerRequest(groupId, desiredState),
 
 		onSettled: () => {
 			queryClient.invalidateQueries({ queryKey: deviceGroupsKeys.lists() });

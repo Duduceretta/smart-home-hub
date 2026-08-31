@@ -1,4 +1,4 @@
-import { ChevronRight, Loader2 } from "lucide-react";
+import { AlertTriangle, ChevronRight, Loader2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/core/components/ui/button";
@@ -19,8 +19,8 @@ interface DeviceGroupDeviceCardProps {
 }
 
 /**
- * Card for an individual device displayed inside a DeviceGroup's detail grid.
- * Provides inline on/off toggle and navigates to the Devices master-detail view when clicked.
+ * Individual device card inside a DeviceGroup's detail grid, aligned with `RoomDeviceCard`.
+ * Supports offline alerts, inline switch toggles, and direct navigation to the Devices detail panel.
  */
 export function DeviceGroupDeviceCard({
 	device,
@@ -33,6 +33,7 @@ export function DeviceGroupDeviceCard({
 	const Icon = GROUP_DEVICE_TYPE_ICON[device.type] ?? GROUP_DEVICE_TYPE_ICON[1];
 	const isTv = device.type === GROUP_DEVICE_TELEVISION_TYPE;
 	const isToggleable = !isTv && GROUP_DEVICE_ACTUATOR_TYPES.has(device.type);
+	const isOnline = device.isOnline !== false;
 
 	const handleNavigateToDevice = () => {
 		navigate("/devices", {
@@ -44,8 +45,43 @@ export function DeviceGroupDeviceCard({
 		});
 	};
 
+	if (!isOnline) {
+		return (
+			// biome-ignore lint/a11y/useSemanticElements: interactive navigation container
+			<div
+				role="button"
+				tabIndex={0}
+				onClick={handleNavigateToDevice}
+				onKeyDown={(event) => {
+					if (event.key === "Enter" || event.key === " ") {
+						event.preventDefault();
+						handleNavigateToDevice();
+					}
+				}}
+				className="flex items-center gap-4 rounded-lg border border-destructive/30 bg-destructive/10 p-4 transition-colors cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
+			>
+				<div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-destructive/20 text-destructive">
+					<Icon className="h-5 w-5" />
+				</div>
+				<div className="flex min-w-0 flex-1 flex-col gap-0.5">
+					<span
+						title={device.name}
+						className="truncate text-sm font-medium text-foreground/80"
+					>
+						{device.name}
+					</span>
+					<span className="flex items-center gap-1 text-xs font-medium text-destructive">
+						<AlertTriangle className="h-3.5 w-3.5" />
+						{t("deviceCard.offline", "Offline")}
+					</span>
+				</div>
+				<ChevronRight className="h-4 w-4 shrink-0 text-destructive/50" />
+			</div>
+		);
+	}
+
 	return (
-		// biome-ignore lint/a11y/useSemanticElements: card is an interactive navigation container
+		// biome-ignore lint/a11y/useSemanticElements: interactive navigation container
 		<div
 			role="button"
 			tabIndex={0}
@@ -56,7 +92,7 @@ export function DeviceGroupDeviceCard({
 					handleNavigateToDevice();
 				}
 			}}
-			className="group flex items-center gap-4 rounded-lg border border-border-subtle bg-surface-container p-4 transition-all hover:border-primary/40 hover:bg-surface-high cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
+			className="group flex items-center gap-4 rounded-lg border border-border-subtle bg-surface-container p-4 transition-all hover:border-border hover:bg-surface-high cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
 		>
 			<div
 				className={cn(
@@ -123,12 +159,8 @@ export function DeviceGroupDeviceCard({
 							onCheckedChange={() => onToggle(device.id)}
 							aria-label={
 								device.isOn
-									? t("deviceCard.toggleAriaOn", `Desligar ${device.name}`, {
-											name: device.name,
-										})
-									: t("deviceCard.toggleAriaOff", `Ligar ${device.name}`, {
-											name: device.name,
-										})
+									? t("deviceCard.toggleAriaOn", { name: device.name })
+									: t("deviceCard.toggleAriaOff", { name: device.name })
 							}
 							className="shrink-0"
 						/>

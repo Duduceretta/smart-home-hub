@@ -41,15 +41,35 @@
 		"deviceConnected_other": "{{count}} dispositivos vinculados",
 		"edit": "Editar"
 	},
+	"masterControl": {
+		"title": "Controle Mestre do Grupo",
+		"status": "{{active}} de {{total}} dispositivo(s) ligado(s)",
+		"applying": "Aplicando ao grupo...",
+		"toggleAria": "Alternar todos os dispositivos do grupo",
+		"brightness": "Brilho Coletivo",
+		"brightnessAria": "Ajustar brilho coletivo",
+		"brightnessSuccess": "Brilho ajustado para {{val}}% em {{count}} lâmpada(s)."
+	},
 	"quickActions": {
 		"turnOnAll": "Ligar Tudo",
 		"turnOffAll": "Desligar Tudo",
 		"turnedOn": "ligados",
 		"turnedOff": "desligados",
 		"toastPartial": "{{succeeded}} de {{total}} dispositivos {{action}} — {{failed}} falharam.",
-		"toastSuccess_one": "{{count}} dispositivo {{action}}.",
-		"toastSuccess_other": "{{count}} dispositivos {{action}}.",
-		"toastError": "Não foi possível executar a ação em massa no grupo."
+		"toastSuccess": "{{count}} dispositivo(s) {{action}} com sucesso.",
+		"toastError": "Não foi possível executar a ação no grupo."
+	},
+	"automations": {
+		"title": "Automações deste Grupo",
+		"errorLoad": "Não foi possível carregar as automações.",
+		"retry": "Tentar de novo",
+		"empty": "Nenhuma automação configurada para os dispositivos deste grupo.",
+		"create": "Criar automação",
+		"triggerSchedule": "Gatilho por horário",
+		"triggerSensor": "Gatilho por dispositivo/sensor",
+		"triggerUnknown": "Gatilho não identificado",
+		"active": "Ativa",
+		"inactive": "Inativa"
 	},
 	"kpis": {
 		"totalDevices": "Total no Grupo",
@@ -65,6 +85,7 @@
 	},
 	"deviceCard": {
 		"online": "Online",
+		"offline": "Offline",
 		"on": "Ligado",
 		"off": "Desligado",
 		"control": "Controle",

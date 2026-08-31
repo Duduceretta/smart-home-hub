@@ -32,8 +32,7 @@ export function DeviceGroupDeviceGrid({
 					{t("deviceGrid.title", "Dispositivos no Grupo")}
 				</h3>
 				<span className="text-xs text-muted-foreground">
-					{devices.length}{" "}
-					{t("deviceGrid.devicesCount", "dispositivo(s)", {
+					{t("deviceGrid.devicesCount", {
 						count: devices.length,
 					})}
 				</span>

@@ -41,15 +41,35 @@
 		"deviceConnected_other": "{{count}} linked devices",
 		"edit": "Edit"
 	},
+	"masterControl": {
+		"title": "Master Group Control",
+		"status": "{{active}} of {{total}} device(s) on",
+		"applying": "Applying to group...",
+		"toggleAria": "Toggle all devices in the group",
+		"brightness": "Collective Brightness",
+		"brightnessAria": "Adjust collective brightness",
+		"brightnessSuccess": "Brightness set to {{val}}% across {{count}} light(s)."
+	},
 	"quickActions": {
 		"turnOnAll": "Turn All On",
 		"turnOffAll": "Turn All Off",
 		"turnedOn": "turned on",
 		"turnedOff": "turned off",
 		"toastPartial": "{{succeeded}} of {{total}} devices {{action}} — {{failed}} failed.",
-		"toastSuccess_one": "{{count}} device {{action}}.",
-		"toastSuccess_other": "{{count}} devices {{action}}.",
-		"toastError": "Could not execute bulk action on group."
+		"toastSuccess": "{{count}} device(s) {{action}} successfully.",
+		"toastError": "Could not execute action on group."
+	},
+	"automations": {
+		"title": "Automations for this Group",
+		"errorLoad": "Could not load automations.",
+		"retry": "Try again",
+		"empty": "No automations configured for devices in this group.",
+		"create": "Create automation",
+		"triggerSchedule": "Schedule trigger",
+		"triggerSensor": "Device/sensor trigger",
+		"triggerUnknown": "Unidentified trigger",
+		"active": "Active",
+		"inactive": "Inactive"
 	},
 	"kpis": {
 		"totalDevices": "Total in Group",
@@ -65,6 +85,7 @@
 	},
 	"deviceCard": {
 		"online": "Online",
+		"offline": "Offline",
 		"on": "On",
 		"off": "Off",
 		"control": "Control",

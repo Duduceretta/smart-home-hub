@@ -13,5 +13,7 @@ export const deviceGroupsKeys = {
 		[...deviceGroupsKeys.lists(), { filters }] as const,
 	details: () => [...deviceGroupsKeys.all, "detail"] as const,
 	detail: (id: string) => [...deviceGroupsKeys.details(), id] as const,
+	automations: (id: string) =>
+		[...deviceGroupsKeys.all, id, "automations"] as const,
 	pickerDevices: () => ["device-groups", "picker-devices"] as const,
 };

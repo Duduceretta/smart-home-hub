@@ -6,7 +6,7 @@ import type {
 	CreateDeviceGroupResponse,
 	DeviceGroup,
 	DeviceGroupBulkPowerResult,
-	DeviceInGroup,
+	DeviceGroupLinkedAutomation,
 	UpdateDeviceGroupPayload,
 	UpdateDeviceGroupResponse,
 } from "../types/device-groups.types";
@@ -124,7 +124,7 @@ export async function deleteDeviceGroupRequest(id: string): Promise<void> {
 }
 
 /**
- * `POST /devices/{id}/toggle` — inverts the physical on/off state of a device
+ * `POST /devices/{id}/toggle` — inverts the physical on/off state of a single device
  * inside the group (FSD: encapsulated within this feature's api layer).
  */
 export async function toggleDeviceGroupDeviceRequest(
@@ -141,30 +141,63 @@ export async function toggleDeviceGroupDeviceRequest(
 }
 
 /**
- * Toggles all eligible devices in a group to a desired state (on or off) concurrently.
+ * `POST /device-groups/{groupId}/devices/turn-on` or `turn-off` —
+ * Server-side command executing bulk power switch for all eligible actuator devices in the group.
  */
-export async function setDeviceGroupBulkPowerRequest(
-	devices: DeviceInGroup[],
+export async function setDeviceGroupPowerRequest(
+	groupId: string,
 	desiredState: boolean,
 ): Promise<DeviceGroupBulkPowerResult> {
-	const targetDevices = devices.filter((d) => d.isOn !== desiredState);
-
-	if (targetDevices.length === 0) {
-		return { succeededCount: 0, failedCount: 0, totalCount: 0 };
+	try {
+		const action = desiredState ? "turn-on" : "turn-off";
+		const { data } = await apiClient.post<DeviceGroupBulkPowerResult>(
+			`/device-groups/${groupId}/devices/${action}`,
+		);
+		return data;
+	} catch (error: unknown) {
+		throw handleApplicationError(
+			error,
+			"Não foi possível alternar os dispositivos do grupo no servidor.",
+		);
 	}
+}
 
-	const results = await Promise.allSettled(
-		targetDevices.map((device) =>
-			apiClient.post(`/devices/${device.id}/toggle`),
-		),
-	);
+/**
+ * `PUT /device-groups/{groupId}/devices/brightness` —
+ * Server-side command setting brightness level for all online lighting devices in the group.
+ */
+export async function setDeviceGroupBrightnessRequest(
+	groupId: string,
+	brightnessPercent: number,
+): Promise<void> {
+	try {
+		await apiClient.put(`/device-groups/${groupId}/devices/brightness`, {
+			brightnessPercent,
+		});
+	} catch (error: unknown) {
+		throw handleApplicationError(
+			error,
+			"Não foi possível ajustar o brilho coletivo do grupo no servidor.",
+		);
+	}
+}
 
-	const succeededCount = results.filter((r) => r.status === "fulfilled").length;
-	const failedCount = results.filter((r) => r.status === "rejected").length;
-
-	return {
-		succeededCount,
-		failedCount,
-		totalCount: targetDevices.length,
-	};
+/**
+ * `GET /device-groups/{groupId}/automations` —
+ * Server-side query fetching automations whose RulePayload references any device in the group.
+ */
+export async function fetchDeviceGroupAutomations(
+	groupId: string,
+): Promise<DeviceGroupLinkedAutomation[]> {
+	try {
+		const { data } = await apiClient.get<DeviceGroupLinkedAutomation[]>(
+			`/device-groups/${groupId}/automations`,
+		);
+		return data;
+	} catch (error: unknown) {
+		throw handleApplicationError(
+			error,
+			"Não foi possível carregar as automações vinculadas ao grupo.",
+		);
+	}
 }

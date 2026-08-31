@@ -8,6 +8,7 @@ export interface DeviceInGroup {
 	externalId: string;
 	type: number;
 	isOn: boolean;
+	isOnline?: boolean;
 }
 
 /**
@@ -80,4 +81,16 @@ export interface DeviceGroupBulkPowerResult {
 	succeededCount: number;
 	failedCount: number;
 	totalCount: number;
+}
+
+export type DeviceGroupAutomationTriggerKind =
+	| "schedule"
+	| "sensor"
+	| "unknown";
+
+export interface DeviceGroupLinkedAutomation {
+	id: string;
+	name: string;
+	isActive: boolean;
+	triggerKind: DeviceGroupAutomationTriggerKind;
 }
