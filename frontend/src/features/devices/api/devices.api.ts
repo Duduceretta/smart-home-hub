@@ -243,6 +243,50 @@ export async function setDeviceVolumeRequest({
 }
 
 /**
+ * Sets a Tuya-local light's brightness (0-100%), converted server-side to
+ * the device's real DP scale.
+ */
+export async function setDeviceBrightnessRequest({
+	deviceId,
+	brightnessPercent,
+}: {
+	deviceId: string;
+	brightnessPercent: number;
+}): Promise<void> {
+	try {
+		await apiClient.put(`/devices/${deviceId}/brightness`, {
+			brightnessPercent,
+		});
+	} catch (error: unknown) {
+		throw handleApplicationError(
+			error,
+			"Não foi possível ajustar o brilho do dispositivo.",
+		);
+	}
+}
+
+/**
+ * Sets a Tuya-local light's color (hex "#RRGGBB"), converted server-side to
+ * the device's real HSV DP payload.
+ */
+export async function setDeviceColorRequest({
+	deviceId,
+	colorHex,
+}: {
+	deviceId: string;
+	colorHex: string;
+}): Promise<void> {
+	try {
+		await apiClient.put(`/devices/${deviceId}/color`, { colorHex });
+	} catch (error: unknown) {
+		throw handleApplicationError(
+			error,
+			"Não foi possível ajustar a cor do dispositivo.",
+		);
+	}
+}
+
+/**
  * Quantidade de eventos exibidos no mini-feed de atividade do dispositivo
  * (mesmo limite de `ROOM_ACTIVITY_VISIBLE_LIMIT` na feature `rooms`).
  */

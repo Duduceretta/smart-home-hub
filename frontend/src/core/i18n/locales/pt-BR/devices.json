@@ -43,6 +43,7 @@
 		"title": "Controles",
 		"brightness": "Brilho",
 		"dimmerOnlyHint": "Este dispositivo não reporta suporte a cor (RGB) — apenas brilho.",
+		"color": "Cor",
 		"targetTemperature": "Temperatura Alvo",
 		"powerUsage": "Consumo",
 		"voltage": "Tensão",
@@ -187,6 +188,13 @@
 				"placeholder": "Selecione...",
 				"loading": "Carregando cômodos...",
 				"none": "Nenhum (Sem cômodo)"
+			},
+			"supportsColor": {
+				"label": "Suporte a Cor (RGB)",
+				"auto": "Automático",
+				"yes": "Sim",
+				"no": "Não",
+				"hint": "A detecção automática só confirma suporte a cor depois que o dispositivo já esteve em modo colorido pelo menos uma vez. Defina manualmente se souber que este bulbo é RGB."
 			}
 		},
 		"create": {

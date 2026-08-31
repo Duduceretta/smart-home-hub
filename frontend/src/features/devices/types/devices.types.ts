@@ -89,6 +89,10 @@ export interface Device {
 	isOnline: boolean;
 	isOn: boolean;
 	lastActivityMinutes: number;
+	/** Já "achatado" (override manual ?? detecção automática) — usar pra mostrar/esconder o seletor de cor. */
+	supportsColor: boolean;
+	/** Cru (null = detecção automática, true/false = override manual) — usar só pra pré-preencher o EditDeviceModal. */
+	supportsColorOverride: boolean | null;
 }
 
 /**
@@ -107,6 +111,7 @@ export interface CreateDevicePayload {
 	protocolVersion?: string | null;
 	dpsPowerKey?: string | null;
 	clientKey?: string | null;
+	supportsColor?: boolean | null;
 }
 
 /**
@@ -127,6 +132,7 @@ export interface UpdateDevicePayload {
 	protocolVersion?: string | null;
 	dpsPowerKey?: string | null;
 	clientKey?: string | null;
+	supportsColor?: boolean | null;
 }
 
 /**

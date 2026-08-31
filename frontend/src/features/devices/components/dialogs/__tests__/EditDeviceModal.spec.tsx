@@ -37,6 +37,8 @@ const mockDevice: Device = {
 	isOnline: true,
 	isOn: true,
 	lastActivityMinutes: 2,
+	supportsColor: false,
+	supportsColorOverride: null,
 };
 
 beforeEach(() => {

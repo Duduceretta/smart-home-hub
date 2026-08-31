@@ -43,6 +43,7 @@
 		"title": "Controls",
 		"brightness": "Brightness",
 		"dimmerOnlyHint": "This device does not report color (RGB) support — brightness only.",
+		"color": "Color",
 		"targetTemperature": "Target Temperature",
 		"powerUsage": "Usage",
 		"voltage": "Voltage",
@@ -187,6 +188,13 @@
 				"placeholder": "Select...",
 				"loading": "Loading rooms...",
 				"none": "None (No room)"
+			},
+			"supportsColor": {
+				"label": "Color Support (RGB)",
+				"auto": "Auto",
+				"yes": "Yes",
+				"no": "No",
+				"hint": "Auto-detection only confirms color support after the device has been in color mode at least once. Set it manually if you know this bulb is RGB."
 			}
 		},
 		"create": {

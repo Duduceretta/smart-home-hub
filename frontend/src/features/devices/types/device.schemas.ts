@@ -95,6 +95,12 @@ export const deviceBaseSchema = z.object({
 		.trim()
 		.optional()
 		.transform((val) => (val && val !== "" ? val : undefined)),
+
+	// Override manual de suporte a cor (RGB) — null = detecção automática,
+	// true/false = escolha explícita do usuário. Diferente dos campos acima,
+	// não é write-only: sempre reenviado com o valor atual (ver
+	// UpdateDeviceCommandHandler), nunca "vazio = preservar".
+	supportsColor: z.boolean().nullable().optional(),
 });
 
 /**
