@@ -31,6 +31,15 @@ function mockPickerDevices(devices: unknown[] = []) {
 	server.use(http.get("*/api/devices", () => HttpResponse.json(devices)));
 }
 
+function mockDeviceGroupDetailSubResources() {
+	server.use(
+		http.get("*/api/device-groups/:id/automations", () =>
+			HttpResponse.json([]),
+		),
+		http.get("*/api/automations", () => HttpResponse.json([])),
+	);
+}
+
 beforeEach(() => {
 	useDeviceGroupsUIStore.setState({
 		selectedGroupId: null,
@@ -115,11 +124,13 @@ describe("DeviceGroupsView Integration Tests", () => {
 					id: "dev-01",
 					name: "Luz Quarto",
 					isOn: true,
+					type: 1,
 				}),
 			],
 		});
 		mockGroupsList([group]);
 		mockPickerDevices();
+		mockDeviceGroupDetailSubResources();
 
 		// Act
 		renderDeviceGroupsView();
@@ -129,6 +140,8 @@ describe("DeviceGroupsView Integration Tests", () => {
 			await screen.findByRole("heading", { name: "Iluminação Geral" }),
 		).toBeInTheDocument();
 		expect(screen.getByText("Luz Quarto")).toBeInTheDocument();
+		expect(screen.getByText("Controle Mestre do Grupo")).toBeInTheDocument();
+		expect(screen.getByText("Automações deste Grupo")).toBeInTheDocument();
 	});
 
 	it("DeviceGroupsView_MultipleGroups_ShouldRenderSummaryBarWithTotalCounts", async () => {
@@ -139,6 +152,7 @@ describe("DeviceGroupsView Integration Tests", () => {
 		];
 		mockGroupsList(groups);
 		mockPickerDevices();
+		mockDeviceGroupDetailSubResources();
 
 		// Act
 		renderDeviceGroupsView();
@@ -153,6 +167,7 @@ describe("DeviceGroupsView Integration Tests", () => {
 		// Arrange
 		mockGroupsList([createDeviceGroupMock({ name: "Home Theater" })]);
 		mockPickerDevices();
+		mockDeviceGroupDetailSubResources();
 		const user = userEvent.setup();
 
 		// Act
@@ -176,6 +191,7 @@ describe("DeviceGroupsView Integration Tests", () => {
 		// Arrange
 		mockGroupsList([createDeviceGroupMock({ name: "Home Theater" })]);
 		mockPickerDevices();
+		mockDeviceGroupDetailSubResources();
 		let deleteCalled = false;
 		server.use(
 			http.delete("*/api/device-groups/:id", () => {
@@ -208,6 +224,7 @@ describe("DeviceGroupsView Integration Tests", () => {
 			createDeviceGroupMock({ id: "group-to-delete", name: "Segurança" }),
 		]);
 		mockPickerDevices();
+		mockDeviceGroupDetailSubResources();
 		let deletedId: string | null = null;
 		server.use(
 			http.delete("*/api/device-groups/:id", ({ params }) => {
@@ -234,5 +251,74 @@ describe("DeviceGroupsView Integration Tests", () => {
 		await waitFor(() => {
 			expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument();
 		});
+	});
+
+	it("DeviceGroupsView_ToggleMasterSwitch_ShouldCallServerSideBulkPowerEndpoint", async () => {
+		// Arrange
+		const group = createDeviceGroupMock({
+			id: "group-master-test",
+			name: "Sala Principal",
+			devices: [
+				createDeviceInGroupMock({ id: "dev-1", name: "Luz 1", isOn: true }),
+			],
+		});
+		mockGroupsList([group]);
+		mockPickerDevices();
+		mockDeviceGroupDetailSubResources();
+
+		let turnedOffGroupId: string | null = null;
+		server.use(
+			http.post("*/api/device-groups/:id/devices/turn-off", ({ params }) => {
+				turnedOffGroupId = params.id as string;
+				return HttpResponse.json({
+					succeededCount: 1,
+					failedCount: 0,
+					totalCount: 1,
+				});
+			}),
+		);
+		const user = userEvent.setup();
+
+		// Act
+		renderDeviceGroupsView();
+		const masterSwitch = await screen.findByRole("switch", {
+			name: "Alternar todos os dispositivos do grupo",
+		});
+		await user.click(masterSwitch);
+
+		// Assert
+		await waitFor(() => {
+			expect(turnedOffGroupId).toBe("group-master-test");
+		});
+	});
+
+	it("DeviceGroupsView_LinkedAutomationsLoaded_ShouldRenderAutomationNames", async () => {
+		// Arrange
+		const group = createDeviceGroupMock({
+			id: "group-auto-test",
+			name: "Quarto Master",
+			devices: [createDeviceInGroupMock({ id: "dev-1", name: "Lâmpada" })],
+		});
+		mockGroupsList([group]);
+		mockPickerDevices();
+		server.use(
+			http.get("*/api/device-groups/:id/automations", () =>
+				HttpResponse.json([
+					{
+						id: "auto-1",
+						name: "Desligar ao sair",
+						isActive: true,
+						triggerKind: "schedule",
+					},
+				]),
+			),
+		);
+
+		// Act
+		renderDeviceGroupsView();
+
+		// Assert
+		expect(await screen.findByText("Desligar ao sair")).toBeInTheDocument();
+		expect(screen.getByText("Ativa")).toBeInTheDocument();
 	});
 });
