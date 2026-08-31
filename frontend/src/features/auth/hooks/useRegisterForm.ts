@@ -12,7 +12,7 @@ export function useRegisterForm() {
 	const formMethods = useForm<RegisterFormData>({
 		resolver: zodResolver(registerSchema),
 		mode: "onSubmit",
-        reValidateMode: "onChange",
+		reValidateMode: "onChange",
 	});
 
 	const handleFormSubmit = async (data: RegisterFormData) => {

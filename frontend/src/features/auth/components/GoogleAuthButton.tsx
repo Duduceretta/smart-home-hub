@@ -74,7 +74,9 @@ export function GoogleAuthButton({ actionText }: GoogleAuthButtonProps) {
 					/>
 				</svg>
 			)}
-			{isLoading ? t("google.loading") : (actionText ?? t("google.continueButton"))}
+			{isLoading
+				? t("google.loading")
+				: (actionText ?? t("google.continueButton"))}
 		</Button>
 	);
 }

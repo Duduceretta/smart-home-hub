@@ -1,4 +1,4 @@
 export interface SyncUserResponse {
-    message: string;
-    userId: string;
+	message: string;
+	userId: string;
 }

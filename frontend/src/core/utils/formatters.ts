@@ -25,7 +25,7 @@ export function formatIpAddress(value: string, isDeleting = false): string {
 			if (Number.parseInt(currentChunk, 10) > 255) {
 				currentChunk = "255";
 			}
-			formattedOctets.push(currentChunk)
+			formattedOctets.push(currentChunk);
 
 			const overflow = part.slice(3);
 			if (overflow && formattedOctets.length < 4) {

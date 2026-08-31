@@ -22,7 +22,7 @@ export function useResetPasswordForm() {
 	const formMethods = useForm<ResetPasswordFormData>({
 		resolver: zodResolver(resetPasswordSchema),
 		mode: "onSubmit",
-        reValidateMode: "onChange",
+		reValidateMode: "onChange",
 	});
 
 	useEffect(() => {
