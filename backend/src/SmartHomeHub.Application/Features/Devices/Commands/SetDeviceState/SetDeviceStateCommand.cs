@@ -7,7 +7,6 @@ using SmartHomeHub.Application.Common.Extensions;
 using SmartHomeHub.Application.Common.Interfaces;
 using SmartHomeHub.Application.Features.Dashboards.ActivityLog;
 using SmartHomeHub.Domain.Common.Constants;
-using SmartHomeHub.Domain.Common.Constants;
 using SmartHomeHub.Domain.Common.Exceptions;
 using SmartHomeHub.Domain.Common.Primitives;
 using SmartHomeHub.Domain.Entities;

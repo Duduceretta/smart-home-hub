@@ -87,7 +87,7 @@ public class AutomationActionDispatcherTests
         var systemEvent = _dbContext.SystemEvents.Should().ContainSingle().Subject;
         systemEvent.AutomationId.Should().Be(automationId);
         systemEvent.DeviceId.Should().Be(deviceId);
-        systemEvent.EventType.Should().Be(SystemEventTypes.AutomationTriggered);
+        systemEvent.EventType.Should().Be(SystemEventTypes.AutomationExecuted);
         systemEvent.Severity.Should().Be(SmartHomeHub.Domain.Enums.EventSeverity.Info);
         systemEvent.Source.Should().Be(SmartHomeHub.Domain.Enums.EventSource.Automation);
         systemEvent.DeviceName.Should().Be("Tomada da Sala");

@@ -236,7 +236,7 @@ public sealed class AutomationActionDispatcher(
                     UserId = user,
                     DeviceId = deviceId,
                     AutomationId = automationId,
-                    EventType = SystemEventTypes.AutomationTriggered,
+                    EventType = SystemEventTypes.AutomationExecuted,
                     Title = title,
                     Description = description,
                     Severity = success ? EventSeverity.Info : EventSeverity.Error,
