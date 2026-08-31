@@ -114,7 +114,12 @@ export function DeviceEnergyChart({ deviceId }: DeviceEnergyChartProps) {
 				<div className="flex flex-col items-center justify-center gap-1 rounded-lg border border-dashed border-border-subtle bg-surface-low/30 py-6 text-center">
 					<Activity className="h-4 w-4 text-muted-foreground" />
 					<p className="text-xs text-muted-foreground">
-						{t("energy.noData", "Nenhum consumo registrado neste período.")}
+						{data?.measuresPower !== false
+							? t("energy.noData", "Nenhum consumo registrado neste período.")
+							: t(
+									"energy.notMeasured",
+									"Este dispositivo não mede consumo de energia.",
+								)}
 					</p>
 				</div>
 			) : (

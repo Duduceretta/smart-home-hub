@@ -12,6 +12,7 @@ import type {
 	DeviceLinkedAutomation,
 	DeviceMediaState,
 	DeviceTelemetryHistory,
+	DeviceWorkMode,
 	TelemetryRange,
 	ToggleDeviceResponse,
 	UpdateDevicePayload,
@@ -282,6 +283,71 @@ export async function setDeviceColorRequest({
 		throw handleApplicationError(
 			error,
 			"Não foi possível ajustar a cor do dispositivo.",
+		);
+	}
+}
+
+/**
+ * Sets a Tuya-local light's color temperature (0-100%, 0=warm/100=cool),
+ * converted server-side to the device's real DP scale. Forces the device
+ * into white mode server-side.
+ */
+export async function setDeviceColorTempRequest({
+	deviceId,
+	colorTempPercent,
+}: {
+	deviceId: string;
+	colorTempPercent: number;
+}): Promise<void> {
+	try {
+		await apiClient.put(`/devices/${deviceId}/color-temp`, {
+			colorTempPercent,
+		});
+	} catch (error: unknown) {
+		throw handleApplicationError(
+			error,
+			"Não foi possível ajustar a temperatura de cor do dispositivo.",
+		);
+	}
+}
+
+/**
+ * Switches a Tuya-local light's work_mode ("white"/"colour") for real —
+ * backs the Branco/Cor tabs in the control panel.
+ */
+export async function setDeviceWorkModeRequest({
+	deviceId,
+	workMode,
+}: {
+	deviceId: string;
+	workMode: "white" | "colour";
+}): Promise<void> {
+	try {
+		await apiClient.put(`/devices/${deviceId}/work-mode`, { workMode });
+	} catch (error: unknown) {
+		throw handleApplicationError(
+			error,
+			"Não foi possível trocar o modo do dispositivo.",
+		);
+	}
+}
+
+/**
+ * Reads the light's current work_mode live from the hardware — used to
+ * open the control panel already on the right tab (Branco/Cor).
+ */
+export async function fetchDeviceWorkMode(
+	deviceId: string,
+): Promise<DeviceWorkMode> {
+	try {
+		const { data } = await apiClient.get<{ workMode: DeviceWorkMode }>(
+			`/devices/${deviceId}/work-mode`,
+		);
+		return data.workMode;
+	} catch (error: unknown) {
+		throw handleApplicationError(
+			error,
+			"Não foi possível consultar o modo atual do dispositivo.",
 		);
 	}
 }

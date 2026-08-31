@@ -38,4 +38,6 @@ export const devicesKeys = {
 		[...devicesKeys.linkedAutomations(), id] as const,
 	activityLogs: () => [...devicesKeys.all, "activity-log"] as const,
 	activityLog: (id: string) => [...devicesKeys.activityLogs(), id] as const,
+	workModes: () => [...devicesKeys.all, "work-mode"] as const,
+	workMode: (id: string) => [...devicesKeys.workModes(), id] as const,
 };

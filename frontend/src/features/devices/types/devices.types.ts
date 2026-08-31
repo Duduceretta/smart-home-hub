@@ -164,6 +164,9 @@ export function isActuatorDevice(type: DeviceTypeEnum): boolean {
 	);
 }
 
+/** Espelha o work_mode real do DP21 Tuya — null = não foi possível ler (offline/sem DP). */
+export type DeviceWorkMode = "white" | "colour" | null;
+
 export type TelemetryRange = "24h" | "7d" | "30d";
 
 export interface DeviceTelemetryPoint {
@@ -242,6 +245,8 @@ export interface DeviceEnergy {
 	chart: DeviceEnergyChartPoint[];
 	totalConsumptionKwh: number;
 	isEnergyEstimated: boolean;
+	/** false = este dispositivo nunca reportou potência (sem hardware de medição) — mensagem diferente de "sem dado no período". */
+	measuresPower: boolean;
 }
 
 export type DeviceAutomationTriggerKind = "schedule" | "sensor" | "unknown";
