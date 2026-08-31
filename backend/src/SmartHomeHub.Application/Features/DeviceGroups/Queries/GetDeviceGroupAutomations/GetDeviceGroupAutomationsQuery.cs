@@ -89,25 +89,33 @@ public class GetDeviceGroupAutomationsQueryHandler(IAppDbContext dbContext)
 
         foreach (var automation in automations)
         {
-            var referencedIds = AutomationRules.ExtractReferencedDeviceIds(
+            var payload = AutomationPayloadExtensions.TryDeserializeRulePayload(
                 automation.RulePayload
             );
 
-            if (referencedIds.Overlaps(groupDeviceIds))
-            {
-                var triggerKind = AutomationRules.GetPrimaryTriggerKind(
-                    automation.RulePayload
-                );
+            if (payload == null)
+                continue;
 
-                linkedAutomations.Add(
-                    new DeviceGroupAutomationDto(
-                        automation.Id,
-                        automation.Name,
-                        automation.IsActive,
-                        triggerKind
-                    )
-                );
-            }
+            var referencedDeviceIds = payload.GetReferencedDeviceIds();
+
+            if (!referencedDeviceIds.Overlaps(groupDeviceIds))
+                continue;
+
+            var triggerKind = payload.Triggers?.FirstOrDefault() switch
+            {
+                TimeTrigger => "schedule",
+                DeviceStateTrigger => "sensor",
+                _ => "unknown",
+            };
+
+            linkedAutomations.Add(
+                new DeviceGroupAutomationDto(
+                    automation.Id,
+                    automation.Name,
+                    automation.IsActive,
+                    triggerKind
+                )
+            );
         }
 
         return Result.Success(linkedAutomations);
