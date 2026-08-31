@@ -8,9 +8,12 @@ using SmartHomeHub.Domain.Common.Primitives;
 
 namespace SmartHomeHub.Application.Features.Rooms.Queries.GetRoomActivityLog;
 
-public record GetRoomActivityLogQuery(Guid RoomId, string FirebaseUid, int Page = 1, int PageSize = 10)
-    : IQuery<Result<PagedResult<ActivityLogEntryDto>>>,
-        IPagedQuery;
+public record GetRoomActivityLogQuery(
+    Guid RoomId,
+    string FirebaseUid,
+    int Page = 1,
+    int PageSize = 10
+) : IQuery<Result<PagedResult<ActivityLogEntryDto>>>, IPagedQuery;
 
 public class GetRoomActivityLogQueryValidator : AbstractValidator<GetRoomActivityLogQuery>
 {
@@ -78,7 +81,8 @@ public class GetRoomActivityLogQueryHandler(IAppDbContext dbContext)
                 systemEvent.Title,
                 systemEvent.Description,
                 systemEvent.Timestamp,
-                systemEvent.IsAlert
+                systemEvent.IsAlert,
+                systemEvent.TraceId
             ))
             .ToPagedResultAsync(request.Page, request.PageSize, cancellationToken);
 

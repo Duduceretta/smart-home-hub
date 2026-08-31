@@ -12,7 +12,8 @@ public record ActivityLogEntryDto(
     string Title,
     string Description,
     DateTimeOffset Timestamp,
-    bool IsAlert
+    bool IsAlert,
+    string? TraceId
 );
 
 public record GetActivityLogQuery(string FirebaseUid, int Page = 1, int PageSize = 10)
@@ -38,7 +39,8 @@ public class GetActivityLogQueryHandler(IAppDbContext dbContext)
                 systemEvent.Title,
                 systemEvent.Description,
                 systemEvent.Timestamp,
-                systemEvent.IsAlert
+                systemEvent.IsAlert,
+                systemEvent.TraceId
             ))
             .ToPagedResultAsync(request.Page, request.PageSize, cancellationToken);
     }

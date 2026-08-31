@@ -81,7 +81,8 @@ public class GetDeviceActivityLogQueryHandler(IAppDbContext dbContext)
                 systemEvent.Title,
                 systemEvent.Description,
                 systemEvent.Timestamp,
-                systemEvent.IsAlert
+                systemEvent.IsAlert,
+                systemEvent.TraceId
             ))
             .ToPagedResultAsync(request.Page, request.PageSize, cancellationToken);
 
