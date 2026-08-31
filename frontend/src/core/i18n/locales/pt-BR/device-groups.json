@@ -1,34 +1,95 @@
 {
 	"title": "Grupos de Dispositivos",
 	"header": {
-		"subtitle": "Organize dispositivos em grupos lógicos para controlá-los em conjunto e simplificar suas automações.",
+		"subtitle": "Controle múltiplos dispositivos em conjunto com um único comando.",
 		"addButton": "Novo Grupo"
 	},
-	"toolbar": {
-		"searchPlaceholder": "Buscar grupo por nome..."
+	"page": {
+		"loading": "Carregando grupos...",
+		"retry": "Tentar novamente"
+	},
+	"summaryBar": {
+		"group_one": "{{count}} grupo",
+		"group_other": "{{count}} grupos",
+		"device_one": "{{count}} dispositivo",
+		"device_other": "{{count}} dispositivos",
+		"active": "ativo(s)"
+	},
+	"list": {
+		"group_one": "{{count}} grupo",
+		"group_other": "{{count}} grupos",
+		"viewModeGroup": "Modo de visualização da lista",
+		"viewCards": "Ver como cards",
+		"viewList": "Ver como lista",
+		"searchPlaceholder": "Buscar grupo...",
+		"newGroup": "Novo grupo",
+		"ariaList": "Lista de grupos de dispositivos",
+		"empty": "Nenhum grupo encontrado.",
+		"addGroup": "Adicionar Grupo",
+		"addGroupSubtitle": "Criar um novo grupo de dispositivos"
+	},
+	"item": {
+		"device_one": "{{count}} dispositivo",
+		"device_other": "{{count}} dispositivos",
+		"active_one": "{{count}} ligado",
+		"active_other": "{{count}} ligados",
+		"deleteAria": "Excluir grupo {{name}}"
+	},
+	"detail": {
+		"selectPrompt": "Selecione um grupo de dispositivos pra ver os detalhes.",
+		"deviceConnected_one": "{{count}} dispositivo vinculado",
+		"deviceConnected_other": "{{count}} dispositivos vinculados",
+		"edit": "Editar"
+	},
+	"quickActions": {
+		"turnOnAll": "Ligar Tudo",
+		"turnOffAll": "Desligar Tudo",
+		"turnedOn": "ligados",
+		"turnedOff": "desligados",
+		"toastPartial": "{{succeeded}} de {{total}} dispositivos {{action}} — {{failed}} falharam.",
+		"toastSuccess_one": "{{count}} dispositivo {{action}}.",
+		"toastSuccess_other": "{{count}} dispositivos {{action}}.",
+		"toastError": "Não foi possível executar a ação em massa no grupo."
+	},
+	"kpis": {
+		"totalDevices": "Total no Grupo",
+		"activeDevices": "Ligados / Ativos",
+		"inactiveDevices": "Desligados"
+	},
+	"deviceGrid": {
+		"title": "Dispositivos no Grupo",
+		"devicesCount_one": "{{count}} dispositivo",
+		"devicesCount_other": "{{count}} dispositivos",
+		"empty": "Nenhum dispositivo vinculado a este grupo ainda.",
+		"manageDevices": "Gerenciar Dispositivos deste Grupo"
+	},
+	"deviceCard": {
+		"online": "Online",
+		"on": "Ligado",
+		"off": "Desligado",
+		"control": "Controle",
+		"toggleAriaOn": "Desligar {{name}}",
+		"toggleAriaOff": "Ligar {{name}}"
+	},
+	"deleteDialog": {
+		"title": "Excluir grupo",
+		"description": "Tem certeza que deseja excluir o grupo \"{{name}}\"? Os dispositivos vinculados a ele não serão apagados, apenas desvinculados.",
+		"confirm": "Excluir",
+		"cancel": "Cancelar"
 	},
 	"grid": {
-		"errorTitle": "Erro ao carregar os grupos de dispositivos.",
+		"errorTitle": "Não foi possível carregar os grupos de dispositivos.",
 		"errorSubtitle": "Verifique sua conexão ou se o serviço de API C# está em execução.",
-		"searchEmptyTitle": "Nenhum grupo encontrado",
-		"searchEmptySubtitle": "Nenhum grupo corresponde à sua busca por \"{{query}}\".",
-		"clearSearch": "Limpar busca",
 		"emptyTitle": "Nenhum grupo cadastrado",
-		"emptySubtitle": "Você ainda não possui grupos de dispositivos. Crie o primeiro grupo para organizar e controlar vários dispositivos de uma só vez.",
-		"emptyCta": "Cadastrar Primeiro Grupo"
-	},
-	"card": {
-		"optionsAriaLabel": "Opções do grupo",
-		"deleting": "Excluindo...",
-		"confirmDelete": "Tem certeza que deseja excluir o grupo \"{{name}}\"? Os dispositivos não serão apagados, apenas desvinculados.",
-		"noDevices": "Nenhum dispositivo vinculado",
-		"deviceCount": "{{count}} dispositivo(s)"
+		"emptySubtitle": "Crie seu primeiro grupo para organizar e controlar vários dispositivos de uma só vez.",
+		"emptyCta": "Criar primeiro grupo"
 	},
 	"picker": {
 		"searchPlaceholder": "Buscar dispositivo por nome ou marca...",
 		"errorLoading": "Erro ao carregar os dispositivos disponíveis.",
 		"emptySearch": "Nenhum dispositivo encontrado.",
-		"selectedCount": "{{count}} selecionado(s)"
+		"selectedCount_one": "{{count}} selecionado",
+		"selectedCount_other": "{{count}} selecionados"
 	},
 	"icons": {
 		"general": "Geral",
@@ -39,6 +100,9 @@
 		"automation": "Automação"
 	},
 	"form": {
+		"discardConfirm": "Descartar as alterações feitas neste grupo?",
+		"discardConfirmButton": "Descartar",
+		"cancel": "Cancelar",
 		"fields": {
 			"name": {
 				"label": "Nome do Grupo *",
@@ -53,7 +117,7 @@
 		},
 		"create": {
 			"title": "Adicionar Novo Grupo",
-			"description": "Crie um grupo de dispositivos para organizar e controlar vários equipamentos de uma só vez.",
+			"description": "Crie um grupo de dispositivos para controlar vários equipamentos de uma só vez.",
 			"submitButton": "Registrar Grupo"
 		},
 		"edit": {

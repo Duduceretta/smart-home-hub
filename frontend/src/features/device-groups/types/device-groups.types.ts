@@ -64,4 +64,20 @@ export interface PickerDevice {
 	name: string;
 	brand: string;
 	isOn: boolean;
+	isOnline?: boolean;
+	type?: number;
+}
+
+/**
+ * View mode for the device groups left panel list (cards vs compact list).
+ */
+export type DeviceGroupsViewMode = "cards" | "list";
+
+/**
+ * Result of a bulk power command on a device group.
+ */
+export interface DeviceGroupBulkPowerResult {
+	succeededCount: number;
+	failedCount: number;
+	totalCount: number;
 }

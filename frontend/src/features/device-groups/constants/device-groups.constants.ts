@@ -1,11 +1,4 @@
-import {
-	Boxes,
-	Layers,
-	Lightbulb,
-	ShieldCheck,
-	Tv,
-	Zap,
-} from "lucide-react";
+import { Boxes, Layers, Lightbulb, ShieldCheck, Tv, Zap } from "lucide-react";
 import type { ComponentType } from "react";
 
 export type DeviceGroupIconLabelKey =
@@ -53,3 +46,29 @@ export const GROUP_ICON_MAP: Record<
 	zap: Zap,
 	default: Layers,
 };
+
+/**
+ * Icon by device type, reimplemented locally in `device-groups` feature (FSD isolation).
+ * Numeric keys mirror `DeviceTypeEnum` from backend:
+ * 1 Light, 2 Outlet, 3 Sensor, 4 Thermostat, 5 Camera, 6 Lock, 7 Alarm, 8 TV.
+ */
+export const GROUP_DEVICE_TYPE_ICON: Record<
+	number,
+	ComponentType<{ className?: string }>
+> = {
+	1: Lightbulb,
+	2: Zap,
+	3: ShieldCheck,
+	4: Zap,
+	5: ShieldCheck,
+	6: ShieldCheck,
+	7: ShieldCheck,
+	8: Tv,
+};
+
+export const GROUP_DEVICE_TELEVISION_TYPE = 8;
+
+/**
+ * Actuator types that can be toggled on/off.
+ */
+export const GROUP_DEVICE_ACTUATOR_TYPES = new Set([1, 2, 4, 6, 7, 8]);

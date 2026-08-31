@@ -1,54 +1,181 @@
-import { Plus, Search } from "lucide-react";
+import { AlertTriangle, Boxes, Loader2, Plus, Trash2 } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { useConfirm } from "@/core/components/providers/ConfirmDialogProvider";
+import { cn } from "@/core/utils";
+import { useDeleteDeviceGroup } from "../hooks/useDeleteDeviceGroup";
+import { useDeviceGroups } from "../hooks/useDeviceGroups";
 import { useDeviceGroupsUIStore } from "../store/device-groups-ui.store";
-import { CreateDeviceGroupSheet } from "./CreateDeviceGroupSheet";
-import { DeviceGroupsGrid } from "./DeviceGroupsGrid";
-import { EditDeviceGroupSheet } from "./EditDeviceGroupSheet";
+import type { DeviceGroup } from "../types/device-groups.types";
+import { DeviceGroupDetailPanel } from "./detail/DeviceGroupDetailPanel";
+import { DeviceGroupFormDialog } from "./dialogs/DeviceGroupFormDialog";
+import { DeviceGroupListPanel } from "./list/DeviceGroupListPanel";
+import { DeviceGroupsSummaryBar } from "./list/DeviceGroupsSummaryBar";
 
-export const DeviceGroupsView: React.FC = () => {
+/**
+ * View de Grupos de Dispositivos — estrutura Master-Detail em duas colunas,
+ * espelhando fielmente o padrão de Ambientes (RoomsView).
+ * Coluna esquerda fixa com busca, contagem e lista de grupos;
+ * Coluna direita ocupando o restante do espaço com o detalhe do grupo selecionado,
+ * ações em lote e grid de dispositivos.
+ */
+export function DeviceGroupsView() {
 	const { t } = useTranslation("device-groups");
-	const { query, setQuery, openCreateSheet } = useDeviceGroupsUIStore();
+	const {
+		data: groups = [],
+		isLoading: isLoadingGroups,
+		isError: isGroupsError,
+		refetch: refetchGroups,
+	} = useDeviceGroups();
+
+	const [query, setQuery] = useState("");
+	const viewMode = useDeviceGroupsUIStore((s) => s.viewMode);
+	const setViewMode = useDeviceGroupsUIStore((s) => s.setViewMode);
+	const selectedGroupId = useDeviceGroupsUIStore((s) => s.selectedGroupId);
+	const setSelectedGroupId = useDeviceGroupsUIStore(
+		(s) => s.setSelectedGroupId,
+	);
+	const openCreateDialog = useDeviceGroupsUIStore((s) => s.openCreateDialog);
+	const confirm = useConfirm();
+	const deleteGroup = useDeleteDeviceGroup();
+
+	const handleDeleteGroup = async (group: DeviceGroup) => {
+		const confirmed = await confirm({
+			title: t("deleteDialog.title", "Excluir grupo"),
+			description: t(
+				"deleteDialog.description",
+				`Tem certeza que deseja excluir o grupo "${group.name}"? Os dispositivos vinculados a ele não serão apagados, apenas desvinculados.`,
+				{ name: group.name },
+			),
+			confirmLabel: t("deleteDialog.confirm", "Excluir"),
+			cancelLabel: t("deleteDialog.cancel", "Cancelar"),
+			variant: "destructive",
+			icon: Trash2,
+		});
+		if (confirmed) deleteGroup.mutate(group.id);
+	};
+
+	const visibleGroups = useMemo(() => {
+		if (!query.trim()) return groups;
+		const search = query.trim().toLowerCase();
+		return groups.filter((group) => group.name.toLowerCase().includes(search));
+	}, [groups, query]);
+
+	useEffect(() => {
+		if (selectedGroupId === null && visibleGroups.length > 0) {
+			setSelectedGroupId(visibleGroups[0].id);
+		} else if (
+			selectedGroupId !== null &&
+			!visibleGroups.some((group) => group.id === selectedGroupId)
+		) {
+			setSelectedGroupId(visibleGroups[0]?.id ?? null);
+		}
+	}, [selectedGroupId, visibleGroups, setSelectedGroupId]);
+
+	const selectedGroup =
+		groups.find((group) => group.id === selectedGroupId) ?? null;
 
 	return (
-		<div className="space-y-6 pb-6">
-			{/* Cabeçalho da Seção */}
-			<div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-				<div>
-					<h1 className="text-2xl font-bold tracking-tight text-zinc-100">
-						{t("title")}
+		<div className="flex h-full min-h-0 gap-4">
+			{/* Left Column: Master List */}
+			<div
+				className={cn(
+					"h-full w-full min-h-0 flex-col gap-4 lg:flex lg:w-80 lg:shrink-0",
+					selectedGroupId ? "hidden lg:flex" : "flex",
+				)}
+			>
+				<div className="flex shrink-0 flex-col gap-1">
+					<h1 className="text-3xl font-semibold tracking-tight text-foreground">
+						{t("title", "Grupos de Dispositivos")}
 					</h1>
-					<p className="mt-1 text-xs text-zinc-400">{t("header.subtitle")}</p>
+					<p className="text-sm text-muted-foreground">
+						{t(
+							"header.subtitle",
+							"Controle múltiplos dispositivos em conjunto com um único comando.",
+						)}
+					</p>
 				</div>
 
-				{/* Botão de Ação Principal */}
-				<button
-					type="button"
-					onClick={openCreateSheet}
-					className="inline-flex items-center justify-center gap-2 rounded-lg bg-indigo-600 px-4 py-2.5 text-xs font-medium text-white shadow-lg shadow-indigo-600/20 transition-all hover:bg-indigo-500 hover:shadow-indigo-600/30 cursor-pointer"
-				>
-					<Plus className="h-4 w-4" />
-					{t("header.addButton")}
-				</button>
+				{isGroupsError ? (
+					<div className="flex flex-1 flex-col items-center justify-center gap-2 rounded-xl border border-destructive/30 bg-destructive/10 p-6 text-center">
+						<AlertTriangle className="h-6 w-6 text-destructive" />
+						<p className="text-sm font-medium text-destructive">
+							{t(
+								"grid.errorTitle",
+								"Não foi possível carregar os grupos de dispositivos.",
+							)}
+						</p>
+						<button
+							type="button"
+							onClick={() => refetchGroups()}
+							className="mt-2 rounded-md border border-border-subtle bg-surface-container px-3 py-1.5 text-xs font-medium uppercase tracking-wider text-foreground transition-colors hover:bg-surface-high hover:border-primary/40 cursor-pointer"
+						>
+							{t("page.retry", "Tentar novamente")}
+						</button>
+					</div>
+				) : isLoadingGroups ? (
+					<div className="flex flex-1 items-center justify-center gap-2 text-sm text-muted-foreground">
+						<Loader2 className="h-4 w-4 animate-spin text-primary" />
+						{t("page.loading", "Carregando grupos...")}
+					</div>
+				) : groups.length === 0 ? (
+					<div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-4 rounded-xl border border-dashed border-border-subtle bg-surface-container/30 p-6 text-center">
+						<div className="flex h-14 w-14 items-center justify-center rounded-full bg-surface-high text-muted-foreground">
+							<Boxes className="h-7 w-7" />
+						</div>
+						<div className="space-y-1">
+							<p className="text-sm font-medium text-foreground">
+								{t("grid.emptyTitle", "Nenhum grupo cadastrado")}
+							</p>
+							<p className="text-xs text-muted-foreground">
+								{t(
+									"grid.emptySubtitle",
+									"Crie seu primeiro grupo para organizar e controlar vários dispositivos de uma só vez.",
+								)}
+							</p>
+						</div>
+						<button
+							type="button"
+							onClick={openCreateDialog}
+							className="inline-flex items-center gap-2 rounded-full bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow-xs transition-all hover:opacity-90 active:scale-95 cursor-pointer"
+						>
+							<Plus className="h-4 w-4" />
+							{t("grid.emptyCta", "Criar primeiro grupo")}
+						</button>
+					</div>
+				) : (
+					<>
+						<DeviceGroupsSummaryBar groups={groups} />
+
+						<div className="min-h-0 flex-1">
+							<DeviceGroupListPanel
+								groups={visibleGroups}
+								selectedId={selectedGroupId}
+								onSelect={setSelectedGroupId}
+								onDelete={handleDeleteGroup}
+								onCreate={openCreateDialog}
+								viewMode={viewMode}
+								onViewModeChange={setViewMode}
+								query={query}
+								onQueryChange={setQuery}
+							/>
+						</div>
+					</>
+				)}
 			</div>
 
-			{/* Barra de Filtro / Busca */}
-			<div className="relative max-w-md">
-				<Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-500" />
-				<input
-					type="text"
-					value={query}
-					onChange={(e) => setQuery(e.target.value)}
-					placeholder={t("toolbar.searchPlaceholder")}
-					className="w-full rounded-xl border border-zinc-800 bg-zinc-900/50 py-2.5 pl-9 pr-4 text-xs text-zinc-200 placeholder-zinc-500 outline-none transition-colors focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
-				/>
+			{/* Right Column: Detail Panel */}
+			<div
+				className={cn(
+					"h-full w-full min-h-0 flex-col lg:flex lg:flex-1",
+					selectedGroupId ? "flex" : "hidden lg:flex",
+				)}
+			>
+				<DeviceGroupDetailPanel group={selectedGroup} />
 			</div>
 
-			{/* Grid Principal */}
-			<DeviceGroupsGrid />
-
-			{/* Modais e Painéis Deslizantes */}
-			<CreateDeviceGroupSheet />
-			<EditDeviceGroupSheet />
+			{/* Form Dialog (Create / Edit) */}
+			<DeviceGroupFormDialog />
 		</div>
 	);
-};
+}

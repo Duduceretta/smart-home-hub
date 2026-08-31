@@ -1,9 +1,6 @@
-import { AnimatePresence, motion } from "framer-motion";
 import { Search } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Input } from "@/core/components/ui/input";
-import { Label } from "@/core/components/ui/label";
 import { cn } from "@/core/utils";
 import { usePickerDevices } from "../hooks/usePickerDevices";
 
@@ -18,8 +15,8 @@ interface DeviceGroupMultiSelectProps {
 
 const RowSkeleton = () => (
 	<div className="flex items-center gap-3 px-3 py-2.5 animate-pulse">
-		<div className="h-4 w-4 rounded bg-zinc-800/60" />
-		<div className="h-3 w-1/2 rounded bg-zinc-800/60" />
+		<div className="h-4 w-4 rounded bg-surface-high" />
+		<div className="h-3 w-1/2 rounded bg-surface-high" />
 	</div>
 );
 
@@ -54,54 +51,49 @@ export function DeviceGroupMultiSelect({
 		}
 	};
 
-	const errorAnimation = {
-		initial: { opacity: 0, y: -2 },
-		animate: { opacity: 1, y: 0 },
-		exit: { opacity: 0, y: -2 },
-		transition: { duration: 0.15, ease: "easeOut" as const },
-	};
-
 	const errorId = `${id}-error`;
 
 	return (
-		<div className="space-y-1 w-full min-w-0">
-			<Label
+		<div className="space-y-1.5 w-full min-w-0">
+			<label
 				htmlFor={id}
 				className={cn(
-					"block text-xs font-medium uppercase tracking-wide text-zinc-400 transition-colors",
-					error && "text-red-400",
+					"block text-xs font-medium uppercase tracking-wide text-muted-foreground transition-colors",
+					error && "text-destructive",
 				)}
 			>
 				{label}
-			</Label>
+			</label>
 
 			<div
 				className={cn(
-					"rounded-lg border bg-zinc-950/50 transition-all",
+					"rounded-lg border bg-surface-container transition-all overflow-hidden",
 					error
-						? "border-red-500/50 focus-within:border-red-500 focus-within:ring-1 focus-within:ring-red-500"
-						: "border-zinc-800 focus-within:border-indigo-500/50 focus-within:ring-1 focus-within:ring-indigo-500/50",
+						? "border-destructive/50 focus-within:border-destructive focus-within:ring-1 focus-within:ring-destructive"
+						: "border-border-subtle focus-within:border-primary/50 focus-within:ring-1 focus-within:ring-primary/40",
 				)}
 			>
-				<div className="relative border-b border-zinc-800/80">
-					<Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-600" />
-					<Input
+				<div className="relative border-b border-border-subtle bg-surface-low/30">
+					<Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+					<input
 						id={id}
 						type="text"
 						value={searchTerm}
 						onChange={(e) => setSearchTerm(e.target.value)}
-						placeholder={t("picker.searchPlaceholder")}
+						placeholder={t(
+							"picker.searchPlaceholder",
+							"Buscar dispositivo por nome ou marca...",
+						)}
 						disabled={disabled}
 						aria-invalid={!!error}
 						aria-describedby={error ? errorId : undefined}
-						className="border-0 bg-transparent pl-10 text-zinc-50 placeholder:text-zinc-600 focus-visible:ring-0 focus-visible:ring-offset-0"
+						className="h-9 w-full border-0 bg-transparent pl-9 pr-3 text-sm text-foreground placeholder:text-muted-foreground outline-none"
 					/>
 				</div>
 
-				<div className="max-h-64 overflow-y-auto divide-y divide-zinc-800/60">
+				<div className="max-h-56 overflow-y-auto divide-y divide-border-subtle/50 scrollbar-thin">
 					{isLoading && (
 						<>
-							<RowSkeleton />
 							<RowSkeleton />
 							<RowSkeleton />
 							<RowSkeleton />
@@ -109,14 +101,17 @@ export function DeviceGroupMultiSelect({
 					)}
 
 					{isError && (
-						<p className="px-3 py-4 text-center text-xs text-red-400">
-							{t("picker.errorLoading")}
+						<p className="px-3 py-4 text-center text-xs text-destructive">
+							{t(
+								"picker.errorLoading",
+								"Erro ao carregar os dispositivos disponíveis.",
+							)}
 						</p>
 					)}
 
 					{!isLoading && !isError && filteredDevices.length === 0 && (
-						<p className="px-3 py-4 text-center text-xs text-zinc-500">
-							{t("picker.emptySearch")}
+						<p className="px-3 py-4 text-center text-xs text-muted-foreground">
+							{t("picker.emptySearch", "Nenhum dispositivo encontrado.")}
 						</p>
 					)}
 
@@ -130,8 +125,8 @@ export function DeviceGroupMultiSelect({
 									className={cn(
 										"flex cursor-pointer items-center gap-3 px-3 py-2.5 text-xs transition-colors",
 										isSelected
-											? "bg-indigo-500/10 text-indigo-300"
-											: "text-zinc-300 hover:bg-zinc-900/60",
+											? "bg-primary/10 text-foreground"
+											: "text-foreground/80 hover:bg-surface-high",
 									)}
 								>
 									<input
@@ -139,18 +134,18 @@ export function DeviceGroupMultiSelect({
 										checked={isSelected}
 										onChange={() => toggleDevice(device.id)}
 										disabled={disabled}
-										className="h-3.5 w-3.5 shrink-0 accent-indigo-500"
+										className="h-4 w-4 shrink-0 rounded border-border-subtle bg-surface-high text-primary accent-primary"
 									/>
 									<span
 										className={cn(
 											"h-1.5 w-1.5 shrink-0 rounded-full",
-											device.isOn ? "bg-emerald-400" : "bg-zinc-600",
+											device.isOn ? "bg-primary" : "bg-muted-foreground/40",
 										)}
 									/>
 									<span className="min-w-0 flex-1 truncate font-medium">
 										{device.name}
 									</span>
-									<span className="shrink-0 truncate text-[10px] text-zinc-500">
+									<span className="shrink-0 truncate text-[10px] text-muted-foreground">
 										{device.brand}
 									</span>
 								</label>
@@ -161,20 +156,19 @@ export function DeviceGroupMultiSelect({
 
 			<div className="flex items-center justify-between pt-0.5">
 				<div className="min-h-4.5 flex items-start">
-					<AnimatePresence mode="wait">
-						{error && (
-							<motion.p
-								id={errorId}
-								{...errorAnimation}
-								className="pl-1 text-[11px] font-medium text-red-400 leading-tight"
-							>
-								{error}
-							</motion.p>
-						)}
-					</AnimatePresence>
+					{error && (
+						<p
+							id={errorId}
+							className="pl-1 text-xs font-medium text-destructive leading-tight"
+						>
+							{error}
+						</p>
+					)}
 				</div>
-				<span className="pl-2 text-[11px] text-zinc-500 shrink-0">
-					{t("picker.selectedCount", { count: selectedIds.length })}
+				<span className="pl-2 text-xs text-muted-foreground shrink-0">
+					{t("picker.selectedCount", `${selectedIds.length} selecionado(s)`, {
+						count: selectedIds.length,
+					})}
 				</span>
 			</div>
 		</div>

@@ -5,6 +5,8 @@ import type {
 	CreateDeviceGroupPayload,
 	CreateDeviceGroupResponse,
 	DeviceGroup,
+	DeviceGroupBulkPowerResult,
+	DeviceInGroup,
 	UpdateDeviceGroupPayload,
 	UpdateDeviceGroupResponse,
 } from "../types/device-groups.types";
@@ -12,10 +14,11 @@ import type {
 /**
  * Fetches all device groups owned by the authenticated user.
  * Supports both paginated PagedResponse and direct Array responses.
+ * Default pageSize is set to 200 for the master-detail panel.
  */
 export async function fetchDeviceGroups(
 	page = 1,
-	pageSize = 10,
+	pageSize = 200,
 ): Promise<DeviceGroup[]> {
 	try {
 		const { data } = await apiClient.get<
@@ -118,4 +121,50 @@ export async function deleteDeviceGroupRequest(id: string): Promise<void> {
 			"Não foi possível remover o grupo de dispositivos selecionado.",
 		);
 	}
+}
+
+/**
+ * `POST /devices/{id}/toggle` — inverts the physical on/off state of a device
+ * inside the group (FSD: encapsulated within this feature's api layer).
+ */
+export async function toggleDeviceGroupDeviceRequest(
+	deviceId: string,
+): Promise<void> {
+	try {
+		await apiClient.post(`/devices/${deviceId}/toggle`);
+	} catch (error: unknown) {
+		throw handleApplicationError(
+			error,
+			"Não foi possível alternar o estado do dispositivo.",
+		);
+	}
+}
+
+/**
+ * Toggles all eligible devices in a group to a desired state (on or off) concurrently.
+ */
+export async function setDeviceGroupBulkPowerRequest(
+	devices: DeviceInGroup[],
+	desiredState: boolean,
+): Promise<DeviceGroupBulkPowerResult> {
+	const targetDevices = devices.filter((d) => d.isOn !== desiredState);
+
+	if (targetDevices.length === 0) {
+		return { succeededCount: 0, failedCount: 0, totalCount: 0 };
+	}
+
+	const results = await Promise.allSettled(
+		targetDevices.map((device) =>
+			apiClient.post(`/devices/${device.id}/toggle`),
+		),
+	);
+
+	const succeededCount = results.filter((r) => r.status === "fulfilled").length;
+	const failedCount = results.filter((r) => r.status === "rejected").length;
+
+	return {
+		succeededCount,
+		failedCount,
+		totalCount: targetDevices.length,
+	};
 }

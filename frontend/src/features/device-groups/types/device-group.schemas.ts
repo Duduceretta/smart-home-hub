@@ -26,8 +26,16 @@ export const deviceGroupBaseSchema = z.object({
 export const createDeviceGroupSchema = deviceGroupBaseSchema;
 export const updateDeviceGroupSchema = deviceGroupBaseSchema;
 
-export type CreateDeviceGroupFormInput = z.input<typeof createDeviceGroupSchema>;
-export type CreateDeviceGroupFormOutput = z.output<typeof createDeviceGroupSchema>;
+export type CreateDeviceGroupFormInput = z.input<
+	typeof createDeviceGroupSchema
+>;
+export type CreateDeviceGroupFormOutput = z.output<
+	typeof createDeviceGroupSchema
+>;
 
-export type UpdateDeviceGroupFormInput = z.input<typeof updateDeviceGroupSchema>;
-export type UpdateDeviceGroupFormOutput = z.output<typeof updateDeviceGroupSchema>;
+export type UpdateDeviceGroupFormInput = z.input<
+	typeof updateDeviceGroupSchema
+>;
+export type UpdateDeviceGroupFormOutput = z.output<
+	typeof updateDeviceGroupSchema
+>;

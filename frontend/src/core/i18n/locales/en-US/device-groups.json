@@ -1,34 +1,95 @@
 {
 	"title": "Device Groups",
 	"header": {
-		"subtitle": "Organize devices into logical groups to control them together and simplify your automations.",
+		"subtitle": "Control multiple devices together with a single command.",
 		"addButton": "New Group"
 	},
-	"toolbar": {
-		"searchPlaceholder": "Search group by name..."
+	"page": {
+		"loading": "Loading groups...",
+		"retry": "Try again"
+	},
+	"summaryBar": {
+		"group_one": "{{count}} group",
+		"group_other": "{{count}} groups",
+		"device_one": "{{count}} device",
+		"device_other": "{{count}} devices",
+		"active": "active"
+	},
+	"list": {
+		"group_one": "{{count}} group",
+		"group_other": "{{count}} groups",
+		"viewModeGroup": "List view mode",
+		"viewCards": "View as cards",
+		"viewList": "View as list",
+		"searchPlaceholder": "Search group...",
+		"newGroup": "New group",
+		"ariaList": "Device groups list",
+		"empty": "No groups found.",
+		"addGroup": "Add Group",
+		"addGroupSubtitle": "Create a new device group"
+	},
+	"item": {
+		"device_one": "{{count}} device",
+		"device_other": "{{count}} devices",
+		"active_one": "{{count}} on",
+		"active_other": "{{count}} on",
+		"deleteAria": "Delete group {{name}}"
+	},
+	"detail": {
+		"selectPrompt": "Select a device group to view details.",
+		"deviceConnected_one": "{{count}} linked device",
+		"deviceConnected_other": "{{count}} linked devices",
+		"edit": "Edit"
+	},
+	"quickActions": {
+		"turnOnAll": "Turn All On",
+		"turnOffAll": "Turn All Off",
+		"turnedOn": "turned on",
+		"turnedOff": "turned off",
+		"toastPartial": "{{succeeded}} of {{total}} devices {{action}} — {{failed}} failed.",
+		"toastSuccess_one": "{{count}} device {{action}}.",
+		"toastSuccess_other": "{{count}} devices {{action}}.",
+		"toastError": "Could not execute bulk action on group."
+	},
+	"kpis": {
+		"totalDevices": "Total in Group",
+		"activeDevices": "On / Active",
+		"inactiveDevices": "Off"
+	},
+	"deviceGrid": {
+		"title": "Devices in Group",
+		"devicesCount_one": "{{count}} device",
+		"devicesCount_other": "{{count}} devices",
+		"empty": "No devices linked to this group yet.",
+		"manageDevices": "Manage Devices in this Group"
+	},
+	"deviceCard": {
+		"online": "Online",
+		"on": "On",
+		"off": "Off",
+		"control": "Control",
+		"toggleAriaOn": "Turn off {{name}}",
+		"toggleAriaOff": "Turn on {{name}}"
+	},
+	"deleteDialog": {
+		"title": "Delete group",
+		"description": "Are you sure you want to delete the group \"{{name}}\"? Devices will not be deleted, only unlinked.",
+		"confirm": "Delete",
+		"cancel": "Cancel"
 	},
 	"grid": {
-		"errorTitle": "Error loading device groups.",
+		"errorTitle": "Could not load device groups.",
 		"errorSubtitle": "Check your connection or whether the C# API service is running.",
-		"searchEmptyTitle": "No group found",
-		"searchEmptySubtitle": "No group matches your search for \"{{query}}\".",
-		"clearSearch": "Clear search",
 		"emptyTitle": "No groups registered",
-		"emptySubtitle": "You don't have any device groups yet. Create the first group to organize and control several devices at once.",
-		"emptyCta": "Register First Group"
-	},
-	"card": {
-		"optionsAriaLabel": "Group options",
-		"deleting": "Deleting...",
-		"confirmDelete": "Are you sure you want to delete the group \"{{name}}\"? Devices will not be deleted, only unlinked.",
-		"noDevices": "No devices linked",
-		"deviceCount": "{{count}} device(s)"
+		"emptySubtitle": "Create your first group to organize and control multiple devices at once.",
+		"emptyCta": "Create first group"
 	},
 	"picker": {
 		"searchPlaceholder": "Search device by name or brand...",
 		"errorLoading": "Error loading available devices.",
 		"emptySearch": "No device found.",
-		"selectedCount": "{{count}} selected"
+		"selectedCount_one": "{{count}} selected",
+		"selectedCount_other": "{{count}} selected"
 	},
 	"icons": {
 		"general": "General",
@@ -39,6 +100,9 @@
 		"automation": "Automation"
 	},
 	"form": {
+		"discardConfirm": "Discard changes made to this group?",
+		"discardConfirmButton": "Discard",
+		"cancel": "Cancel",
 		"fields": {
 			"name": {
 				"label": "Group Name *",
@@ -53,7 +117,7 @@
 		},
 		"create": {
 			"title": "Add New Group",
-			"description": "Create a device group to organize and control multiple equipment at once.",
+			"description": "Create a device group to control multiple equipment at once.",
 			"submitButton": "Register Group"
 		},
 		"edit": {

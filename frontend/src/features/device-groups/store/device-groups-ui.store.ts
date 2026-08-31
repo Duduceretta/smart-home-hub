@@ -1,45 +1,107 @@
 import { create } from "zustand";
-import type { DeviceGroup } from "../types/device-groups.types";
+import type {
+	DeviceGroup,
+	DeviceGroupsViewMode,
+} from "../types/device-groups.types";
 
 /**
- * Interface defining the temporary UI state and actions for the DeviceGroups feature.
+ * Interface defining the UI state and actions for the DeviceGroups feature.
+ * Follows the Master-Detail pattern established in the Rooms and Automations features.
  */
 interface DeviceGroupsUIState {
-	// Search and Filtering State
+	// Selection & View Mode
+	selectedGroupId: string | null;
+	setSelectedGroupId: (id: string | null) => void;
+	viewMode: DeviceGroupsViewMode;
+	setViewMode: (mode: DeviceGroupsViewMode) => void;
+
+	// Search Query
 	query: string;
 	setQuery: (query: string) => void;
 	resetFilters: () => void;
 
-	// Create Sheet Modal State
+	// Dialog / Modal Form State
+	isCreateDialogOpen: boolean;
+	editingGroup: DeviceGroup | null;
+	editDialogFocusDevices: boolean;
+	openCreateDialog: () => void;
+	openEditDialog: (
+		group: DeviceGroup,
+		options?: { focusDevices?: boolean },
+	) => void;
+	closeFormDialog: () => void;
+
+	// Legacy / convenience aliases for backward compatibility
 	isCreateSheetOpen: boolean;
 	openCreateSheet: () => void;
 	closeCreateSheet: () => void;
-
-	// Edit Sheet Modal State
-	editingGroup: DeviceGroup | null;
 	openEditSheet: (group: DeviceGroup) => void;
 	closeEditSheet: () => void;
 }
 
 /**
- * Zustand store managing efemeral client-side UI states
- * (modals visibility, active filters, selected group for edition).
+ * Zustand store managing ephemeral client-side UI states
+ * (selection, master-detail list mode, dialogs visibility).
  */
 export const useDeviceGroupsUIStore = create<DeviceGroupsUIState>((set) => ({
-	// Default Values
-	query: "",
-	isCreateSheetOpen: false,
-	editingGroup: null,
+	// Selection & View Mode Defaults
+	selectedGroupId: null,
+	setSelectedGroupId: (id) => set({ selectedGroupId: id }),
+	viewMode: "cards",
+	setViewMode: (viewMode) => set({ viewMode }),
 
-	// Filter Actions
+	// Search Query
+	query: "",
 	setQuery: (query) => set({ query }),
 	resetFilters: () => set({ query: "" }),
 
-	// Create Sheet Actions
-	openCreateSheet: () => set({ isCreateSheetOpen: true }),
-	closeCreateSheet: () => set({ isCreateSheetOpen: false }),
+	// Dialog Form
+	isCreateDialogOpen: false,
+	editingGroup: null,
+	editDialogFocusDevices: false,
+	openCreateDialog: () =>
+		set({
+			isCreateDialogOpen: true,
+			editingGroup: null,
+			editDialogFocusDevices: false,
+		}),
+	openEditDialog: (group, options) =>
+		set({
+			editingGroup: group,
+			isCreateDialogOpen: false,
+			editDialogFocusDevices: options?.focusDevices ?? false,
+		}),
+	closeFormDialog: () =>
+		set({
+			isCreateDialogOpen: false,
+			editingGroup: null,
+			editDialogFocusDevices: false,
+		}),
 
-	// Edit Sheet Actions
-	openEditSheet: (group) => set({ editingGroup: group }),
-	closeEditSheet: () => set({ editingGroup: null }),
+	// Legacy aliases
+	isCreateSheetOpen: false,
+	openCreateSheet: () =>
+		set({
+			isCreateDialogOpen: true,
+			editingGroup: null,
+			editDialogFocusDevices: false,
+		}),
+	closeCreateSheet: () =>
+		set({
+			isCreateDialogOpen: false,
+			editingGroup: null,
+			editDialogFocusDevices: false,
+		}),
+	openEditSheet: (group) =>
+		set({
+			editingGroup: group,
+			isCreateDialogOpen: false,
+			editDialogFocusDevices: false,
+		}),
+	closeEditSheet: () =>
+		set({
+			isCreateDialogOpen: false,
+			editingGroup: null,
+			editDialogFocusDevices: false,
+		}),
 }));
