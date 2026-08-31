@@ -1,27 +1,18 @@
 /**
- * Event severity levels mirroring the backend C# enum (EventSeverity).
+ * Event source origins, mirroring the backend C# enum (EventSource) contract,
+ * which is serialized as string (.ToString()) — never as a numeric value.
  */
-export const EventSeverity = {
-	Info: 1,
-	Warning: 2,
-	Error: 3,
-	Critical: 4,
-} as const;
-
-export type EventSeverityType =
-	(typeof EventSeverity)[keyof typeof EventSeverity];
+export type EventSourceName =
+	| "Automation"
+	| "UserManual"
+	| "System"
+	| "DeviceGroup";
 
 /**
- * Event source origins mirroring the backend C# enum (EventSource).
+ * Event severity levels, mirroring the backend C# enum (EventSeverity) contract,
+ * which is serialized as string (.ToString()) — never as a numeric value.
  */
-export const EventSource = {
-	Automation: 1,
-	UserManual: 2,
-	System: 3,
-	DeviceGroup: 4,
-} as const;
-
-export type EventSourceType = (typeof EventSource)[keyof typeof EventSource];
+export type EventSeverityName = "Info" | "Warning" | "Error" | "Critical";
 
 /**
  * Individual historical event DTO (EventHistoryDto) returned by `GET /api/history`.
@@ -37,8 +28,8 @@ export interface HistoryEvent {
 	roomName?: string | null;
 	deviceGroupId?: string | null;
 	deviceGroupName?: string | null;
-	source: "Automation" | "UserManual" | "System" | "DeviceGroup" | string;
-	severity: "Info" | "Warning" | "Error" | "Critical" | string;
+	source: EventSourceName | string;
+	severity: EventSeverityName | string;
 	oldValue?: string | null;
 	newValue?: string | null;
 }
@@ -52,12 +43,18 @@ export interface GetHistoryParams {
 	deviceId?: string;
 	roomId?: string;
 	deviceGroupId?: string;
-	severity?: number | string;
-	source?: number | string;
+	severity?: EventSeverityName;
+	source?: EventSourceName;
 	search?: string;
 	page?: number;
 	pageSize?: number;
 }
+
+/**
+ * Parameters for querying aggregated event history stats via `GET /api/history/stats`.
+ * Same filter contract as `GetHistoryParams`, without pagination.
+ */
+export type GetHistoryStatsParams = Omit<GetHistoryParams, "page" | "pageSize">;
 
 /**
  * Timeframe presets for the UI filter.
