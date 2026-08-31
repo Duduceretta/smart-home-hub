@@ -2,7 +2,8 @@
 	"title": "Dispositivos",
 	"header": {
 		"subtitle": "Gerencie conexões, consumo e estados dos periféricos integrados.",
-		"addButton": "Novo Dispositivo"
+		"addButton": "Novo Dispositivo",
+		"returnTo": "Voltar para {{label}}"
 	},
 	"metrics": {
 		"total": "Total Dispositivos",

@@ -1,4 +1,7 @@
+import { ArrowLeft } from "lucide-react";
+import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
+import { useLocation, useNavigate } from "react-router-dom";
 import { cn } from "@/core/utils";
 import { useDevice } from "../hooks/useDevice";
 import { useDevicesUIStore } from "../store/devices-ui.store";
@@ -10,29 +13,31 @@ import { DeviceListPanel } from "./list/DeviceListPanel";
 
 /**
  * View de Dispositivos — master-detail, mesmo padrão estrutural de
- * `AutomationsView`/`RoomsView`: título vive DENTRO da coluna master (não
- * mais num header de página span-full acima das duas colunas — isso fazia
- * o painel de detalhe começar mais embaixo que o topo real da área de
- * conteúdo). Painel de lista de largura fixa à esquerda + painel de
- * detalhe ocupando o restante à direita, os dois nascem no mesmo Y. Abaixo
- * de `lg`, a lista ocupa a tela cheia e some quando algo é selecionado
- * (sem rota nova) — mesmo mecanismo de responsividade das outras.
- *
- * O antigo botão "+ Novo Dispositivo" do header de página foi removido —
- * duplicava o mesmo `onCreate` que já existe como ícone "+" dentro do
- * `DeviceListPanel` (mesmo padrão de `RoomListPanel`/`AutomationListPanel`,
- * nenhuma delas tem botão de criar fora do painel de lista).
- *
- * O filtro (rápido + por ambiente) vive todo na `DeviceFilterRail`, ao lado
- * da lista — mesmo padrão de trilha vertical de `AutomationFilterRail`
- * (feature `automations`). A trilha é autossuficiente (busca rooms/devices
- * e lê/escreve a store direto), por isso não recebe props daqui.
+ * `AutomationsView`/`RoomsView`: título vive DENTRO da coluna master.
+ * Painel de lista de largura fixa à esquerda + painel de detalhe ocupando o
+ * restante à direita, os dois nascem no mesmo Y.
  */
 export const DevicesView: React.FC = () => {
 	const { t } = useTranslation("devices");
+	const location = useLocation();
+	const navigate = useNavigate();
+
+	const returnTo = (location.state as { returnTo?: string })?.returnTo;
+	const returnLabel = (location.state as { returnLabel?: string })?.returnLabel;
+	const stateDeviceId = (location.state as { selectedDeviceId?: string })
+		?.selectedDeviceId;
+
 	const selectedDeviceId = useDevicesUIStore((s) => s.selectedDeviceId);
 	const setSelectedDeviceId = useDevicesUIStore((s) => s.setSelectedDeviceId);
+	const resetFilters = useDevicesUIStore((s) => s.resetFilters);
 	const openDiscoveryModal = useDevicesUIStore((s) => s.openDiscoveryModal);
+
+	useEffect(() => {
+		if (stateDeviceId) {
+			resetFilters();
+			setSelectedDeviceId(stateDeviceId);
+		}
+	}, [stateDeviceId, resetFilters, setSelectedDeviceId]);
 
 	const { data: selectedDevice = null } = useDevice(selectedDeviceId ?? "");
 
@@ -45,6 +50,18 @@ export const DevicesView: React.FC = () => {
 				)}
 			>
 				<div className="flex shrink-0 flex-col gap-1">
+					{returnTo && (
+						<button
+							type="button"
+							onClick={() => navigate(returnTo)}
+							className="inline-flex items-center gap-1.5 self-start text-xs font-medium text-muted-foreground hover:text-foreground transition-colors cursor-pointer mb-1"
+						>
+							<ArrowLeft className="h-3.5 w-3.5" />
+							{t("header.returnTo", {
+								label: returnLabel || t("title", "Dispositivos"),
+							})}
+						</button>
+					)}
 					<h1 className="text-3xl font-semibold tracking-tight text-foreground">
 						{t("title")}
 					</h1>

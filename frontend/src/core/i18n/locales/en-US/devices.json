@@ -2,7 +2,8 @@
 	"title": "Devices",
 	"header": {
 		"subtitle": "Manage connections, consumption and states of your integrated peripherals.",
-		"addButton": "New Device"
+		"addButton": "New Device",
+		"returnTo": "Back to {{label}}"
 	},
 	"metrics": {
 		"total": "Total Devices",

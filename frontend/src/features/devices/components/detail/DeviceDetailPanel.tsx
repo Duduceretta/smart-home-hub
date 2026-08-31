@@ -1,5 +1,6 @@
-import { Pencil, Trash2 } from "lucide-react";
+import { ArrowLeft, Pencil, Trash2 } from "lucide-react";
 import { Trans, useTranslation } from "react-i18next";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useConfirm } from "@/core/components/providers/ConfirmDialogProvider";
 import { Button } from "@/core/components/ui/button";
 import { DEVICE_CONFIG } from "../../constants/devices.constants";
@@ -18,6 +19,12 @@ interface DeviceDetailPanelProps {
 
 export function DeviceDetailPanel({ device }: DeviceDetailPanelProps) {
 	const { t } = useTranslation(["devices", "common"]);
+	const location = useLocation();
+	const navigate = useNavigate();
+
+	const returnTo = (location.state as { returnTo?: string })?.returnTo;
+	const returnLabel = (location.state as { returnLabel?: string })?.returnLabel;
+
 	const confirm = useConfirm();
 	const openEditModal = useDevicesUIStore((s) => s.openEditModal);
 	const { mutate: deleteDevice, isPending: isDeleting } = useDeleteDevice();
@@ -86,6 +93,20 @@ export function DeviceDetailPanel({ device }: DeviceDetailPanelProps) {
 				</div>
 
 				<div className="flex shrink-0 items-center gap-2">
+					{returnTo && (
+						<Button
+							variant="outline"
+							className="border-border-subtle bg-surface-container text-foreground hover:bg-surface-high hover:border-primary/40"
+							onClick={() => navigate(returnTo)}
+						>
+							<ArrowLeft className="h-4 w-4" />
+							<span className="hidden sm:inline">
+								{t("header.returnTo", {
+									label: returnLabel || t("title", "Dispositivos"),
+								})}
+							</span>
+						</Button>
+					)}
 					<Button
 						variant="outline"
 						className="border-border-subtle bg-surface-container text-foreground hover:bg-surface-high hover:border-primary/40"
