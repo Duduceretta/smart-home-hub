@@ -86,7 +86,11 @@ public class AutomationActionDispatcherTests
         var systemEvent = _dbContext.SystemEvents.Should().ContainSingle().Subject;
         systemEvent.AutomationId.Should().Be(automationId);
         systemEvent.DeviceId.Should().Be(deviceId);
-        systemEvent.EventType.Should().Be(ActivityEventTypes.AutomationExecuted);
+        systemEvent.EventType.Should().Be(ActivityEventTypes.AutomationTriggered);
+        systemEvent.Severity.Should().Be(SmartHomeHub.Domain.Enums.EventSeverity.Info);
+        systemEvent.Source.Should().Be(SmartHomeHub.Domain.Enums.EventSource.Automation);
+        systemEvent.DeviceName.Should().Be("Tomada da Sala");
+        systemEvent.NewValue.Should().Be("on");
         systemEvent.IsAlert.Should().BeFalse();
         systemEvent.Title.Should().Contain("Desligar tudo à noite");
         systemEvent.Description.Should().Contain("Tomada da Sala");
@@ -121,6 +125,8 @@ public class AutomationActionDispatcherTests
 
         var systemEvent = _dbContext.SystemEvents.Should().ContainSingle().Subject;
         systemEvent.IsAlert.Should().BeTrue();
+        systemEvent.Severity.Should().Be(SmartHomeHub.Domain.Enums.EventSeverity.Error);
+        systemEvent.Source.Should().Be(SmartHomeHub.Domain.Enums.EventSource.Automation);
         systemEvent.Description.Should().Contain(error.Description);
     }
 
