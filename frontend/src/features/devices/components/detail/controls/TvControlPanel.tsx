@@ -70,8 +70,8 @@ export function TvControlPanel({ device }: DeviceControlPanelProps) {
 				{t("controls.title", "Controles")}
 			</h3>
 
-			<div className="flex items-center gap-4 rounded-lg border border-border-subtle bg-surface-low p-2">
-				<div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded bg-surface-container">
+			<div className="flex items-center gap-4 rounded-lg border border-border-subtle bg-surface-high p-2">
+				<div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded bg-surface-highest">
 					<div className="flex h-full w-full items-center justify-center bg-linear-to-tr from-indigo-950 to-zinc-800">
 						<Disc3 className="h-5 w-5 text-zinc-300 opacity-60" />
 					</div>
@@ -92,7 +92,7 @@ export function TvControlPanel({ device }: DeviceControlPanelProps) {
 					<button
 						type="button"
 						disabled
-						className="flex h-7 w-7 items-center justify-center rounded-full bg-surface-container text-foreground disabled:cursor-not-allowed disabled:opacity-40"
+						className="flex h-7 w-7 items-center justify-center rounded-full bg-surface-highest text-foreground disabled:cursor-not-allowed disabled:opacity-40"
 					>
 						<SkipBack className="h-3.5 w-3.5" />
 					</button>
@@ -110,7 +110,7 @@ export function TvControlPanel({ device }: DeviceControlPanelProps) {
 					<button
 						type="button"
 						disabled
-						className="flex h-7 w-7 items-center justify-center rounded-full bg-surface-container text-foreground disabled:cursor-not-allowed disabled:opacity-40"
+						className="flex h-7 w-7 items-center justify-center rounded-full bg-surface-highest text-foreground disabled:cursor-not-allowed disabled:opacity-40"
 					>
 						<SkipForward className="h-3.5 w-3.5" />
 					</button>
@@ -197,7 +197,7 @@ function TvPowerToggle({ deviceId, isOn, isOnline }: TvPowerToggleProps) {
 			className={`self-start rounded-full px-4 py-2 text-xs font-medium uppercase tracking-wider transition-colors cursor-pointer disabled:cursor-not-allowed ${
 				isOn && isOnline
 					? "bg-primary text-primary-foreground"
-					: "border border-border-subtle bg-surface-low text-muted-foreground hover:bg-surface-highest"
+					: "border border-border-subtle bg-surface-high text-muted-foreground hover:bg-surface-highest"
 			}`}
 		>
 			{isOn && isOnline

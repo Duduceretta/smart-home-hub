@@ -145,7 +145,7 @@ export function LightControlPanel({ device }: DeviceControlPanelProps) {
 							aria-pressed={activeTab === "white"}
 							className={`flex h-8 items-center gap-1.5 rounded px-3 text-xs font-medium transition-colors cursor-pointer disabled:cursor-not-allowed ${
 								activeTab === "white"
-									? "bg-surface-low text-primary shadow-xs"
+									? "bg-surface-highest text-primary shadow-xs"
 									: "text-muted-foreground hover:text-foreground"
 							}`}
 						>
@@ -159,7 +159,7 @@ export function LightControlPanel({ device }: DeviceControlPanelProps) {
 							aria-pressed={activeTab === "colour"}
 							className={`flex h-8 items-center gap-1.5 rounded px-3 text-xs font-medium transition-colors cursor-pointer disabled:cursor-not-allowed ${
 								activeTab === "colour"
-									? "bg-surface-low text-primary shadow-xs"
+									? "bg-surface-highest text-primary shadow-xs"
 									: "text-muted-foreground hover:text-foreground"
 							}`}
 						>

@@ -42,25 +42,23 @@ export function SwitchControlPanel({ device }: DeviceControlPanelProps) {
 			</div>
 
 			<div className="grid grid-cols-2 gap-4">
-				<div className="flex flex-col gap-1 rounded-lg bg-surface-low p-3">
-					<span className="text-xs uppercase tracking-wider text-muted-foreground">
+				<div className="flex flex-col gap-1 rounded-lg border border-border-subtle/20 bg-surface-high p-4">
+					<span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
 						{t("controls.powerUsage", "Consumo")}
 					</span>
 					<div className="flex items-baseline gap-1">
-						<span className="text-2xl font-semibold tracking-tight text-primary">
+						<span className="text-2xl font-semibold text-primary">
 							{isOn ? 120 : 0}
 						</span>
 						<span className="text-xs font-medium text-primary">W</span>
 					</div>
 				</div>
-				<div className="flex flex-col gap-1 rounded-lg bg-surface-low p-3">
-					<span className="text-xs uppercase tracking-wider text-muted-foreground">
+				<div className="flex flex-col gap-1 rounded-lg border border-border-subtle/20 bg-surface-high p-4">
+					<span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
 						{t("controls.voltage", "Tensão")}
 					</span>
 					<div className="flex items-baseline gap-1">
-						<span className="text-2xl font-semibold tracking-tight text-foreground">
-							127
-						</span>
+						<span className="text-2xl font-semibold text-foreground">127</span>
 						<span className="text-xs font-medium text-muted-foreground">V</span>
 					</div>
 				</div>

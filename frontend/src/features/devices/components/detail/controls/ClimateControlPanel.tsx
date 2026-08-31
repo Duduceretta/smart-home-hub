@@ -46,8 +46,8 @@ export function ClimateControlPanel({ device }: DeviceControlPanelProps) {
 			</div>
 
 			<div className="flex items-center justify-between">
-				<div className="flex flex-col">
-					<span className="mb-0.5 text-xs font-medium uppercase tracking-wider text-muted-foreground">
+				<div className="flex flex-col gap-1">
+					<span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
 						{t("controls.targetTemperature", "Temperatura Alvo")}
 					</span>
 					<div className="flex items-start">
@@ -65,7 +65,7 @@ export function ClimateControlPanel({ device }: DeviceControlPanelProps) {
 							type="button"
 							disabled={!isOnline}
 							onClick={() => setTemperature((t) => Math.min(30, t + 1))}
-							className="flex h-9 w-9 items-center justify-center rounded-full border border-border-subtle bg-surface-low text-foreground transition-colors hover:bg-surface-highest disabled:cursor-not-allowed disabled:hover:bg-surface-low"
+							className="flex h-9 w-9 items-center justify-center rounded-full border border-border-subtle bg-surface-high text-foreground transition-colors hover:bg-surface-highest disabled:cursor-not-allowed disabled:hover:bg-surface-high"
 						>
 							<Plus className="h-4 w-4" />
 						</button>
@@ -73,7 +73,7 @@ export function ClimateControlPanel({ device }: DeviceControlPanelProps) {
 							type="button"
 							disabled={!isOnline}
 							onClick={() => setTemperature((t) => Math.max(16, t - 1))}
-							className="flex h-9 w-9 items-center justify-center rounded-full border border-border-subtle bg-surface-low text-foreground transition-colors hover:bg-surface-highest disabled:cursor-not-allowed disabled:hover:bg-surface-low"
+							className="flex h-9 w-9 items-center justify-center rounded-full border border-border-subtle bg-surface-high text-foreground transition-colors hover:bg-surface-highest disabled:cursor-not-allowed disabled:hover:bg-surface-high"
 						>
 							<Minus className="h-4 w-4" />
 						</button>
@@ -86,7 +86,7 @@ export function ClimateControlPanel({ device }: DeviceControlPanelProps) {
 							className={`flex h-9 w-9 items-center justify-center rounded-full transition-all disabled:cursor-not-allowed ${
 								climateMode === "cool"
 									? "bg-cool text-cool-foreground shadow-sm scale-105"
-									: "border border-border-subtle bg-surface-low text-muted-foreground hover:bg-surface-highest"
+									: "border border-border-subtle bg-surface-high text-muted-foreground hover:bg-surface-highest"
 							}`}
 						>
 							<Snowflake className="h-4 w-4" />
@@ -98,7 +98,7 @@ export function ClimateControlPanel({ device }: DeviceControlPanelProps) {
 							className={`flex h-9 w-9 items-center justify-center rounded-full transition-all disabled:cursor-not-allowed ${
 								climateMode === "fan"
 									? "bg-cool text-cool-foreground shadow-sm scale-105"
-									: "border border-border-subtle bg-surface-low text-muted-foreground hover:bg-surface-highest"
+									: "border border-border-subtle bg-surface-high text-muted-foreground hover:bg-surface-highest"
 							}`}
 						>
 							<Wind className="h-4 w-4" />
