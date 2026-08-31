@@ -1,0 +1,87 @@
+{
+	"title": "Histórico de Eventos",
+	"subtitle": "Trilha de auditoria, execuções de automações e telemetria do sistema.",
+	"actions": {
+		"export": "Exportar Logs",
+		"exportJson": "Exportar como JSON",
+		"exportCsv": "Exportar como CSV",
+		"refresh": "Atualizar",
+		"clearFilters": "Limpar filtros",
+		"viewDetails": "Ver detalhes"
+	},
+	"kpis": {
+		"totalEvents": "Total de Eventos",
+		"automations": "Execuções de Automação",
+		"alertsAndErrors": "Alertas e Erros",
+		"groupActions": "Ações de Grupos",
+		"inPeriod": "no período selecionado"
+	},
+	"filters": {
+		"searchPlaceholder": "Buscar evento por descrição, dispositivo ou cômodo (Ctrl+K)...",
+		"searchLabel": "Buscar eventos",
+		"severity": "Severidade",
+		"source": "Origem",
+		"timeframe": "Período",
+		"allSeverities": "Todas as severidades",
+		"allSources": "Todas as origens",
+		"periods": {
+			"24h": "Últimas 24 horas",
+			"7d": "Últimos 7 dias",
+			"30d": "Últimos 30 dias",
+			"all": "Todo o histórico"
+		},
+		"sources": {
+			"all": "Todas as origens",
+			"Automation": "Automação",
+			"UserManual": "Usuário",
+			"System": "Sistema",
+			"DeviceGroup": "Grupo de Dispositivos"
+		},
+		"severities": {
+			"all": "Todas as severidades",
+			"Info": "Info",
+			"Warning": "Aviso (Warning)",
+			"Error": "Erro",
+			"Critical": "Crítico"
+		}
+	},
+	"timeline": {
+		"today": "Hoje",
+		"yesterday": "Ontem",
+		"entityGroup": "Grupo",
+		"entityRoom": "Ambiente",
+		"entityDevice": "Dispositivo",
+		"entitySystem": "Sistema",
+		"stateTransition": "{{from}} → {{to}}",
+		"emptyTitle": "Nenhum evento encontrado",
+		"emptyDescription": "Nenhum evento ou registro de auditoria corresponde aos filtros e período selecionados.",
+		"errorTitle": "Erro ao carregar o histórico",
+		"errorDescription": "Não foi possível buscar a trilha de eventos do servidor.",
+		"retry": "Tentar novamente",
+		"loading": "Carregando histórico de auditoria..."
+	},
+	"pagination": {
+		"page": "Página {{current}} de {{total}}",
+		"showing": "Exibindo {{count}} de {{total}} eventos",
+		"previous": "Anterior",
+		"next": "Próxima"
+	},
+	"detailModal": {
+		"title": "Detalhes do Evento",
+		"description": "Informações completas e metadados persistidos na auditoria.",
+		"timestamp": "Data / Hora (Local)",
+		"timestampUtc": "Timestamp UTC",
+		"eventType": "Tipo de Evento",
+		"source": "Origem",
+		"severity": "Severidade",
+		"target": "Entidade Alvo",
+		"device": "Dispositivo",
+		"room": "Ambiente",
+		"group": "Grupo",
+		"message": "Descrição / Log",
+		"oldValue": "Valor Anterior",
+		"newValue": "Novo Valor",
+		"eventId": "ID do Evento",
+		"close": "Fechar"
+	}
+}

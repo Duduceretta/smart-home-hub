@@ -1,0 +1,87 @@
+{
+	"title": "Event History",
+	"subtitle": "Audit trail, automation runs, and system telemetry logs.",
+	"actions": {
+		"export": "Export Logs",
+		"exportJson": "Export as JSON",
+		"exportCsv": "Export as CSV",
+		"refresh": "Refresh",
+		"clearFilters": "Clear filters",
+		"viewDetails": "View details"
+	},
+	"kpis": {
+		"totalEvents": "Total Events",
+		"automations": "Automation Runs",
+		"alertsAndErrors": "Alerts & Errors",
+		"groupActions": "Group Actions",
+		"inPeriod": "in selected timeframe"
+	},
+	"filters": {
+		"searchPlaceholder": "Search event by description, device or room (Ctrl+K)...",
+		"searchLabel": "Search events",
+		"severity": "Severity",
+		"source": "Source",
+		"timeframe": "Timeframe",
+		"allSeverities": "All severities",
+		"allSources": "All sources",
+		"periods": {
+			"24h": "Last 24 hours",
+			"7d": "Last 7 days",
+			"30d": "Last 30 days",
+			"all": "All history"
+		},
+		"sources": {
+			"all": "All sources",
+			"Automation": "Automation",
+			"UserManual": "User",
+			"System": "System",
+			"DeviceGroup": "Device Group"
+		},
+		"severities": {
+			"all": "All severities",
+			"Info": "Info",
+			"Warning": "Warning",
+			"Error": "Error",
+			"Critical": "Critical"
+		}
+	},
+	"timeline": {
+		"today": "Today",
+		"yesterday": "Yesterday",
+		"entityGroup": "Group",
+		"entityRoom": "Room",
+		"entityDevice": "Device",
+		"entitySystem": "System",
+		"stateTransition": "{{from}} → {{to}}",
+		"emptyTitle": "No events found",
+		"emptyDescription": "No audit records match the selected filters and timeframe.",
+		"errorTitle": "Error loading history",
+		"errorDescription": "Could not fetch event trail from the server.",
+		"retry": "Try again",
+		"loading": "Loading audit history..."
+	},
+	"pagination": {
+		"page": "Page {{current}} of {{total}}",
+		"showing": "Showing {{count}} of {{total}} events",
+		"previous": "Previous",
+		"next": "Next"
+	},
+	"detailModal": {
+		"title": "Event Details",
+		"description": "Full audit payload and metadata.",
+		"timestamp": "Local Time",
+		"timestampUtc": "UTC Timestamp",
+		"eventType": "Event Type",
+		"source": "Source",
+		"severity": "Severity",
+		"target": "Target Entity",
+		"device": "Device",
+		"room": "Room",
+		"group": "Group",
+		"message": "Description / Log",
+		"oldValue": "Old Value",
+		"newValue": "New Value",
+		"eventId": "Event ID",
+		"close": "Close"
+	}
+}

@@ -29,6 +29,7 @@ const DeviceGroupsPage = lazy(
 const AutomationsPage = lazy(
 	() => import("@/pages/automations/AutomationsPage"),
 );
+const HistoryPage = lazy(() => import("@/pages/history/HistoryPage"));
 const SettingsPage = lazy(() => import("@/pages/settings/SettingsPage"));
 
 const DevToolsPage = import.meta.env.DEV
@@ -86,6 +87,10 @@ const router = createBrowserRouter([
 					{
 						path: "/automations",
 						element: withFallback(<AutomationsPage />),
+					},
+					{
+						path: "/history",
+						element: withFallback(<HistoryPage />),
 					},
 					{
 						path: "/settings",
