@@ -18,7 +18,10 @@ public record SetDeviceStateCommand(
     Guid DeviceId,
     string FirebaseUid,
     bool DesiredState,
-    string TraceId
+    string TraceId,
+    EventSource Source = EventSource.UserManual,
+    Guid? DeviceGroupId = null,
+    string? DeviceGroupName = null
 ) : ICommand<Result>;
 
 public class SetDeviceStateCommandValidator : AbstractValidator<SetDeviceStateCommand>
@@ -200,14 +203,14 @@ public partial class SetDeviceStateCommandHandler(
             await mqttService.PublishAsync(topic, commandPayload);
         }
 
-        // Atualiza estado e salva evento
+        // Atualiza estado e salva evento com snapshot completo
+        var previousState = device.IsOn;
         device.IsOn = confirmedIsOn;
 
-        var (title, description) = ActivityLogMessages.DeviceStatusChanged(
+        var (title, description) = ActivityLogMessages.DevicePowerStateChanged(
             device.Name,
             device.Room?.Name,
-            device.IsOn,
-            device.IsOnline
+            device.IsOn
         );
 
         dbContext.SystemEvents.Add(
@@ -215,9 +218,19 @@ public partial class SetDeviceStateCommandHandler(
             {
                 UserId = device.UserId,
                 DeviceId = device.Id,
-                EventType = ActivityEventTypes.DeviceStatus,
+                EventType = ActivityEventTypes.StateChange,
                 Title = title,
                 Description = description,
+                Severity = EventSeverity.Info,
+                Source = request.Source,
+                DeviceName = device.Name,
+                RoomId = device.RoomId,
+                RoomName = device.Room?.Name,
+                DeviceGroupId = request.DeviceGroupId,
+                DeviceGroupName = request.DeviceGroupName,
+                OldValue = previousState ? "on" : "off",
+                NewValue = confirmedIsOn ? "on" : "off",
+                IsAlert = false,
                 Timestamp = DateTimeOffset.UtcNow,
             }
         );

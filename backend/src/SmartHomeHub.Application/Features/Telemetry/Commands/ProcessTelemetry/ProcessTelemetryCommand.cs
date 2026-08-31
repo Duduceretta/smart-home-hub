@@ -7,6 +7,7 @@ using SmartHomeHub.Application.Features.Dashboards.ActivityLog;
 using SmartHomeHub.Application.Features.Telemetry.Events;
 using SmartHomeHub.Domain.Common.Primitives;
 using SmartHomeHub.Domain.Entities;
+using SmartHomeHub.Domain.Enums;
 
 namespace SmartHomeHub.Application.Features.Telemetry.Commands.ProcessTelemetry;
 
@@ -116,9 +117,17 @@ public class ProcessTelemetryCommandHandler(
                     {
                         UserId = device.UserId,
                         DeviceId = device.Id,
-                        EventType = ActivityEventTypes.DeviceStatus,
+                        EventType = ActivityEventTypes.StateChange,
                         Title = title,
                         Description = description,
+                        Severity = EventSeverity.Info,
+                        Source = EventSource.System,
+                        DeviceName = device.Name,
+                        RoomId = device.RoomId,
+                        RoomName = device.Room?.Name,
+                        OldValue = !wasOnline ? "offline" : (wasOn ? "on" : "off"),
+                        NewValue = device.IsOn ? "on" : "off",
+                        IsAlert = false,
                         Timestamp = nowUtc,
                     }
                 );

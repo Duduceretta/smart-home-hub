@@ -99,7 +99,10 @@ public class SetDeviceGroupPowerCommandHandler(IAppDbContext dbContext, ISender 
                     deviceId,
                     request.FirebaseUid,
                     request.DesiredState,
-                    traceId
+                    traceId,
+                    EventSource.DeviceGroup,
+                    group.Id,
+                    group.Name
                 ),
                 cancellationToken
             );

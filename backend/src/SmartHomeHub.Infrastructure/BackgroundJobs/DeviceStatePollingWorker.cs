@@ -126,9 +126,17 @@ public sealed class DeviceStatePollingWorker(
                         {
                             UserId = device.UserId,
                             DeviceId = device.Id,
-                            EventType = ActivityEventTypes.DeviceStatus,
+                            EventType = ActivityEventTypes.StateChange,
                             Title = title,
                             Description = description,
+                            Severity = EventSeverity.Info,
+                            Source = EventSource.System,
+                            DeviceName = device.Name,
+                            RoomId = device.RoomId,
+                            RoomName = device.Room?.Name,
+                            OldValue = !device.IsOn ? "on" : "off",
+                            NewValue = device.IsOn ? "on" : "off",
+                            IsAlert = false,
                             Timestamp = DateTimeOffset.UtcNow,
                         }
                     );
@@ -233,9 +241,17 @@ public sealed class DeviceStatePollingWorker(
                     {
                         UserId = user.Id,
                         DeviceId = null,
-                        EventType = ActivityEventTypes.Spotify,
+                        EventType = ActivityEventTypes.MediaPlayback,
                         Title = title,
                         Description = description,
+                        Severity = EventSeverity.Info,
+                        Source = EventSource.System,
+                        DeviceName = "Spotify",
+                        RoomId = null,
+                        RoomName = null,
+                        OldValue = lastKnown?.Title,
+                        NewValue = mediaState.Title,
+                        IsAlert = false,
                         Timestamp = DateTimeOffset.UtcNow,
                     }
                 );
@@ -306,9 +322,17 @@ public sealed class DeviceStatePollingWorker(
                     {
                         UserId = device.UserId,
                         DeviceId = device.Id,
-                        EventType = ActivityEventTypes.DeviceMedia,
+                        EventType = ActivityEventTypes.MediaPlayback,
                         Title = title,
                         Description = description,
+                        Severity = EventSeverity.Info,
+                        Source = EventSource.System,
+                        DeviceName = device.Name,
+                        RoomId = device.RoomId,
+                        RoomName = device.Room?.Name,
+                        OldValue = lastKnown?.Title,
+                        NewValue = mediaState.Title,
+                        IsAlert = false,
                         Timestamp = DateTimeOffset.UtcNow,
                     }
                 );

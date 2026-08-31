@@ -11,6 +11,12 @@ public static class ActivityEventTypes
     public const string DeviceMedia = "DeviceMedia";
     public const string Spotify = "Spotify";
     public const string AutomationExecuted = "AutomationExecuted";
+    public const string StateChange = "StateChange";
+    public const string AutomationTriggered = "AutomationTriggered";
+    public const string DeviceOffline = "DeviceOffline";
+    public const string DeviceOnline = "DeviceOnline";
+    public const string MediaPlayback = "MediaPlayback";
+    public const string Alert = "Alert";
 }
 
 /// <summary>
@@ -83,7 +89,8 @@ public static class ActivityLogMessages
         string? artist
     )
     {
-        return ("Nova reprodução na TV", artist != null ? $"{title} — {artist}" : title);
+        var description = artist != null ? $"Tocando: {title} — {artist}" : $"Tocando: {title}";
+        return ("Nova reprodução na TV", description);
     }
 
     public static (string Title, string Description) SpotifyPlaybackChanged(
@@ -93,7 +100,7 @@ public static class ActivityLogMessages
     )
     {
         var eventTitle = isPlaying ? "Spotify reproduzindo" : "Spotify pausado";
-        var description = artist != null ? $"{title} — {artist}" : title;
+        var description = artist != null ? $"Tocando: {title} — {artist}" : $"Tocando: {title}";
 
         return (eventTitle, description);
     }

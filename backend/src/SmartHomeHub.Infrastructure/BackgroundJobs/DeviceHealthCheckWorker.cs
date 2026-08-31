@@ -6,6 +6,7 @@ using SmartHomeHub.Application.Common.Extensions;
 using SmartHomeHub.Application.Common.Interfaces;
 using SmartHomeHub.Application.Features.Dashboards.ActivityLog;
 using SmartHomeHub.Domain.Entities;
+using SmartHomeHub.Domain.Enums;
 
 namespace SmartHomeHub.Infrastructure.BackgroundJobs;
 
@@ -111,9 +112,19 @@ public sealed class DeviceHealthCheckWorker(
                 {
                     UserId = device.UserId,
                     DeviceId = device.Id,
-                    EventType = ActivityEventTypes.DeviceStatus,
+                    EventType = device.IsOnline
+                        ? ActivityEventTypes.DeviceOnline
+                        : ActivityEventTypes.DeviceOffline,
                     Title = title,
                     Description = description,
+                    Severity = device.IsOnline ? EventSeverity.Info : EventSeverity.Warning,
+                    Source = EventSource.System,
+                    DeviceName = device.Name,
+                    RoomId = device.RoomId,
+                    RoomName = device.Room?.Name,
+                    OldValue = device.IsOnline ? "offline" : "online",
+                    NewValue = device.IsOnline ? "online" : "offline",
+                    IsAlert = !device.IsOnline,
                     Timestamp = DateTimeOffset.UtcNow,
                 }
             );

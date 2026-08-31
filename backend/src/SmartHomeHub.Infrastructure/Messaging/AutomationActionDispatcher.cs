@@ -9,6 +9,7 @@ using SmartHomeHub.Application.Features.Dashboards.ActivityLog;
 using SmartHomeHub.Application.Features.Devices.Commands.SetDeviceState;
 using SmartHomeHub.Domain.Common.Primitives;
 using SmartHomeHub.Domain.Entities;
+using SmartHomeHub.Domain.Enums;
 
 namespace SmartHomeHub.Infrastructure.Messaging;
 
@@ -89,14 +90,28 @@ public sealed class AutomationActionDispatcher(
                 .Where(automation => automation.Id == automationId)
                 .Select(automation => automation.Name)
                 .FirstOrDefaultAsync() ?? "Automação";
-        var deviceName =
+        var device =
             await dbContext
                 .Devices.AsNoTracking()
-                .Where(device => device.Id == deviceId)
-                .Select(device => device.Name)
-                .FirstOrDefaultAsync() ?? "dispositivo";
+                .Where(d => d.Id == deviceId)
+                .Select(d => new
+                {
+                    d.Name,
+                    d.RoomId,
+                    RoomName = d.Room != null ? d.Room.Name : null,
+                })
+                .FirstOrDefaultAsync();
+        var deviceName = device?.Name ?? "dispositivo";
+        var roomId = device?.RoomId;
+        var roomName = device?.RoomName;
 
-        var command = new SetDeviceStateCommand(deviceId, firebaseUid, desiredState, traceId);
+        var command = new SetDeviceStateCommand(
+            deviceId,
+            firebaseUid,
+            desiredState,
+            traceId,
+            EventSource.Automation
+        );
 
         Result result;
         try
@@ -121,6 +136,9 @@ public sealed class AutomationActionDispatcher(
                 deviceId,
                 automationName,
                 deviceName,
+                roomId,
+                roomName,
+                desiredState,
                 success: false,
                 ex.Message
             );
@@ -149,6 +167,9 @@ public sealed class AutomationActionDispatcher(
                 deviceId,
                 automationName,
                 deviceName,
+                roomId,
+                roomName,
+                desiredState,
                 success: false,
                 result.Error.Description
             );
@@ -168,6 +189,9 @@ public sealed class AutomationActionDispatcher(
             deviceId,
             automationName,
             deviceName,
+            roomId,
+            roomName,
+            desiredState,
             success: true,
             errorMessage: null
         );
@@ -183,6 +207,9 @@ public sealed class AutomationActionDispatcher(
         Guid deviceId,
         string automationName,
         string deviceName,
+        Guid? roomId,
+        string? roomName,
+        bool desiredState,
         bool success,
         string? errorMessage
     )
@@ -208,9 +235,16 @@ public sealed class AutomationActionDispatcher(
                     UserId = user,
                     DeviceId = deviceId,
                     AutomationId = automationId,
-                    EventType = ActivityEventTypes.AutomationExecuted,
+                    EventType = ActivityEventTypes.AutomationTriggered,
                     Title = title,
                     Description = description,
+                    Severity = success ? EventSeverity.Info : EventSeverity.Error,
+                    Source = EventSource.Automation,
+                    DeviceName = deviceName,
+                    RoomId = roomId,
+                    RoomName = roomName,
+                    OldValue = null,
+                    NewValue = success ? (desiredState ? "on" : "off") : null,
                     IsAlert = !success,
                     Timestamp = DateTimeOffset.UtcNow,
                 }
