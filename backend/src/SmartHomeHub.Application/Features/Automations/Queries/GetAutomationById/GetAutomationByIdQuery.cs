@@ -2,7 +2,7 @@ using Mediator;
 using Microsoft.EntityFrameworkCore;
 using SmartHomeHub.Application.Common.Interfaces;
 using SmartHomeHub.Application.Features.Automations.Queries.GetAutomations;
-using SmartHomeHub.Application.Features.Dashboards.ActivityLog;
+using SmartHomeHub.Domain.Common.Constants;
 
 namespace SmartHomeHub.Application.Features.Automations.Queries.GetAutomationById;
 
@@ -38,14 +38,14 @@ public class GetAutomationByIdQueryHandler(IAppDbContext dbContext)
                 dbContext
                     .SystemEvents.Where(systemEvent =>
                         systemEvent.AutomationId == automation.Id
-                        && systemEvent.EventType == ActivityEventTypes.AutomationExecuted
+                        && systemEvent.EventType == SystemEventTypes.AutomationExecuted
                     )
                     .OrderByDescending(systemEvent => systemEvent.Timestamp)
                     .Select(systemEvent => (DateTimeOffset?)systemEvent.Timestamp)
                     .FirstOrDefault(),
                 dbContext.SystemEvents.Any(systemEvent =>
                     systemEvent.AutomationId == automation.Id
-                    && systemEvent.EventType == ActivityEventTypes.AutomationExecuted
+                    && systemEvent.EventType == SystemEventTypes.AutomationExecuted
                     && systemEvent.IsAlert
                     && systemEvent.Timestamp >= todayStartUtc
                 )

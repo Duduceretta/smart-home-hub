@@ -5,6 +5,7 @@ using Microsoft.Extensions.Logging;
 using NSubstitute;
 using SmartHomeHub.Application.Common.Interfaces;
 using SmartHomeHub.Application.Features.Dashboards.ActivityLog;
+using SmartHomeHub.Domain.Common.Constants;
 using SmartHomeHub.Application.Features.Devices.Commands.SetDeviceState;
 using SmartHomeHub.Domain.Common.Primitives;
 using SmartHomeHub.Domain.Entities;
@@ -86,7 +87,7 @@ public class AutomationActionDispatcherTests
         var systemEvent = _dbContext.SystemEvents.Should().ContainSingle().Subject;
         systemEvent.AutomationId.Should().Be(automationId);
         systemEvent.DeviceId.Should().Be(deviceId);
-        systemEvent.EventType.Should().Be(ActivityEventTypes.AutomationTriggered);
+        systemEvent.EventType.Should().Be(SystemEventTypes.AutomationTriggered);
         systemEvent.Severity.Should().Be(SmartHomeHub.Domain.Enums.EventSeverity.Info);
         systemEvent.Source.Should().Be(SmartHomeHub.Domain.Enums.EventSource.Automation);
         systemEvent.DeviceName.Should().Be("Tomada da Sala");

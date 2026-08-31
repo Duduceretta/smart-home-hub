@@ -1,7 +1,7 @@
 using Mediator;
 using Microsoft.EntityFrameworkCore;
 using SmartHomeHub.Application.Common.Interfaces;
-using SmartHomeHub.Application.Features.Dashboards.ActivityLog;
+using SmartHomeHub.Domain.Common.Constants;
 
 namespace SmartHomeHub.Application.Features.Automations.Queries.GetAutomationExecutionsByWeekday;
 
@@ -31,7 +31,7 @@ public class GetAutomationExecutionsByWeekdayQueryHandler(IAppDbContext dbContex
             .SystemEvents.AsNoTracking()
             .Where(systemEvent =>
                 systemEvent.AutomationId == request.AutomationId
-                && systemEvent.EventType == ActivityEventTypes.AutomationExecuted
+                && systemEvent.EventType == SystemEventTypes.AutomationExecuted
                 && systemEvent.User.ExternalAuthUid == request.FirebaseUid
                 && systemEvent.Timestamp >= sinceUtc
             )

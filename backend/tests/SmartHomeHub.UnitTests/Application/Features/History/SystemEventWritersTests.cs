@@ -5,6 +5,7 @@ using Microsoft.Extensions.Logging;
 using NSubstitute;
 using SmartHomeHub.Application.Common.Interfaces;
 using SmartHomeHub.Application.Features.Dashboards.ActivityLog;
+using SmartHomeHub.Domain.Common.Constants;
 using SmartHomeHub.Application.Features.Devices.Commands.SetDeviceState;
 using SmartHomeHub.Application.Features.Devices.Common;
 using SmartHomeHub.Application.Features.Telemetry.Commands.ProcessTelemetry;
@@ -94,7 +95,7 @@ public class SystemEventWritersTests
         ev.Should().NotBeNull();
         ev!.Severity.Should().Be(EventSeverity.Info);
         ev.Source.Should().Be(EventSource.UserManual);
-        ev.EventType.Should().Be(ActivityEventTypes.StateChange);
+        ev.EventType.Should().Be(SystemEventTypes.StateChange);
         ev.DeviceName.Should().Be("Cafeteira Inteligente");
         ev.RoomId.Should().Be(room.Id);
         ev.RoomName.Should().Be("Cozinha");
@@ -143,7 +144,7 @@ public class SystemEventWritersTests
         ev.Should().NotBeNull();
         ev!.Severity.Should().Be(EventSeverity.Info);
         ev.Source.Should().Be(EventSource.System);
-        ev.EventType.Should().Be(ActivityEventTypes.StateChange);
+        ev.EventType.Should().Be(SystemEventTypes.StateChange);
         ev.DeviceName.Should().Be("Lâmpada Mesa");
         ev.RoomId.Should().Be(room.Id);
         ev.RoomName.Should().Be("Escritório");
@@ -211,7 +212,7 @@ public class SystemEventWritersTests
         ev.Should().NotBeNull();
         ev!.Severity.Should().Be(EventSeverity.Warning);
         ev.Source.Should().Be(EventSource.System);
-        ev.EventType.Should().Be(ActivityEventTypes.DeviceOffline);
+        ev.EventType.Should().Be(SystemEventTypes.DeviceOffline);
         ev.DeviceName.Should().Be("Câmera Portão");
         ev.RoomName.Should().Be("Garagem");
         ev.OldValue.Should().Be("online");
@@ -266,13 +267,13 @@ public class SystemEventWritersTests
 
         // Assert
         var ev = await _dbContext.SystemEvents.FirstOrDefaultAsync(
-            e => e.UserId == user.Id && e.EventType == ActivityEventTypes.MediaPlayback,
+            e => e.UserId == user.Id && e.EventType == SystemEventTypes.MediaPlayback,
             TestContext.Current.CancellationToken
         );
         ev.Should().NotBeNull();
         ev!.Severity.Should().Be(EventSeverity.Info);
         ev.Source.Should().Be(EventSource.System);
-        ev.EventType.Should().Be(ActivityEventTypes.MediaPlayback);
+        ev.EventType.Should().Be(SystemEventTypes.MediaPlayback);
         ev.DeviceName.Should().Be("Spotify");
         ev.Description.Should().Be("Tocando: Bohemian Rhapsody — Queen");
         ev.NewValue.Should().Be("Bohemian Rhapsody");

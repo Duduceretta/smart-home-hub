@@ -1,25 +1,6 @@
 namespace SmartHomeHub.Application.Features.Dashboards.ActivityLog;
 
 /// <summary>
-/// Tipos de EventType persistidos em SystemEvent para entradas geradas pela
-/// Linha do Tempo do dashboard (distintos dos EventTypes livres usados por
-/// outras origens de SystemEvent, ex: "Security").
-/// </summary>
-public static class ActivityEventTypes
-{
-    public const string DeviceStatus = "DeviceStatus";
-    public const string DeviceMedia = "DeviceMedia";
-    public const string Spotify = "Spotify";
-    public const string AutomationExecuted = "AutomationExecuted";
-    public const string StateChange = "StateChange";
-    public const string AutomationTriggered = "AutomationTriggered";
-    public const string DeviceOffline = "DeviceOffline";
-    public const string DeviceOnline = "DeviceOnline";
-    public const string MediaPlayback = "MediaPlayback";
-    public const string Alert = "Alert";
-}
-
-/// <summary>
 /// Constrói o par (Title, Description) da Linha do Tempo — centralizado aqui
 /// porque três origens diferentes (ProcessTelemetryCommand, DeviceHealthCheckWorker,
 /// DeviceStatePollingWorker) precisam gerar o mesmo texto para o mesmo tipo de

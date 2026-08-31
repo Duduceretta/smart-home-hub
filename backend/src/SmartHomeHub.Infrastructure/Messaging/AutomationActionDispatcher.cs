@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using SmartHomeHub.Application.Common.Interfaces;
 using SmartHomeHub.Application.Features.Dashboards.ActivityLog;
+using SmartHomeHub.Domain.Common.Constants;
 using SmartHomeHub.Application.Features.Devices.Commands.SetDeviceState;
 using SmartHomeHub.Domain.Common.Primitives;
 using SmartHomeHub.Domain.Entities;
@@ -235,7 +236,7 @@ public sealed class AutomationActionDispatcher(
                     UserId = user,
                     DeviceId = deviceId,
                     AutomationId = automationId,
-                    EventType = ActivityEventTypes.AutomationTriggered,
+                    EventType = SystemEventTypes.AutomationTriggered,
                     Title = title,
                     Description = description,
                     Severity = success ? EventSeverity.Info : EventSeverity.Error,

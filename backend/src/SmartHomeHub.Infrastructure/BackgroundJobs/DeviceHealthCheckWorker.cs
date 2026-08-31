@@ -5,6 +5,7 @@ using Microsoft.Extensions.Logging;
 using SmartHomeHub.Application.Common.Extensions;
 using SmartHomeHub.Application.Common.Interfaces;
 using SmartHomeHub.Application.Features.Dashboards.ActivityLog;
+using SmartHomeHub.Domain.Common.Constants;
 using SmartHomeHub.Domain.Entities;
 using SmartHomeHub.Domain.Enums;
 
@@ -113,8 +114,8 @@ public sealed class DeviceHealthCheckWorker(
                     UserId = device.UserId,
                     DeviceId = device.Id,
                     EventType = device.IsOnline
-                        ? ActivityEventTypes.DeviceOnline
-                        : ActivityEventTypes.DeviceOffline,
+                        ? SystemEventTypes.DeviceOnline
+                        : SystemEventTypes.DeviceOffline,
                     Title = title,
                     Description = description,
                     Severity = device.IsOnline ? EventSeverity.Info : EventSeverity.Warning,

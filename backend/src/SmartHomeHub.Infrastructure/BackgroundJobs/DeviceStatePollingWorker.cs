@@ -6,6 +6,7 @@ using Microsoft.Extensions.Logging;
 using SmartHomeHub.Application.Common.Extensions;
 using SmartHomeHub.Application.Common.Interfaces;
 using SmartHomeHub.Application.Features.Dashboards.ActivityLog;
+using SmartHomeHub.Domain.Common.Constants;
 using SmartHomeHub.Application.Features.Devices.Common;
 using SmartHomeHub.Domain.Entities;
 using SmartHomeHub.Domain.Enums;
@@ -126,7 +127,7 @@ public sealed class DeviceStatePollingWorker(
                         {
                             UserId = device.UserId,
                             DeviceId = device.Id,
-                            EventType = ActivityEventTypes.StateChange,
+                            EventType = SystemEventTypes.StateChange,
                             Title = title,
                             Description = description,
                             Severity = EventSeverity.Info,
@@ -241,7 +242,7 @@ public sealed class DeviceStatePollingWorker(
                     {
                         UserId = user.Id,
                         DeviceId = null,
-                        EventType = ActivityEventTypes.MediaPlayback,
+                        EventType = SystemEventTypes.MediaPlayback,
                         Title = title,
                         Description = description,
                         Severity = EventSeverity.Info,
@@ -322,7 +323,7 @@ public sealed class DeviceStatePollingWorker(
                     {
                         UserId = device.UserId,
                         DeviceId = device.Id,
-                        EventType = ActivityEventTypes.MediaPlayback,
+                        EventType = SystemEventTypes.MediaPlayback,
                         Title = title,
                         Description = description,
                         Severity = EventSeverity.Info,

@@ -4,6 +4,7 @@ using Mediator;
 using Microsoft.EntityFrameworkCore;
 using SmartHomeHub.Application.Common.Interfaces;
 using SmartHomeHub.Application.Features.Dashboards.ActivityLog;
+using SmartHomeHub.Domain.Common.Constants;
 using SmartHomeHub.Application.Features.Telemetry.Events;
 using SmartHomeHub.Domain.Common.Primitives;
 using SmartHomeHub.Domain.Entities;
@@ -117,7 +118,7 @@ public class ProcessTelemetryCommandHandler(
                     {
                         UserId = device.UserId,
                         DeviceId = device.Id,
-                        EventType = ActivityEventTypes.StateChange,
+                        EventType = SystemEventTypes.StateChange,
                         Title = title,
                         Description = description,
                         Severity = EventSeverity.Info,

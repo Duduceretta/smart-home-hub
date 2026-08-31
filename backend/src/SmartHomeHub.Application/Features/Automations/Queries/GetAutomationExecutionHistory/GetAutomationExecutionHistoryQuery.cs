@@ -2,8 +2,8 @@ using Mediator;
 using Microsoft.EntityFrameworkCore;
 using SmartHomeHub.Application.Common.Interfaces;
 using SmartHomeHub.Application.Common.Pagination;
-using SmartHomeHub.Application.Features.Dashboards.ActivityLog;
 using SmartHomeHub.Application.Features.Dashboards.Queries.GetActivityLog;
+using SmartHomeHub.Domain.Common.Constants;
 
 namespace SmartHomeHub.Application.Features.Automations.Queries.GetAutomationExecutionHistory;
 
@@ -32,7 +32,7 @@ public class GetAutomationExecutionHistoryQueryHandler(IAppDbContext dbContext)
             .SystemEvents.AsNoTracking()
             .Where(systemEvent =>
                 systemEvent.AutomationId == request.AutomationId
-                && systemEvent.EventType == ActivityEventTypes.AutomationExecuted
+                && systemEvent.EventType == SystemEventTypes.AutomationExecuted
                 && systemEvent.User.ExternalAuthUid == request.FirebaseUid
             )
             .OrderByDescending(systemEvent => systemEvent.Timestamp)
