@@ -3,7 +3,10 @@ using Mediator;
 using SmartHomeHub.Api.Extensions;
 using SmartHomeHub.Application.Features.DeviceGroups.Commands.CreateDeviceGroup;
 using SmartHomeHub.Application.Features.DeviceGroups.Commands.DeleteDeviceGroup;
+using SmartHomeHub.Application.Features.DeviceGroups.Commands.SetDeviceGroupBrightness;
+using SmartHomeHub.Application.Features.DeviceGroups.Commands.SetDeviceGroupPower;
 using SmartHomeHub.Application.Features.DeviceGroups.Commands.UpdateDeviceGroup;
+using SmartHomeHub.Application.Features.DeviceGroups.Queries.GetDeviceGroupAutomations;
 using SmartHomeHub.Application.Features.DeviceGroups.Queries.GetDeviceGroupById;
 using SmartHomeHub.Application.Features.DeviceGroups.Queries.GetDeviceGroups;
 
@@ -196,9 +199,125 @@ public static class DeviceGroupEndpoints
             )
             .Produces(StatusCodes.Status204NoContent)
             .ProducesProblem(StatusCodes.Status404NotFound);
+
+        app.MapPost(
+                "/api/device-groups/{id:guid}/devices/turn-on",
+                async (
+                    Guid id,
+                    ClaimsPrincipal userToken,
+                    IMediator mediator,
+                    CancellationToken cancellationToken
+                ) =>
+                {
+                    var firebaseUid = userToken.FindFirst("user_id")?.Value;
+
+                    if (string.IsNullOrEmpty(firebaseUid))
+                        return Results.Unauthorized();
+
+                    var command = new SetDeviceGroupPowerCommand(id, firebaseUid, DesiredState: true);
+                    var result = await mediator.Send(command, cancellationToken);
+
+                    return result.IsFailure ? result.ToProblemDetails() : Results.Ok(result.Value);
+                }
+            )
+            .RequireAuthorization()
+            .WithTags("Device Groups")
+            .WithSummary("Liga todos os dispositivos do grupo em lote")
+            .Produces<DeviceGroupBulkPowerResultDto>(StatusCodes.Status200OK)
+            .ProducesProblem(StatusCodes.Status400BadRequest)
+            .ProducesProblem(StatusCodes.Status404NotFound);
+
+        app.MapPost(
+                "/api/device-groups/{id:guid}/devices/turn-off",
+                async (
+                    Guid id,
+                    ClaimsPrincipal userToken,
+                    IMediator mediator,
+                    CancellationToken cancellationToken
+                ) =>
+                {
+                    var firebaseUid = userToken.FindFirst("user_id")?.Value;
+
+                    if (string.IsNullOrEmpty(firebaseUid))
+                        return Results.Unauthorized();
+
+                    var command = new SetDeviceGroupPowerCommand(id, firebaseUid, DesiredState: false);
+                    var result = await mediator.Send(command, cancellationToken);
+
+                    return result.IsFailure ? result.ToProblemDetails() : Results.Ok(result.Value);
+                }
+            )
+            .RequireAuthorization()
+            .WithTags("Device Groups")
+            .WithSummary("Desliga todos os dispositivos do grupo em lote")
+            .Produces<DeviceGroupBulkPowerResultDto>(StatusCodes.Status200OK)
+            .ProducesProblem(StatusCodes.Status400BadRequest)
+            .ProducesProblem(StatusCodes.Status404NotFound);
+
+        app.MapPut(
+                "/api/device-groups/{id:guid}/devices/brightness",
+                async (
+                    Guid id,
+                    SetDeviceGroupBrightnessRequest request,
+                    ClaimsPrincipal userToken,
+                    IMediator mediator,
+                    CancellationToken cancellationToken
+                ) =>
+                {
+                    var firebaseUid = userToken.FindFirst("user_id")?.Value;
+
+                    if (string.IsNullOrEmpty(firebaseUid))
+                        return Results.Unauthorized();
+
+                    var command = new SetDeviceGroupBrightnessCommand(
+                        id,
+                        firebaseUid,
+                        request.BrightnessPercent
+                    );
+                    var result = await mediator.Send(command, cancellationToken);
+
+                    return result.IsFailure ? result.ToProblemDetails() : Results.Ok(result.Value);
+                }
+            )
+            .RequireAuthorization()
+            .WithTags("Device Groups")
+            .WithSummary("Ajusta o brilho de todas as lâmpadas do grupo em lote")
+            .Produces<DeviceGroupBulkBrightnessResultDto>(StatusCodes.Status200OK)
+            .ProducesProblem(StatusCodes.Status400BadRequest)
+            .ProducesProblem(StatusCodes.Status404NotFound)
+            .ProducesProblem(StatusCodes.Status422UnprocessableEntity);
+
+        app.MapGet(
+                "/api/device-groups/{id:guid}/automations",
+                async (
+                    Guid id,
+                    ClaimsPrincipal userToken,
+                    IMediator mediator,
+                    CancellationToken cancellationToken
+                ) =>
+                {
+                    var firebaseUid = userToken.FindFirst("user_id")?.Value;
+
+                    if (string.IsNullOrEmpty(firebaseUid))
+                        return Results.Unauthorized();
+
+                    var query = new GetDeviceGroupAutomationsQuery(id, firebaseUid);
+                    var result = await mediator.Send(query, cancellationToken);
+
+                    return result.IsFailure ? result.ToProblemDetails() : Results.Ok(result.Value);
+                }
+            )
+            .RequireAuthorization()
+            .WithTags("Device Groups")
+            .WithSummary("Automações vinculadas ao grupo de dispositivos")
+            .Produces<List<DeviceGroupAutomationDto>>(StatusCodes.Status200OK)
+            .ProducesProblem(StatusCodes.Status400BadRequest)
+            .ProducesProblem(StatusCodes.Status404NotFound);
     }
 }
 
 public record CreateDeviceGroupRequest(string Name, string? Icon, List<Guid> DeviceIds);
 
 public record UpdateDeviceGroupRequest(string Name, string? Icon, List<Guid> DeviceIds);
+
+public record SetDeviceGroupBrightnessRequest(int BrightnessPercent);
