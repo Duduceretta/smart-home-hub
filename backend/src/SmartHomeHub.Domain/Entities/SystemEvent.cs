@@ -45,6 +45,15 @@ public class SystemEvent
     public string? OldValue { get; set; }
     public string? NewValue { get; set; }
 
+    /// <summary>
+    /// Correlaciona todas as linhas geradas pelo mesmo disparo de automação — uma
+    /// automação com N ações gera N SystemEvents com o mesmo TraceId. Usado pelas
+    /// queries agregadas (contagem semanal, KPI de histórico) pra contar disparos
+    /// distintos em vez de linhas brutas. Null para eventos que não vêm de
+    /// automação (StateChange manual, health check, etc).
+    /// </summary>
+    public string? TraceId { get; set; }
+
     public DateTimeOffset Timestamp { get; set; }
 
     public User User { get; set; } = null!;

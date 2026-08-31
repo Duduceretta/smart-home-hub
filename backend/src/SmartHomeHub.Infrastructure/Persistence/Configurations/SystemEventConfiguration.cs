@@ -20,6 +20,7 @@ public class SystemEventConfiguration : IEntityTypeConfiguration<SystemEvent>
         builder.Property(events => events.DeviceGroupName).HasMaxLength(100);
         builder.Property(events => events.OldValue).HasMaxLength(255);
         builder.Property(events => events.NewValue).HasMaxLength(255);
+        builder.Property(events => events.TraceId).HasMaxLength(64);
 
         builder
             .Property(events => events.Severity)
