@@ -42,6 +42,7 @@ beforeEach(() => {
 		page: 1,
 		pageSize: 20,
 		selectedEvent: null,
+		expandedEventId: null,
 	});
 });
 
@@ -141,13 +142,13 @@ describe("HistoryView Integration Tests", () => {
 		).toBeInTheDocument();
 		expect(screen.getByText("Timeout TCP no polling")).toBeInTheDocument();
 		expect(screen.getByText("Grupo Luzes acionado")).toBeInTheDocument();
-		expect(screen.getByText("Smart-TV-Pro")).toBeInTheDocument();
+		expect(screen.getByText(/Smart-TV-Pro/)).toBeInTheDocument();
 	});
 
-	it("HistoryView_ClickEventRow_ShouldOpenDetailModal", async () => {
+	it("HistoryView_ClickEventRow_ShouldToggleInlineExpansion", async () => {
 		// Arrange
 		const event = createHistoryEventMock({
-			id: "ev-modal-12345",
+			id: "ev-inline-12345",
 			description: "Lâmpada ligada via automação",
 			deviceName: "Lâmpada do Corredor",
 			source: "Automation",
@@ -161,14 +162,17 @@ describe("HistoryView Integration Tests", () => {
 		// Act
 		renderHistoryView();
 		const row = await screen.findByText("Lâmpada ligada via automação");
+
+		// Click to expand
 		await user.click(row);
 
-		// Assert
-		expect(await screen.findByRole("dialog")).toBeInTheDocument();
-		expect(screen.getByText("Detalhes do Evento")).toBeInTheDocument();
-		expect(screen.getByText("ev-modal-12345")).toBeInTheDocument();
-		expect(
-			screen.getAllByText("Lâmpada do Corredor").length,
-		).toBeGreaterThanOrEqual(1);
+		// Assert: expanded drawer shows details without popup modal
+		expect(screen.getByText(/ev-inline-12345/)).toBeInTheDocument();
+		expect(screen.getByText("Transição de Valor")).toBeInTheDocument();
+		expect(screen.getByText(/off → on/)).toBeInTheDocument();
+
+		// Click again to collapse
+		await user.click(row);
+		expect(useHistoryUIStore.getState().expandedEventId).toBeNull();
 	});
 });

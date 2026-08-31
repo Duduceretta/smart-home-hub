@@ -3,7 +3,6 @@ import { useEventHistory } from "../hooks/useEventHistory";
 import { useHistoryUIStore } from "../store/history-ui.store";
 import type { GetHistoryParams } from "../types/history.types";
 import { HistoryEmptyState } from "./HistoryEmptyState";
-import { HistoryEventDetailModal } from "./HistoryEventDetailModal";
 import { HistoryFiltersBar } from "./HistoryFiltersBar";
 import { HistoryHeader } from "./HistoryHeader";
 import { HistoryKpiCards } from "./HistoryKpiCards";
@@ -13,7 +12,7 @@ import { HistoryTimeline } from "./HistoryTimeline";
 
 /**
  * Main feature container for History & Audit Trail.
- * Formats query params from Zustand store, fetches data, and renders full audit layout.
+ * Stretches 100% full-width and utilizes inline accordion expansions with zero layout shifts.
  */
 export function HistoryView() {
 	const searchQuery = useHistoryUIStore((s) => s.searchQuery);
@@ -24,10 +23,10 @@ export function HistoryView() {
 	const customEndDateUtc = useHistoryUIStore((s) => s.customEndDateUtc);
 	const page = useHistoryUIStore((s) => s.page);
 	const pageSize = useHistoryUIStore((s) => s.pageSize);
-	const selectedEvent = useHistoryUIStore((s) => s.selectedEvent);
+	const expandedEventId = useHistoryUIStore((s) => s.expandedEventId);
 
 	const setPage = useHistoryUIStore((s) => s.setPage);
-	const setSelectedEvent = useHistoryUIStore((s) => s.setSelectedEvent);
+	const toggleExpandEvent = useHistoryUIStore((s) => s.toggleExpandEvent);
 
 	// Compute start and end dates in ISO string
 	const { startDateUtc, endDateUtc } = useMemo(() => {
@@ -84,7 +83,7 @@ export function HistoryView() {
 	}, [events, searchQuery]);
 
 	return (
-		<div className="mx-auto flex w-full max-w-7xl flex-col gap-6">
+		<div className="flex w-full flex-col gap-6">
 			{/* Page Header */}
 			<HistoryHeader
 				events={events}
@@ -109,7 +108,8 @@ export function HistoryView() {
 				<div className="flex flex-col gap-6">
 					<HistoryTimeline
 						events={filteredEvents}
-						onSelectEvent={(event) => setSelectedEvent(event)}
+						expandedEventId={expandedEventId}
+						onToggleExpand={toggleExpandEvent}
 					/>
 
 					<HistoryPagination
@@ -120,13 +120,6 @@ export function HistoryView() {
 					/>
 				</div>
 			)}
-
-			{/* Detail Modal */}
-			<HistoryEventDetailModal
-				event={selectedEvent}
-				isOpen={Boolean(selectedEvent)}
-				onClose={() => setSelectedEvent(null)}
-			/>
 		</div>
 	);
 }

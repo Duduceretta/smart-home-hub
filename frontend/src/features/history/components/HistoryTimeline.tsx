@@ -5,7 +5,8 @@ import { HistoryDateGroup } from "./HistoryDateGroup";
 
 interface HistoryTimelineProps {
 	events: HistoryEvent[];
-	onSelectEvent: (event: HistoryEvent) => void;
+	expandedEventId: string | null;
+	onToggleExpand: (id: string) => void;
 }
 
 /**
@@ -13,7 +14,8 @@ interface HistoryTimelineProps {
  */
 export function HistoryTimeline({
 	events,
-	onSelectEvent,
+	expandedEventId,
+	onToggleExpand,
 }: HistoryTimelineProps) {
 	// Group events by local calendar date (YYYY-MM-DD)
 	const groupedEvents = useMemo(() => {
@@ -33,13 +35,14 @@ export function HistoryTimeline({
 	}, [events]);
 
 	return (
-		<div className="flex flex-col gap-6">
+		<div className="flex flex-col gap-6 motion-safe:animate-in motion-safe:fade-in-50 motion-safe:duration-150">
 			{groupedEvents.map(({ dateKey, items }) => (
 				<HistoryDateGroup
 					key={dateKey}
 					dateKey={dateKey}
 					events={items}
-					onSelectEvent={onSelectEvent}
+					expandedEventId={expandedEventId}
+					onToggleExpand={onToggleExpand}
 				/>
 			))}
 		</div>

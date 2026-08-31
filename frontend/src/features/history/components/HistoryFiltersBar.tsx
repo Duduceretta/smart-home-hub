@@ -2,12 +2,13 @@ import { Calendar, Filter, Search, X } from "lucide-react";
 import { useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/core/components/ui/button";
+import { cn } from "@/core/utils";
 import { useHistoryUIStore } from "../store/history-ui.store";
 import type { HistoryTimeframePreset } from "../types/history.types";
 
 /**
  * Filter bar for the History audit view.
- * Includes search input with Ctrl+K shortcut listener, Timeframe, Severity, Source filters, and reset action.
+ * Uses zero-CLS smooth animated transitions between filter changes and expands inline.
  */
 export function HistoryFiltersBar() {
 	const { t } = useTranslation("history");
@@ -43,10 +44,10 @@ export function HistoryFiltersBar() {
 		timeframe !== "7d";
 
 	return (
-		<div className="flex flex-col gap-3 rounded-2xl border border-border-subtle bg-surface-low p-3.5">
+		<div className="flex flex-col gap-3 rounded-2xl border border-border-subtle bg-surface-low p-3.5 transition-all duration-200">
 			<div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
 				{/* Search Input with Ctrl+K badge */}
-				<div className="relative flex-1">
+				<div className="relative flex-1 min-w-0">
 					<Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
 					<input
 						ref={inputRef}
@@ -65,7 +66,7 @@ export function HistoryFiltersBar() {
 							<button
 								type="button"
 								onClick={() => setSearchQuery("")}
-								className="pointer-events-auto flex h-5 w-5 items-center justify-center rounded-md text-muted-foreground hover:text-foreground cursor-pointer"
+								className="pointer-events-auto flex h-5 w-5 items-center justify-center rounded-md text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
 								title="Limpar busca"
 							>
 								<X className="h-3.5 w-3.5" />
@@ -78,10 +79,10 @@ export function HistoryFiltersBar() {
 					</div>
 				</div>
 
-				{/* Inline Selects */}
-				<div className="flex flex-wrap items-center gap-2">
+				{/* Inline Selects & Smooth Action Drawer */}
+				<div className="flex flex-wrap items-center gap-2 shrink-0">
 					{/* Timeframe selector */}
-					<div className="flex items-center gap-1.5 rounded-xl border border-border-subtle bg-surface-container px-3 h-10">
+					<div className="flex items-center gap-1.5 rounded-xl border border-border-subtle bg-surface-container px-3 h-10 transition-colors hover:border-border">
 						<Calendar className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
 						<select
 							value={timeframe}
@@ -107,7 +108,7 @@ export function HistoryFiltersBar() {
 					</div>
 
 					{/* Severity filter */}
-					<div className="flex items-center gap-1.5 rounded-xl border border-border-subtle bg-surface-container px-3 h-10">
+					<div className="flex items-center gap-1.5 rounded-xl border border-border-subtle bg-surface-container px-3 h-10 transition-colors hover:border-border">
 						<Filter className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
 						<select
 							value={selectedSeverity}
@@ -134,7 +135,7 @@ export function HistoryFiltersBar() {
 					</div>
 
 					{/* Source filter */}
-					<div className="flex items-center gap-1.5 rounded-xl border border-border-subtle bg-surface-container px-3 h-10">
+					<div className="flex items-center gap-1.5 rounded-xl border border-border-subtle bg-surface-container px-3 h-10 transition-colors hover:border-border">
 						<select
 							value={selectedSource}
 							onChange={(e) => setSelectedSource(e.target.value)}
@@ -162,18 +163,25 @@ export function HistoryFiltersBar() {
 						</select>
 					</div>
 
-					{/* Reset Filters button */}
-					{isDirty && (
+					{/* Smooth Zero-CLS Reset Filters Button */}
+					<div
+						className={cn(
+							"overflow-hidden transition-[max-width,opacity] duration-200 ease-out flex items-center",
+							isDirty
+								? "max-w-36 opacity-100"
+								: "max-w-0 opacity-0 pointer-events-none",
+						)}
+					>
 						<Button
 							variant="ghost"
 							size="sm"
 							onClick={resetFilters}
-							className="h-10 px-3 text-xs text-muted-foreground hover:text-foreground cursor-pointer"
+							className="h-10 px-3 text-xs text-muted-foreground hover:text-foreground whitespace-nowrap cursor-pointer"
 						>
-							<X className="h-3.5 w-3.5 mr-1" />
+							<X className="h-3.5 w-3.5 mr-1 shrink-0" />
 							<span>{t("actions.clearFilters", "Limpar filtros")}</span>
 						</Button>
-					)}
+					</div>
 				</div>
 			</div>
 		</div>
