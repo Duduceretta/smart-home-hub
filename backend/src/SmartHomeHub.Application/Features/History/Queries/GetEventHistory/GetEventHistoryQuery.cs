@@ -34,6 +34,7 @@ public record GetEventHistoryQuery(
     Guid? DeviceGroupId = null,
     EventSeverity? Severity = null,
     EventSource? Source = null,
+    string? Search = null,
     int Page = 1,
     int PageSize = 10
 ) : IQuery<Result<PagedResult<EventHistoryDto>>>, IPagedQuery;
@@ -106,6 +107,38 @@ public class GetEventHistoryQueryHandler(IAppDbContext dbContext)
                 request.Severity == null || systemEvent.Severity == request.Severity
             )
             .Where(systemEvent => request.Source == null || systemEvent.Source == request.Source)
+            .Where(systemEvent =>
+                string.IsNullOrWhiteSpace(request.Search)
+                || EF.Functions.Like(
+                    systemEvent.Description.ToLower(),
+                    $"%{request.Search.Trim().ToLower()}%"
+                )
+                || (
+                    systemEvent.DeviceName != null
+                    && EF.Functions.Like(
+                        systemEvent.DeviceName.ToLower(),
+                        $"%{request.Search.Trim().ToLower()}%"
+                    )
+                )
+                || (
+                    systemEvent.RoomName != null
+                    && EF.Functions.Like(
+                        systemEvent.RoomName.ToLower(),
+                        $"%{request.Search.Trim().ToLower()}%"
+                    )
+                )
+                || (
+                    systemEvent.DeviceGroupName != null
+                    && EF.Functions.Like(
+                        systemEvent.DeviceGroupName.ToLower(),
+                        $"%{request.Search.Trim().ToLower()}%"
+                    )
+                )
+                || EF.Functions.Like(
+                    systemEvent.EventType.ToLower(),
+                    $"%{request.Search.Trim().ToLower()}%"
+                )
+            )
             .OrderByDescending(systemEvent => systemEvent.Timestamp)
             .Select(systemEvent => new EventHistoryDto(
                 systemEvent.Id,

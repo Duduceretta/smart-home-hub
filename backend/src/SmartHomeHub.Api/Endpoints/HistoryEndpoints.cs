@@ -24,6 +24,7 @@ public static class HistoryEndpoints
                     Guid? deviceGroupId = null,
                     EventSeverity? severity = null,
                     EventSource? source = null,
+                    string? search = null,
                     int page = 1,
                     int pageSize = 10
                 ) =>
@@ -42,6 +43,7 @@ public static class HistoryEndpoints
                         deviceGroupId,
                         severity,
                         source,
+                        search,
                         page,
                         pageSize
                     );

@@ -45,6 +45,7 @@ public class GetEventHistoryTests(IntegrationTestWebAppFactory factory) : BaseIn
         Guid? deviceGroupId = null,
         EventSeverity? severity = null,
         EventSource? source = null,
+        string? search = null,
         int page = 1,
         int pageSize = 10
     )
@@ -69,6 +70,9 @@ public class GetEventHistoryTests(IntegrationTestWebAppFactory factory) : BaseIn
 
         if (source != null)
             query["source"] = source.ToString();
+
+        if (!string.IsNullOrEmpty(search))
+            query["search"] = search;
 
         return $"/api/history?{query}";
     }
@@ -260,5 +264,51 @@ public class GetEventHistoryTests(IntegrationTestWebAppFactory factory) : BaseIn
         );
 
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+    }
+
+    [Fact]
+    public async Task GetEventHistory_WithSearchFilter_ShouldReturnOnlyMatchingEvents()
+    {
+        var user = await SeedUserAsync();
+        var now = DateTimeOffset.UtcNow;
+
+        DbContext.SystemEvents.AddRange(
+            new SystemEvent
+            {
+                Id = Guid.NewGuid(),
+                UserId = user.Id,
+                EventType = "DeviceStateChanged",
+                Description = "Lâmpada ligada via automação",
+                DeviceName = "Lâmpada Sala",
+                Timestamp = now.AddMinutes(-5),
+                Source = EventSource.Automation,
+                Severity = EventSeverity.Info,
+            },
+            new SystemEvent
+            {
+                Id = Guid.NewGuid(),
+                UserId = user.Id,
+                EventType = "NetworkTimeout",
+                Description = "Falha de conexão",
+                DeviceName = "Smart-TV",
+                Timestamp = now.AddMinutes(-2),
+                Source = EventSource.System,
+                Severity = EventSeverity.Warning,
+            }
+        );
+        await DbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+
+        var url = BuildUrl(now.AddDays(-1), now.AddDays(1), search: "Lâmpada");
+        var response = await Client.GetAsync(url, TestContext.Current.CancellationToken);
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        var paged = await response.Content.ReadFromJsonAsync<PagedResponse<EventHistoryEntryResponse>>(
+            cancellationToken: TestContext.Current.CancellationToken
+        );
+
+        paged.Should().NotBeNull();
+        paged!.TotalCount.Should().Be(1);
+        paged.Items.Should().ContainSingle();
+        paged.Items[0].Description.Should().Be("Lâmpada ligada via automação");
     }
 }
