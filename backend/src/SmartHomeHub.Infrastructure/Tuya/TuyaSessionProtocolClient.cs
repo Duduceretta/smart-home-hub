@@ -68,23 +68,38 @@ public sealed class TuyaSessionProtocolClient : ITuyaProtocolClient
         CancellationToken cancellationToken
     ) => await ExecuteAsync(ipAddress, localKey, CmdDpQueryNew, "{}"u8.ToArray(), cancellationToken);
 
-    public async Task<IReadOnlyDictionary<int, object?>> SetDpAsync(
+    public Task<IReadOnlyDictionary<int, object?>> SetDpAsync(
         string ipAddress,
         string tuyaDeviceId,
         string localKey,
         int dp,
         bool value,
         CancellationToken cancellationToken
+    ) => SetDpsAsync(
+        ipAddress,
+        tuyaDeviceId,
+        localKey,
+        new Dictionary<int, object> { [dp] = value },
+        cancellationToken
+    );
+
+    public async Task<IReadOnlyDictionary<int, object?>> SetDpsAsync(
+        string ipAddress,
+        string tuyaDeviceId,
+        string localKey,
+        IReadOnlyDictionary<int, object> dps,
+        CancellationToken cancellationToken
     )
     {
         // Formato "protocol 5" confirmado por captura real (não é {"dps":{...}} puro).
         var unixTimestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+        var dpsPayload = dps.ToDictionary(kv => kv.Key.ToString(), kv => kv.Value);
         var json = JsonSerializer.Serialize(
             new
             {
                 protocol = 5,
                 t = unixTimestamp,
-                data = new { dps = new Dictionary<string, bool> { [dp.ToString()] = value } },
+                data = new { dps = dpsPayload },
             }
         );
         return await ExecuteAsync(ipAddress, localKey, CmdControlNew, System.Text.Encoding.UTF8.GetBytes(json), cancellationToken);

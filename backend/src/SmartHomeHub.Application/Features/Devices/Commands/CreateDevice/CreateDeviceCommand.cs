@@ -23,7 +23,8 @@ public record CreateDeviceCommand(
     string? LocalKey = null,
     string? ProtocolVersion = null,
     string? DpsPowerKey = null,
-    string? ClientKey = null
+    string? ClientKey = null,
+    bool? SupportsColor = null
 ) : ICommand<Result<Guid>>;
 
 public class CreateDeviceCommandValidator : AbstractValidator<CreateDeviceCommand>
@@ -108,6 +109,7 @@ public class CreateDeviceCommandHandler(
                 ProtocolVersion = request.ProtocolVersion,
                 DpsPowerKey = request.DpsPowerKey ?? "20",
                 ClientKey = request.ClientKey,
+                SupportsColor = request.SupportsColor,
             },
         };
 

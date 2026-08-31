@@ -21,7 +21,8 @@ public record UpdateDeviceCommand(
     string? LocalKey = null,
     string? ProtocolVersion = null,
     string? DpsPowerKey = null,
-    string? ClientKey = null
+    string? ClientKey = null,
+    bool? SupportsColor = null
 ) : ICommand<Result>;
 
 public class UpdateDeviceCommandValidator : AbstractValidator<UpdateDeviceCommand>
@@ -127,6 +128,14 @@ public class UpdateDeviceCommandHandler(IAppDbContext dbContext)
 
         if (!string.IsNullOrWhiteSpace(request.ClientKey))
             device.Configuration.ClientKey = request.ClientKey;
+
+        // Ao contrário dos campos de string acima (onde "vazio" = preservar,
+        // já que o GET nunca devolve segredos como LocalKey/ClientKey), o
+        // formulário de edição sempre recebe e reenvia o tri-state atual de
+        // SupportsColor (via DeviceDto.SupportsColorOverride) — não é um campo
+        // sensível omitido do GET, então null aqui é uma escolha real do
+        // usuário ("voltar pra detecção automática"), não "campo não enviado".
+        device.Configuration.SupportsColor = request.SupportsColor;
 
         await dbContext.SaveChangesAsync(cancellationToken);
 

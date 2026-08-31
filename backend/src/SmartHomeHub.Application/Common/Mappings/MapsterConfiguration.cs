@@ -13,6 +13,8 @@ public static class MapsterConfiguration
         TypeAdapterConfig<Device, DeviceDto>
             .NewConfig()
             .Map(dest => dest.IpAddress, src => src.Configuration.IpAddress)
+            .Map(dest => dest.SupportsColor, src => src.Configuration.SupportsColor == true)
+            .Map(dest => dest.SupportsColorOverride, src => src.Configuration.SupportsColor)
             .Map(dest => dest.Category, src => src.Type.ToString())
             .Map(dest => dest.Room, src => src.Room != null ? src.Room.Name : "Sem cômodo")
             .Map(

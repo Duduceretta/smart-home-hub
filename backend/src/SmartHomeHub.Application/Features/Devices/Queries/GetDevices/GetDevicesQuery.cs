@@ -21,7 +21,13 @@ public record DeviceDto(
     Guid? RoomId,
     bool IsOnline,
     bool IsOn,
-    int LastActivityMinutes
+    int LastActivityMinutes,
+    bool SupportsColor,
+    // Cru (null/true/false), pro EditDeviceModal pré-selecionar o override
+    // correto (Auto/Sim/Não) — diferente de SupportsColor acima, que já vem
+    // "achatado" (override ?? detecção automática) pra uso direto na UI de
+    // controles (mostrar ou não o seletor de cor).
+    bool? SupportsColorOverride
 );
 
 public record GetDevicesQuery(

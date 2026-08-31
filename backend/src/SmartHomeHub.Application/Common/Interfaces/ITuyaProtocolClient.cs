@@ -20,4 +20,17 @@ public interface ITuyaProtocolClient
         bool value,
         CancellationToken cancellationToken
     );
+
+    // Escrita de múltiplos DPs de tipos mistos (bool/int/string) numa única
+    // mensagem — necessário pra cor (DP de work_mode="colour" + DP de
+    // colour_data juntos) e brilho (DP numérico). SetDpAsync(bool) acima
+    // continua existindo só pra não quebrar o call-site já validado do
+    // toggle de power; implementações podem defini-lo em termos deste.
+    Task<IReadOnlyDictionary<int, object?>> SetDpsAsync(
+        string ipAddress,
+        string tuyaDeviceId,
+        string localKey,
+        IReadOnlyDictionary<int, object> dps,
+        CancellationToken cancellationToken
+    );
 }

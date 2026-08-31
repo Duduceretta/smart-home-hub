@@ -6,6 +6,8 @@ using SmartHomeHub.Application.Common.Interfaces;
 using SmartHomeHub.Application.Common.Pagination;
 using SmartHomeHub.Application.Features.Devices.Commands.CreateDevice;
 using SmartHomeHub.Application.Features.Devices.Commands.DeleteDevice;
+using SmartHomeHub.Application.Features.Devices.Commands.SetDeviceBrightness;
+using SmartHomeHub.Application.Features.Devices.Commands.SetDeviceColor;
 using SmartHomeHub.Application.Features.Devices.Commands.SetDeviceVolume;
 using SmartHomeHub.Application.Features.Devices.Commands.ToggleDevice;
 using SmartHomeHub.Application.Features.Devices.Commands.UpdateDevice;
@@ -201,6 +203,74 @@ public static class DeviceEndpoints
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .ProducesProblem(StatusCodes.Status404NotFound);
 
+        app.MapPut(
+                "/api/devices/{id:guid}/brightness",
+                async (
+                    Guid id,
+                    SetBrightnessRequest request,
+                    ClaimsPrincipal userToken,
+                    IMediator mediator,
+                    CancellationToken cancellationToken
+                ) =>
+                {
+                    var firebaseUid = userToken.FindFirst("user_id")?.Value;
+                    if (string.IsNullOrEmpty(firebaseUid))
+                        return Results.Unauthorized();
+
+                    var command = new SetDeviceBrightnessCommand(id, firebaseUid, request.BrightnessPercent);
+                    var result = await mediator.Send(command, cancellationToken);
+
+                    if (result.IsFailure)
+                        return result.ToProblemDetails();
+
+                    return Results.Ok(new { message = "Brilho ajustado com sucesso." });
+                }
+            )
+            .RequireAuthorization()
+            .WithTags("⚡ Dispositivos")
+            .WithSummary("Ajusta o brilho de uma lâmpada Tuya local")
+            .WithDescription(
+                "Define o brilho (0-100%) via protocolo local Tuya, convertendo para a escala real do "
+                    + "Data Point de brilho do dispositivo."
+            )
+            .Produces<object>(StatusCodes.Status200OK)
+            .ProducesProblem(StatusCodes.Status400BadRequest)
+            .ProducesProblem(StatusCodes.Status404NotFound);
+
+        app.MapPut(
+                "/api/devices/{id:guid}/color",
+                async (
+                    Guid id,
+                    SetColorRequest request,
+                    ClaimsPrincipal userToken,
+                    IMediator mediator,
+                    CancellationToken cancellationToken
+                ) =>
+                {
+                    var firebaseUid = userToken.FindFirst("user_id")?.Value;
+                    if (string.IsNullOrEmpty(firebaseUid))
+                        return Results.Unauthorized();
+
+                    var command = new SetDeviceColorCommand(id, firebaseUid, request.ColorHex);
+                    var result = await mediator.Send(command, cancellationToken);
+
+                    if (result.IsFailure)
+                        return result.ToProblemDetails();
+
+                    return Results.Ok(new { message = "Cor ajustada com sucesso." });
+                }
+            )
+            .RequireAuthorization()
+            .WithTags("⚡ Dispositivos")
+            .WithSummary("Ajusta a cor de uma lâmpada Tuya local (RGB)")
+            .WithDescription(
+                "Define a cor (formato #RRGGBB) via protocolo local Tuya, convertendo para HSV no "
+                    + "formato de payload real do Data Point de cor do dispositivo."
+            )
+            .Produces<object>(StatusCodes.Status200OK)
+            .ProducesProblem(StatusCodes.Status400BadRequest)
+            .ProducesProblem(StatusCodes.Status404NotFound);
+
         app.MapGet(
                 "/api/devices/{id:guid}/energy",
                 async (
@@ -319,7 +389,8 @@ public static class DeviceEndpoints
                         request.LocalKey,
                         request.ProtocolVersion,
                         request.DpsPowerKey,
-                        request.ClientKey
+                        request.ClientKey,
+                        request.SupportsColor
                     );
 
                     var result = await mediator.Send(command, cancellationToken);
@@ -407,7 +478,8 @@ public static class DeviceEndpoints
                         request.LocalKey,
                         request.ProtocolVersion,
                         request.DpsPowerKey,
-                        request.ClientKey
+                        request.ClientKey,
+                        request.SupportsColor
                     );
 
                     var result = await mediator.Send(command, cancellationToken);
@@ -535,12 +607,17 @@ public record CreateDeviceRequest(
     string? LocalKey = null,
     string? ProtocolVersion = null,
     string? DpsPowerKey = null,
-    string? ClientKey = null
+    string? ClientKey = null,
+    bool? SupportsColor = null
 );
 
 public record StartDiscoveryRequest(int TimeoutSeconds = 30);
 
 public record SetVolumeRequest(int Volume);
+
+public record SetBrightnessRequest(int BrightnessPercent);
+
+public record SetColorRequest(string ColorHex);
 
 public record UpdateDeviceRequest(
     string Name,
@@ -554,5 +631,6 @@ public record UpdateDeviceRequest(
     string? LocalKey = null,
     string? ProtocolVersion = null,
     string? DpsPowerKey = null,
-    string? ClientKey = null
+    string? ClientKey = null,
+    bool? SupportsColor = null
 );
