@@ -1,8 +1,14 @@
 import { useMemo } from "react";
 import { useDebouncedValue } from "@/core/hooks/useDebouncedValue";
 import { useEventHistory } from "../hooks/useEventHistory";
+import { useEventHistoryStats } from "../hooks/useEventHistoryStats";
 import { useHistoryUIStore } from "../store/history-ui.store";
-import type { GetHistoryParams } from "../types/history.types";
+import type {
+	EventSeverityName,
+	EventSourceName,
+	GetHistoryParams,
+	GetHistoryStatsParams,
+} from "../types/history.types";
 import { HistoryEmptyState } from "./HistoryEmptyState";
 import { HistoryFiltersBar } from "./HistoryFiltersBar";
 import { HistoryHeader } from "./HistoryHeader";
@@ -58,18 +64,35 @@ export function HistoryView() {
 		return { startDateUtc: start, endDateUtc: end };
 	}, [timeframe, customStartDateUtc, customEndDateUtc]);
 
+	const severity =
+		selectedSeverity !== "all"
+			? (selectedSeverity as EventSeverityName)
+			: undefined;
+	const source =
+		selectedSource !== "all" ? (selectedSource as EventSourceName) : undefined;
+
 	const queryParams: GetHistoryParams = {
 		startDateUtc,
 		endDateUtc,
 		page,
 		pageSize,
 		search: debouncedSearch.trim() || undefined,
-		severity: selectedSeverity !== "all" ? selectedSeverity : undefined,
-		source: selectedSource !== "all" ? selectedSource : undefined,
+		severity,
+		source,
+	};
+
+	const statsParams: GetHistoryStatsParams = {
+		startDateUtc,
+		endDateUtc,
+		search: debouncedSearch.trim() || undefined,
+		severity,
+		source,
 	};
 
 	const { data, isLoading, isError, isFetching, refetch } =
 		useEventHistory(queryParams);
+	const { data: stats, isLoading: isStatsLoading } =
+		useEventHistoryStats(statsParams);
 
 	const events = data?.items ?? [];
 	const totalCount = data?.totalCount ?? 0;
@@ -95,7 +118,7 @@ export function HistoryView() {
 			/>
 
 			{/* KPI Summary Cards */}
-			<HistoryKpiCards events={events} totalCount={totalCount} />
+			<HistoryKpiCards stats={stats} isLoading={isStatsLoading} />
 
 			{/* Filter Controls Bar */}
 			<HistoryFiltersBar />
