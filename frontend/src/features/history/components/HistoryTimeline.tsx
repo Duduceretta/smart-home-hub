@@ -5,7 +5,7 @@ import { HistoryDateGroup } from "./HistoryDateGroup";
 
 interface HistoryTimelineProps {
 	events: HistoryEvent[];
-	expandedEventId: string | null;
+	expandedEventIds: string[];
 	onToggleExpand: (id: string) => void;
 }
 
@@ -14,7 +14,7 @@ interface HistoryTimelineProps {
  */
 export function HistoryTimeline({
 	events,
-	expandedEventId,
+	expandedEventIds,
 	onToggleExpand,
 }: HistoryTimelineProps) {
 	// Group events by local calendar date (YYYY-MM-DD)
@@ -41,7 +41,7 @@ export function HistoryTimeline({
 					key={dateKey}
 					dateKey={dateKey}
 					events={items}
-					expandedEventId={expandedEventId}
+					expandedEventIds={expandedEventIds}
 					onToggleExpand={onToggleExpand}
 				/>
 			))}

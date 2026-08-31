@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import { useDebouncedValue } from "@/core/hooks/useDebouncedValue";
 import { useEventHistory } from "../hooks/useEventHistory";
 import { useHistoryUIStore } from "../store/history-ui.store";
 import type { GetHistoryParams } from "../types/history.types";
@@ -12,7 +13,8 @@ import { HistoryTimeline } from "./HistoryTimeline";
 
 /**
  * Main feature container for History & Audit Trail.
- * Stretches 100% full-width and utilizes inline accordion expansions with zero layout shifts.
+ * Stretches 100% full-width, uses strictly server-side filtering (dates, source, severity, search, pagination),
+ * and provides multi-row inline accordion expansion.
  */
 export function HistoryView() {
 	const searchQuery = useHistoryUIStore((s) => s.searchQuery);
@@ -23,10 +25,15 @@ export function HistoryView() {
 	const customEndDateUtc = useHistoryUIStore((s) => s.customEndDateUtc);
 	const page = useHistoryUIStore((s) => s.page);
 	const pageSize = useHistoryUIStore((s) => s.pageSize);
-	const expandedEventId = useHistoryUIStore((s) => s.expandedEventId);
+	const expandedEventIds = useHistoryUIStore((s) => s.expandedEventIds);
 
 	const setPage = useHistoryUIStore((s) => s.setPage);
 	const toggleExpandEvent = useHistoryUIStore((s) => s.toggleExpandEvent);
+	const expandAllEvents = useHistoryUIStore((s) => s.expandAllEvents);
+	const collapseAllEvents = useHistoryUIStore((s) => s.collapseAllEvents);
+
+	// Debounce search query to prevent unnecessary server requests while typing
+	const debouncedSearch = useDebouncedValue(searchQuery, 300);
 
 	// Compute start and end dates in ISO string
 	const { startDateUtc, endDateUtc } = useMemo(() => {
@@ -56,7 +63,7 @@ export function HistoryView() {
 		endDateUtc,
 		page,
 		pageSize,
-		search: searchQuery.trim() || undefined,
+		search: debouncedSearch.trim() || undefined,
 		severity: selectedSeverity !== "all" ? selectedSeverity : undefined,
 		source: selectedSource !== "all" ? selectedSource : undefined,
 	};
@@ -68,27 +75,23 @@ export function HistoryView() {
 	const totalCount = data?.totalCount ?? 0;
 	const totalPages = data?.totalPages ?? 1;
 
-	// Client-side text filter refinement for instant responsiveness
-	const filteredEvents = useMemo(() => {
-		if (!searchQuery.trim()) return events;
-		const q = searchQuery.toLowerCase();
-		return events.filter(
-			(e) =>
-				e.description.toLowerCase().includes(q) ||
-				e.deviceName?.toLowerCase().includes(q) ||
-				e.roomName?.toLowerCase().includes(q) ||
-				e.deviceGroupName?.toLowerCase().includes(q) ||
-				e.eventType.toLowerCase().includes(q),
-		);
-	}, [events, searchQuery]);
+	const handleToggleExpandAll = () => {
+		if (events.length > 0 && expandedEventIds.length >= events.length) {
+			collapseAllEvents();
+		} else {
+			expandAllEvents(events.map((e) => e.id));
+		}
+	};
 
 	return (
 		<div className="flex w-full flex-col gap-6">
-			{/* Page Header */}
+			{/* Page Header with Expand/Collapse All and Log Export */}
 			<HistoryHeader
 				events={events}
 				isRefetching={isFetching && !isLoading}
+				expandedCount={expandedEventIds.length}
 				onRefresh={() => refetch()}
+				onToggleExpandAll={handleToggleExpandAll}
 			/>
 
 			{/* KPI Summary Cards */}
@@ -97,18 +100,18 @@ export function HistoryView() {
 			{/* Filter Controls Bar */}
 			<HistoryFiltersBar />
 
-			{/* Main Audit Content */}
+			{/* Main Audit Content (100% Server-Side Driven) */}
 			{isLoading ? (
 				<HistorySkeleton />
 			) : isError ? (
 				<HistoryEmptyState isError onRetry={() => refetch()} />
-			) : filteredEvents.length === 0 ? (
+			) : events.length === 0 ? (
 				<HistoryEmptyState />
 			) : (
 				<div className="flex flex-col gap-6">
 					<HistoryTimeline
-						events={filteredEvents}
-						expandedEventId={expandedEventId}
+						events={events}
+						expandedEventIds={expandedEventIds}
 						onToggleExpand={toggleExpandEvent}
 					/>
 

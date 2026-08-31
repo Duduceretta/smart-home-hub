@@ -42,7 +42,7 @@ beforeEach(() => {
 		page: 1,
 		pageSize: 20,
 		selectedEvent: null,
-		expandedEventId: null,
+		expandedEventIds: [],
 	});
 });
 
@@ -145,34 +145,92 @@ describe("HistoryView Integration Tests", () => {
 		expect(screen.getByText(/Smart-TV-Pro/)).toBeInTheDocument();
 	});
 
-	it("HistoryView_ClickEventRow_ShouldToggleInlineExpansion", async () => {
+	it("HistoryView_ClickMultipleEventRows_ShouldAllowMultipleOpenSimultaneously", async () => {
 		// Arrange
-		const event = createHistoryEventMock({
-			id: "ev-inline-12345",
-			description: "Lâmpada ligada via automação",
-			deviceName: "Lâmpada do Corredor",
+		const event1 = createHistoryEventMock({
+			id: "ev-multi-1",
+			description: "Lâmpada 1 ligada",
 			source: "Automation",
 			severity: "Info",
 			oldValue: "off",
 			newValue: "on",
 		});
-		mockHistoryResponse([event], 1);
+		const event2 = createHistoryEventMock({
+			id: "ev-multi-2",
+			description: "Lâmpada 2 ligada",
+			source: "UserManual",
+			severity: "Info",
+			oldValue: "off",
+			newValue: "on",
+		});
+		mockHistoryResponse([event1, event2], 2);
 		const user = userEvent.setup();
 
 		// Act
 		renderHistoryView();
-		const row = await screen.findByText("Lâmpada ligada via automação");
+		const row1 = await screen.findByText("Lâmpada 1 ligada");
+		const row2 = await screen.findByText("Lâmpada 2 ligada");
 
-		// Click to expand
-		await user.click(row);
+		// Click row1 to expand
+		await user.click(row1);
+		expect(screen.getByText(/ev-multi-1/)).toBeInTheDocument();
+		expect(useHistoryUIStore.getState().expandedEventIds).toContain(
+			"ev-multi-1",
+		);
 
-		// Assert: expanded drawer shows details without popup modal
-		expect(screen.getByText(/ev-inline-12345/)).toBeInTheDocument();
-		expect(screen.getByText("Transição de Valor")).toBeInTheDocument();
-		expect(screen.getByText(/off → on/)).toBeInTheDocument();
+		// Click row2 to expand (both should now be open!)
+		await user.click(row2);
+		expect(screen.getByText(/ev-multi-1/)).toBeInTheDocument();
+		expect(screen.getByText(/ev-multi-2/)).toBeInTheDocument();
+		expect(useHistoryUIStore.getState().expandedEventIds).toEqual([
+			"ev-multi-1",
+			"ev-multi-2",
+		]);
 
-		// Click again to collapse
-		await user.click(row);
-		expect(useHistoryUIStore.getState().expandedEventId).toBeNull();
+		// Click row1 again to collapse (row2 remains open)
+		await user.click(row1);
+		expect(screen.queryByText(/ev-multi-1/)).not.toBeInTheDocument();
+		expect(screen.getByText(/ev-multi-2/)).toBeInTheDocument();
+		expect(useHistoryUIStore.getState().expandedEventIds).toEqual([
+			"ev-multi-2",
+		]);
+	});
+
+	it("HistoryView_ToggleExpandAll_ShouldExpandAndCollapseAllRows", async () => {
+		// Arrange
+		const event1 = createHistoryEventMock({
+			id: "ev-exp-1",
+			description: "Evento 1",
+		});
+		const event2 = createHistoryEventMock({
+			id: "ev-exp-2",
+			description: "Evento 2",
+		});
+		mockHistoryResponse([event1, event2], 2);
+		const user = userEvent.setup();
+
+		// Act
+		renderHistoryView();
+		await screen.findByText("Evento 1");
+
+		const expandAllButton = screen.getByRole("button", {
+			name: /expandir todos/i,
+		});
+
+		// Click Expand All
+		await user.click(expandAllButton);
+		expect(useHistoryUIStore.getState().expandedEventIds).toEqual([
+			"ev-exp-1",
+			"ev-exp-2",
+		]);
+		expect(screen.getByText(/ev-exp-1/)).toBeInTheDocument();
+		expect(screen.getByText(/ev-exp-2/)).toBeInTheDocument();
+
+		// Click Collapse All
+		const collapseAllButton = screen.getByRole("button", {
+			name: /recolher todos/i,
+		});
+		await user.click(collapseAllButton);
+		expect(useHistoryUIStore.getState().expandedEventIds).toEqual([]);
 	});
 });

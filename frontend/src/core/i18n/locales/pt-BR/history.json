@@ -7,7 +7,9 @@
 		"exportCsv": "Exportar como CSV",
 		"refresh": "Atualizar",
 		"clearFilters": "Limpar filtros",
-		"viewDetails": "Ver detalhes"
+		"viewDetails": "Ver detalhes",
+		"expandAll": "Expandir todos",
+		"collapseAll": "Recolher todos"
 	},
 	"kpis": {
 		"totalEvents": "Total de Eventos",

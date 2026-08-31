@@ -14,7 +14,7 @@ interface HistoryUIState {
 	page: number;
 	pageSize: number;
 	selectedEvent: HistoryEvent | null;
-	expandedEventId: string | null;
+	expandedEventIds: string[];
 
 	// Actions
 	setSearchQuery: (query: string) => void;
@@ -26,6 +26,8 @@ interface HistoryUIState {
 	setPageSize: (pageSize: number) => void;
 	setSelectedEvent: (event: HistoryEvent | null) => void;
 	toggleExpandEvent: (id: string) => void;
+	expandAllEvents: (ids: string[]) => void;
+	collapseAllEvents: () => void;
 	resetFilters: () => void;
 }
 
@@ -39,7 +41,7 @@ export const useHistoryUIStore = create<HistoryUIState>((set) => ({
 	page: 1,
 	pageSize: 20,
 	selectedEvent: null,
-	expandedEventId: null,
+	expandedEventIds: [],
 
 	setSearchQuery: (query) => set({ searchQuery: query, page: 1 }),
 	setSelectedSeverity: (severity) =>
@@ -64,8 +66,12 @@ export const useHistoryUIStore = create<HistoryUIState>((set) => ({
 	setSelectedEvent: (event) => set({ selectedEvent: event }),
 	toggleExpandEvent: (id) =>
 		set((state) => ({
-			expandedEventId: state.expandedEventId === id ? null : id,
+			expandedEventIds: state.expandedEventIds.includes(id)
+				? state.expandedEventIds.filter((item) => item !== id)
+				: [...state.expandedEventIds, id],
 		})),
+	expandAllEvents: (ids) => set({ expandedEventIds: ids }),
+	collapseAllEvents: () => set({ expandedEventIds: [] }),
 	resetFilters: () =>
 		set({
 			searchQuery: "",
@@ -75,6 +81,6 @@ export const useHistoryUIStore = create<HistoryUIState>((set) => ({
 			customStartDateUtc: null,
 			customEndDateUtc: null,
 			page: 1,
-			expandedEventId: null,
+			expandedEventIds: [],
 		}),
 }));

@@ -6,7 +6,7 @@ import { HistoryEventRow } from "./HistoryEventRow";
 interface HistoryDateGroupProps {
 	dateKey: string;
 	events: HistoryEvent[];
-	expandedEventId: string | null;
+	expandedEventIds: string[];
 	onToggleExpand: (id: string) => void;
 }
 
@@ -15,7 +15,7 @@ interface HistoryDateGroupProps {
  */
 export function HistoryDateGroup({
 	events,
-	expandedEventId,
+	expandedEventIds,
 	onToggleExpand,
 }: HistoryDateGroupProps) {
 	const { i18n } = useTranslation();
@@ -43,7 +43,7 @@ export function HistoryDateGroup({
 					<HistoryEventRow
 						key={event.id}
 						event={event}
-						isExpanded={expandedEventId === event.id}
+						isExpanded={expandedEventIds.includes(event.id)}
 						onToggleExpand={onToggleExpand}
 					/>
 				))}

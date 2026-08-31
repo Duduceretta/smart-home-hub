@@ -2,12 +2,14 @@
 	"title": "Event History",
 	"subtitle": "Audit trail, automation runs, and system telemetry logs.",
 	"actions": {
-		"export": "Export Logs",
+		"export": "Exportar Logs",
 		"exportJson": "Export as JSON",
 		"exportCsv": "Export as CSV",
 		"refresh": "Refresh",
 		"clearFilters": "Clear filters",
-		"viewDetails": "View details"
+		"viewDetails": "View details",
+		"expandAll": "Expand all",
+		"collapseAll": "Collapse all"
 	},
 	"kpis": {
 		"totalEvents": "Total Events",
