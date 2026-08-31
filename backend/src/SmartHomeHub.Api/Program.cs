@@ -121,6 +121,7 @@ try
 
     app.MapHubEndpoints();
     app.MapDashboardEndpoints();
+    app.MapHistoryEndpoints();
     app.MapUserEndpoints();
     app.MapRoomEndpoints();
     app.MapDeviceEndpoints();
