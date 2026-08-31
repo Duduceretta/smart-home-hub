@@ -1,4 +1,4 @@
-import { ArrowRight, ChevronRight, Copy, Check } from "lucide-react";
+import { ArrowRight, Check, ChevronRight, Copy } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { cn } from "@/core/utils";
@@ -6,6 +6,7 @@ import {
 	EVENT_SEVERITY_STYLES,
 	EVENT_SOURCE_ICON,
 	EVENT_SOURCE_STYLES,
+	EVENT_TYPE_ICON,
 } from "../constants/history.constants";
 import type { HistoryEvent } from "../types/history.types";
 import {
@@ -40,6 +41,7 @@ export function HistoryEventRow({
 		i18n.language || "pt-BR",
 	);
 
+	const TypeIcon = EVENT_TYPE_ICON[event.eventType] ?? EVENT_TYPE_ICON.Default;
 	const SourceIcon =
 		EVENT_SOURCE_ICON[event.source] ?? EVENT_SOURCE_ICON.Default;
 	const sourceStyle =
@@ -91,6 +93,10 @@ export function HistoryEventRow({
 			>
 				{/* Time & Source Badge */}
 				<div className="flex items-center gap-2.5 shrink-0">
+					<span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-surface-high text-muted-foreground">
+						<TypeIcon className="h-3.5 w-3.5" />
+					</span>
+
 					<span className="font-mono text-xs text-muted-foreground w-16">
 						{localTime}
 					</span>

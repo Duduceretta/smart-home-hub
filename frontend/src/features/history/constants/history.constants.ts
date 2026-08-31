@@ -5,8 +5,11 @@ import {
 	Cpu,
 	Info,
 	Layers,
+	Music,
+	Power,
 	Radio,
 	User,
+	WifiOff,
 	Zap,
 } from "lucide-react";
 import type { ElementType } from "react";
@@ -20,6 +23,23 @@ export const EVENT_SOURCE_ICON: Record<string, ElementType> = {
 	System: Cpu,
 	DeviceGroup: Layers,
 	Device: Radio,
+	Default: Activity,
+};
+
+/**
+ * Icons mapped to event types (EventType/SystemEventTypes), for the row's main
+ * icon — coexists with EVENT_SOURCE_ICON, which stays on the origin badge.
+ */
+export const EVENT_TYPE_ICON: Record<string, ElementType> = {
+	StateChange: Power,
+	MediaPlayback: Music,
+	DeviceOffline: WifiOff,
+	DeviceOnline: Radio,
+	Alert: AlertTriangle,
+	AutomationTriggered: Zap,
+	DeviceStatus: Power,
+	DeviceMedia: Music,
+	Spotify: Music,
 	Default: Activity,
 };
 
