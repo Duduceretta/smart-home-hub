@@ -6,8 +6,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using SmartHomeHub.Application.Common.Interfaces;
 using SmartHomeHub.Application.Features.Dashboards.ActivityLog;
-using SmartHomeHub.Domain.Common.Constants;
 using SmartHomeHub.Application.Features.Devices.Commands.SetDeviceState;
+using SmartHomeHub.Domain.Common.Constants;
 using SmartHomeHub.Domain.Common.Primitives;
 using SmartHomeHub.Domain.Entities;
 using SmartHomeHub.Domain.Enums;
@@ -90,18 +90,18 @@ public sealed class AutomationActionDispatcher(
                 .Automations.AsNoTracking()
                 .Where(automation => automation.Id == automationId)
                 .Select(automation => automation.Name)
-                .FirstOrDefaultAsync() ?? "Automação";
-        var device =
-            await dbContext
-                .Devices.AsNoTracking()
-                .Where(d => d.Id == deviceId)
-                .Select(d => new
-                {
-                    d.Name,
-                    d.RoomId,
-                    RoomName = d.Room != null ? d.Room.Name : null,
-                })
-                .FirstOrDefaultAsync();
+                .FirstOrDefaultAsync()
+            ?? "Automação";
+        var device = await dbContext
+            .Devices.AsNoTracking()
+            .Where(d => d.Id == deviceId)
+            .Select(d => new
+            {
+                d.Name,
+                d.RoomId,
+                RoomName = d.Room != null ? d.Room.Name : null,
+            })
+            .FirstOrDefaultAsync();
         var deviceName = device?.Name ?? "dispositivo";
         var roomId = device?.RoomId;
         var roomName = device?.RoomName;
@@ -141,7 +141,8 @@ public sealed class AutomationActionDispatcher(
                 roomName,
                 desiredState,
                 success: false,
-                ex.Message
+                ex.Message,
+                traceId
             );
             throw;
         }
@@ -172,7 +173,8 @@ public sealed class AutomationActionDispatcher(
                 roomName,
                 desiredState,
                 success: false,
-                result.Error.Description
+                result.Error.Description,
+                traceId
             );
             return;
         }
@@ -194,7 +196,8 @@ public sealed class AutomationActionDispatcher(
             roomName,
             desiredState,
             success: true,
-            errorMessage: null
+            errorMessage: null,
+            traceId
         );
     }
 
@@ -212,7 +215,8 @@ public sealed class AutomationActionDispatcher(
         string? roomName,
         bool desiredState,
         bool success,
-        string? errorMessage
+        string? errorMessage,
+        string traceId
     )
     {
         try
@@ -237,6 +241,7 @@ public sealed class AutomationActionDispatcher(
                     DeviceId = deviceId,
                     AutomationId = automationId,
                     EventType = SystemEventTypes.AutomationExecuted,
+                    TraceId = traceId,
                     Title = title,
                     Description = description,
                     Severity = success ? EventSeverity.Info : EventSeverity.Error,

@@ -5,8 +5,8 @@ using Microsoft.Extensions.Logging;
 using NSubstitute;
 using SmartHomeHub.Application.Common.Interfaces;
 using SmartHomeHub.Application.Features.Dashboards.ActivityLog;
-using SmartHomeHub.Domain.Common.Constants;
 using SmartHomeHub.Application.Features.Devices.Commands.SetDeviceState;
+using SmartHomeHub.Domain.Common.Constants;
 using SmartHomeHub.Domain.Common.Primitives;
 using SmartHomeHub.Domain.Entities;
 using SmartHomeHub.Infrastructure.Messaging;
@@ -17,9 +17,8 @@ namespace SmartHomeHub.UnitTests.Infrastructure.Messaging;
 public class AutomationActionDispatcherTests
 {
     private readonly IMediator _mediator = Substitute.For<IMediator>();
-    private readonly IRealtimeNotificationService _notificationService = Substitute.For<
-        IRealtimeNotificationService
-    >();
+    private readonly IRealtimeNotificationService _notificationService =
+        Substitute.For<IRealtimeNotificationService>();
     private readonly AppDbContext _dbContext;
     private readonly AutomationActionDispatcher _sut;
 
@@ -66,7 +65,8 @@ public class AutomationActionDispatcherTests
         );
         await _dbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
-        _mediator.Send(Arg.Any<SetDeviceStateCommand>(), Arg.Any<CancellationToken>())
+        _mediator
+            .Send(Arg.Any<SetDeviceStateCommand>(), Arg.Any<CancellationToken>())
             .Returns(Result.Success());
 
         await _sut.DispatchAsync(automationId, deviceId, firebaseUid, true, traceId);
@@ -88,6 +88,7 @@ public class AutomationActionDispatcherTests
         systemEvent.AutomationId.Should().Be(automationId);
         systemEvent.DeviceId.Should().Be(deviceId);
         systemEvent.EventType.Should().Be(SystemEventTypes.AutomationExecuted);
+        systemEvent.TraceId.Should().Be(traceId);
         systemEvent.Severity.Should().Be(SmartHomeHub.Domain.Enums.EventSeverity.Info);
         systemEvent.Source.Should().Be(SmartHomeHub.Domain.Enums.EventSource.Automation);
         systemEvent.DeviceName.Should().Be("Tomada da Sala");
@@ -106,7 +107,8 @@ public class AutomationActionDispatcherTests
         const string traceId = "trace-abc";
         var error = new Error("Device.NoIpAddress", "A TV precisa de um IP configurado.");
 
-        _mediator.Send(Arg.Any<SetDeviceStateCommand>(), Arg.Any<CancellationToken>())
+        _mediator
+            .Send(Arg.Any<SetDeviceStateCommand>(), Arg.Any<CancellationToken>())
             .Returns(Result.Failure(error));
 
         var act = () => _sut.DispatchAsync(automationId, deviceId, firebaseUid, true, traceId);
@@ -142,7 +144,8 @@ public class AutomationActionDispatcherTests
             "Falha física de comunicação com o dispositivo."
         );
 
-        _mediator.Send(Arg.Any<SetDeviceStateCommand>(), Arg.Any<CancellationToken>())
+        _mediator
+            .Send(Arg.Any<SetDeviceStateCommand>(), Arg.Any<CancellationToken>())
             .Returns<ValueTask<Result>>(_ => throw exception);
 
         var act = () => _sut.DispatchAsync(automationId, deviceId, firebaseUid, true, traceId);
@@ -173,7 +176,8 @@ public class AutomationActionDispatcherTests
         const string firebaseUid = "uid-123";
         const string traceId = "trace-abc";
 
-        _mediator.Send(Arg.Any<SetDeviceStateCommand>(), Arg.Any<CancellationToken>())
+        _mediator
+            .Send(Arg.Any<SetDeviceStateCommand>(), Arg.Any<CancellationToken>())
             .Returns(Result.Success());
 
         // Simula um job duplicado do Hangfire (mesma automação, mesmo evento,
@@ -184,7 +188,9 @@ public class AutomationActionDispatcherTests
 
         await _sut.DispatchAsync(automationId, deviceId, firebaseUid, true, traceId);
 
-        await _mediator.DidNotReceive().Send(Arg.Any<SetDeviceStateCommand>(), Arg.Any<CancellationToken>());
+        await _mediator
+            .DidNotReceive()
+            .Send(Arg.Any<SetDeviceStateCommand>(), Arg.Any<CancellationToken>());
         await _notificationService
             .DidNotReceive()
             .NotifyAutomationExecutionResultAsync(
