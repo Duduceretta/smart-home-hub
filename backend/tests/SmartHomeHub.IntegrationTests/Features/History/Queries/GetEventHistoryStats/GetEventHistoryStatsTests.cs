@@ -186,6 +186,78 @@ public class GetEventHistoryStatsTests(IntegrationTestWebAppFactory factory)
     }
 
     [Fact]
+    public async Task GetEventHistoryStats_AutomationWithMultipleActionsSameTraceId_ShouldCountOneExecution()
+    {
+        var user = await SeedUserAsync();
+        var now = DateTimeOffset.UtcNow;
+        var traceId = Guid.NewGuid().ToString("N");
+
+        // Um único disparo (mesmo TraceId) com 2 ações despachadas — o KPI de
+        // "Execuções de Automação" deve contar 1, não 2 linhas de SystemEvent.
+        var sameTriggerActions = new[]
+        {
+            new SystemEvent
+            {
+                Id = Guid.NewGuid(),
+                UserId = user.Id,
+                EventType = "AutomationExecuted",
+                TraceId = traceId,
+                Description = "Ação executada em Luz da Sala.",
+                Timestamp = now.AddMinutes(-1),
+                Severity = EventSeverity.Info,
+                Source = EventSource.Automation,
+            },
+            new SystemEvent
+            {
+                Id = Guid.NewGuid(),
+                UserId = user.Id,
+                EventType = "AutomationExecuted",
+                TraceId = traceId,
+                Description = "Ação executada em Tomada do Quarto.",
+                Timestamp = now.AddMinutes(-1),
+                Severity = EventSeverity.Info,
+                Source = EventSource.Automation,
+            },
+        };
+
+        // Outro disparo, sem TraceId (registro legado) — conta como sua própria execução.
+        var legacyEventWithoutTraceId = new SystemEvent
+        {
+            Id = Guid.NewGuid(),
+            UserId = user.Id,
+            EventType = "AutomationExecuted",
+            TraceId = null,
+            Description = "Disparo legado sem TraceId.",
+            Timestamp = now.AddMinutes(-2),
+            Severity = EventSeverity.Info,
+            Source = EventSource.Automation,
+        };
+
+        DbContext.SystemEvents.AddRange(sameTriggerActions.Append(legacyEventWithoutTraceId));
+        await DbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+
+        var response = await Client.GetAsync(
+            BuildUrl(now.AddDays(-1), now),
+            TestContext.Current.CancellationToken
+        );
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        var stats = await response.Content.ReadFromJsonAsync<EventHistoryStatsResponse>(
+            cancellationToken: TestContext.Current.CancellationToken
+        );
+
+        stats.Should().NotBeNull();
+        stats!.TotalEvents.Should().Be(3, "as 3 linhas de SystemEvent continuam existindo");
+        stats
+            .AutomationCount.Should()
+            .Be(
+                2,
+                "2 ações do mesmo TraceId contam como 1 execução, mais 1 evento legado sem TraceId"
+            );
+    }
+
+    [Fact]
     public async Task GetEventHistoryStats_EndDateBeforeStartDate_ShouldReturnBadRequest_NotThrow()
     {
         await SeedUserAsync();

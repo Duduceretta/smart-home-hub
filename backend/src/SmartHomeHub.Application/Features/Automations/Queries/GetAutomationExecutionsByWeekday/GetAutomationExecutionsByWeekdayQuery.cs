@@ -27,6 +27,12 @@ public class GetAutomationExecutionsByWeekdayQueryHandler(IAppDbContext dbContex
     {
         var sinceUtc = DateTimeOffset.UtcNow.AddDays(-request.SinceDays);
 
+        // Conta DISPAROS (TraceId distintos), não linhas de SystemEvent — uma
+        // automação com N ações gera N linhas com o mesmo TraceId por disparo,
+        // e contar linhas infla a contagem em N vezes. Eventos sem TraceId
+        // (registros legados de antes da coluna existir) caem no fallback do
+        // próprio Id — cada linha sem TraceId ainda conta como um disparo distinto,
+        // em vez de colapsar todos os nulos num único grupo.
         var counts = await dbContext
             .SystemEvents.AsNoTracking()
             .Where(systemEvent =>
@@ -36,7 +42,14 @@ public class GetAutomationExecutionsByWeekdayQueryHandler(IAppDbContext dbContex
                 && systemEvent.Timestamp >= sinceUtc
             )
             .GroupBy(systemEvent => systemEvent.Timestamp.DayOfWeek)
-            .Select(group => new { DayOfWeek = group.Key, Count = group.Count() })
+            .Select(group => new
+            {
+                DayOfWeek = group.Key,
+                Count = group
+                    .Select(systemEvent => systemEvent.TraceId ?? systemEvent.Id.ToString())
+                    .Distinct()
+                    .Count(),
+            })
             .ToListAsync(cancellationToken);
 
         // Sempre os 7 dias, zerados quando não há execução — senão o gráfico

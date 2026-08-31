@@ -120,10 +120,16 @@ public class GetEventHistoryStatsQueryHandler(IAppDbContext dbContext)
 
         var totalEvents = await filtered.CountAsync(cancellationToken);
 
-        var automationCount = await filtered.CountAsync(
-            systemEvent => systemEvent.Source == EventSource.Automation,
-            cancellationToken
-        );
+        // Conta DISPAROS (TraceId distintos), não linhas de SystemEvent — uma
+        // automação com N ações gera N linhas com o mesmo TraceId por disparo,
+        // e contar linhas infla o KPI em N vezes. Eventos sem TraceId (registros
+        // legados) caem no fallback do próprio Id, então cada linha sem TraceId
+        // ainda conta como um disparo distinto em vez de colapsar num só grupo.
+        var automationCount = await filtered
+            .Where(systemEvent => systemEvent.Source == EventSource.Automation)
+            .Select(systemEvent => systemEvent.TraceId ?? systemEvent.Id.ToString())
+            .Distinct()
+            .CountAsync(cancellationToken);
 
         var alertCount = await filtered.CountAsync(
             systemEvent =>
@@ -135,8 +141,7 @@ public class GetEventHistoryStatsQueryHandler(IAppDbContext dbContext)
 
         var groupActionCount = await filtered.CountAsync(
             systemEvent =>
-                systemEvent.Source == EventSource.DeviceGroup
-                || systemEvent.DeviceGroupId != null,
+                systemEvent.Source == EventSource.DeviceGroup || systemEvent.DeviceGroupId != null,
             cancellationToken
         );
 
