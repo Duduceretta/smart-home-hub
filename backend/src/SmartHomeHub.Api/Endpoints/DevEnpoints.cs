@@ -335,6 +335,65 @@ public static class DevEndpoints
             )
             .Produces<object>(StatusCodes.Status200OK)
             .ProducesProblem(StatusCodes.Status404NotFound);
+
+        app.MapPost(
+                "/api/dev/tuya-query-status",
+                async (
+                    TuyaQueryStatusRequest request,
+                    ClaimsPrincipal userToken,
+                    IAppDbContext dbContext,
+                    ITuyaProtocolClientFactory protocolClientFactory,
+                    CancellationToken ct
+                ) =>
+                {
+                    var firebaseUid = userToken.FindFirst("user_id")?.Value;
+                    if (string.IsNullOrEmpty(firebaseUid))
+                        return Results.Unauthorized();
+
+                    var device = await dbContext
+                        .Devices.Include(d => d.User)
+                        .FirstOrDefaultAsync(d => d.Id == request.DeviceId, ct);
+
+                    if (device == null || device.User.ExternalAuthUid != firebaseUid)
+                        return Results.NotFound();
+
+                    if (
+                        string.IsNullOrWhiteSpace(device.Configuration.IpAddress)
+                        || string.IsNullOrWhiteSpace(device.Configuration.LocalKey)
+                    )
+                        return Results.Problem(
+                            "Dispositivo sem IP ou LocalKey configurados.",
+                            statusCode: StatusCodes.Status400BadRequest
+                        );
+
+                    var protocolClient = protocolClientFactory.Resolve(
+                        device.Configuration.ProtocolVersion
+                    );
+
+                    var dps = await protocolClient.QueryStatusAsync(
+                        device.Configuration.IpAddress,
+                        device.ExternalId,
+                        device.Configuration.LocalKey,
+                        ct
+                    );
+
+                    return Results.Ok(
+                        dps.ToDictionary(kv => kv.Key.ToString(), kv => kv.Value)
+                    );
+                }
+            )
+            .RequireAuthorization()
+            .WithTags("🛠️ Dev Utilities")
+            .WithSummary("Consulta os Data Points brutos de um dispositivo Tuya local")
+            .WithDescription(
+                "🚨 **APENAS EM DESENVOLVIMENTO:** Dispara `QueryStatusAsync` direto contra o "
+                    + "dispositivo Tuya real (protocolo local) e devolve o dicionário de DPs cru — "
+                    + "usado só pra descoberta manual de DP/faixa de valores (ex: brilho, cor), não "
+                    + "faz parte de nenhum fluxo de produção."
+            )
+            .Produces<object>(StatusCodes.Status200OK)
+            .ProducesProblem(StatusCodes.Status400BadRequest)
+            .ProducesProblem(StatusCodes.Status404NotFound);
     }
 }
 
@@ -354,3 +413,5 @@ public record EmitTelemetryRequest(
 );
 
 public record ToggleConnectivityRequest(Guid DeviceId, bool IsOnline);
+
+public record TuyaQueryStatusRequest(Guid DeviceId);
