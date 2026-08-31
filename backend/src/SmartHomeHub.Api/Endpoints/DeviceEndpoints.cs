@@ -8,7 +8,9 @@ using SmartHomeHub.Application.Features.Devices.Commands.CreateDevice;
 using SmartHomeHub.Application.Features.Devices.Commands.DeleteDevice;
 using SmartHomeHub.Application.Features.Devices.Commands.SetDeviceBrightness;
 using SmartHomeHub.Application.Features.Devices.Commands.SetDeviceColor;
+using SmartHomeHub.Application.Features.Devices.Commands.SetDeviceColorTemp;
 using SmartHomeHub.Application.Features.Devices.Commands.SetDeviceVolume;
+using SmartHomeHub.Application.Features.Devices.Commands.SetDeviceWorkMode;
 using SmartHomeHub.Application.Features.Devices.Commands.ToggleDevice;
 using SmartHomeHub.Application.Features.Devices.Commands.UpdateDevice;
 using SmartHomeHub.Application.Features.Devices.Common;
@@ -19,6 +21,7 @@ using SmartHomeHub.Application.Features.Devices.Queries.GetDeviceEnergy;
 using SmartHomeHub.Application.Features.Devices.Queries.GetDeviceMediaState;
 using SmartHomeHub.Application.Features.Devices.Queries.GetDevices;
 using SmartHomeHub.Application.Features.Devices.Queries.GetDeviceTelemetryHistory;
+using SmartHomeHub.Application.Features.Devices.Queries.GetDeviceWorkMode;
 using SmartHomeHub.Domain.Enums;
 
 namespace SmartHomeHub.Api.Endpoints;
@@ -269,6 +272,103 @@ public static class DeviceEndpoints
             )
             .Produces<object>(StatusCodes.Status200OK)
             .ProducesProblem(StatusCodes.Status400BadRequest)
+            .ProducesProblem(StatusCodes.Status404NotFound);
+
+        app.MapPut(
+                "/api/devices/{id:guid}/color-temp",
+                async (
+                    Guid id,
+                    SetColorTempRequest request,
+                    ClaimsPrincipal userToken,
+                    IMediator mediator,
+                    CancellationToken cancellationToken
+                ) =>
+                {
+                    var firebaseUid = userToken.FindFirst("user_id")?.Value;
+                    if (string.IsNullOrEmpty(firebaseUid))
+                        return Results.Unauthorized();
+
+                    var command = new SetDeviceColorTempCommand(id, firebaseUid, request.ColorTempPercent);
+                    var result = await mediator.Send(command, cancellationToken);
+
+                    if (result.IsFailure)
+                        return result.ToProblemDetails();
+
+                    return Results.Ok(new { message = "Temperatura de cor ajustada com sucesso." });
+                }
+            )
+            .RequireAuthorization()
+            .WithTags("⚡ Dispositivos")
+            .WithSummary("Ajusta a temperatura de cor (branco) de uma lâmpada Tuya local")
+            .WithDescription(
+                "Define a temperatura de cor (0-100%, 0=quente/100=frio) via protocolo local Tuya, "
+                    + "convertendo para a escala real do Data Point. Força o dispositivo pro modo branco."
+            )
+            .Produces<object>(StatusCodes.Status200OK)
+            .ProducesProblem(StatusCodes.Status400BadRequest)
+            .ProducesProblem(StatusCodes.Status404NotFound);
+
+        app.MapPut(
+                "/api/devices/{id:guid}/work-mode",
+                async (
+                    Guid id,
+                    SetWorkModeRequest request,
+                    ClaimsPrincipal userToken,
+                    IMediator mediator,
+                    CancellationToken cancellationToken
+                ) =>
+                {
+                    var firebaseUid = userToken.FindFirst("user_id")?.Value;
+                    if (string.IsNullOrEmpty(firebaseUid))
+                        return Results.Unauthorized();
+
+                    var command = new SetDeviceWorkModeCommand(id, firebaseUid, request.WorkMode);
+                    var result = await mediator.Send(command, cancellationToken);
+
+                    if (result.IsFailure)
+                        return result.ToProblemDetails();
+
+                    return Results.Ok(new { message = "Modo ajustado com sucesso." });
+                }
+            )
+            .RequireAuthorization()
+            .WithTags("⚡ Dispositivos")
+            .WithSummary("Troca o modo (Branco/Cor) de uma lâmpada Tuya local")
+            .WithDescription(
+                "Define o work_mode ('white' ou 'colour') direto via protocolo local Tuya — usado pela "
+                    + "troca de abas Branco/Cor no painel de controles, espelhando o app Smart Life."
+            )
+            .Produces<object>(StatusCodes.Status200OK)
+            .ProducesProblem(StatusCodes.Status400BadRequest)
+            .ProducesProblem(StatusCodes.Status404NotFound);
+
+        app.MapGet(
+                "/api/devices/{id:guid}/work-mode",
+                async (
+                    Guid id,
+                    ClaimsPrincipal userToken,
+                    IMediator mediator,
+                    CancellationToken cancellationToken
+                ) =>
+                {
+                    var firebaseUid = userToken.FindFirst("user_id")?.Value;
+                    if (string.IsNullOrEmpty(firebaseUid))
+                        return Results.Unauthorized();
+
+                    var query = new GetDeviceWorkModeQuery(id, firebaseUid);
+                    var result = await mediator.Send(query, cancellationToken);
+
+                    return result.IsFailure ? result.ToProblemDetails() : Results.Ok(result.Value);
+                }
+            )
+            .RequireAuthorization()
+            .WithTags("⚡ Dispositivos")
+            .WithSummary("Lê o modo (Branco/Cor) atual de uma lâmpada Tuya local")
+            .WithDescription(
+                "Consulta síncrona ao hardware real — usada pra abrir o painel de detalhe já na aba "
+                    + "correta, sem assumir um padrão fixo."
+            )
+            .Produces<object>(StatusCodes.Status200OK)
             .ProducesProblem(StatusCodes.Status404NotFound);
 
         app.MapGet(
@@ -618,6 +718,10 @@ public record SetVolumeRequest(int Volume);
 public record SetBrightnessRequest(int BrightnessPercent);
 
 public record SetColorRequest(string ColorHex);
+
+public record SetColorTempRequest(int ColorTempPercent);
+
+public record SetWorkModeRequest(string WorkMode);
 
 public record UpdateDeviceRequest(
     string Name,

@@ -9,7 +9,8 @@ public record TuyaDeviceConnectionInfo(
     string? DpsPowerKey,
     string? ProtocolVersion = null,
     string? DpsBrightnessKey = null,
-    string? DpsColorKey = null
+    string? DpsColorKey = null,
+    string? DpsColorTempKey = null
 );
 
 // ConfirmedIsOn reflete o estado real relatado pelo dispositivo (não a intenção do request).
@@ -30,6 +31,10 @@ public record TuyaColorCommandOutcome(
     bool? ResolvedSupportsColor
 );
 
+public record TuyaColorTempCommandOutcome(string? ResolvedIpAddress, string? ResolvedDpsColorTempKey);
+
+public record TuyaWorkModeCommandOutcome(string? ResolvedIpAddress);
+
 public interface ITuyaLocalControlService
 {
     Task<Result<TuyaCommandOutcome>> SetPowerStateAsync(
@@ -47,6 +52,33 @@ public interface ITuyaLocalControlService
     Task<Result<TuyaColorCommandOutcome>> SetColorAsync(
         TuyaDeviceConnectionInfo connection,
         string colorHex,
+        CancellationToken cancellationToken
+    );
+
+    Task<Result<TuyaColorTempCommandOutcome>> SetColorTempAsync(
+        TuyaDeviceConnectionInfo connection,
+        int colorTempPercent,
+        CancellationToken cancellationToken
+    );
+
+    /// <summary>
+    /// Seta o DP de work_mode diretamente (sem tocar brilho/cor) — usado pra
+    /// trocar as abas "Branco"/"Cor" no front-end, espelhando o app Smart
+    /// Life (a troca de aba é uma ação real no dispositivo, não só UI).
+    /// </summary>
+    Task<Result<TuyaWorkModeCommandOutcome>> SetWorkModeAsync(
+        TuyaDeviceConnectionInfo connection,
+        string workMode,
+        CancellationToken cancellationToken
+    );
+
+    /// <summary>
+    /// Lê o work_mode atual (sem setar nada) — usado pra abrir o painel de
+    /// detalhe já na aba certa (Branco/Cor), refletindo o estado real do
+    /// dispositivo em vez de assumir um padrão fixo.
+    /// </summary>
+    Task<Result<string?>> GetWorkModeAsync(
+        TuyaDeviceConnectionInfo connection,
         CancellationToken cancellationToken
     );
 }

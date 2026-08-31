@@ -23,6 +23,13 @@ public class DeviceConfiguration
     // pra quando a heurística não achar nada.
     public string? DpsColorKey { get; set; } = "24";
 
+    // DP de temperatura de cor (branco quente/frio) — mesma ambiguidade
+    // numérica de DpsBrightnessKey (colide com DP22), confirmado por
+    // diagnóstico manual (mudou de 1000 pra 830 ao trocar o tom do branco
+    // pelo app real). Faixa 0-1000 assumida (padrão Tuya `temp_value`),
+    // pendente de confirmação visual E2E completa (só um extremo testado).
+    public string? DpsColorTempKey { get; set; } = "23";
+
     public string? ClientKey { get; set; }
     public string? CommandTopic { get; set; }
     public string? StateTopic { get; set; }

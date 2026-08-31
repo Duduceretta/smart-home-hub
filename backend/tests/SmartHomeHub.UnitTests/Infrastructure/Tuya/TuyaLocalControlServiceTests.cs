@@ -236,6 +236,56 @@ public class TuyaLocalControlServiceTests
     }
 
     [Fact]
+    public async Task SetBrightnessAsync_DeviceInColourMode_ShouldWriteVComponentOfColorDpNotWhiteBrightnessDp()
+    {
+        // Arrange — escrever DP22 (brilho branco) faz o hardware real trocar
+        // sozinho pro modo branco (confirmado por diagnóstico manual), então
+        // em modo "colour" o brilho tem que virar o V do HSV, sem tocar DP22.
+        _protocolClient
+            .QueryStatusAsync("192.168.1.50", "tuya-device-abc", "local-key-123", Arg.Any<CancellationToken>())
+            .Returns(
+                new Dictionary<int, object?>
+                {
+                    [20] = true,
+                    [21] = "colour",
+                    [22] = 1000.0,
+                    [24] = "000003e803e8",
+                }
+            );
+
+        _protocolClient
+            .SetDpsAsync(
+                "192.168.1.50",
+                "tuya-device-abc",
+                "local-key-123",
+                Arg.Is<IReadOnlyDictionary<int, object>>(dps =>
+                    dps.Count == 1 && (string)dps[24] == "000003e800d0"
+                ),
+                Arg.Any<CancellationToken>()
+            )
+            .Returns(new Dictionary<int, object?> { [24] = "000003e800d0" });
+
+        // Act
+        var result = await _sut.SetBrightnessAsync(
+            Connection() with { DpsBrightnessKey = "22", DpsColorKey = "24" },
+            brightnessPercent: 20,
+            CancellationToken.None
+        );
+
+        // Assert — não deve ter chamado SetDpsAsync tocando DP22 nenhuma vez.
+        result.IsSuccess.Should().BeTrue();
+        await _protocolClient
+            .DidNotReceive()
+            .SetDpsAsync(
+                Arg.Any<string>(),
+                Arg.Any<string>(),
+                Arg.Any<string>(),
+                Arg.Is<IReadOnlyDictionary<int, object>>(dps => dps.ContainsKey(22)),
+                Arg.Any<CancellationToken>()
+            );
+    }
+
+    [Fact]
     public async Task SetBrightnessAsync_ConfiguredDpNotNumeric_ShouldReturnFailureWithoutSendingCommand()
     {
         // Arrange
@@ -312,6 +362,95 @@ public class TuyaLocalControlServiceTests
         // Assert
         result.IsFailure.Should().BeTrue();
         result.Error.Code.Should().Be("Device.NoColorDp");
+    }
+
+    [Fact]
+    public async Task SetColorTempAsync_ConfiguredDpNumeric_ShouldConvertPercentAndForceWhiteMode()
+    {
+        // Arrange
+        _protocolClient
+            .QueryStatusAsync("192.168.1.50", "tuya-device-abc", "local-key-123", Arg.Any<CancellationToken>())
+            .Returns(new Dictionary<int, object?> { [20] = true, [21] = "colour", [23] = 1000.0 });
+
+        _protocolClient
+            .SetDpsAsync(
+                "192.168.1.50",
+                "tuya-device-abc",
+                "local-key-123",
+                Arg.Is<IReadOnlyDictionary<int, object>>(dps =>
+                    dps.Count == 2 && (int)dps[23] == 830 && (string)dps[21] == "white"
+                ),
+                Arg.Any<CancellationToken>()
+            )
+            .Returns(new Dictionary<int, object?> { [23] = 830.0, [21] = "white" });
+
+        // Act
+        var result = await _sut.SetColorTempAsync(
+            Connection() with { DpsColorTempKey = "23" },
+            colorTempPercent: 83,
+            CancellationToken.None
+        );
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        result.Value.ResolvedDpsColorTempKey.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task SetWorkModeAsync_WorkModeDpPresent_ShouldSendNewMode()
+    {
+        // Arrange
+        _protocolClient
+            .QueryStatusAsync("192.168.1.50", "tuya-device-abc", "local-key-123", Arg.Any<CancellationToken>())
+            .Returns(new Dictionary<int, object?> { [20] = true, [21] = "white" });
+
+        _protocolClient
+            .SetDpsAsync(
+                "192.168.1.50",
+                "tuya-device-abc",
+                "local-key-123",
+                Arg.Is<IReadOnlyDictionary<int, object>>(dps => dps.Count == 1 && (string)dps[21] == "colour"),
+                Arg.Any<CancellationToken>()
+            )
+            .Returns(new Dictionary<int, object?> { [21] = "colour" });
+
+        // Act
+        var result = await _sut.SetWorkModeAsync(Connection(), "colour", CancellationToken.None);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task GetWorkModeAsync_WorkModeDpPresent_ShouldReturnCurrentValue()
+    {
+        // Arrange
+        _protocolClient
+            .QueryStatusAsync("192.168.1.50", "tuya-device-abc", "local-key-123", Arg.Any<CancellationToken>())
+            .Returns(new Dictionary<int, object?> { [20] = true, [21] = "colour" });
+
+        // Act
+        var result = await _sut.GetWorkModeAsync(Connection(), CancellationToken.None);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Should().Be("colour");
+    }
+
+    [Fact]
+    public async Task GetWorkModeAsync_NoWorkModeDp_ShouldReturnNullWithoutFailure()
+    {
+        // Arrange
+        _protocolClient
+            .QueryStatusAsync("192.168.1.50", "tuya-device-abc", "local-key-123", Arg.Any<CancellationToken>())
+            .Returns(new Dictionary<int, object?> { [20] = true });
+
+        // Act
+        var result = await _sut.GetWorkModeAsync(Connection(), CancellationToken.None);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Should().BeNull();
     }
 
     private static async IAsyncEnumerable<DiscoveredDeviceDto> EmptyDiscoveryStream()

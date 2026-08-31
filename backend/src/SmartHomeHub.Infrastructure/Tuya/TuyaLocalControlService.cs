@@ -141,7 +141,52 @@ public sealed class TuyaLocalControlService(
 
         var (ipAddress, resolvedIp, status) = resolved.Value;
 
-        var brightnessDp = ResolveNumericDp(connection.DpsBrightnessKey, status);
+        // Escrever o DP de brilho "branco" faz o hardware trocar sozinho pro
+        // modo branco (confirmado por diagnóstico manual: DP21 mudou de
+        // "colour" pra "white" só por causa do DP22 ser escrito, mesmo sem
+        // pedir explicitamente). Em modo colorido, o brilho precisa virar o
+        // componente V do DP de cor em vez disso, senão o brilho "vaza" e
+        // troca a lâmpada de volta pro branco toda vez que o usuário arrasta
+        // o slider na aba Cor.
+        var workModeDp = ResolveWorkModeDp(status);
+        var isColourMode = workModeDp is not null && status[workModeDp.Value] as string == "colour";
+
+        if (isColourMode)
+        {
+            var colorDpInColourMode = ResolveColorDp(connection.DpsColorKey, status);
+            if (colorDpInColourMode is null)
+            {
+                return Result.Failure<TuyaBrightnessCommandOutcome>(
+                    new Error(
+                        "Device.NoColorDp",
+                        "Não foi possível identificar o Data Point de cor deste dispositivo Tuya."
+                    )
+                );
+            }
+
+            var existingColorValue = status[colorDpInColourMode.Value] as string;
+            var newColorValue = TuyaColorConverter.ReplaceHsvValueComponent(existingColorValue, brightnessPercent);
+
+            var colourSetResult = await TryWithTimeoutAsync(
+                ct => protocolClient.SetDpsAsync(
+                    ipAddress,
+                    connection.TuyaDeviceId,
+                    connection.LocalKey,
+                    new Dictionary<int, object> { [colorDpInColourMode.Value] = newColorValue },
+                    ct
+                ),
+                connection.TuyaDeviceId,
+                ipAddress,
+                cancellationToken
+            );
+
+            if (colourSetResult.IsFailure)
+                return Result.Failure<TuyaBrightnessCommandOutcome>(colourSetResult.Error);
+
+            return Result.Success(new TuyaBrightnessCommandOutcome(resolvedIp, ResolvedDpsBrightnessKey: null));
+        }
+
+        var brightnessDp = ResolveNumericDp(connection.DpsBrightnessKey, status, DefaultBrightnessDp);
         if (brightnessDp is null)
         {
             return Result.Failure<TuyaBrightnessCommandOutcome>(
@@ -239,6 +284,121 @@ public sealed class TuyaLocalControlService(
         return Result.Success(new TuyaColorCommandOutcome(resolvedIp, resolvedDpString, ResolvedSupportsColor: true));
     }
 
+    public async Task<Result<TuyaColorTempCommandOutcome>> SetColorTempAsync(
+        TuyaDeviceConnectionInfo connection,
+        int colorTempPercent,
+        CancellationToken cancellationToken
+    )
+    {
+        var protocolClient = protocolClientFactory.Resolve(connection.ProtocolVersion);
+
+        var resolved = await ResolveIpAndStatusAsync(connection, protocolClient, cancellationToken);
+        if (resolved.IsFailure)
+            return Result.Failure<TuyaColorTempCommandOutcome>(resolved.Error);
+
+        var (ipAddress, resolvedIp, status) = resolved.Value;
+
+        var colorTempDp = ResolveNumericDp(connection.DpsColorTempKey, status, DefaultColorTempDp);
+        if (colorTempDp is null)
+        {
+            return Result.Failure<TuyaColorTempCommandOutcome>(
+                new Error(
+                    "Device.NoColorTempDp",
+                    "Não foi possível identificar o Data Point de temperatura de cor deste dispositivo Tuya."
+                )
+            );
+        }
+
+        var deviceValue = TuyaColorConverter.PercentToDeviceColorTemp(colorTempPercent);
+
+        var dps = new Dictionary<int, object> { [colorTempDp.Value] = deviceValue };
+
+        // Temperatura de cor só se aplica no modo branco — força o work_mode
+        // junto, mesmo racional de SetColorAsync forçar "colour".
+        var workModeDp = ResolveWorkModeDp(status);
+        if (workModeDp is not null)
+        {
+            dps[workModeDp.Value] = "white";
+        }
+
+        var setResult = await TryWithTimeoutAsync(
+            ct => protocolClient.SetDpsAsync(ipAddress, connection.TuyaDeviceId, connection.LocalKey, dps, ct),
+            connection.TuyaDeviceId,
+            ipAddress,
+            cancellationToken
+        );
+
+        if (setResult.IsFailure)
+            return Result.Failure<TuyaColorTempCommandOutcome>(setResult.Error);
+
+        var resolvedDpString =
+            connection.DpsColorTempKey == colorTempDp.Value.ToString() ? null : colorTempDp.Value.ToString();
+
+        return Result.Success(new TuyaColorTempCommandOutcome(resolvedIp, resolvedDpString));
+    }
+
+    public async Task<Result<TuyaWorkModeCommandOutcome>> SetWorkModeAsync(
+        TuyaDeviceConnectionInfo connection,
+        string workMode,
+        CancellationToken cancellationToken
+    )
+    {
+        var protocolClient = protocolClientFactory.Resolve(connection.ProtocolVersion);
+
+        var resolved = await ResolveIpAndStatusAsync(connection, protocolClient, cancellationToken);
+        if (resolved.IsFailure)
+            return Result.Failure<TuyaWorkModeCommandOutcome>(resolved.Error);
+
+        var (ipAddress, resolvedIp, status) = resolved.Value;
+
+        var workModeDp = ResolveWorkModeDp(status);
+        if (workModeDp is null)
+        {
+            return Result.Failure<TuyaWorkModeCommandOutcome>(
+                new Error(
+                    "Device.NoWorkModeDp",
+                    "Não foi possível identificar o Data Point de modo deste dispositivo Tuya."
+                )
+            );
+        }
+
+        var setResult = await TryWithTimeoutAsync(
+            ct => protocolClient.SetDpsAsync(
+                ipAddress,
+                connection.TuyaDeviceId,
+                connection.LocalKey,
+                new Dictionary<int, object> { [workModeDp.Value] = workMode },
+                ct
+            ),
+            connection.TuyaDeviceId,
+            ipAddress,
+            cancellationToken
+        );
+
+        if (setResult.IsFailure)
+            return Result.Failure<TuyaWorkModeCommandOutcome>(setResult.Error);
+
+        return Result.Success(new TuyaWorkModeCommandOutcome(resolvedIp));
+    }
+
+    public async Task<Result<string?>> GetWorkModeAsync(
+        TuyaDeviceConnectionInfo connection,
+        CancellationToken cancellationToken
+    )
+    {
+        var protocolClient = protocolClientFactory.Resolve(connection.ProtocolVersion);
+
+        var resolved = await ResolveIpAndStatusAsync(connection, protocolClient, cancellationToken);
+        if (resolved.IsFailure)
+            return Result.Failure<string?>(resolved.Error);
+
+        var workModeDp = ResolveWorkModeDp(resolved.Value.Status);
+        if (workModeDp is null)
+            return Result.Success<string?>(null);
+
+        return Result.Success(resolved.Value.Status[workModeDp.Value] as string);
+    }
+
     private async Task<Result<(string IpAddress, string? ResolvedIp, IReadOnlyDictionary<int, object?> Status)>> ResolveIpAndStatusAsync(
         TuyaDeviceConnectionInfo connection,
         ITuyaProtocolClient protocolClient,
@@ -299,17 +459,18 @@ public sealed class TuyaLocalControlService(
         return Result.Success((ipAddress, resolvedIp, statusResult.Value));
     }
 
-    // Fallback literal "22" (não o default do property initializer de
-    // DeviceConfiguration.DpsBrightnessKey) — dispositivos cadastrados antes
-    // deste campo existir têm a chave ausente do JSON persistido, o que
-    // desserializa como null, não como o default da classe (confirmado
-    // inspecionando a coluna Configuration real no Postgres). Sem heurística
-    // segura de "único DP numérico" (colide com temp. de cor), então o
-    // fallback é este valor fixo confirmado por diagnóstico manual, igual
+    // Fallbacks literais (não o default do property initializer de
+    // DeviceConfiguration) — dispositivos cadastrados antes desses campos
+    // existirem têm a chave ausente do JSON persistido, o que desserializa
+    // como null, não como o default da classe (confirmado inspecionando a
+    // coluna Configuration real no Postgres). Sem heurística segura de
+    // "único DP numérico" (brilho/temp. de cor colidem entre si), então o
+    // fallback é o valor fixo confirmado por diagnóstico manual, igual
     // documentado em DeviceConfiguration.cs.
     private const int DefaultBrightnessDp = 22;
+    private const int DefaultColorTempDp = 23;
 
-    private static int? ResolveNumericDp(string? configuredDp, IReadOnlyDictionary<int, object?> status)
+    private static int? ResolveNumericDp(string? configuredDp, IReadOnlyDictionary<int, object?> status, int defaultDp)
     {
         if (int.TryParse(configuredDp, out var configured) && status.TryGetValue(configured, out var configuredValue)
             && configuredValue is double)
@@ -317,9 +478,9 @@ public sealed class TuyaLocalControlService(
             return configured;
         }
 
-        if (status.TryGetValue(DefaultBrightnessDp, out var defaultValue) && defaultValue is double)
+        if (status.TryGetValue(defaultDp, out var defaultValue) && defaultValue is double)
         {
-            return DefaultBrightnessDp;
+            return defaultDp;
         }
 
         return null;

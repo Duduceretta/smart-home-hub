@@ -15,13 +15,17 @@ public record DeviceEnergyChartPointDto(DateTimeOffset Timestamp, double Value, 
 
 /// <summary>
 /// HasEnergyData=false = o dispositivo não reportou consumo no período — o
-/// front-end omite a seção de gráfico sem ambiguidade.
+/// front-end omite a seção de gráfico sem ambiguidade. MeasuresPower
+/// distingue "sem hardware de medição" (nunca reportou PowerUsageWatts em
+/// nenhum período) de "sem dado NESTE período" — mensagens diferentes no
+/// front-end (ver DeviceEnergyChart.tsx).
 /// </summary>
 public record DeviceEnergyResponseDto(
     bool HasEnergyData,
     List<DeviceEnergyChartPointDto> Chart,
     double TotalConsumptionKwh,
-    bool IsEnergyEstimated
+    bool IsEnergyEstimated,
+    bool MeasuresPower
 );
 
 public record GetDeviceEnergyQuery(Guid DeviceId, string FirebaseUid, string? Range = "24h")
@@ -85,6 +89,16 @@ public class GetDeviceEnergyQueryHandler(IAppDbContext dbContext)
                 )
             );
 
+        // Não limitado ao período (fromDateUtc) de propósito — "esta lâmpada
+        // nunca mediu potência em toda a história dela" é um fato sobre
+        // hardware, não sobre a janela de tempo consultada agora.
+        var measuresPower = await dbContext
+            .DeviceTelemetryLogs.AsNoTracking()
+            .AnyAsync(
+                log => log.DeviceId == request.DeviceId && log.PowerUsageWatts.HasValue,
+                cancellationToken
+            );
+
         var range = request.Range?.ToLower() ?? "24h";
         var fromDateUtc = range switch
         {
@@ -109,7 +123,7 @@ public class GetDeviceEnergyQueryHandler(IAppDbContext dbContext)
             .ToListAsync(cancellationToken);
 
         if (rawEnergyLogs.Count == 0)
-            return Result.Success(new DeviceEnergyResponseDto(false, [], 0, false));
+            return Result.Success(new DeviceEnergyResponseDto(false, [], 0, false, measuresPower));
 
         const int bucketMinutes = TelemetryBucketing.DefaultBucketMinutes;
 
@@ -164,7 +178,8 @@ public class GetDeviceEnergyQueryHandler(IAppDbContext dbContext)
                 true,
                 chartData,
                 Math.Round(totalConsumptionKwh, 4),
-                chartData.Any(point => point.IsEstimated)
+                chartData.Any(point => point.IsEstimated),
+                measuresPower
             )
         );
     }

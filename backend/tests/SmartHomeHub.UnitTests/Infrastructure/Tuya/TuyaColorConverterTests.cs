@@ -83,6 +83,22 @@ public class TuyaColorConverterTests
     }
 
     [Theory]
+    [InlineData(0, 0)]
+    [InlineData(100, 1000)]
+    [InlineData(83, 830)]
+    public void PercentToDeviceColorTemp_ValidPercent_ShouldMapToConfirmedDeviceRange(
+        int percent,
+        int expectedDeviceValue
+    )
+    {
+        // Act
+        var result = TuyaColorConverter.PercentToDeviceColorTemp(percent);
+
+        // Assert
+        result.Should().Be(expectedDeviceValue);
+    }
+
+    [Theory]
     [InlineData("00b403e803e8", true)]
     [InlineData("016203e803e8", true)]
     [InlineData("white", false)]
