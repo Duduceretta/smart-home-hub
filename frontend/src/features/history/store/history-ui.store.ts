@@ -4,6 +4,12 @@ import type {
 	HistoryTimeframePreset,
 } from "../types/history.types";
 
+export interface PendingEventsState {
+	items: HistoryEvent[];
+	total: number;
+	mediaPlaybackCount: number;
+}
+
 interface HistoryUIState {
 	searchQuery: string;
 	selectedSeverity: string | "all";
@@ -15,6 +21,7 @@ interface HistoryUIState {
 	pageSize: number;
 	selectedEvent: HistoryEvent | null;
 	expandedEventIds: string[];
+	pendingEvents: PendingEventsState;
 
 	// Actions
 	setSearchQuery: (query: string) => void;
@@ -28,6 +35,8 @@ interface HistoryUIState {
 	toggleExpandEvent: (id: string) => void;
 	expandAllEvents: (ids: string[]) => void;
 	collapseAllEvents: () => void;
+	setPendingEvents: (events: HistoryEvent[]) => void;
+	clearPendingEvents: () => void;
 	resetFilters: () => void;
 }
 
@@ -42,6 +51,11 @@ export const useHistoryUIStore = create<HistoryUIState>((set) => ({
 	pageSize: 20,
 	selectedEvent: null,
 	expandedEventIds: [],
+	pendingEvents: {
+		items: [],
+		total: 0,
+		mediaPlaybackCount: 0,
+	},
 
 	setSearchQuery: (query) => set({ searchQuery: query, page: 1 }),
 	setSelectedSeverity: (severity) =>
@@ -72,6 +86,24 @@ export const useHistoryUIStore = create<HistoryUIState>((set) => ({
 		})),
 	expandAllEvents: (ids) => set({ expandedEventIds: ids }),
 	collapseAllEvents: () => set({ expandedEventIds: [] }),
+	setPendingEvents: (events) =>
+		set({
+			pendingEvents: {
+				items: events,
+				total: events.length,
+				mediaPlaybackCount: events.filter(
+					(e) => e.eventType === "MediaPlayback",
+				).length,
+			},
+		}),
+	clearPendingEvents: () =>
+		set({
+			pendingEvents: {
+				items: [],
+				total: 0,
+				mediaPlaybackCount: 0,
+			},
+		}),
 	resetFilters: () =>
 		set({
 			searchQuery: "",
@@ -82,5 +114,10 @@ export const useHistoryUIStore = create<HistoryUIState>((set) => ({
 			customEndDateUtc: null,
 			page: 1,
 			expandedEventIds: [],
+			pendingEvents: {
+				items: [],
+				total: 0,
+				mediaPlaybackCount: 0,
+			},
 		}),
 }));

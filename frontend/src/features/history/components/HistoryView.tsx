@@ -1,7 +1,8 @@
-import { useMemo } from "react";
+import { useMemo, useRef } from "react";
 import { useDebouncedValue } from "@/core/hooks/useDebouncedValue";
 import { useEventHistory } from "../hooks/useEventHistory";
 import { useEventHistoryStats } from "../hooks/useEventHistoryStats";
+import { useEventStream } from "../hooks/useEventStream";
 import { useHistoryUIStore } from "../store/history-ui.store";
 import type {
 	EventSeverityName,
@@ -20,9 +21,11 @@ import { HistoryTimeline } from "./HistoryTimeline";
 /**
  * Main feature container for History & Audit Trail.
  * Stretches 100% full-width, uses strictly server-side filtering (dates, source, severity, search, pagination),
- * and provides multi-row inline accordion expansion.
+ * multi-row inline accordion expansion, and real-time SignalR event synchronization.
  */
 export function HistoryView() {
+	const containerRef = useRef<HTMLDivElement>(null);
+
 	const searchQuery = useHistoryUIStore((s) => s.searchQuery);
 	const selectedSeverity = useHistoryUIStore((s) => s.selectedSeverity);
 	const selectedSource = useHistoryUIStore((s) => s.selectedSource);
@@ -44,7 +47,6 @@ export function HistoryView() {
 	// Compute start and end dates in ISO string
 	const { startDateUtc, endDateUtc } = useMemo(() => {
 		const now = new Date();
-		const end = now.toISOString();
 
 		if (timeframe === "custom" && customStartDateUtc && customEndDateUtc) {
 			return {
@@ -52,6 +54,11 @@ export function HistoryView() {
 				endDateUtc: customEndDateUtc,
 			};
 		}
+
+		// Para presets relativos (24h, 7d, etc.), endDateUtc com folga de 24h para o futuro
+		// garante que eventos novos gravados enquanto a tela está aberta não sejam cortados
+		// pela cláusula 'Timestamp <= EndDateUtc' do banco de dados.
+		const end = new Date(now.getTime() + 24 * 60 * 60 * 1000).toISOString();
 
 		let pastDays = 7;
 		if (timeframe === "24h") pastDays = 1;
@@ -89,6 +96,9 @@ export function HistoryView() {
 		source,
 	};
 
+	// Connect real-time SignalR listener to sync live events safely
+	useEventStream(queryParams, containerRef);
+
 	const { data, isLoading, isError, isFetching, refetch } =
 		useEventHistory(queryParams);
 	const { data: stats, isLoading: isStatsLoading } =
@@ -107,7 +117,7 @@ export function HistoryView() {
 	};
 
 	return (
-		<div className="flex w-full flex-col gap-6">
+		<div ref={containerRef} className="flex w-full flex-col gap-6">
 			{/* Page Header with Expand/Collapse All and Log Export */}
 			<HistoryHeader
 				events={events}
@@ -134,7 +144,9 @@ export function HistoryView() {
 				<div className="flex flex-col gap-6">
 					<HistoryTimeline
 						events={events}
+						queryParams={queryParams}
 						expandedEventIds={expandedEventIds}
+						containerRef={containerRef}
 						onToggleExpand={toggleExpandEvent}
 					/>
 

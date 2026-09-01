@@ -11,6 +11,13 @@
 		"expandAll": "Expand all",
 		"collapseAll": "Collapse all"
 	},
+	"newEvents": {
+		"single": "{{count}} new event",
+		"plural": "{{count}} new events",
+		"singleWithMedia": "{{total}} new event (including {{mediaCount}} media)",
+		"pluralWithMedia": "{{total}} new events (including {{mediaCount}} media)",
+		"clickToLoad": "Click to load"
+	},
 	"kpis": {
 		"totalEvents": "Total Events",
 		"automations": "Automation Runs",
