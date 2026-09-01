@@ -6,7 +6,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "powershell -ExecutionPolicy Bypass -File .claude/hooks/format-on-save.ps1"
+            "command": "powershell -ExecutionPolicy Bypass -File \"C:\\Users\\Eduardo\\Downloads\\smart-home-hub\\.claude\\hooks\\format-on-save.ps1\""
           }
         ]
       }
@@ -17,7 +17,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "powershell -ExecutionPolicy Bypass -File .claude/hooks/guard-cascade-removal.ps1"
+            "command": "powershell -ExecutionPolicy Bypass -File \"C:\\Users\\Eduardo\\Downloads\\smart-home-hub\\.claude\\hooks\\guard-cascade-removal.ps1\""
           }
         ]
       }
