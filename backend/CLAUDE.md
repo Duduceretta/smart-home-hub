@@ -33,4 +33,4 @@
 - **Logs Estruturados (Serilog)**:
   - Estritamente **proibida** interpolação de strings (`$"{Var}"`) nos logs. Sempre usar Message Templates (`"Processando {DeviceName}", name`).
 - **Telemetria IoT**: `DeviceTelemetryLog` e `SystemEvent` seguem padrão *Append-Only* no TimescaleDB (não usam Soft Delete).
-- **MQTT**: telemetria de entrada em `home/telemetry/{deviceId}`; comandos de saída em `casa/comandos/{device.ExternalId}` — **note a inconsistência de idioma real no código** (inglês vs. português) — só aplicável a hardware MQTT genérico (Sonoff/Tasmota). Dispositivos Tuya usam TCP/UDP direto (AES-GCM), não passam por esse tópico.
+- **MQTT**: telemetria de entrada em `home/telemetry/{externalId}`; comandos de saída em `home/commands/{externalId}` — `{externalId}` é sempre o `Device.ExternalId`, nunca o `deviceId` interno, nos dois tópicos — só aplicável a hardware MQTT genérico (Sonoff/Tasmota). Dispositivos Tuya usam TCP/UDP direto (AES-GCM), não passam por esse tópico.

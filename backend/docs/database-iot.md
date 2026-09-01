@@ -6,10 +6,10 @@ As placas de hardware publicam telemetria sem conhecer regras geográficas da ca
 
 | Direção | Tópico | Observação |
 |---|---|---|
-| 📡 **Receber Dados** (Hardware → C#) | `home/telemetry/{deviceId}` | Assinado globalmente via `home/#` pelo `MqttListenerWorker`, que despacha `ProcessTelemetryCommand` por mensagem. |
-| ⚡ **Enviar Comandos** (C# → Hardware) | `casa/comandos/{device.ExternalId}` | Só para dispositivos MQTT nativos (Sonoff/Tasmota/ESPHome) — usa `ExternalId`, não o `deviceId` interno. |
+| 📡 **Receber Dados** (Hardware → C#) | `home/telemetry/{externalId}` | Assinado globalmente via `home/#` pelo `MqttListenerWorker`, que despacha `ProcessTelemetryCommand` por mensagem. |
+| ⚡ **Enviar Comandos** (C# → Hardware) | `home/commands/{externalId}` | Só para dispositivos MQTT nativos (Sonoff/Tasmota/ESPHome) — usa `ExternalId`, não o `deviceId` interno. |
 
-> ⚠️ **Inconsistência real no código, não só na documentação**: o tópico de telemetria está em inglês (`home/telemetry`) e o de comando em português (`casa/comandos`) — vale padronizar num só idioma na próxima limpeza técnica.
+`{externalId}` é o `Device.ExternalId` (identificador físico do hardware, ex: MAC address) nos dois tópicos — é a única forma do hardware se identificar antes de estar cadastrado no banco (`deviceId` interno só existe depois do cadastro). Os dois tópicos vivem sob o mesmo namespace `home/` em inglês, sem mais a inconsistência de idioma que existia antes entre `home/telemetry` e `casa/comandos`.
 
 **Dispositivos Tuya não passam por MQTT para receber comandos** — usam conexão TCP/UDP direta na rede local via `ITuyaProtocolClient`, com criptografia AES-GCM (protocolo v3.4/v3.5). Google Cast/Android TV usam ADB sobre rede. O MQTT aqui serve para o padrão de hardware "genérico" (Sonoff/Tasmota/ESPHome), não como barramento único de comando pra todo tipo de dispositivo.
 
