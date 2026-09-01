@@ -66,15 +66,13 @@ O sistema recebe dados de dispositivos comerciais (Sonoff, Tuya) via MQTT e prot
 
 ## 🖼️ Capturas de Tela
 
-> Salve os exports em `docs/screenshots/` com os nomes abaixo (ou ajuste os caminhos conforme preferir).
-
 | Dashboard | Histórico de Eventos |
 |---|---|
-| ![Dashboard](docs/screenshots/dashboard.png) | ![Histórico de Eventos](docs/screenshots/history-timeline.png) |
+| ![Dashboard](screenshots/dashboard.png) | ![Histórico de Eventos](screenshots/history-timeline.png) |
 
 | Automações | Descoberta de Dispositivos |
 |---|---|
-| ![Automações](docs/screenshots/automations.png) | ![Descoberta](docs/screenshots/device-discovery.png) |
+| ![Automações](screenshots/automations.png) | ![Descoberta](screenshots/device-discovery.png) |
 
 ---
 
