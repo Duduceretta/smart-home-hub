@@ -1,4 +1,4 @@
-import { useMemo, useRef } from "react";
+import { useMemo, useRef, useState } from "react";
 import { useDebouncedValue } from "@/core/hooks/useDebouncedValue";
 import { useEventHistory } from "../hooks/useEventHistory";
 import { useEventHistoryStats } from "../hooks/useEventHistoryStats";
@@ -10,6 +10,7 @@ import type {
 	GetHistoryParams,
 	GetHistoryStatsParams,
 } from "../types/history.types";
+import { HistoryBackToTopButton } from "./HistoryBackToTopButton";
 import { HistoryEmptyState } from "./HistoryEmptyState";
 import { HistoryFiltersBar } from "./HistoryFiltersBar";
 import { HistoryHeader } from "./HistoryHeader";
@@ -21,7 +22,7 @@ import { HistoryTimeline } from "./HistoryTimeline";
 /**
  * Main feature container for History & Audit Trail.
  * Stretches 100% full-width, uses strictly server-side filtering (dates, source, severity, search, pagination),
- * multi-row inline accordion expansion, and real-time SignalR event synchronization.
+ * multi-row inline accordion expansion, real-time SignalR event synchronization, and floating scroll-to-top button.
  */
 export function HistoryView() {
 	const containerRef = useRef<HTMLDivElement>(null);
@@ -40,6 +41,9 @@ export function HistoryView() {
 	const toggleExpandEvent = useHistoryUIStore((s) => s.toggleExpandEvent);
 	const expandAllEvents = useHistoryUIStore((s) => s.expandAllEvents);
 	const collapseAllEvents = useHistoryUIStore((s) => s.collapseAllEvents);
+	const clearPendingEvents = useHistoryUIStore((s) => s.clearPendingEvents);
+
+	const [isManualRefreshing, setIsManualRefreshing] = useState(false);
 
 	// Debounce search query to prevent unnecessary server requests while typing
 	const debouncedSearch = useDebouncedValue(searchQuery, 300);
@@ -101,12 +105,25 @@ export function HistoryView() {
 
 	const { data, isLoading, isError, isFetching, refetch } =
 		useEventHistory(queryParams);
-	const { data: stats, isLoading: isStatsLoading } =
-		useEventHistoryStats(statsParams);
+	const {
+		data: stats,
+		isLoading: isStatsLoading,
+		refetch: refetchStats,
+	} = useEventHistoryStats(statsParams);
 
 	const events = data?.items ?? [];
 	const totalCount = data?.totalCount ?? 0;
 	const totalPages = data?.totalPages ?? 1;
+
+	const handleRefresh = async () => {
+		setIsManualRefreshing(true);
+		clearPendingEvents();
+		try {
+			await Promise.all([refetch(), refetchStats()]);
+		} finally {
+			setIsManualRefreshing(false);
+		}
+	};
 
 	const handleToggleExpandAll = () => {
 		if (events.length > 0 && expandedEventIds.length >= events.length) {
@@ -117,13 +134,13 @@ export function HistoryView() {
 	};
 
 	return (
-		<div ref={containerRef} className="flex w-full flex-col gap-6">
+		<div ref={containerRef} className="flex w-full flex-col gap-6 relative">
 			{/* Page Header with Expand/Collapse All and Log Export */}
 			<HistoryHeader
 				events={events}
-				isRefetching={isFetching && !isLoading}
+				isRefetching={isFetching || isStatsLoading || isManualRefreshing}
 				expandedCount={expandedEventIds.length}
-				onRefresh={() => refetch()}
+				onRefresh={handleRefresh}
 				onToggleExpandAll={handleToggleExpandAll}
 			/>
 
@@ -137,7 +154,7 @@ export function HistoryView() {
 			{isLoading ? (
 				<HistorySkeleton />
 			) : isError ? (
-				<HistoryEmptyState isError onRetry={() => refetch()} />
+				<HistoryEmptyState isError onRetry={handleRefresh} />
 			) : events.length === 0 ? (
 				<HistoryEmptyState />
 			) : (
@@ -158,6 +175,9 @@ export function HistoryView() {
 					/>
 				</div>
 			)}
+
+			{/* Floating Back to Top button */}
+			<HistoryBackToTopButton containerRef={containerRef} />
 		</div>
 	);
 }

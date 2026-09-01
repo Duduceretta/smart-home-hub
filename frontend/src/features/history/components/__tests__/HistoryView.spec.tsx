@@ -271,4 +271,28 @@ describe("HistoryView Integration Tests", () => {
 		).toBeInTheDocument();
 		expect(requestCount).toBe(2);
 	});
+
+	it("HistoryView_WithReturnToState_ShouldRenderReturnButton", async () => {
+		// Arrange
+		mockHistoryResponse([]);
+
+		// Act
+		renderWithProviders(
+			<MemoryRouter
+				initialEntries={[
+					{
+						pathname: "/history",
+						state: { returnTo: "/dashboard", returnLabel: "Início" },
+					},
+				]}
+			>
+				<HistoryView />
+			</MemoryRouter>,
+		);
+
+		// Assert
+		expect(
+			await screen.findByRole("button", { name: /voltar para início/i }),
+		).toBeInTheDocument();
+	});
 });

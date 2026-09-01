@@ -9,7 +9,10 @@
 		"clearFilters": "Limpar filtros",
 		"viewDetails": "Ver detalhes",
 		"expandAll": "Expandir todos",
-		"collapseAll": "Recolher todos"
+		"collapseAll": "Recolher todos",
+		"backToTop": "Voltar ao topo",
+		"returnTo": "Voltar para {{label}}",
+		"return": "Voltar"
 	},
 	"newEvents": {
 		"single": "{{count}} novo evento",
