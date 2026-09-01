@@ -15,15 +15,15 @@ Garantida em tempo de compilação através dos Source Generators do Mediator e 
 ### 1.2. Testes de Unidade (~30% do esforço de escrita)
 
 - **Foco:** Regras de negócio puras e isoladas, cálculos e estruturas sem efeito colateral externo (ex: comportamentos dos records primitivos de domínio `Result`/`Error` e regras isoladas de validadores).
-- **Ferramentas:** xUnit, FluentAssertions, NSubstitute.
-- **Regra:** Execução na casa dos milissegundos. **Proibido** tocar em banco de dados ou rede.
+- **Ferramentas:** xUnit v3, FluentAssertions, NSubstitute.
+- **Regra:** Execução na casa dos milissegundos. **Proibido** tocar em banco de dados ou rede. O projeto de testes referencia `Microsoft.EntityFrameworkCore.InMemory` apenas para esse nível de isolamento — nunca para os testes de integração da seção seguinte.
 
 ### 1.3. Testes de Integração (~70% do esforço de escrita — O Coração do Sistema)
 
 Como a maior parte das falhas em sistemas IoT e CQRS reside na comunicação entre componentes, este é o bloco principal de proteção do Hub.
 
-- **A Abordagem Real (Testcontainers):** Proibido o uso de simuladores em memória (In-Memory database). Os testes utilizam a biblioteca `Testcontainers.PostgreSql` para subir contêineres Docker reais e limpos do PostgreSQL e do TimescaleDB a cada bateria de testes.
-- **Simulação de API Integrada:** Utilizamos `WebApplicationFactory` para instanciar a API em memória RAM, simulando requisições HTTP reais de ponta a ponta que atingem o banco de dados Docker real.
+- **A Abordagem Real (Testcontainers + Respawn):** Proibido o uso de simuladores em memória (In-Memory database) nesta camada. Um único container `timescale/timescaledb:latest-pg15` (via `Testcontainers.PostgreSql`) sobe **uma vez por coleção de testes** (`[Collection("ExtensionsCollection")]`, reaproveitando a mesma `WebApplicationFactory` — evita o custo de subir um container por teste). Entre cada teste individual, o pacote **Respawn** reseta todas as tabelas do schema `public` (exceto `__EFMigrationsHistory`), garantindo isolamento total sem pagar o preço de recriar a infraestrutura Docker a cada `[Fact]`.
+- **Simulação de API Integrada:** Utilizamos `WebApplicationFactory<Program>` (`Microsoft.AspNetCore.Mvc.Testing`) para instanciar a API em memória RAM, simulando requisições HTTP reais de ponta a ponta que atingem o banco de dados Docker real.
 
 #### Cenários de Regressão Críticos Automatizados
 
@@ -31,7 +31,7 @@ Como a maior parte das falhas em sistemas IoT e CQRS reside na comunicação ent
 |---|---|
 | **Soft Delete & Isolamento** | O disparo de um `HTTP DELETE` muda a flag `IsDeleted`, mas retorna `404 Not Found` em requisições de consulta subsequentes. |
 | **Reuso de Identificadores (Índice Parcial)** | O sistema permite cadastrar um dispositivo com o mesmo `ExternalId` de um dispositivo previamente excluído logicamente. |
-| **Desvinculação de Cômodos** | Ao excluir logicamente um `Room`, os dispositivos associados não somem, mas têm sua propriedade `RoomId` atualizada para `NULL` (cascata manual resolvida no Handler). |
+| **Desvinculação de Cômodos** | Ao excluir logicamente um `Room`, os dispositivos associados não somem, mas têm sua propriedade `RoomId` atualizada para `NULL` (cascata manual resolvida no Handler — não pelo `DeleteBehavior` do EF, já que o Soft Delete nunca dispara um `DELETE` físico que acionaria essa constraint). |
 | **Persistência Temporal** | A exclusão lógica de um dispositivo mantém intactos os registros históricos contidos em `DeviceTelemetryLogs`. |
 
 ---
@@ -42,16 +42,17 @@ Para manter o mais alto rigor e garantir que a suíte de testes seja legível, m
 
 ### 2.1. Nomenclatura (Padrão Roy Osherove)
 
-O nome do teste deve contar uma história inteira e clara, dividida estritamente em três partes:
+O nome do teste deve contar uma história inteira e clara, dividida estritamente em três partes — confirmado como o padrão já seguido em toda a suíte real:
 
 ```
 [NomeDoMetodo]_[CenarioDeTeste]_[ComportamentoEsperado]
 ```
 
-| | Exemplo |
+| | Exemplo real |
 |---|---|
 | ❌ **Ruim** | `TestDeleteRoom` |
 | ✅ **Perfeito** | `DeleteRoom_ShouldSoftDelete_AndHideFromCommonQueries` |
+| ✅ **Outro exemplo real** | `CreateDevice_WithReusedExternalId_FromDeletedDevice_ShouldSucceed` |
 
 ### 2.2. A Ordem Estrutural: O Padrão AAA
 
@@ -59,7 +60,7 @@ Dentro de cada método de teste, a separação visual deve ser sagrada. O códig
 
 1. **Arrange (Preparação):** Apenas configuração de variáveis estáticas, criação de mocks de dependências externas e inserção direta de estado no banco de dados.
 2. **Act (Ação):** Estritamente **uma única linha de código** — o disparo do tiro contra o sistema (ex: `await Client.DeleteAsync(...)`).
-3. **Assert (Verificação):** As validações do resultado retornado pela ação e a verificação do estado final no banco de dados (ignorando filtros globais para atestar a persistência real).
+3. **Assert (Verificação):** As validações do resultado retornado pela ação e a verificação do estado final no banco de dados (ignorando filtros globais via `.IgnoreQueryFilters()` para atestar a persistência real).
 
 ### 2.3. Foco de Cobertura (As Três Vias)
 
