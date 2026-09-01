@@ -1,142 +1,127 @@
-# ⚙️ Smart Home Hub: Interface do Front-end
+# ⚙️ Smart Home Hub — Interface do Front-end
 
-Este diretório contém o ecossistema de Front-end do **Smart Home Hub**. Ele é uma Single Page Application (SPA) de alta performance desenvolvida em **React 19**, **TypeScript** e **Tailwind CSS**, estruturada sob as regras rígidas do **Feature-Sliced Design (FSD)** e otimizada para processamento de fluxos de dados de telemetria IoT em tempo real.
+[![React 19](https://img.shields.io/badge/React-19.2-61DAFB?logo=react)](https://react.dev/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178C6?logo=typescript)](https://www.typescriptlang.org/)
+[![Tailwind CSS v4](https://img.shields.io/badge/Tailwind-v4-06B6D4?logo=tailwindcss)](https://tailwindcss.com/)
 
----
-
-## 📚 Documentação Aprofundada (Docs)
-
-Para entender os pormenores das decisões técnicas, contratos de rede e estratégias de gerenciamento de cache e performance, consulte os documentos detalhados na pasta `docs`:
-
-- [**⚛️ Diretrizes Arquiteturais e Padrões de Código**](./docs/architecture.md) *(FSD Estrito, Zustand vs TanStack Query, Tratamento de ProblemDetails e Validação)*
-- [**📊 Engenharia de Estado e Telemetria em Tempo Real**](./docs/telemetry-and-state.md) *(Estratégias de Cache, Polling de Sensores, Recharts Responsivo e SignalR/WebSockets)*
-- [**🏆 Estratégia de Testes no Front-end**](./docs/testing-strategy.md) *(Testes de Integração de UI, Isolamento com MSW, Vitest e React Testing Library)*
+Single Page Application em **React 19**, **TypeScript** e **Tailwind CSS v4**, estruturada sob as regras rígidas do **Feature-Sliced Design (FSD)** e otimizada para processar fluxos de telemetria IoT em tempo real. Veja o [README raiz](../README.md) para visão geral do ecossistema e setup do ambiente completo.
 
 ---
 
-## 🏗️ Resumo da Arquitetura (Camadas do FSD)
+## 📚 Documentação Aprofundada
 
-A aplicação segue a metodologia **Feature-Sliced Design (FSD)**. O projeto é dividido em camadas concêntricas com **direção de dependência estrita de cima para baixo**. Camadas inferiores são agnósticas e nunca conhecem as regras das camadas superiores.
+- [**⚛️ Diretrizes Arquiteturais e Padrões de Código**](./docs/architecture.md) — FSD estrito, Zustand vs TanStack Query, ProblemDetails e validação
+- [**📊 Engenharia de Estado e Telemetria em Tempo Real**](./docs/telemetry-and-state.md) — cache, polling, Recharts, SignalR/WebSockets
+- [**🏆 Estratégia de Testes**](./docs/testing-strategy.md) — testes de integração de UI, MSW, Vitest e React Testing Library
+- [**🎨 Diretrizes de UI, Espaçamento e Design System**](./docs/ui-and-design-system.md) — escada de superfícies, escala de espaçamento/raio/tipografia, componentização estrita
+
+---
+
+## 🏗️ Camadas do FSD
+
+Camadas concêntricas com **direção de dependência estrita de cima para baixo** — camadas inferiores são agnósticas e nunca conhecem as regras das superiores.
 
 ```
 src/
 ├── app/          ← Providers, Router, estilos globais
 ├── pages/        ← Contêineres de rota (zero lógica de negócio)
-├── widgets/      ← Camada de integração (apenas quando há cruzamento real entre features)
-├── features/     ← Domínios isolados (auth, dashboard, devices)
-└── core/         ← Fundação agnóstica (apiClient, ui, logger, errors)
+├── widgets/      ← Camada de integração (só quando há cruzamento real entre features)
+├── features/     ← Domínios isolados (auth, history, automations, devices...)
+└── core/         ← Fundação agnóstica (api client, ui, logger, errors)
 ```
 
 | Camada | Responsabilidade |
 |---|---|
 | `app/` | Orquestrador global (Providers, Router). Não contém regra de negócio. |
 | `pages/` | Contêineres de rotas. Apenas unem layouts e injetam parâmetros da URL. |
-| `widgets/` | **Camada de Integração (Opcional).** O único local onde é permitido cruzar domínios. Usado estritamente para blocos estruturais que consomem múltiplas features (ex: um `Header` que une UI genérica + estado de `auth` + dropdown de `notifications`). |
-| `features/` | Onde a mágica acontece. Fatias de domínio isoladas. **Regra de ouro: features nunca importam entre si diretamente.** |
-| `core/` | Código puramente genérico e agnóstico (UI atômica, Axios). **Proibido** importar de qualquer camada acima. |
+| `widgets/` | **Camada de integração (opcional).** Único local onde é permitido cruzar domínios — ex: um `Header` que une UI genérica + estado de `auth`. |
+| `features/` | Fatias de domínio isoladas. **Regra de ouro: features nunca importam entre si diretamente.** |
+| `core/` | Código puramente genérico e agnóstico. **Proibido** importar de qualquer camada acima. |
 
 ---
 
 ### 🌌 1. `src/app`
-
-**O acoplador máximo e ponto de entrada da aplicação.**
-
-Contém a inicialização de todos os contextos globais (`QueryClientProvider`, `AuthProvider`), o arquivo de roteamento centralizado (`Router.tsx`) e a injeção de estilos globais do Tailwind. Não possui regras de negócio — seu único trabalho é colar os módulos do sistema.
-
----
+Inicialização dos contextos globais (`QueryClientProvider`, providers de auth), roteamento centralizado e injeção de estilos globais do Tailwind. Zero regra de negócio — só cola os módulos do sistema.
 
 ### 📄 2. `src/pages`
-
-**Contêineres lógicos vinculados às rotas.**
-
-São componentes puramente estruturais (ex: `LoginPage.tsx`, `DashboardPage.tsx`). Possuem **zero lógica de negócio** e não declaram marcação complexa de UI. O trabalho de uma página é ler parâmetros da URL, invocar os widgets e features necessários e injetá-los no layout correspondente.
-
----
+Componentes puramente estruturais e vinculados a rotas. Zero lógica de negócio: leem parâmetros da URL, invocam widgets/features e injetam no layout.
 
 ### 🧩 3. `src/widgets`
+**Camada de integração — o único terreno neutro do sistema.**
 
-**Camada de Integração — o único terreno neutro do sistema.**
+> Crie esta pasta apenas quando o primeiro componente multi-feature aparecer de verdade. Pastas vazias por antecipação são burocracia, não arquitetura.
 
-> **Crie esta pasta apenas quando o primeiro componente multi-feature aparecer de verdade.** Pastas vazias por antecipação são burocracia, não arquitetura.
-
-O `widgets/` existe para resolver a armadilha de dependência que ocorre ao tentar alocar componentes que cruzam domínios:
-
-- Colocar no `core/` viola o isolamento — a base do sistema passaria a depender de features específicas.
-- Colocar em outra `feature/` cria acoplamento horizontal proibido entre features.
-- Colocar em `pages/` suja a responsabilidade da camada de rota.
-
-O `widgets/` é o único local onde é **legalmente permitido** combinar UI genérica do `core/` com lógica de múltiplas features. O exemplo principal é o **App Shell** (`widgets/layout`), constituído por `DashboardLayout.tsx`, `Header.tsx` e `Sidebar.tsx`. O `Header` é um widget porque consome simultaneamente dados de `auth` (avatar, logout) e futuramente de `notifications` (badge de alertas).
-
----
+Hoje existe `widgets/layout/`, com o App Shell: `AppLayout.tsx` (shell autenticado, com `Header.tsx` + `Sidebar.tsx`) e `AuthLayout.tsx` (shell das telas de login/registro). O `Header` é um widget porque consome simultaneamente dados de `auth` (avatar, logout) e, futuramente, de notificações.
 
 ### 🎯 4. `src/features`
+**Slices verticais de domínio — o coração reativo.**
 
-**Slices verticais de domínio de negócio — o coração reativo.**
+Cada pasta é um domínio funcional independente, com isolamento total:
 
-Cada pasta representa um domínio funcional independente (`auth`, `dashboard`, `devices`). Features têm isolamento total e contêm suas próprias subpastas:
-
-| Subpasta | Responsabilidade | Exemplo |
+| Subpasta | Responsabilidade | Exemplo real |
 |---|---|---|
-| `api/` | Requisições HTTP da fatia via Axios | `auth.api.ts` |
-| `components/` | Partes visuais encapsuladas | `LoginForm.tsx`, `EnergyChart.tsx` |
-| `hooks/` | Orquestradores de estado assíncrono e Zod | `useLoginForm.ts` |
-| `store/` | Estado de cliente global da fatia via Zustand | `auth.store.ts` |
-| `types/` | Contratos de interfaces e schemas de validação | `auth.types.ts` |
+| `api/` | Requisições HTTP da fatia via Axios | `history.api.ts` |
+| `components/` | Partes visuais encapsuladas | `HistoryTimeline.tsx` |
+| `hooks/` | Orquestradores de estado assíncrono | `useEventHistory.ts` |
+| `store/` | Estado de cliente da fatia via Zustand | `history-ui.store.ts` |
+| `types/` | Contratos de interfaces e schemas | `history.types.ts` |
+| `constants/` | Mapas de ícone/cor/label estáticos | `history.constants.ts` |
 
-> **Regra inviolável:** features **nunca importam entre si diretamente**. Se `dashboard` precisa do usuário logado, ele consome a store de `auth` — nunca importa um componente de dentro de `auth/components/`.
+> **Regra inviolável:** features nunca importam entre si diretamente. Se `dashboard` precisa do usuário logado, consome a store de `auth` — nunca importa um componente de dentro de `auth/components/`.
 
-**Features existentes:** `auth`, `dashboard`, `devices`, `rooms`, `device-groups`, `integrations` (Spotify — conectar conta, now playing, skip, volume) e `dev` (Dev Tools Hub).
+**Features existentes:** `auth`, `dashboard`, `devices`, `rooms`, `device-groups`, `automations`, `history`, `integrations` (Spotify), `settings` e `dev` (Dev Tools Hub).
 
-O `dev` é um caso especial: existe só em ambiente de desenvolvimento. A rota `/dev-tools` é importada condicionalmente em `Router.tsx` via `import.meta.env.DEV ? lazy(...) : null` com spread condicional no array de rotas — em build de produção o literal vira `false`, o `import()` dinâmico fica inalcançável e o Rollup remove o chunk inteiro (nenhum código de `dev` chega no bundle final). Sem link no menu — acesso apenas por URL direta.
+O `dev` é um caso especial: existe só em ambiente de desenvolvimento. A rota `/dev-tools` é importada condicionalmente em `Router.tsx` via `import.meta.env.DEV ? lazy(...) : null` — em build de produção o literal vira `false`, o `import()` dinâmico fica inalcançável e o Rollup remove o chunk inteiro. Sem link no menu, acesso só por URL direta.
 
----
+### 🛠️ 5. `src/core`
+**A fundação tecnológica agnóstica de negócio.** Nenhuma regra de Smart Home entra aqui.
 
-### 🛠️ 5. `src/core` (Shared)
-
-**A fundação tecnológica indestrutível e agnóstica de negócio.**
-
-Contém utilitários reutilizáveis de baixo nível que não sabem o que o sistema faz. **Nenhuma regra de Smart Home entra aqui.**
-
-| Subpasta | Responsabilidade |
-|---|---|
-| `api/` | Instância central do `apiClient` (Axios) com interceptor assíncrono do Firebase JWT |
-| `components/ui/` | Biblioteca atômica do shadcn/ui (Inputs, Dialogs, Dropdowns puros) |
-| `errors/` | Type Guards (`app.errors.ts`) para parsear erros RFC 7807 |
-| `logger/` | Serviço corporativo de observabilidade (`app.logger.ts`) |
-| `lib/` | Inicializadores de SDKs terceiros (`firebase.ts`, `react-query.ts`) |
+| Subpasta | Responsabilidade | Arquivo real |
+|---|---|---|
+| `api/` | Instância central do `apiClient` (Axios) com interceptor do Firebase JWT | `api.client.ts` |
+| `components/ui/` | Biblioteca atômica do shadcn/ui | — |
+| `errors/` | Type Guards pra parsear erros RFC 7807 | `app.errors.ts` |
+| `logger/` | Serviço de observabilidade | `app.logger.ts` |
+| `lib/` | Inicializadores de SDKs terceiros | `firebase.ts`, `signalr.ts` |
+| `hooks/` | Hooks genéricos sem regra de negócio | `useDebouncedValue.ts` |
 
 ---
 
-## 🚀 Matriz de Fluxo de Dados e Defesas Técnicas
+## 🚀 Defesas Técnicas
 
-O front-end opera em sincronia com os princípios do back-end:
+**1. Injeção Transparente de Tokens** — o cliente HTTP intercepta requisições assincronamente; o SDK do Firebase garante rotação automática do JWT em background sem deslogar o usuário à toa.
 
-**1. Injeção Transparente de Tokens**
-O cliente HTTP intercepta as requisições assincronamente. O SDK do Firebase garante a rotação automática do JWT em background sem gerar deslogues acidentais.
+**2. Defesa de Performance no DOM** — proibido usar `index` como key em iterações de lista JSX. Chaves estáveis (`item.id`) evitam remontagens custosas do Virtual DOM durante atualizações de telemetria em tempo real.
 
-**2. Defesa de Performance no DOM**
-É proibido o uso de `index` em iterações de listas JSX. Chaves estáveis e reais (`item.id`) evitam remontagens custosas no Virtual DOM durante atualizações de telemetria em tempo real.
+**3. Validação Progressiva** — formulários usam `mode: "onSubmit"` (não incomoda durante a digitação inicial); após o primeiro erro, muda para `reValidateMode: "onChange"` pra ajudar na correção em tempo real.
 
-**3. Validação Progressiva**
-Formulários utilizam `mode: "onSubmit"` para não irritar o usuário durante a digitação inicial. Uma vez disparado o primeiro erro, o comportamento muda dinamicamente para `reValidateMode: "onChange"`, auxiliando na correção em tempo real.
-
-**4. Isolamento de Erros Sem `any`**
-Exceções capturadas no cliente passam por validação de instância (`instanceof Error` + Type Guards), limpando stack traces técnicos e exibindo mensagens polidas na UI.
+**4. Isolamento de Erros Sem `any`** — exceções passam por `instanceof Error` + Type Guards antes de virar mensagem de UI, sem vazar stack trace técnico pro usuário final.
 
 ---
 
 ## 🏆 Qualidade, Padronização e Tooling
 
-**Linter & Formatter — Biome**
-Toda a governança do código (estilo, segurança, acessibilidade) é delegada ao Biome. Ele substitui de forma integrada o Babel/ESLint/Prettier com velocidade ultra-rápida e zero configuração adicional.
+**Linter & Formatter — Biome.** Substitui Babel/ESLint/Prettier com velocidade maior e zero configuração adicional (`npm run lint` / `npm run format`).
 
-**Nomenclatura Estrita**
-Arquivos obrigatoriamente assinam sufixos funcionais claros, garantindo previsibilidade imediata para qualquer engenheiro do ecossistema:
+**Nomenclatura de arquivos:**
 
-| Sufixo | Tipo |
-|---|---|
-| `.api.ts` | Camada de requisições HTTP |
-| `.store.ts` | Estado global Zustand |
-| `.types.ts` | Interfaces e schemas Zod |
-| `.hooks.ts` | Hooks de orquestração |
-| `.tsx` | Componentes visuais |
+| Sufixo/Prefixo | Tipo | Exemplo real |
+|---|---|---|
+| `.api.ts` | Camada de requisições HTTP | `automations.api.ts` |
+| `-ui.store.ts` | Estado de cliente Zustand (padrão predominante) | `history-ui.store.ts` |
+| `useXxxStore.ts` | Store de domínio compartilhado entre features (exceção: `auth`) | `useAuthStore.ts` |
+| `.types.ts` | Interfaces e schemas Zod | `automation-wizard.types.ts` |
+| `.keys.ts` | Factory de query keys do TanStack Query | `history.keys.ts` |
+| `.constants.ts` | Mapas estáticos (ícone, cor, label) | `history.constants.ts` |
+| `useXxx.ts` (dentro de `hooks/`) | Hooks de orquestração — prefixo, não sufixo | `useEventHistory.ts` |
+| `.spec.tsx` / `.spec.ts` (dentro de `__tests__/`) | Testes de unidade/componente (Vitest) | `HistoryView.spec.tsx` |
+| `.tsx` | Componentes visuais | `HistoryTimeline.tsx` |
+
+## 🧪 Rodando os Testes
+
+```bash
+npm run test:run       # Vitest — unidade e componentes
+npm run test:e2e       # Playwright — fluxos end-to-end
+```
+
+Para subir o dev server localmente, veja a seção **Como Rodar** do [README raiz](../README.md).

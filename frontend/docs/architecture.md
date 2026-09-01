@@ -22,13 +22,13 @@ O projeto abandona a separação ultrapassada por tipo de arquivo (todas as tela
 |---|---|
 | `app/` | Orquestrador global (Providers, Router). Não contém regra de negócio. |
 | `pages/` | Contêineres de rotas. Apenas unem layouts e injetam parâmetros da URL. |
-| `widgets/` | Camada de Integração (Opcional). O único local onde é permitido cruzar domínios. Usado estritamente para blocos estruturais que consomem múltiplas features (ex: um Header que une UI genérica + estado de auth + dropdown de notifications). |
-| `features/` | Onde a mágica acontece. Fatias de domínio isoladas (ex: `auth`, `dashboard`). Se a feature for removida, o resto do app não quebra. |
+| `widgets/` | Camada de Integração (Opcional). O único local onde é permitido cruzar domínios. Usado estritamente para blocos estruturais que consomem múltiplas features (ex: o `AppLayout` que une UI genérica + estado de `auth` no `Header`/`Sidebar`). |
+| `features/` | Onde a mágica acontece. Fatias de domínio isoladas (ex: `auth`, `history`, `automations`). Se a feature for removida, o resto do app não quebra. |
 | `core/` | Código puramente genérico e agnóstico (UI atômica, cliente Axios, formatadores). Proibido importar de qualquer camada acima. |
 
 > **Regra de ouro**: `features` nunca importam entre si diretamente. Se `dashboard` precisa saber o usuário logado, ele consome a store de `auth` — nunca importa um componente de dentro de `auth/components/`.
 
-**Sobre o `widgets/`**: crie esta pasta apenas quando o primeiro componente multi-feature aparecer de verdade. Colocar o componente no `core/` violaria o isolamento da base; colocá-lo em outra `feature/` criaria acoplamento horizontal proibido; colocá-lo em `pages/` sujaria a responsabilidade da camada de rota. O `widgets/` é o único terreno neutro para esses casos.
+**Sobre o `widgets/`**: crie esta pasta apenas quando o primeiro componente multi-feature aparecer de verdade. Colocar o componente no `core/` violaria o isolamento da base; colocá-lo em outra `feature/` criaria acoplamento horizontal proibido; colocá-lo em `pages/` sujaria a responsabilidade da camada de rota. O `widgets/` é o único terreno neutro para esses casos — hoje isso vive em `widgets/layout/` (`AppLayout.tsx`, `AuthLayout.tsx`, `Header.tsx`, `Sidebar.tsx`).
 
 ### 1.2. O Padrão de Tempo (Apresentação Local)
 
@@ -48,9 +48,9 @@ Ao construir qualquer nova fatia vertical (ex: `rooms`, `devices`), siga estrita
                └─► 5. INTERFACE (`components/` e `pages/`)
 
 #### Onde encontrar os contratos no C# (.NET):
-- **Response DTOs (Consulta):** `SmartHomeHub.Application/**/Queries/` (ex: `GetRoomsQuery.cs`, `RoomDto.cs`). Define o JSON em camelCase retornado para o front-end.
-- **Request DTOs (Criação/Edição):** `SmartHomeHub.Application/**/Commands/` (ex: `CreateRoomCommand.cs`, `UpdateRoomCommand.cs`).
-- **Espelhamento Zod ⇄ FluentValidation:** O Zod atua na camada visual como primeira linha de defesa (*UX First*). Se o backend possui validações estritas (ex: regex de MAC, unicidade ou tamanho mínimo), o schema Zod correspondente (`createRoomSchema`) deve espelhar essas restrições para evitar erros `400/422` desnecessários.
+- **Response DTOs (Consulta):** `SmartHomeHub.Application/**/Queries/` (ex: `GetEventHistoryQuery.cs`, `EventHistoryDto`). Define o JSON em camelCase retornado para o front-end.
+- **Request DTOs (Criação/Edição):** `SmartHomeHub.Application/**/Commands/` (ex: `SetDeviceStateCommand.cs`).
+- **Espelhamento Zod ⇄ FluentValidation:** O Zod atua na camada visual como primeira linha de defesa (*UX First*). Se o backend possui validações estritas (ex: regex de MAC, unicidade ou tamanho mínimo), o schema Zod correspondente deve espelhar essas restrições para evitar erros `400/422` desnecessários.
 
 ---
 
@@ -67,18 +67,16 @@ O gerenciamento de estado é segregado para evitar gargalos de renderização e 
 
 Para evitar erros de digitação (typos) e falhas silenciosas na invalidação de cache, **fica estritamente proibido** o uso de strings soltas ou arrays literais declarados diretamente na propriedade `queryKey` do TanStack Query.
 
-- **Colocalização Reversa**: o arquivo de chaves deve morar obrigatoriamente dentro da pasta de hooks da funcionalidade (`features/[feature]/hooks/[feature].keys.ts`). Isso garante que a camada de rede `/api` permaneça agnóstica às dependências de cache do React.
+- **Colocalização Reversa**: o arquivo de chaves deve morar obrigatoriamente dentro da pasta de hooks da funcionalidade (`features/[feature]/hooks/[feature].keys.ts`) — é exatamente assim que `history.keys.ts` e `automations.keys.ts` já estão organizados.
 - **Tuplas Imutáveis**: todas as chaves geradas devem utilizar a asserção `as const` para garantir integridade e tipagem estrita em tempo de compilação.
 - **Estrutura Determinística**: toda a árvore de chaves deve herdar uma raiz global hierárquica, permitindo invalidações parciais em cascata (padrão Big Tech).
 
 ```ts
-// Exemplo Obrigatório: features/devices/hooks/devices.keys.ts
-export const devicesKeys = {
-    all: ["devices"] as const,
-    lists: () => [...devicesKeys.all, "list"] as const,
-    list: (filters: Record<string, unknown> = {}) => [...devicesKeys.lists(), { filters }] as const,
-    details: () => [...devicesKeys.all, "detail"] as const,
-    detail: (id: string) => [...devicesKeys.details(), id] as const,
+// features/history/hooks/history.keys.ts
+export const historyKeys = {
+    all: ["history"] as const,
+    lists: () => [...historyKeys.all, "list"] as const,
+    list: (params: GetHistoryParams) => [...historyKeys.lists(), { params }] as const,
 };
 ```
 
@@ -87,7 +85,7 @@ export const devicesKeys = {
 A API C# devolve falhas através do padrão `ProblemDetails`. O front-end espelha essa previsibilidade:
 
 - As funções na camada `api/` nunca deixam exceções puras (genéricas) vazarem para a interface.
-- Os blocos `catch (error: unknown)` utilizam o utilitário `handleApplicationError` para parsear o `ProblemDetails` e transformá-lo em uma classe nativa `AppError`.
+- Os blocos `catch (error: unknown)` utilizam o utilitário `handleApplicationError` (`core/errors/app.errors.ts`) para parsear o `ProblemDetails` e transformá-lo em uma classe nativa `AppError`.
 - O front-end mapeia os Status Codes previsíveis para feedbacks visuais consistentes:
 
 | Status | Feedback |
@@ -116,13 +114,14 @@ useForm({
 
 1. **Funções Puras e Desacopladas de Hooks:** As funções em `.api.ts` são exclusivamente assíncronas puras (`async/await`). **É proibido importar hooks do React ou do TanStack Query** neste arquivo. A camada de rede deve ser consumível em workers, scripts ou testes sem depender do ciclo de vida da UI.
 2. **Mapeamento de Rotas C#:** Espelhe os atributos das Controllers ou Minimal APIs (`[Route("api/[controller]")]`, `[HttpGet]`, `[HttpPut("{id}")]`).
-3. **Desempacotamento de Paginação (`PagedResponse<T>`):** Em endpoints de listagem, trate tanto retornos diretos (`T[]`) quanto respostas paginadas (`PagedResponse<T>` contendo `{ items: T[], totalCount, page }`).
+3. **Desempacotamento de Paginação (`PagedResponse<T>`, `core/types/pagination.types.ts`):** Em endpoints de listagem, trate tanto retornos diretos (`T[]`) quanto respostas paginadas (`PagedResponse<T>` contendo `{ items: T[], totalCount, page }`).
 
 ### 2.6. Boas Práticas para Stores de UI (`[feature]-ui.store.ts`)
 
 - **Zero Estado Assíncrono:** Nunca realize `fetch`/HTTP nem armazene dados de banco dentro do Zustand.
 - **Ações Semânticas Declarativas:** Prefira métodos que expressem intenção (`openCreateSheet()`, `closeCreateSheet()`, `openEditSheet(entity)`) em vez de setters genéricos.
 - **Reset de Interface:** Sempre forneça uma função `resetFilters()` para facilitar botões de limpeza e trocas de rota sem retenção de lixo de estado.
+- **Exceção histórica:** `auth` foge do padrão de nome e usa `useAuthStore.ts` (estilo hook) em vez de `auth-ui.store.ts` — mantenha essa exceção em mente ao procurar a store de sessão.
 
 ---
 
@@ -130,14 +129,14 @@ useForm({
 
 ### 3.1. Nomenclatura e Tipagem
 
-| Tipo | Padrão | Exemplo |
+| Tipo | Padrão | Exemplo real |
 |---|---|---|
-| Componentes Visuais | `PascalCase.tsx` | `EnergyChart.tsx`, `DashboardLayout.tsx` |
-| Hooks | `camelCase.ts` (prefixo `use`) | `useDashboardMetrics.ts` |
-| Chaves de Cache | `nome.keys.ts` | `devices.keys.ts` |
-| Contratos/Types | `nome.types.ts` | `telemetry.types.ts` |
-| Endpoints/Axios | `nome.api.ts` | `auth.api.ts` |
-| Estado Global | `nome.store.ts` | `auth.store.ts` |
+| Componentes Visuais | `PascalCase.tsx` | `DeviceEnergyChart.tsx`, `AppLayout.tsx` |
+| Hooks | `camelCase.ts` (prefixo `use`) | `useEventHistory.ts` |
+| Chaves de Cache | `nome.keys.ts` | `automations.keys.ts` |
+| Contratos/Types | `nome.types.ts` | `history.types.ts` |
+| Endpoints/Axios | `nome.api.ts` | `automations.api.ts` |
+| Estado Global (UI) | `nome-ui.store.ts` | `history-ui.store.ts` (exceção: `auth` usa `useAuthStore.ts`) |
 
 ### 3.2. Fim do `any` e Interfaces Rigorosas
 
@@ -158,7 +157,7 @@ Para garantir a compatibilidade com empacotadores ultra velozes (que operam sob 
 
 **Construtores Clássicos**
 
-É proibido o uso de modificadores de acesso direto nos parâmetros do construtor. As propriedades devem ser declaradas de forma explícita no corpo da classe e atribuídas manualmente dentro do construtor, evitando que o Vite precise transcrever código extra.
+É proibido o uso de modificadores de acesso direto nos parâmetros do construtor. As propriedades devem ser declaradas de forma explícita no corpo da classe e atribuídas manualmente dentro do construtor — é exatamente assim que `AppError` (`core/errors/app.errors.ts`) já é implementada:
 
 ```ts
 // ❌ Proibido
@@ -166,12 +165,18 @@ class AppError {
     constructor(public readonly message: string) {}
 }
 
-// ✅ Correto
-class AppError {
-    readonly message: string;
+// ✅ Correto — implementação real do projeto
+export class AppError extends Error {
+    public readonly status: number;
+    public readonly details?: ProblemDetails;
+    public readonly originalError?: unknown;
 
-    constructor(message: string) {
-        this.message = message;
+    constructor(message: string, status: number = 500, details?: ProblemDetails, originalError?: unknown) {
+        super(message);
+        this.name = "AppError";
+        this.status = status;
+        this.details = details;
+        this.originalError = originalError;
     }
 }
 ```
@@ -193,7 +198,7 @@ if (data?.title) { ... }
 A documentação no código deve explicar o **PORQUÊ** (a intenção e regra de negócio), nunca o **QUÊ** (o que a sintaxe já deixa óbvio).
 
 - **JSDoc em Interfaces/DTOs (`/** ... */`):** Obrigatório em contratos e utilitários para alimentar os Tooltips e o IntelliSense do TypeScript no editor.
-- **Regras Não-Óbvias / Hardware Quirks:** Documente comportamentos específicos de integração com IoT (ex: delays necessários para boot de dispositivos).
+- **Regras Não-Óbvias / Hardware Quirks:** Documente comportamentos específicos de integração com IoT (ex: delays necessários para boot de dispositivos, ou por que um debounce de 800ms existe antes de invalidar telemetria em rajada).
 - **Proibição de Código Morto e Comentários Redundantes:** Não comente nomes óbvios de variáveis (ex: `// Nome do usuário -> name: string`) e delete código não utilizado em vez de comentá-lo (use o Git para histórico).
 
 ---
@@ -202,13 +207,13 @@ A documentação no código deve explicar o **PORQUÊ** (a intenção e regra de
 
 ### 4.1. Camada de Logs (Proibição do Console)
 
-O uso de `console.log`, `console.warn` ou `console.error` isolados é banido.
+O uso de `console.log`, `console.warn` ou `console.error` isolados é banido no código de features/páginas.
 
-Para evitar vazamento de dados sensíveis em produção, qualquer rastro de execução deve passar pelo `AppLogger` (`core/logger/app.logger.ts`). O Logger centralizado descarta logs em produção ou os direciona silenciosamente para ferramentas de observabilidade (ex: Sentry).
+Para evitar vazamento de dados sensíveis em produção, qualquer rastro de execução deve passar pelo utilitário `Logger` (definido em `core/logger/app.logger.ts`, importado como `import { Logger } from "@/core/logger/app.logger"`). O Logger centralizado descarta logs em produção ou os direciona silenciosamente para ferramentas de observabilidade (ex: Sentry).
 
 ### 4.2. Renderização Otimizada (Zero Acoplamento)
 
-- **Páginas**: componentes de página (ex: `DashboardPage.tsx`) não devem conter declaração de UI extensiva. Eles orquestram subcomponentes importados de `features/`.
+- **Páginas**: componentes de página (ex: `HistoryPage.tsx`) não devem conter declaração de UI extensiva. Eles orquestram subcomponentes importados de `features/`.
 - **Componentes de Gráficos**: dependências pesadas como o Recharts devem possuir invólucros (`ResponsiveContainer`) garantindo a fluidez em layouts Mobile First.
 
 ---
@@ -217,7 +222,7 @@ Para evitar vazamento de dados sensíveis em produção, qualquer rastro de exec
 
 ### 5.1. Importações (Imports)
 
-- **Cross-Feature / Global**: devem utilizar obrigatoriamente o Path Alias absoluto (`@/components/...`). Proibido o uso de `../../../`.
+- **Cross-Feature / Global**: devem utilizar obrigatoriamente o Path Alias absoluto (ex: `@/core/components/ui/button`, `@/features/history/hooks/useEventHistory`). Proibido o uso de `../../../`.
 - **Internal-Feature**: o uso de caminhos relativos (`./` ou `../`) é exigido dentro da mesma feature para garantir encapsulamento e portabilidade da pasta.
 
 ### 5.2. Formatação e Linter (Biome)

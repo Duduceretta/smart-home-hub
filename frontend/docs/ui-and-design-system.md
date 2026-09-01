@@ -1,6 +1,15 @@
 # 🎨 Diretrizes de UI, Espaçamento e Design System
 
-> Estas diretrizes são **padrão universal do projeto**, não uma recomendação por feature. Nasceram de uma série de auditorias de consistência visual (Automações, `AppLayout`/Header/Sidebar, Dashboard, Dispositivos) que corrigiram desvios reais encontrados no código — ver seção 7 para exemplos de "antes → depois". **Nunca criar token novo de cor, espaçamento ou raio**: usar exclusivamente os já definidos em `src/app/styles/index.css` (`--background`, `--foreground`, `--card`, `--popover`, `--muted`, `--muted-foreground`, `--surface-container/high/highest`, `--warm`, `--alert`, `--border`, `--border-subtle`, `--radius-sm` a `--radius-4xl`) e as classes semânticas mapeadas em `@theme inline` (`bg-card`, `bg-popover`, `text-muted-foreground`, `rounded-lg`, `rounded-xl`, etc.).
+> Estas diretrizes são **padrão universal do projeto**, não uma recomendação por feature. Nasceram de uma série de auditorias de consistência visual (Automações, `AppLayout`/Header/Sidebar, Dashboard, Dispositivos) que corrigiram desvios reais encontrados no código — ver seção 9 para exemplos de "antes → depois". **Nunca criar token novo de cor, espaçamento ou raio**: usar exclusivamente os já definidos em `src/app/styles/index.css`.
+>
+> Importante sobre a escada de superfícies: `--color-surface-low/container/high/highest` **não são cores novas** — são aliases semânticos, declarados em `@theme inline`, apontando para tokens do shadcn que já existiam (`--muted`, `--card`, `--popover`) mais um quarto nível novo (`--surface-highest`):
+> ```css
+> --color-surface-low: var(--muted);
+> --color-surface-container: var(--card);
+> --color-surface-high: var(--popover);
+> --color-surface-highest: var(--surface-highest);
+> ```
+> Da mesma forma, `--color-warm`, `--color-alert` e `--color-cool` (este último é só um apelido pra `--primary`) são as cores de destaque semânticas do projeto. Use as classes Tailwind derivadas (`bg-surface-low`, `bg-card`, `bg-popover`, `text-muted-foreground`, `rounded-lg`, etc.) — nunca a variável CSS crua no componente.
 
 ## 1. Ritmo Vertical e Agrupamento Proporcional (8px Grid)
 
@@ -41,9 +50,9 @@ Todo `padding`/`gap` cai em uma destas 5 paradas. Eliminar valores "quebrados" (
 
 ## 4. Raio Aninhado Consistente
 
-Container pai sempre com raio **maior** que o do filho — nunca o mesmo raio (fica "torto" visualmente) nem um filho com raio maior que o pai. Escada válida (nunca `rounded` bare nem valores arbitrários):
+Container pai sempre com raio **maior** que o do filho — nunca o mesmo raio (fica "torto" visualmente) nem um filho com raio maior que o pai. Escada válida (nunca `rounded` bare nem valores arbitrários), com o multiplicador real de cada parada sobre o `--radius` base (`0.75rem`):
 
-`--radius-sm` → `--radius-md` → `--radius-lg` → `--radius-xl` → `--radius-2xl` → `--radius-3xl` → `--radius-4xl`
+`--radius-sm` (0.6×) → `--radius-md` (0.8×) → `--radius-lg` (1×, base) → `--radius-xl` (1.4×) → `--radius-2xl` (1.8×) → `--radius-3xl` (2.2×) → `--radius-4xl` (2.6×)
 
 Exemplo de progressão correta: painel/lista externa `rounded-xl` → cards/blocos internos `rounded-lg` → badges/pills dentro do card `rounded-full`.
 
@@ -78,7 +87,7 @@ Quando precisar de um efeito "mais claro que o tom mais claro definido" (ex.: ho
 
 ## 8. Scroll
 
-- Listas/painéis com rolagem própria usam a utilidade `.scrollbar-thin` (definida em `src/app/styles/animations.css`) em vez da scrollbar padrão do navegador.
+- Listas/painéis com rolagem própria usam a utilidade `.scrollbar-thin` (definida em `src/app/styles/animations.css`, com suporte a Firefox via `scrollbar-width`/`scrollbar-color` e Chrome/Edge/Safari via `::-webkit-scrollbar`) em vez da scrollbar padrão do navegador.
 - Modais/wizards cujo conteúdo pode cortar abruptamente ao rolar ganham um indicador de fade-out no fim da área rolável:
   ```tsx
   <div className="relative min-h-0 flex-1">
