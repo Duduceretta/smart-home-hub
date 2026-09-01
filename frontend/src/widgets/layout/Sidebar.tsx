@@ -12,9 +12,19 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
+import { SheetLayout } from "@/core/components/layouts/SheetLayout";
 import { Progress } from "@/core/components/ui/progress";
 import { cn } from "@/core/utils";
 import { useDevices } from "@/features/devices/hooks/useDevices";
+
+const NAV_ITEMS = [
+	{ name: "Dashboard", path: "/dashboard", icon: LayoutDashboard },
+	{ name: "Dispositivos", path: "/devices", icon: Router },
+	{ name: "Ambientes", path: "/rooms", icon: DoorOpen },
+	{ name: "Grupos", path: "/device-groups", icon: Layers },
+	{ name: "Automações", path: "/automations", icon: Bot },
+	{ name: "Histórico", path: "/history", icon: History },
+];
 
 export function Sidebar() {
 	const [isCollapsed, setIsCollapsed] = useState(false);
@@ -24,14 +34,7 @@ export function Sidebar() {
 
 	const isActive = (path: string) => location.pathname.includes(path);
 
-	const navItems = [
-		{ name: "Dashboard", path: "/dashboard", icon: LayoutDashboard },
-		{ name: "Dispositivos", path: "/devices", icon: Router },
-		{ name: "Ambientes", path: "/rooms", icon: DoorOpen },
-		{ name: "Grupos", path: "/device-groups", icon: Layers },
-		{ name: "Automações", path: "/automations", icon: Bot },
-		{ name: "Histórico", path: "/history", icon: History },
-	];
+	const navItems = NAV_ITEMS;
 
 	const totalCount = devices.length;
 	const onlineCount = devices.filter((d) => d.isOnline).length;
@@ -201,5 +204,66 @@ export function Sidebar() {
 				</button>
 			</div>
 		</aside>
+	);
+}
+
+interface MobileSidebarSheetProps {
+	isOpen: boolean;
+	onClose: () => void;
+}
+
+/** Drawer mobile (<768px) — reaproveita o SheetLayout já usado em outras
+ * partes do app, com os mesmos NAV_ITEMS da sidebar de desktop. Alvos de
+ * toque em h-11 (44px) por ser navegação mobile. */
+export function MobileSidebarSheet({
+	isOpen,
+	onClose,
+}: MobileSidebarSheetProps) {
+	const location = useLocation();
+	const isActive = (path: string) => location.pathname.includes(path);
+
+	return (
+		<SheetLayout isOpen={isOpen} onClose={onClose} title="Smart Hub">
+			<nav className="flex flex-col gap-2">
+				{NAV_ITEMS.map((item) => {
+					const active = isActive(item.path);
+					return (
+						<Link
+							key={item.name}
+							to={item.path}
+							onClick={onClose}
+							className={cn(
+								"flex h-11 items-center gap-3 rounded-lg px-3 text-sm font-medium transition-colors duration-150",
+								active
+									? "bg-primary/10 text-foreground ring-1 ring-primary/30 font-semibold"
+									: "text-muted-foreground hover:text-foreground hover:bg-card/50",
+							)}
+						>
+							<item.icon
+								className={cn(
+									"h-5 w-5 shrink-0",
+									active ? "text-primary" : "text-muted-foreground",
+								)}
+							/>
+							{item.name}
+						</Link>
+					);
+				})}
+
+				<Link
+					to="/settings"
+					onClick={onClose}
+					className={cn(
+						"flex h-11 items-center gap-3 rounded-lg px-3 text-sm font-medium transition-colors duration-150 mt-2 border-t border-border pt-4",
+						isActive("/settings")
+							? "text-foreground font-semibold"
+							: "text-muted-foreground hover:text-foreground",
+					)}
+				>
+					<Settings className="h-5 w-5 shrink-0" />
+					Configurações
+				</Link>
+			</nav>
+		</SheetLayout>
 	);
 }

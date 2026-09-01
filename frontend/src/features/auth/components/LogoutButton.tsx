@@ -44,10 +44,13 @@ export function LogoutButton() {
 			type="button"
 			onClick={handleLogoutClick}
 			disabled={isLoggingOut}
-			className="flex items-center gap-2 border-zinc-800 bg-zinc-950/50 text-zinc-300 transition-colors hover:bg-zinc-800 hover:text-zinc-50 disabled:opacity-50 cursor-pointer"
+			aria-label={isLoggingOut ? t("logout.loggingOut") : t("logout.button")}
+			className="h-11! w-11! justify-center gap-2 border-zinc-800 bg-zinc-950/50 px-0! text-zinc-300 transition-colors hover:bg-zinc-800 hover:text-zinc-50 disabled:opacity-50 cursor-pointer sm:w-fit! sm:px-2.5! md:h-8!"
 		>
-			<LogOut className="h-4 w-4" />
-			{isLoggingOut ? t("logout.loggingOut") : t("logout.button")}
+			<LogOut className="h-4 w-4 shrink-0" />
+			<span className="hidden sm:inline">
+				{isLoggingOut ? t("logout.loggingOut") : t("logout.button")}
+			</span>
 		</Button>
 	);
 }

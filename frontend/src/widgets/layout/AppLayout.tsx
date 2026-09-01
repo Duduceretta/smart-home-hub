@@ -1,13 +1,22 @@
 import { Bot, LayoutDashboard, Router, Settings } from "lucide-react";
+import { useEffect, useState } from "react";
 import { Link, Outlet, useLocation } from "react-router-dom";
 import { cn } from "@/core/utils";
 import { Header } from "./Header";
-import { Sidebar } from "./Sidebar";
+import { MobileSidebarSheet, Sidebar } from "./Sidebar";
 
 export function AppLayout() {
 	const location = useLocation();
 	const isActive = (path: string) => location.pathname.includes(path);
 	const isRoomsRoute = location.pathname.startsWith("/rooms");
+
+	const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
+
+	// Fecha o drawer mobile automaticamente ao navegar pra outra rota.
+	// biome-ignore lint/correctness/useExhaustiveDependencies: só reage a mudança de rota, não a isMobileNavOpen.
+	useEffect(() => {
+		setIsMobileNavOpen(false);
+	}, [location.pathname]);
 
 	const mobileNavItems = [
 		{ name: "Início", path: "/dashboard", icon: LayoutDashboard },
@@ -24,7 +33,12 @@ export function AppLayout() {
 
 			{/* Área Principal */}
 			<main className="flex-1 flex flex-col h-full min-w-0 relative bg-linear-to-b from-muted to-background">
-				<Header />
+				<Header onMenuClick={() => setIsMobileNavOpen(true)} />
+
+				<MobileSidebarSheet
+					isOpen={isMobileNavOpen}
+					onClose={() => setIsMobileNavOpen(false)}
+				/>
 
 				{/* Área de Conteúdo Rolável */}
 				<div className="flex-1 overflow-y-auto w-full p-4 sm:p-6 lg:p-8 [scrollbar-gutter:stable] scrollbar-thin">
