@@ -21,9 +21,11 @@ Mudar o dispositivo de cômodo altera apenas a coluna `RoomId` no PostgreSQL. O 
 
 A tabela `DeviceTelemetryLogs` é convertida em uma *Hypertable* via `SELECT create_hypertable('"DeviceTelemetryLogs"', 'Timestamp')` numa migration do EF Core, indexada por `{DeviceId, Timestamp}`.
 
-> ⚠️ **Compressão e retenção automática ainda não estão configuradas.** Não há `add_compression_policy` nem `add_retention_policy` no código hoje — a tabela cresce indefinidamente sem compactação nem descarte automático. Isso é uma lacuna real de operação, não só de documentação: à medida que o volume de telemetria cresce, vale adicionar essas políticas nativas do TimescaleDB (ex: comprimir chunks com mais de 30 dias, descartar com mais de 1 ano) antes que o tamanho do banco vire um problema.
+**Compressão configurada, sem retenção/descarte (decisão deliberada).** A migration `AddTelemetryCompressionPolicy` habilita `timescaledb.compress` na hypertable (`compress_segmentby = '"DeviceId"'`, `compress_orderby = '"Timestamp" DESC'`) com `add_compression_policy(..., INTERVAL '30 days')` — chunks com mais de 30 dias são comprimidos automaticamente. **Não há `add_retention_policy`**: o histórico bruto é mantido indefinidamente (só comprimido, nunca descartado), pensando em uso futuro para treinamento de modelos de ML sobre o histórico completo de telemetria.
 
-**Continuous Aggregates:** recomendado para pré-calcular relatórios analíticos de consumo em background, reduzindo a necessidade de agregar dados brutos em tempo de consulta — consulte o estado atual da implementação diretamente no código antes de assumir que já existe, já que este documento cobre convenções, não inventário completo de infraestrutura.
+> ⚠️ **Atenção ao `compress_segmentby`/`compress_orderby` com colunas PascalCase**: o valor é uma string SQL interpretada separadamente — um identificador sem aspas dentro dela (`'DeviceId'`) é normalizado para lowercase (`deviceid`) e não bate com a coluna real `"DeviceId"`, falhando com `column "deviceid" does not exist`. É necessário aspas duplas *dentro* da string: `'"DeviceId"'`.
+
+**Continuous Aggregate:** `device_telemetry_daily` (materialized view `WITH (timescaledb.continuous)`, mesma migration) pré-calcula bucket diário por `DeviceId` com `avg`/`max` de `PowerUsageWatts` e `avg` de `TemperatureCelsius`, com `add_continuous_aggregate_policy` (refresh diário, `start_offset '3 days'`, `end_offset '1 day'`). Mantém gráficos de consumo de longo prazo rápidos sem escanear a tabela bruta inteira, e serve de base pronta pra features de ML (tendência diária já pré-calculada).
 
 ---
 
