@@ -216,6 +216,8 @@ public sealed class DeviceStatePollingWorker(
             ))
         );
 
+        var changedSpotifyUsers = new List<(User User, DeviceMediaStateDto MediaState)>();
+
         foreach (var (user, mediaState) in results)
         {
             var lastKnown = _lastKnownSpotifyState.GetValueOrDefault(user.Id);
@@ -226,6 +228,7 @@ public sealed class DeviceStatePollingWorker(
             }
 
             _lastKnownSpotifyState[user.Id] = mediaState;
+            changedSpotifyUsers.Add((user, mediaState));
 
             logger.LogInformation("Estado de playback do Spotify mudou para {UserId}.", user.Id);
 
@@ -257,18 +260,19 @@ public sealed class DeviceStatePollingWorker(
                     }
                 );
             }
+        }
 
+        // Salva primeiro para garantir que o registro existe no banco antes de disparar o SignalR
+        await dbContext.SaveChangesAsync(cancellationToken);
+
+        foreach (var (user, mediaState) in changedSpotifyUsers)
+        {
             await notificationService.NotifySpotifyPlaybackChangedAsync(
                 user.ExternalAuthUid,
                 mediaState,
                 cancellationToken
             );
         }
-
-        // Um único save após o loop em vez de um round-trip por item mudado —
-        // SaveChangesAsync é barato quando não há entradas pendentes (EF checa
-        // o ChangeTracker antes de tocar o banco).
-        await dbContext.SaveChangesAsync(cancellationToken);
     }
 
     private async Task PollMediaStateAsync(
@@ -298,6 +302,8 @@ public sealed class DeviceStatePollingWorker(
             })
         );
 
+        var changedTvDevices = new List<(Device Device, DeviceMediaStateDto MediaState)>();
+
         foreach (var (device, mediaState) in mediaResults)
         {
             var lastKnown = _lastKnownMediaState.GetValueOrDefault(device.Id);
@@ -308,6 +314,7 @@ public sealed class DeviceStatePollingWorker(
             }
 
             _lastKnownMediaState[device.Id] = mediaState;
+            changedTvDevices.Add((device, mediaState));
 
             logger.LogInformation("Estado de mídia do dispositivo {DeviceId} mudou.", device.Id);
 
@@ -338,7 +345,12 @@ public sealed class DeviceStatePollingWorker(
                     }
                 );
             }
+        }
 
+        await dbContext.SaveChangesAsync(cancellationToken);
+
+        foreach (var (device, mediaState) in changedTvDevices)
+        {
             await notificationService.NotifyDeviceMediaChangedAsync(
                 device.User.ExternalAuthUid,
                 device.Id,
@@ -346,8 +358,6 @@ public sealed class DeviceStatePollingWorker(
                 cancellationToken
             );
         }
-
-        await dbContext.SaveChangesAsync(cancellationToken);
     }
 
     private async Task<DeviceMediaStateDto> FetchMediaStateAsync(

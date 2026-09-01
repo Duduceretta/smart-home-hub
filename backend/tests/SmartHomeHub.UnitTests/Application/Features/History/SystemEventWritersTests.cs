@@ -9,7 +9,6 @@ using SmartHomeHub.Domain.Common.Constants;
 using SmartHomeHub.Application.Features.Devices.Commands.SetDeviceState;
 using SmartHomeHub.Application.Features.Devices.Common;
 using SmartHomeHub.Application.Features.Telemetry.Commands.ProcessTelemetry;
-using SmartHomeHub.Domain.Common.Constants;
 using SmartHomeHub.Domain.Common.Primitives;
 using SmartHomeHub.Domain.Entities;
 using SmartHomeHub.Domain.Enums;
