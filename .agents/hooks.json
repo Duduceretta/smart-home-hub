@@ -1,0 +1,28 @@
+{
+  "format-on-save": {
+    "PostToolUse": [
+      {
+        "matcher": "write_to_file|replace_file_content|multi_replace_file_content",
+        "hooks": [
+          {
+            "command": "powershell -ExecutionPolicy Bypass -File .agents/hooks/format-on-save.ps1",
+            "timeout": 30
+          }
+        ]
+      }
+    ]
+  },
+  "cascade-guard": {
+    "PreToolUse": [
+      {
+        "matcher": "replace_file_content|multi_replace_file_content",
+        "hooks": [
+          {
+            "command": "powershell -ExecutionPolicy Bypass -File .agents/hooks/guard-cascade-removal.ps1",
+            "timeout": 15
+          }
+        ]
+      }
+    ]
+  }
+}
