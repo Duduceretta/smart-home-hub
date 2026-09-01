@@ -10,6 +10,10 @@ namespace SmartHomeHub.Infrastructure.Persistence.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            // suppressTransaction: true em todas as operações desta migration —
+            // CREATE MATERIALIZED VIEW ... WITH (timescaledb.continuous) recusa
+            // rodar dentro de bloco de transação ("cannot run inside a transaction
+            // block"), e o EF por padrão empacota Up() inteiro numa única transação.
             migrationBuilder.Sql(
                 """
                 CREATE MATERIALIZED VIEW device_telemetry_daily
@@ -22,7 +26,8 @@ namespace SmartHomeHub.Infrastructure.Persistence.Migrations
                     avg("TemperatureCelsius") AS avg_temperature
                 FROM "DeviceTelemetryLogs"
                 GROUP BY "DeviceId", bucket;
-                """
+                """,
+                suppressTransaction: true
             );
 
             migrationBuilder.Sql(
@@ -31,7 +36,8 @@ namespace SmartHomeHub.Infrastructure.Persistence.Migrations
                     start_offset => INTERVAL '3 days',
                     end_offset => INTERVAL '1 day',
                     schedule_interval => INTERVAL '1 day');
-                """
+                """,
+                suppressTransaction: true
             );
 
             migrationBuilder.Sql(
@@ -41,11 +47,13 @@ namespace SmartHomeHub.Infrastructure.Persistence.Migrations
                     timescaledb.compress_segmentby = '"DeviceId"',
                     timescaledb.compress_orderby = '"Timestamp" DESC'
                 );
-                """
+                """,
+                suppressTransaction: true
             );
 
             migrationBuilder.Sql(
-                "SELECT add_compression_policy('\"DeviceTelemetryLogs\"', INTERVAL '30 days');"
+                "SELECT add_compression_policy('\"DeviceTelemetryLogs\"', INTERVAL '30 days');",
+                suppressTransaction: true
             );
         }
 
@@ -53,7 +61,8 @@ namespace SmartHomeHub.Infrastructure.Persistence.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.Sql(
-                "SELECT remove_compression_policy('\"DeviceTelemetryLogs\"');"
+                "SELECT remove_compression_policy('\"DeviceTelemetryLogs\"');",
+                suppressTransaction: true
             );
 
             migrationBuilder.Sql(
@@ -65,15 +74,18 @@ namespace SmartHomeHub.Infrastructure.Persistence.Migrations
                         PERFORM decompress_chunk(chunk, if_compressed => true);
                     END LOOP;
                 END $$;
-                """
+                """,
+                suppressTransaction: true
             );
 
             migrationBuilder.Sql(
-                "ALTER TABLE \"DeviceTelemetryLogs\" SET (timescaledb.compress = false);"
+                "ALTER TABLE \"DeviceTelemetryLogs\" SET (timescaledb.compress = false);",
+                suppressTransaction: true
             );
 
             migrationBuilder.Sql(
-                "DROP MATERIALIZED VIEW IF EXISTS device_telemetry_daily;"
+                "DROP MATERIALIZED VIEW IF EXISTS device_telemetry_daily;",
+                suppressTransaction: true
             );
         }
     }
