@@ -65,7 +65,7 @@ export function ClimateControlPanel({ device }: DeviceControlPanelProps) {
 							type="button"
 							disabled={!isOnline}
 							onClick={() => setTemperature((t) => Math.min(30, t + 1))}
-							className="flex h-9 w-9 items-center justify-center rounded-full border border-border-subtle bg-surface-high text-foreground transition-colors hover:bg-surface-highest disabled:cursor-not-allowed disabled:hover:bg-surface-high"
+							className="flex h-11 w-11 items-center justify-center rounded-full border border-border-subtle bg-surface-high text-foreground transition-colors hover:bg-surface-highest disabled:cursor-not-allowed disabled:hover:bg-surface-high lg:h-9 lg:w-9"
 						>
 							<Plus className="h-4 w-4" />
 						</button>
@@ -73,7 +73,7 @@ export function ClimateControlPanel({ device }: DeviceControlPanelProps) {
 							type="button"
 							disabled={!isOnline}
 							onClick={() => setTemperature((t) => Math.max(16, t - 1))}
-							className="flex h-9 w-9 items-center justify-center rounded-full border border-border-subtle bg-surface-high text-foreground transition-colors hover:bg-surface-highest disabled:cursor-not-allowed disabled:hover:bg-surface-high"
+							className="flex h-11 w-11 items-center justify-center rounded-full border border-border-subtle bg-surface-high text-foreground transition-colors hover:bg-surface-highest disabled:cursor-not-allowed disabled:hover:bg-surface-high lg:h-9 lg:w-9"
 						>
 							<Minus className="h-4 w-4" />
 						</button>
@@ -83,7 +83,7 @@ export function ClimateControlPanel({ device }: DeviceControlPanelProps) {
 							type="button"
 							disabled={!isOnline}
 							onClick={() => setClimateMode("cool")}
-							className={`flex h-9 w-9 items-center justify-center rounded-full transition-all disabled:cursor-not-allowed ${
+							className={`flex h-11 w-11 items-center justify-center rounded-full transition-all disabled:cursor-not-allowed lg:h-9 lg:w-9 ${
 								climateMode === "cool"
 									? "bg-cool text-cool-foreground shadow-sm scale-105"
 									: "border border-border-subtle bg-surface-high text-muted-foreground hover:bg-surface-highest"
@@ -95,7 +95,7 @@ export function ClimateControlPanel({ device }: DeviceControlPanelProps) {
 							type="button"
 							disabled={!isOnline}
 							onClick={() => setClimateMode("fan")}
-							className={`flex h-9 w-9 items-center justify-center rounded-full transition-all disabled:cursor-not-allowed ${
+							className={`flex h-11 w-11 items-center justify-center rounded-full transition-all disabled:cursor-not-allowed lg:h-9 lg:w-9 ${
 								climateMode === "fan"
 									? "bg-cool text-cool-foreground shadow-sm scale-105"
 									: "border border-border-subtle bg-surface-high text-muted-foreground hover:bg-surface-highest"

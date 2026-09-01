@@ -143,7 +143,7 @@ export function LightControlPanel({ device }: DeviceControlPanelProps) {
 							onClick={() => switchTab("white")}
 							disabled={!isOnline || isLoadingWorkMode}
 							aria-pressed={activeTab === "white"}
-							className={`flex h-8 items-center gap-1.5 rounded px-3 text-xs font-medium transition-colors cursor-pointer disabled:cursor-not-allowed ${
+							className={`flex h-11 items-center gap-1.5 rounded px-3 text-xs font-medium transition-colors cursor-pointer disabled:cursor-not-allowed lg:h-8 ${
 								activeTab === "white"
 									? "bg-surface-highest text-primary shadow-xs"
 									: "text-muted-foreground hover:text-foreground"
@@ -157,7 +157,7 @@ export function LightControlPanel({ device }: DeviceControlPanelProps) {
 							onClick={() => switchTab("colour")}
 							disabled={!isOnline || isLoadingWorkMode}
 							aria-pressed={activeTab === "colour"}
-							className={`flex h-8 items-center gap-1.5 rounded px-3 text-xs font-medium transition-colors cursor-pointer disabled:cursor-not-allowed ${
+							className={`flex h-11 items-center gap-1.5 rounded px-3 text-xs font-medium transition-colors cursor-pointer disabled:cursor-not-allowed lg:h-8 ${
 								activeTab === "colour"
 									? "bg-surface-highest text-primary shadow-xs"
 									: "text-muted-foreground hover:text-foreground"
@@ -190,7 +190,7 @@ export function LightControlPanel({ device }: DeviceControlPanelProps) {
 						type="button"
 						disabled={!isOnline || isSettingBrightness}
 						aria-label={t("controls.brightness", "Brilho")}
-						className="relative block h-2 w-full touch-none overflow-visible rounded-full bg-surface-low cursor-pointer group/slider disabled:cursor-not-allowed"
+						className="group/slider relative flex h-11 w-full touch-none cursor-pointer items-center disabled:cursor-not-allowed"
 						onPointerDown={(e) => {
 							if (!isOnline) return;
 							e.currentTarget.setPointerCapture(e.pointerId);
@@ -217,17 +217,22 @@ export function LightControlPanel({ device }: DeviceControlPanelProps) {
 							commitBrightness(brightness);
 						}}
 					>
-						<div
-							className={`h-full rounded-full bg-warm relative ${isDraggingBrightness ? "" : "transition-all"}`}
-							style={{ width: isOn ? `${brightness}%` : "0%" }}
-						>
+						{/* Trilha visual fina — a área de toque real é o botão pai
+						 * (h-11/44px), essa div só existe pra manter a espessura visual
+						 * original de h-2. */}
+						<div className="relative h-2 w-full overflow-visible rounded-full bg-surface-low">
 							<div
-								className={`absolute right-0 top-1/2 h-3 w-3 -translate-y-1/2 rounded-full bg-warm-foreground shadow-sm transition-opacity ${
-									isDraggingBrightness
-										? "opacity-100"
-										: "opacity-0 group-hover/slider:opacity-100"
-								}`}
-							/>
+								className={`h-full rounded-full bg-warm relative ${isDraggingBrightness ? "" : "transition-all"}`}
+								style={{ width: isOn ? `${brightness}%` : "0%" }}
+							>
+								<div
+									className={`absolute right-0 top-1/2 h-3 w-3 -translate-y-1/2 rounded-full bg-warm-foreground shadow-sm transition-opacity ${
+										isDraggingBrightness
+											? "opacity-100"
+											: "opacity-0 group-hover/slider:opacity-100"
+									}`}
+								/>
+							</div>
 						</div>
 					</button>
 
@@ -257,7 +262,7 @@ export function LightControlPanel({ device }: DeviceControlPanelProps) {
 							type="button"
 							disabled={!isOnline || isSettingColorTemp}
 							aria-label={t("controls.colorTemp", "Temperatura")}
-							className="relative block h-2 w-full touch-none overflow-visible rounded-full bg-linear-to-r from-warm to-cool cursor-pointer group/slider disabled:cursor-not-allowed"
+							className="group/slider relative flex h-11 w-full touch-none cursor-pointer items-center disabled:cursor-not-allowed"
 							onPointerDown={(e) => {
 								if (!isOnline) return;
 								e.currentTarget.setPointerCapture(e.pointerId);
@@ -284,14 +289,19 @@ export function LightControlPanel({ device }: DeviceControlPanelProps) {
 								commitColorTemp(colorTemp);
 							}}
 						>
-							<div
-								className={`absolute top-1/2 h-3.5 w-3.5 -translate-y-1/2 rounded-full border-2 border-background bg-foreground shadow-sm transition-opacity ${
-									isDraggingColorTemp
-										? "opacity-100"
-										: "opacity-70 group-hover/slider:opacity-100"
-								}`}
-								style={{ left: `calc(${colorTemp}% - 7px)` }}
-							/>
+							{/* Trilha visual fina — a área de toque real é o botão pai
+							 * (h-11/44px), essa div só existe pra manter a espessura
+							 * visual original de h-2. */}
+							<div className="relative h-2 w-full rounded-full bg-linear-to-r from-warm to-cool">
+								<div
+									className={`absolute top-1/2 h-3.5 w-3.5 -translate-y-1/2 rounded-full border-2 border-background bg-foreground shadow-sm transition-opacity ${
+										isDraggingColorTemp
+											? "opacity-100"
+											: "opacity-70 group-hover/slider:opacity-100"
+									}`}
+									style={{ left: `calc(${colorTemp}% - 7px)` }}
+								/>
+							</div>
 						</button>
 					</div>
 				)}
@@ -309,20 +319,29 @@ export function LightControlPanel({ device }: DeviceControlPanelProps) {
 							}
 						/>
 
-						<div className="flex items-center gap-2">
-							{PRESET_COLORS.map((preset) => (
-								<button
-									key={preset}
-									type="button"
-									disabled={!isOnline || isSettingColor}
-									aria-label={preset}
-									onClick={() =>
-										setColor({ deviceId: device.id, colorHex: preset })
-									}
-									className="h-5 w-5 shrink-0 rounded-full border border-border-subtle shadow-xs transition-transform hover:scale-110 disabled:cursor-not-allowed disabled:hover:scale-100"
-									style={{ backgroundColor: preset }}
-								/>
-							))}
+						<div className="flex flex-wrap items-center gap-1">
+							{PRESET_COLORS.map((preset) => {
+								const isSwatchDisabled = !isOnline || isSettingColor;
+								return (
+									<button
+										key={preset}
+										type="button"
+										disabled={isSwatchDisabled}
+										aria-label={preset}
+										onClick={() =>
+											setColor({ deviceId: device.id, colorHex: preset })
+										}
+										className="group/swatch flex h-11 w-11 shrink-0 items-center justify-center disabled:cursor-not-allowed"
+									>
+										<span
+											className={`h-5 w-5 rounded-full border border-border-subtle shadow-xs transition-transform ${
+												isSwatchDisabled ? "" : "group-hover/swatch:scale-110"
+											}`}
+											style={{ backgroundColor: preset }}
+										/>
+									</button>
+								);
+							})}
 						</div>
 					</div>
 				)}

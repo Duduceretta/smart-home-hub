@@ -123,7 +123,7 @@ export function TvControlPanel({ device }: DeviceControlPanelProps) {
 					type="button"
 					disabled={volumeDisabled}
 					aria-label={t("controls.volume", "Volume")}
-					className="relative block h-1.5 flex-1 touch-none overflow-visible rounded-full bg-surface-low cursor-pointer group/slider disabled:cursor-not-allowed"
+					className="group/slider relative flex h-11 flex-1 touch-none cursor-pointer items-center disabled:cursor-not-allowed"
 					onPointerDown={(e) => {
 						if (volumeDisabled) return;
 						e.currentTarget.setPointerCapture(e.pointerId);
@@ -151,17 +151,22 @@ export function TvControlPanel({ device }: DeviceControlPanelProps) {
 						setIsDraggingVolume(false);
 					}}
 				>
-					<div
-						className={`h-full rounded-full bg-primary relative ${isDraggingVolume ? "" : "transition-all"}`}
-						style={{ width: `${volumeDisabled ? 0 : localVolume}%` }}
-					>
+					{/* Trilha visual fina — a área de toque real é o botão pai
+					 * (h-11/44px), essa div só existe pra manter a espessura visual
+					 * original de h-1.5. */}
+					<div className="relative h-1.5 w-full overflow-visible rounded-full bg-surface-low">
 						<div
-							className={`absolute right-0 top-1/2 h-3 w-3 -translate-y-1/2 rounded-full bg-primary-foreground shadow-sm transition-opacity ${
-								isDraggingVolume
-									? "opacity-100"
-									: "opacity-0 group-hover/slider:opacity-100"
-							}`}
-						/>
+							className={`h-full rounded-full bg-primary relative ${isDraggingVolume ? "" : "transition-all"}`}
+							style={{ width: `${volumeDisabled ? 0 : localVolume}%` }}
+						>
+							<div
+								className={`absolute right-0 top-1/2 h-3 w-3 -translate-y-1/2 rounded-full bg-primary-foreground shadow-sm transition-opacity ${
+									isDraggingVolume
+										? "opacity-100"
+										: "opacity-0 group-hover/slider:opacity-100"
+								}`}
+							/>
+						</div>
 					</div>
 				</button>
 			</div>
@@ -194,7 +199,7 @@ function TvPowerToggle({ deviceId, isOn, isOnline }: TvPowerToggleProps) {
 			aria-checked={isOn && isOnline}
 			disabled={!isOnline || isPending}
 			onClick={() => toggleDevice(deviceId)}
-			className={`self-start rounded-full px-4 py-2 text-xs font-medium uppercase tracking-wider transition-colors cursor-pointer disabled:cursor-not-allowed ${
+			className={`flex h-11 shrink-0 items-center self-start rounded-full px-4 text-xs font-medium uppercase tracking-wider transition-colors cursor-pointer disabled:cursor-not-allowed lg:h-auto lg:py-2 ${
 				isOn && isOnline
 					? "bg-primary text-primary-foreground"
 					: "border border-border-subtle bg-surface-high text-muted-foreground hover:bg-surface-highest"
