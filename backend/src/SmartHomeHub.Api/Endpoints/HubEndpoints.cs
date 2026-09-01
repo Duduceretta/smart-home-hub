@@ -8,6 +8,7 @@ public static class HubEndpoints
     {
         app.MapHub<TelemetryHub>("/hubs/telemetry")
             .RequireAuthorization()
+            .RequireCors("AllowFrontend")
             .WithTags("⚡ Realtime (WebSockets)")
             .WithSummary("Hub SignalR de Telemetria e Status em Tempo Real")
             .WithDescription(

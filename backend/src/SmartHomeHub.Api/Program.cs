@@ -31,19 +31,43 @@ try
     builder.Host.UseSerilog();
 
     // 1. REGISTRO DA POLÍTICA DE CORS
+    // Origens lidas de configuração (Cors:AllowedOrigins / Cors:AllowedOriginsDevelopment),
+    // não hardcoded, para trocar sem recompilar. Chave separada por ambiente
+    // (em vez de deixar appsettings.Development.json "sobrescrever" o array da
+    // base) de propósito: array em appsettings faz merge posição-a-posição
+    // (Cors:AllowedOrigins:0, :1, ...), não substituição — se a base ganhar
+    // uma entrada a mais sem o Development acompanhar em contagem, um domínio
+    // de produção vaza silenciosamente pra política de dev. Selecionar a
+    // chave inteira por env.IsDevelopment() evita depender de contagem bater.
+    var corsSectionKey = builder.Environment.IsDevelopment()
+        ? "Cors:AllowedOriginsDevelopment"
+        : "Cors:AllowedOrigins";
+    var corsAllowedOrigins =
+        builder.Configuration.GetSection(corsSectionKey).Get<string[]>() ?? [];
+
+    if (corsAllowedOrigins.Length == 0)
+    {
+        // Lista vazia derruba CORS silenciosamente pra TODAS as rotas (preflight
+        // vira 204 sem Access-Control-Allow-Origin) — sintoma raro de investigar
+        // porque a API sobe normal e as respostas HTTP diretas continuam 200.
+        // Causa mais comum: appsettings.json não é encontrado porque o processo
+        // rodou com ContentRootPath != pasta do app (ex: "dotnet caminho/app.dll"
+        // executado de outro diretório de trabalho).
+        Log.Warning(
+            "Nenhuma origem CORS configurada em {CorsSectionKey} — todo preflight vai falhar sem Access-Control-Allow-Origin.",
+            corsSectionKey
+        );
+    }
+
     builder.Services.AddCors(options =>
     {
         options.AddPolicy(
-            "AllowFrontendLocal",
+            "AllowFrontend",
             policy =>
             {
                 policy
-                    .WithOrigins(
-                        "http://localhost:5173",
-                        "http://127.0.0.1:5173",
-                        "http://localhost:4173",
-                        "http://127.0.0.1:4173"
-                    )
+                    .WithOrigins(corsAllowedOrigins)
+                    .SetIsOriginAllowedToAllowWildcardSubdomains()
                     .AllowAnyMethod()
                     .AllowAnyHeader()
                     .AllowCredentials();
@@ -107,7 +131,7 @@ try
     }
 
     // 2. ATIVAÇÃO DO MIDDLEWARE DE CORS (Deve vir ANTES de Authentication/Authorization)
-    app.UseCors("AllowFrontendLocal");
+    app.UseCors("AllowFrontend");
 
     if (app.Environment.IsDevelopment())
     {
