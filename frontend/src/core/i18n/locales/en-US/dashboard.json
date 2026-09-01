@@ -79,7 +79,9 @@
 		"emptyTitle": "No recent activity yet",
 		"justNow": "Just now",
 		"loading": "Loading...",
-		"errorTitle": "Couldn't load the timeline",
+		"viewAll": "View full history",
+		"returnToDashboard": "Dashboard",
+		"errorTitle": "Could not load timeline",
 		"errorSubtitle": "Check your connection and try again."
 	}
 }

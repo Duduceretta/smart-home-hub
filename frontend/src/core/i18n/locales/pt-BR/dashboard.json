@@ -79,6 +79,8 @@
 		"emptyTitle": "Nenhuma atividade recente ainda",
 		"justNow": "Agora mesmo",
 		"loading": "Carregando...",
+		"viewAll": "Ver histórico completo",
+		"returnToDashboard": "Início",
 		"errorTitle": "Não foi possível carregar a linha do tempo",
 		"errorSubtitle": "Verifique sua conexão e tente novamente."
 	}

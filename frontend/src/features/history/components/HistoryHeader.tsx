@@ -1,4 +1,5 @@
 import {
+	ArrowLeft,
 	ChevronsDownUp,
 	ChevronsUpDown,
 	Download,
@@ -7,6 +8,7 @@ import {
 	RefreshCw,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/core/components/ui/button";
 import {
 	DropdownMenu,
@@ -30,7 +32,7 @@ interface HistoryHeaderProps {
 
 /**
  * Top header of the History page.
- * Contains page title, subtitle, expand/collapse all toggle, manual refresh, and log export actions.
+ * Contains return navigation button, page title, subtitle, expand/collapse all toggle, manual refresh, and log export actions.
  */
 export function HistoryHeader({
 	events,
@@ -40,11 +42,28 @@ export function HistoryHeader({
 	onToggleExpandAll,
 }: HistoryHeaderProps) {
 	const { t } = useTranslation("history");
+	const location = useLocation();
+	const navigate = useNavigate();
+
+	const returnTo = (location.state as { returnTo?: string })?.returnTo;
+	const returnLabel = (location.state as { returnLabel?: string })?.returnLabel;
 	const areAllExpanded = events.length > 0 && expandedCount >= events.length;
 
 	return (
 		<div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
 			<div className="flex flex-col gap-1">
+				{returnTo && (
+					<button
+						type="button"
+						onClick={() => navigate(returnTo)}
+						className="inline-flex items-center gap-1.5 self-start text-xs font-medium text-muted-foreground hover:text-foreground transition-colors cursor-pointer mb-1"
+					>
+						<ArrowLeft className="h-3.5 w-3.5" />
+						{returnLabel
+							? t("actions.returnTo", { label: returnLabel })
+							: t("actions.return", "Voltar")}
+					</button>
+				)}
 				<h1 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
 					{t("title", "Histórico de Eventos")}
 				</h1>

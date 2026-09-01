@@ -2,7 +2,8 @@
 	"title": "Automações",
 	"header": {
 		"subtitle": "Crie rotinas que ligam, desligam e reagem aos seus dispositivos automaticamente, por horário ou por evento.",
-		"addButton": "Nova Automação"
+		"addButton": "Nova Automação",
+		"returnTo": "Voltar para {{label}}"
 	},
 	"toolbar": {
 		"searchPlaceholder": "Buscar automação por nome..."

@@ -2,7 +2,8 @@
 	"title": "Automations",
 	"header": {
 		"subtitle": "Create routines that turn devices on, off, and react to them automatically, by schedule or by event.",
-		"addButton": "New Automation"
+		"addButton": "New Automation",
+		"returnTo": "Back to {{label}}"
 	},
 	"toolbar": {
 		"searchPlaceholder": "Search automation by name..."

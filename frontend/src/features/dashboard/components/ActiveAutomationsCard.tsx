@@ -112,7 +112,14 @@ export function ActiveAutomationsCard() {
 					</p>
 					<button
 						type="button"
-						onClick={() => navigate("/automations")}
+						onClick={() =>
+							navigate("/automations", {
+								state: {
+									returnTo: "/dashboard",
+									returnLabel: t("activityLog.returnToDashboard", "Início"),
+								},
+							})
+						}
 						className="mt-2 rounded-md border border-border-subtle bg-surface-high px-3 py-1.5 text-xs font-medium uppercase tracking-wider text-foreground transition-colors hover:bg-surface-highest hover:border-primary/40 cursor-pointer"
 					>
 						{t("automations.createCta")}
@@ -164,14 +171,28 @@ export function ActiveAutomationsCard() {
 							<AutomationEmptySlot
 								// biome-ignore lint/suspicious/noArrayIndexKey: placeholders sem identidade própria
 								key={`empty-slot-${index}`}
-								onClick={() => navigate("/automations")}
+								onClick={() =>
+									navigate("/automations", {
+										state: {
+											returnTo: "/dashboard",
+											returnLabel: t("activityLog.returnToDashboard", "Início"),
+										},
+									})
+								}
 							/>
 						))}
 					</div>
 
 					<button
 						type="button"
-						onClick={() => navigate("/automations")}
+						onClick={() =>
+							navigate("/automations", {
+								state: {
+									returnTo: "/dashboard",
+									returnLabel: t("activityLog.returnToDashboard", "Início"),
+								},
+							})
+						}
 						className="mt-auto flex items-center justify-center gap-1 rounded-lg border border-border-subtle bg-surface-high/70 py-2 text-xs font-medium text-foreground/80 transition-colors hover:bg-surface-highest hover:text-foreground cursor-pointer"
 					>
 						{t("automations.viewAll")}

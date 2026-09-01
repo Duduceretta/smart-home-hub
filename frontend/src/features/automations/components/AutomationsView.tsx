@@ -1,5 +1,7 @@
-import { AlertTriangle, Loader2 } from "lucide-react";
+import { AlertTriangle, ArrowLeft, Loader2 } from "lucide-react";
 import { useEffect, useMemo } from "react";
+import { useTranslation } from "react-i18next";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useDebouncedValue } from "@/core/hooks/useDebouncedValue";
 import { cn } from "@/core/utils";
 import { useAutomationFilterCounts } from "../hooks/useAutomationFilterCounts";
@@ -54,6 +56,13 @@ import { AutomationSummaryBar } from "./list/AutomationSummaryBar";
  * resumo em texto da `AutomationView`.
  */
 export function AutomationsView() {
+	const { t } = useTranslation("automations");
+	const location = useLocation();
+	const navigate = useNavigate();
+
+	const returnTo = (location.state as { returnTo?: string })?.returnTo;
+	const returnLabel = (location.state as { returnLabel?: string })?.returnLabel;
+
 	const {
 		query,
 		setQuery,
@@ -178,12 +187,26 @@ export function AutomationsView() {
 				)}
 			>
 				<div className="flex shrink-0 flex-col gap-1">
+					{returnTo && (
+						<button
+							type="button"
+							onClick={() => navigate(returnTo)}
+							className="inline-flex items-center gap-1.5 self-start text-xs font-medium text-muted-foreground hover:text-foreground transition-colors cursor-pointer mb-1"
+						>
+							<ArrowLeft className="h-3.5 w-3.5" />
+							{t("header.returnTo", {
+								label: returnLabel || t("title", "Automações"),
+							})}
+						</button>
+					)}
 					<h1 className="text-3xl font-bold tracking-tight text-foreground">
-						Automações
+						{t("title", "Automações")}
 					</h1>
 					<p className="text-sm text-muted-foreground">
-						Crie regras com gatilhos, condições e ações pra automatizar sua
-						casa.
+						{t(
+							"header.subtitle",
+							"Crie regras com gatilhos, condições e ações pra automatizar sua casa.",
+						)}
 					</p>
 				</div>
 

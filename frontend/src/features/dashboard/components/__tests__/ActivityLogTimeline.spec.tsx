@@ -1,9 +1,18 @@
 import { HttpResponse, http } from "msw";
+import { MemoryRouter } from "react-router-dom";
 import { describe, expect, it } from "vitest";
 import { createActivityLogEntryMock } from "@/testing/mocks/dashboard.mock";
 import { server } from "@/testing/mocks/server";
 import { renderWithProviders, screen, userEvent } from "@/testing/test-utils";
 import { ActivityLogTimeline } from "../ActivityLogTimeline";
+
+function renderTimeline() {
+	return renderWithProviders(
+		<MemoryRouter>
+			<ActivityLogTimeline />
+		</MemoryRouter>,
+	);
+}
 
 function mockActivityLogResponse(
 	items: ReturnType<typeof createActivityLogEntryMock>[],
@@ -29,7 +38,7 @@ describe("ActivityLogTimeline Integration Tests", () => {
 		);
 
 		// Act
-		renderWithProviders(<ActivityLogTimeline />);
+		renderTimeline();
 
 		// Assert
 		expect(
@@ -60,7 +69,7 @@ describe("ActivityLogTimeline Integration Tests", () => {
 		);
 
 		// Act
-		renderWithProviders(<ActivityLogTimeline />);
+		renderTimeline();
 
 		// Assert
 		expect(
@@ -89,7 +98,7 @@ describe("ActivityLogTimeline Integration Tests", () => {
 		);
 
 		// Act
-		renderWithProviders(<ActivityLogTimeline />);
+		renderTimeline();
 
 		// Assert
 		expect(await screen.findByText("Alarme disparado")).toBeInTheDocument();
@@ -110,7 +119,7 @@ describe("ActivityLogTimeline Integration Tests", () => {
 		);
 
 		const user = userEvent.setup();
-		renderWithProviders(<ActivityLogTimeline />);
+		renderTimeline();
 
 		// Assert — estado de erro aparece após esgotar o retry automático
 		expect(
@@ -132,5 +141,23 @@ describe("ActivityLogTimeline Integration Tests", () => {
 			{ timeout: 3000 },
 		);
 		expect(requestCount).toBeGreaterThan(requestsBeforeRetryClick);
+	});
+
+	it("ActivityLogTimeline_ClickViewAll_ShouldRenderNavigationButton", async () => {
+		// Arrange
+		server.use(
+			http.get("*/api/dashboard/activity-log", () =>
+				HttpResponse.json(mockActivityLogResponse([])),
+			),
+		);
+
+		// Act
+		renderTimeline();
+
+		// Assert
+		const viewAllBtn = await screen.findByRole("button", {
+			name: /ver histórico completo/i,
+		});
+		expect(viewAllBtn).toBeInTheDocument();
 	});
 });
