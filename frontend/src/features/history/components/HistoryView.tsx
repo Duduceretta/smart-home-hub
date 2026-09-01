@@ -1,5 +1,6 @@
 import { useMemo, useRef, useState } from "react";
 import { useDebouncedValue } from "@/core/hooks/useDebouncedValue";
+import { cn } from "@/core/utils";
 import { useEventHistory } from "../hooks/useEventHistory";
 import { useEventHistoryStats } from "../hooks/useEventHistoryStats";
 import { useEventStream } from "../hooks/useEventStream";
@@ -159,13 +160,21 @@ export function HistoryView() {
 				<HistoryEmptyState />
 			) : (
 				<div className="flex flex-col gap-6">
-					<HistoryTimeline
-						events={events}
-						queryParams={queryParams}
-						expandedEventIds={expandedEventIds}
-						containerRef={containerRef}
-						onToggleExpand={toggleExpandEvent}
-					/>
+					<div
+						key={`history-page-${page}`}
+						className={cn(
+							"flex flex-col gap-6 motion-safe:animate-in motion-safe:fade-in-0 motion-safe:slide-in-from-bottom-2 motion-safe:duration-300 transition-opacity duration-200",
+							isFetching && !isLoading ? "opacity-75" : "opacity-100",
+						)}
+					>
+						<HistoryTimeline
+							events={events}
+							queryParams={queryParams}
+							expandedEventIds={expandedEventIds}
+							containerRef={containerRef}
+							onToggleExpand={toggleExpandEvent}
+						/>
+					</div>
 
 					<HistoryPagination
 						page={page}
