@@ -38,7 +38,8 @@
 	},
 	"detail": {
 		"selectPrompt": "Select a device to see the details.",
-		"edit": "Edit"
+		"edit": "Edit",
+		"backToList": "Back to list"
 	},
 	"controls": {
 		"title": "Controls",

@@ -15,9 +15,13 @@ import { DeviceDetailContent } from "./DeviceDetailContent";
 
 interface DeviceDetailPanelProps {
 	device: Device | null;
+	/** Volta pro master (lista) na navegação em pilha mobile — o botão só é
+	 * renderizado abaixo de `lg` (`lg:hidden`), onde master e detail nunca
+	 * ficam visíveis ao mesmo tempo. */
+	onBack: () => void;
 }
 
-export function DeviceDetailPanel({ device }: DeviceDetailPanelProps) {
+export function DeviceDetailPanel({ device, onBack }: DeviceDetailPanelProps) {
 	const { t } = useTranslation(["devices", "common"]);
 	const location = useLocation();
 	const navigate = useNavigate();
@@ -29,15 +33,31 @@ export function DeviceDetailPanel({ device }: DeviceDetailPanelProps) {
 	const openEditModal = useDevicesUIStore((s) => s.openEditModal);
 	const { mutate: deleteDevice, isPending: isDeleting } = useDeleteDevice();
 
+	const MobileBackButton = (
+		<button
+			type="button"
+			onClick={onBack}
+			aria-label={t("detail.backToList", "Voltar pra lista")}
+			className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-surface-high hover:text-foreground cursor-pointer lg:hidden"
+		>
+			<ArrowLeft className="h-5 w-5" />
+		</button>
+	);
+
 	if (!device) {
 		return (
-			<div className="flex h-full max-h-full min-h-50 flex-col items-center justify-center rounded-xl border border-dashed border-border-subtle bg-surface-low text-center">
-				<p className="text-sm text-muted-foreground">
-					{t(
-						"detail.selectPrompt",
-						"Selecione um dispositivo pra ver os detalhes.",
-					)}
-				</p>
+			<div className="flex h-full max-h-full flex-col overflow-hidden rounded-xl border border-dashed border-border-subtle bg-surface-low">
+				<div className="flex shrink-0 items-center border-b border-border-subtle/50 p-3 lg:hidden">
+					{MobileBackButton}
+				</div>
+				<div className="flex flex-1 flex-col items-center justify-center text-center">
+					<p className="text-sm text-muted-foreground">
+						{t(
+							"detail.selectPrompt",
+							"Selecione um dispositivo pra ver os detalhes.",
+						)}
+					</p>
+				</div>
 			</div>
 		);
 	}
@@ -65,13 +85,14 @@ export function DeviceDetailPanel({ device }: DeviceDetailPanelProps) {
 			variant: "destructive",
 			icon: Trash2,
 		});
-		if (confirmed) deleteDevice(device.id);
+		if (confirmed) deleteDevice(device.id, { onSuccess: onBack });
 	};
 
 	return (
 		<div className="flex h-full max-h-full flex-col overflow-hidden rounded-xl border border-border-subtle bg-surface-low shadow-sm">
-			<div className="flex shrink-0 items-center justify-between gap-4 border-b border-border-subtle/50 bg-surface-container/50 p-6">
-				<div className="flex min-w-0 items-center gap-4">
+			<div className="flex shrink-0 items-center justify-between gap-4 border-b border-border-subtle/50 bg-surface-container/50 p-3 sm:p-6">
+				<div className="flex min-w-0 items-center gap-2 sm:gap-4">
+					{MobileBackButton}
 					<div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-surface-high text-primary shadow-xs">
 						<Icon className="h-6 w-6" />
 					</div>
@@ -96,7 +117,7 @@ export function DeviceDetailPanel({ device }: DeviceDetailPanelProps) {
 					{returnTo && (
 						<Button
 							variant="outline"
-							className="border-border-subtle bg-surface-container text-foreground hover:bg-surface-high hover:border-primary/40"
+							className="h-11 border-border-subtle bg-surface-container text-foreground hover:bg-surface-high hover:border-primary/40 lg:h-8"
 							onClick={() => navigate(returnTo)}
 						>
 							<ArrowLeft className="h-4 w-4" />
@@ -109,18 +130,20 @@ export function DeviceDetailPanel({ device }: DeviceDetailPanelProps) {
 					)}
 					<Button
 						variant="outline"
-						className="border-border-subtle bg-surface-container text-foreground hover:bg-surface-high hover:border-primary/40"
+						className="h-11 border-border-subtle bg-surface-container text-foreground hover:bg-surface-high hover:border-primary/40 lg:h-8"
 						onClick={() => openEditModal(device)}
 					>
 						<Pencil className="h-4 w-4" />
-						{t("detail.edit", "Editar")}
+						<span className="hidden sm:inline">
+							{t("detail.edit", "Editar")}
+						</span>
 					</Button>
 					<Button
 						variant="outline"
 						onClick={handleDeleteClick}
 						disabled={isDeleting}
 						aria-label={t("common:actions.delete")}
-						className="border-destructive/30 bg-destructive/10 text-destructive transition-all hover:bg-destructive/20 hover:border-destructive/40 cursor-pointer shadow-xs disabled:cursor-not-allowed"
+						className="h-11 w-11 border-destructive/30 bg-destructive/10 text-destructive transition-all hover:bg-destructive/20 hover:border-destructive/40 cursor-pointer shadow-xs disabled:cursor-not-allowed lg:h-8 lg:w-auto"
 					>
 						<Trash2 className="h-4 w-4" />
 					</Button>

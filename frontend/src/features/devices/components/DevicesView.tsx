@@ -1,7 +1,8 @@
 import { ArrowLeft } from "lucide-react";
-import { useEffect } from "react";
+import { useCallback, useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
+import { useMediaQuery } from "@/core/hooks/useMediaQuery";
 import { cn } from "@/core/utils";
 import { useDevice } from "../hooks/useDevice";
 import { useDevicesUIStore } from "../store/devices-ui.store";
@@ -12,32 +13,93 @@ import { DeviceFilterRail } from "./list/DeviceFilterRail";
 import { DeviceListPanel } from "./list/DeviceListPanel";
 
 /**
- * View de Dispositivos — master-detail, mesmo padrão estrutural de
- * `AutomationsView`/`RoomsView`: título vive DENTRO da coluna master.
- * Painel de lista de largura fixa à esquerda + painel de detalhe ocupando o
- * restante à direita, os dois nascem no mesmo Y.
+ * View de Dispositivos — master-detail acima de `lg` (1024px, mesmo
+ * breakpoint que já fazia master/detail colapsar pra uma coluna): título
+ * vive DENTRO da coluna master, painel de lista de largura fixa à esquerda +
+ * painel de detalhe ocupando o restante à direita, os dois nascem no mesmo Y.
+ *
+ * Abaixo de `lg`, vira navegação em pilha (stack) — só master OU detail
+ * ocupam a tela, nunca os dois. O dispositivo selecionado é refletido em
+ * `?device=<id>` na própria URL de `/devices` (não um estado paralelo): tocar
+ * num item empurra uma entrada nova no histórico (o botão físico de voltar
+ * do navegador desfaz exatamente essa seleção, voltando pra lista), o botão
+ * "voltar" do painel de detalhe faz o mesmo removendo o param. Acima de
+ * `lg`, onde master e detail já ficam lado a lado, selecionar um dispositivo
+ * troca a URL via `replace` (não empilha histórico por clique — mesmo
+ * comportamento silencioso de antes, quando a seleção só vivia no Zustand).
  */
 export const DevicesView: React.FC = () => {
 	const { t } = useTranslation("devices");
 	const location = useLocation();
 	const navigate = useNavigate();
+	const [searchParams, setSearchParams] = useSearchParams();
+
+	const isDesktopMasterDetail = useMediaQuery("(min-width: 1024px)");
 
 	const returnTo = (location.state as { returnTo?: string })?.returnTo;
 	const returnLabel = (location.state as { returnLabel?: string })?.returnLabel;
 	const stateDeviceId = (location.state as { selectedDeviceId?: string })
 		?.selectedDeviceId;
 
-	const selectedDeviceId = useDevicesUIStore((s) => s.selectedDeviceId);
-	const setSelectedDeviceId = useDevicesUIStore((s) => s.setSelectedDeviceId);
 	const resetFilters = useDevicesUIStore((s) => s.resetFilters);
 	const openDiscoveryModal = useDevicesUIStore((s) => s.openDiscoveryModal);
 
+	const selectedDeviceId = searchParams.get("device");
+
+	/** Seleção via toque/clique numa linha da lista — histórico só cresce
+	 * abaixo de `lg` (pilha mobile); em telas largas troca a URL sem
+	 * empilhar, preservando o comportamento de mouse já existente. */
+	const selectDevice = useCallback(
+		(id: string) => {
+			setSearchParams(
+				(prev) => {
+					const next = new URLSearchParams(prev);
+					next.set("device", id);
+					return next;
+				},
+				{ replace: isDesktopMasterDetail },
+			);
+		},
+		[setSearchParams, isDesktopMasterDetail],
+	);
+
+	/** Seleção programática (default inicial / correção de filtro) — nunca
+	 * empilha histórico, só acontece em telas largas (`autoSelectFirst`). */
+	const setDefaultDevice = useCallback(
+		(id: string | null) => {
+			setSearchParams(
+				(prev) => {
+					const next = new URLSearchParams(prev);
+					if (id) next.set("device", id);
+					else next.delete("device");
+					return next;
+				},
+				{ replace: true },
+			);
+		},
+		[setSearchParams],
+	);
+
+	/** Botão "voltar" do painel de detalhe (só existe <lg) — sempre empilha,
+	 * pra o botão físico de voltar do navegador desfazer exatamente essa ação
+	 * (volta pro detalhe), e não sair da tela de Dispositivos. */
+	const clearSelection = useCallback(() => {
+		setSearchParams((prev) => {
+			const next = new URLSearchParams(prev);
+			next.delete("device");
+			return next;
+		});
+	}, [setSearchParams]);
+
+	// Chegada via `location.state` (ex: Dashboard/Grupos "ver detalhes") —
+	// estabelece o estado inicial sem criar uma entrada extra de histórico.
+	// biome-ignore lint/correctness/useExhaustiveDependencies: dispara só na chegada com stateDeviceId, de propósito.
 	useEffect(() => {
 		if (stateDeviceId) {
 			resetFilters();
-			setSelectedDeviceId(stateDeviceId);
+			setDefaultDevice(stateDeviceId);
 		}
-	}, [stateDeviceId, resetFilters, setSelectedDeviceId]);
+	}, [stateDeviceId]);
 
 	const { data: selectedDevice = null } = useDevice(selectedDeviceId ?? "");
 
@@ -79,7 +141,9 @@ export const DevicesView: React.FC = () => {
 					<div className="h-full min-w-0 flex-1">
 						<DeviceListPanel
 							selectedId={selectedDeviceId}
-							onSelect={setSelectedDeviceId}
+							onSelect={selectDevice}
+							onAutoSelect={setDefaultDevice}
+							autoSelectFirst={isDesktopMasterDetail}
 							onCreate={openDiscoveryModal}
 						/>
 					</div>
@@ -92,7 +156,7 @@ export const DevicesView: React.FC = () => {
 					selectedDeviceId ? "flex" : "hidden lg:flex",
 				)}
 			>
-				<DeviceDetailPanel device={selectedDevice} />
+				<DeviceDetailPanel device={selectedDevice} onBack={clearSelection} />
 			</div>
 
 			<DeviceDiscoveryModal />

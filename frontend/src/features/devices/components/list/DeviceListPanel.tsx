@@ -50,7 +50,7 @@ function PaginationControls({
 					disabled={page <= 1}
 					onClick={() => onPageChange(page - 1)}
 					aria-label={t("grid.previousPage", "Página anterior")}
-					className="flex h-7 w-7 items-center justify-center rounded-full bg-surface-high text-muted-foreground transition-colors hover:bg-surface-highest hover:text-foreground disabled:cursor-not-allowed disabled:opacity-40"
+					className="flex h-11 w-11 items-center justify-center rounded-full bg-surface-high text-muted-foreground transition-colors hover:bg-surface-highest hover:text-foreground disabled:cursor-not-allowed disabled:opacity-40 lg:h-7 lg:w-7"
 				>
 					<ChevronLeft className="h-3.5 w-3.5" />
 				</button>
@@ -59,7 +59,7 @@ function PaginationControls({
 					disabled={page >= totalPages}
 					onClick={() => onPageChange(page + 1)}
 					aria-label={t("grid.nextPage", "Próxima página")}
-					className="flex h-7 w-7 items-center justify-center rounded-full bg-surface-high text-muted-foreground transition-colors hover:bg-surface-highest hover:text-foreground disabled:cursor-not-allowed disabled:opacity-40"
+					className="flex h-11 w-11 items-center justify-center rounded-full bg-surface-high text-muted-foreground transition-colors hover:bg-surface-highest hover:text-foreground disabled:cursor-not-allowed disabled:opacity-40 lg:h-7 lg:w-7"
 				>
 					<ChevronRight className="h-3.5 w-3.5" />
 				</button>
@@ -70,7 +70,16 @@ function PaginationControls({
 
 interface DeviceListPanelProps {
 	selectedId: string | null;
-	onSelect: (id: string | null) => void;
+	/** Seleção via toque/clique numa linha — navegação real (empilha
+	 * histórico abaixo de `lg`). */
+	onSelect: (id: string) => void;
+	/** Seleção/correção programática (default inicial, item selecionado saiu
+	 * do filtro) — nunca empilha histórico. Só é chamada quando
+	 * `autoSelectFirst` é true. */
+	onAutoSelect: (id: string | null) => void;
+	/** true só em telas largas (`lg`+, master-detail lado a lado) — abaixo
+	 * disso a lista nasce sem nada selecionado, mostrando o master primeiro. */
+	autoSelectFirst: boolean;
 	onCreate: () => void;
 }
 
@@ -87,6 +96,8 @@ interface DeviceListPanelProps {
 export function DeviceListPanel({
 	selectedId,
 	onSelect,
+	onAutoSelect,
+	autoSelectFirst,
 	onCreate,
 }: DeviceListPanelProps) {
 	const { t } = useTranslation("devices");
@@ -126,18 +137,20 @@ export function DeviceListPanel({
 	const totalCount = data?.totalCount ?? 0;
 
 	// Auto-seleção do primeiro item ao carregar/filtrar — mesmo padrão de
-	// `RoomsView` (feature `rooms`).
+	// `RoomsView` (feature `rooms`), só em telas largas (master-detail lado a
+	// lado). Abaixo de `lg` a lista nasce sem nada selecionado de propósito —
+	// é a tela inicial da navegação em pilha mobile.
 	useEffect(() => {
-		if (isLoading) return;
+		if (!autoSelectFirst || isLoading) return;
 		if (selectedId === null && devices.length > 0) {
-			onSelect(devices[0].id);
+			onAutoSelect(devices[0].id);
 		} else if (
 			selectedId !== null &&
 			!devices.some((device) => device.id === selectedId)
 		) {
-			onSelect(devices[0]?.id ?? null);
+			onAutoSelect(devices[0]?.id ?? null);
 		}
-	}, [isLoading, devices, selectedId, onSelect]);
+	}, [autoSelectFirst, isLoading, devices, selectedId, onAutoSelect]);
 
 	useEffect(() => {
 		const handleGlobalKeyDown = (event: KeyboardEvent) => {
@@ -242,7 +255,7 @@ export function DeviceListPanel({
 						onClick={onCreate}
 						aria-label={t("header.addButton", "Novo Dispositivo")}
 						title={t("header.addButton", "Novo Dispositivo")}
-						className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-surface-high/80 text-muted-foreground transition-colors hover:bg-surface-highest hover:text-primary cursor-pointer"
+						className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-surface-high/80 text-muted-foreground transition-colors hover:bg-surface-highest hover:text-primary cursor-pointer lg:h-8 lg:w-8"
 					>
 						<Plus className="h-4 w-4" />
 					</button>

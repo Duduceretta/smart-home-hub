@@ -79,8 +79,8 @@ export function DeviceListItem({
 					disabled={isToggleDisabled}
 					onClick={handleToggle}
 					className={cn(
-						"relative z-10 flex shrink-0 items-center justify-center rounded-full transition-all cursor-pointer",
-						viewMode === "grid" ? "h-10 w-10" : "h-8 w-8",
+						"relative z-10 flex h-11 w-11 shrink-0 items-center justify-center rounded-full transition-all cursor-pointer",
+						viewMode === "grid" ? "lg:h-10 lg:w-10" : "lg:h-8 lg:w-8",
 						!isOnline
 							? "bg-surface-high border border-border-subtle text-muted-foreground/50 cursor-not-allowed"
 							: isOn
