@@ -95,15 +95,15 @@ export function RoomDeviceSection({
 				<button
 					type="button"
 					onClick={() => setRoomExpanded(roomKey, !expanded)}
-					className="group flex items-center gap-2 text-left cursor-pointer"
+					className="group flex min-w-0 flex-1 items-center gap-2 text-left cursor-pointer"
 				>
-					<span className="flex h-6 w-6 items-center justify-center rounded-md bg-surface-container text-foreground transition-colors group-hover:bg-surface-high">
+					<span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-surface-container text-foreground transition-colors group-hover:bg-surface-high">
 						<RoomIcon className="h-3.5 w-3.5" />
 					</span>
-					<h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground transition-colors group-hover:text-foreground">
+					<h3 className="min-w-0 truncate text-xs font-semibold uppercase tracking-wider text-muted-foreground transition-colors group-hover:text-foreground">
 						{title}
 					</h3>
-					<span className="text-xs text-muted-foreground">
+					<span className="shrink-0 text-xs text-muted-foreground">
 						({devices.length})
 					</span>
 
@@ -112,7 +112,7 @@ export function RoomDeviceSection({
 							const energy = formatEnergy(energyUsageKwh);
 							return (
 								<span
-									className="ml-2 inline-flex items-center gap-1 rounded-md border border-border-subtle bg-surface-container px-2 py-0.5 text-[11px] font-medium text-foreground"
+									className="ml-2 inline-flex shrink-0 items-center gap-1 rounded-md border border-border-subtle bg-surface-container px-2 py-0.5 text-[11px] font-medium text-foreground"
 									title={
 										energyUsageIsEstimated
 											? t(
@@ -125,7 +125,7 @@ export function RoomDeviceSection({
 									<span className="text-muted-foreground">
 										{t("roomSection.energyUsage", "Consumo")}:
 									</span>
-									<span className="font-semibold tabular-nums">
+									<span className="whitespace-nowrap font-semibold tabular-nums">
 										{energyUsageIsEstimated && "~"}
 										{energy.value} {energy.unit}
 									</span>

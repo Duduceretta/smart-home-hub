@@ -1,4 +1,5 @@
 import { Activity } from "lucide-react";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
 	Area,
@@ -13,9 +14,28 @@ import { useDashboardOverview } from "../hooks/useDashboardOverview";
 import { formatEnergy, formatPower } from "../lib/formatEnergy";
 import { DashboardErrorState } from "./DashboardErrorState";
 
+/** Abaixo de 640px (sm) o eixo X não cabe 8 rótulos "HH:MM" sem espremer —
+ * reduz pra 4 ticks visíveis nesse recorte. */
+function useIsNarrowViewport() {
+	const [isNarrow, setIsNarrow] = useState(
+		() => typeof window !== "undefined" && window.innerWidth < 640,
+	);
+
+	useEffect(() => {
+		const mql = window.matchMedia("(max-width: 639px)");
+		const handleChange = () => setIsNarrow(mql.matches);
+		handleChange();
+		mql.addEventListener("change", handleChange);
+		return () => mql.removeEventListener("change", handleChange);
+	}, []);
+
+	return isNarrow;
+}
+
 export function EnergyLoadWidget() {
 	const { t, i18n } = useTranslation("dashboard");
 	const { data, isLoading, isError, refetch } = useDashboardOverview();
+	const isNarrowViewport = useIsNarrowViewport();
 
 	if (isLoading) {
 		return (
@@ -58,7 +78,7 @@ export function EnergyLoadWidget() {
 
 	const totalEnergy = formatEnergy(data.summary.energyConsumptionKwh);
 
-	const MAX_VISIBLE_TICKS = 8;
+	const MAX_VISIBLE_TICKS = isNarrowViewport ? 4 : 8;
 	const xAxisTickInterval =
 		chartData.length > MAX_VISIBLE_TICKS
 			? Math.ceil(chartData.length / MAX_VISIBLE_TICKS)

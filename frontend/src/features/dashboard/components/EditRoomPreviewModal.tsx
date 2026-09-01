@@ -72,7 +72,15 @@ export function EditRoomPreviewModal({
 
 	return (
 		<Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-			<DialogContent className="sm:max-w-md border-border-subtle bg-popover text-foreground shadow-xl">
+			<DialogContent
+				className={cn(
+					"border-border-subtle bg-popover text-foreground shadow-xl sm:max-w-md",
+					// Abaixo de sm vira tela cheia (sem bordas flutuantes/raio) em vez
+					// de modal centralizado — telas pequenas não têm espaço sobrando
+					// pra margem/raio ao redor.
+					"max-sm:fixed max-sm:inset-0 max-sm:top-0 max-sm:left-0 max-sm:flex max-sm:h-dvh max-sm:max-w-none max-sm:w-full max-sm:translate-x-0 max-sm:translate-y-0 max-sm:flex-col max-sm:rounded-none",
+				)}
+			>
 				<DialogHeader>
 					<DialogTitle className="text-lg font-semibold tracking-tight text-foreground">
 						{t("roomSection.editTitle", "Escolher dispositivos exibidos")}
@@ -85,7 +93,7 @@ export function EditRoomPreviewModal({
 					</DialogDescription>
 				</DialogHeader>
 
-				<div className="flex max-h-80 flex-col gap-2 overflow-y-auto pr-1 scrollbar-thin">
+				<div className="flex max-h-80 flex-col gap-2 overflow-y-auto pr-1 scrollbar-thin max-sm:max-h-none max-sm:flex-1">
 					{devices.map((device) => {
 						const isSelected = draft.includes(device.id);
 						const width = deviceUnitWidth(device.type);
@@ -135,7 +143,7 @@ export function EditRoomPreviewModal({
 					})}
 				</div>
 
-				<DialogFooter className="border-t-0 bg-transparent pt-2">
+				<DialogFooter className="border-t-0 bg-transparent pt-2 max-sm:rounded-b-none">
 					<Button
 						variant="ghost"
 						onClick={handleReset}

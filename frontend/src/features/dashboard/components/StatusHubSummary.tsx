@@ -10,7 +10,7 @@ export function StatusHubSummary() {
 
 	if (isLoading) {
 		return (
-			<div className="grid grid-cols-2 gap-4 lg:grid-cols-4 animate-pulse">
+			<div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 animate-pulse">
 				{["energy", "devices", "temperature", "alerts"].map((metricKey) => (
 					<div
 						key={`skeleton-${metricKey}`}
@@ -44,7 +44,7 @@ export function StatusHubSummary() {
 	const energy = formatEnergy(summary.energyConsumptionKwh);
 
 	return (
-		<div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+		<div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
 			{/* Card 1: Consumo Acumulado */}
 			<div className="flex flex-col justify-between gap-4 rounded-xl border border-border-subtle bg-surface-container p-4 transition-all duration-200 hover:-translate-y-0.5 hover:border-border">
 				<div className="flex items-center justify-between">
