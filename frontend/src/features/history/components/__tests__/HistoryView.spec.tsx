@@ -233,4 +233,42 @@ describe("HistoryView Integration Tests", () => {
 		await user.click(collapseAllButton);
 		expect(useHistoryUIStore.getState().expandedEventIds).toEqual([]);
 	});
+
+	it("HistoryView_ClickRefreshButton_ShouldRefetchEvenIfSignalRDisconnected", async () => {
+		// Arrange
+		let requestCount = 0;
+		server.use(
+			http.get("*/api/history", () => {
+				requestCount++;
+				return HttpResponse.json({
+					items: [
+						createHistoryEventMock({
+							id: `ev-refetch-${requestCount}`,
+							description: `Evento após refresh ${requestCount}`,
+						}),
+					],
+					page: 1,
+					pageSize: 20,
+					totalCount: 1,
+					totalPages: 1,
+				});
+			}),
+		);
+		const user = userEvent.setup();
+
+		// Act
+		renderHistoryView();
+		expect(
+			await screen.findByText("Evento após refresh 1"),
+		).toBeInTheDocument();
+
+		const refreshButton = screen.getByRole("button", { name: /atualizar/i });
+		await user.click(refreshButton);
+
+		// Assert
+		expect(
+			await screen.findByText("Evento após refresh 2"),
+		).toBeInTheDocument();
+		expect(requestCount).toBe(2);
+	});
 });
