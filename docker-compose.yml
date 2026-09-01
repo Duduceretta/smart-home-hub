@@ -23,6 +23,15 @@ services:
       - mosquitto_data:/mosquitto/data
       - mosquitto_log:/mosquitto/log
 
+  # 3. Cloudflare Tunnel (Para expor o serviço ao público)
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    container_name: smarthome_cloudflared
+    restart: unless-stopped
+    command: tunnel run
+    environment:
+      - TUNNEL_TOKEN=${CLOUDFLARE_TUNNEL_TOKEN}
+
 # Garantindo que os dados não sumam se o PC reiniciar
 volumes:
   pgdata:
