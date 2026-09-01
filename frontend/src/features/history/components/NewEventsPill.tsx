@@ -14,7 +14,8 @@ interface NewEventsPillProps {
 
 /**
  * Sticky pill button rendered above the history timeline when new real-time events arrive.
- * Clicking it merges the pending events into the TanStack cache and scrolls to top smoothly.
+ * Clicking it merges the pending events into the Page 1 cache, resets pagination to Page 1,
+ * scrolls to top smoothly and clears the pending buffer.
  */
 export function NewEventsPill({
 	queryParams,
@@ -24,46 +25,60 @@ export function NewEventsPill({
 	const queryClient = useQueryClient();
 	const pendingEvents = useHistoryUIStore((s) => s.pendingEvents);
 	const clearPendingEvents = useHistoryUIStore((s) => s.clearPendingEvents);
+	const setPage = useHistoryUIStore((s) => s.setPage);
 
 	if (pendingEvents.total === 0) {
 		return null;
 	}
 
 	const handleApplyPendingEvents = () => {
-		if (pendingEvents.items.length === 0) {
-			clearPendingEvents();
-			return;
+		const page1Params: GetHistoryParams = {
+			...queryParams,
+			page: 1,
+		};
+
+		if (pendingEvents.items.length > 0) {
+			queryClient.setQueryData<PagedResponse<HistoryEvent>>(
+				historyKeys.list(page1Params),
+				(oldData) => {
+					const pageSize = queryParams.pageSize || 20;
+
+					if (!oldData) {
+						return {
+							items: pendingEvents.items,
+							page: 1,
+							pageSize,
+							totalCount: pendingEvents.total,
+							totalPages: Math.ceil(pendingEvents.total / pageSize) || 1,
+							hasNextPage: false,
+							hasPreviousPage: false,
+						};
+					}
+
+					const existingIds = new Set(oldData.items.map((event) => event.id));
+					const uniqueNew = pendingEvents.items.filter(
+						(item) => !existingIds.has(item.id),
+					);
+					const newTotal = oldData.totalCount + uniqueNew.length;
+
+					return {
+						...oldData,
+						items: [...uniqueNew, ...oldData.items],
+						totalCount: newTotal,
+						totalPages:
+							Math.ceil(newTotal / (oldData.pageSize || pageSize)) || 1,
+					};
+				},
+			);
 		}
 
-		queryClient.setQueryData<PagedResponse<HistoryEvent>>(
-			historyKeys.list(queryParams),
-			(oldData) => {
-				if (!oldData) {
-					return {
-						items: pendingEvents.items,
-						page: 1,
-						pageSize: 20,
-						totalCount: pendingEvents.total,
-						totalPages: Math.ceil(pendingEvents.total / 20) || 1,
-						hasNextPage: false,
-						hasPreviousPage: false,
-					};
-				}
+		// Garante a transição para a página 1
+		setPage(1);
 
-				const existingIds = new Set(oldData.items.map((event) => event.id));
-				const uniqueNew = pendingEvents.items.filter(
-					(item) => !existingIds.has(item.id),
-				);
-
-				return {
-					...oldData,
-					items: [...uniqueNew, ...oldData.items],
-					totalCount: oldData.totalCount + uniqueNew.length,
-				};
-			},
-		);
-
+		// Rola suavemente ao topo
 		scrollToTop(containerRef?.current);
+
+		// Limpa o buffer de novos eventos
 		clearPendingEvents();
 	};
 

@@ -265,4 +265,76 @@ describe("useEventStream Unit Tests", () => {
 			expect(useHistoryUIStore.getState().pendingEvents.total).toBe(0);
 		});
 	});
+
+	it("useEventStream_WhenOnPageGreaterThanOne_ShouldDiffAgainstPageOneCacheAndHoldInPendingBuffer", async () => {
+		// Arrange: User is on Page 6
+		const page6Params: GetHistoryParams = {
+			...defaultParams,
+			page: 6,
+		};
+		useHistoryUIStore.setState({
+			page: 6,
+			expandedEventIds: [],
+		});
+
+		// Page 1 cache already has events from page 1
+		const page1Event = createHistoryEventMock({
+			id: "ev-page1-existing",
+			description: "Evento topo da página 1",
+		});
+		queryClient.setQueryData(historyKeys.list(defaultParams), {
+			items: [page1Event],
+			totalCount: 120,
+			page: 1,
+			pageSize: 20,
+			totalPages: 6,
+		});
+
+		// Page 6 has old events
+		const page6Event = createHistoryEventMock({
+			id: "ev-page6-existing",
+			description: "Evento da página 6",
+		});
+		queryClient.setQueryData(historyKeys.list(page6Params), {
+			items: [page6Event],
+			totalCount: 120,
+			page: 6,
+			pageSize: 20,
+			totalPages: 6,
+		});
+
+		// Real-time API response returns Page 1 with exactly 1 new event
+		const brandNewEvent = createHistoryEventMock({
+			id: "ev-brand-new-song",
+			eventType: "MediaPlayback",
+			description: "Tocando: Nova Música",
+		});
+
+		server.use(
+			http.get("*/api/history", () =>
+				HttpResponse.json({
+					items: [brandNewEvent, page1Event],
+					totalCount: 121,
+					page: 1,
+					pageSize: 20,
+					totalPages: 7,
+				}),
+			),
+		);
+
+		// Act
+		renderHook(() => useEventStream(page6Params), { wrapper });
+		const spotifyHandler = getRegisteredHandler("SpotifyPlaybackChanged");
+		spotifyHandler!({ title: "Nova Música", isPlaying: true });
+
+		await vi.advanceTimersByTimeAsync(900);
+
+		// Assert: Identifies ONLY the 1 new event (not 20!) and buffers it into pendingEvents
+		await waitFor(() => {
+			const pending = useHistoryUIStore.getState().pendingEvents;
+			expect(pending.total).toBe(1);
+			expect(pending.mediaPlaybackCount).toBe(1);
+			expect(pending.items[0].id).toBe("ev-brand-new-song");
+		});
+	});
 });

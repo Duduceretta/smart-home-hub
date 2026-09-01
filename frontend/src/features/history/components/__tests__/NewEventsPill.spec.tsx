@@ -143,4 +143,45 @@ describe("NewEventsPill Component Tests", () => {
 		expect(cache?.items.map((i) => i.id)).toEqual(["p-new", "p-init"]);
 		expect(cache?.totalCount).toBe(2);
 	});
+
+	it("NewEventsPill_WhenOnPageSix_OnClick_ShouldResetPageToOne", async () => {
+		// Arrange: User is on page 6
+		useHistoryUIStore.setState({
+			page: 6,
+			pendingEvents: {
+				items: [
+					createHistoryEventMock({
+						id: "p-new-song",
+						eventType: "MediaPlayback",
+						description: "Tocando: Nova Música",
+					}),
+				],
+				total: 1,
+				mediaPlaybackCount: 1,
+			},
+		});
+
+		const user = userEvent.setup();
+
+		// Act: Render with page 6 query params
+		renderWithProviders(
+			<NewEventsPill queryParams={{ ...defaultParams, page: 6 }} />,
+			{ queryClient },
+		);
+
+		const pillButton = screen.getByRole("button", {
+			name: /1 novo evento/i,
+		});
+		await user.click(pillButton);
+
+		// Assert: Page is reset to 1 in store
+		expect(useHistoryUIStore.getState().page).toBe(1);
+		expect(useHistoryUIStore.getState().pendingEvents.total).toBe(0);
+
+		// Assert: Page 1 cache updated with the new item
+		const page1Cache = queryClient.getQueryData<{
+			items: { id: string }[];
+		}>(historyKeys.list(defaultParams));
+		expect(page1Cache?.items.map((i) => i.id)).toContain("p-new-song");
+	});
 });

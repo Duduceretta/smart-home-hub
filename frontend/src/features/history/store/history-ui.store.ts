@@ -87,14 +87,19 @@ export const useHistoryUIStore = create<HistoryUIState>((set) => ({
 	expandAllEvents: (ids) => set({ expandedEventIds: ids }),
 	collapseAllEvents: () => set({ expandedEventIds: [] }),
 	setPendingEvents: (events) =>
-		set({
-			pendingEvents: {
-				items: events,
-				total: events.length,
-				mediaPlaybackCount: events.filter(
-					(e) => e.eventType === "MediaPlayback",
-				).length,
-			},
+		set((state) => {
+			const existingIds = new Set(state.pendingEvents.items.map((e) => e.id));
+			const uniqueIncoming = events.filter((e) => !existingIds.has(e.id));
+			const combined = [...uniqueIncoming, ...state.pendingEvents.items];
+			return {
+				pendingEvents: {
+					items: combined,
+					total: combined.length,
+					mediaPlaybackCount: combined.filter(
+						(e) => e.eventType === "MediaPlayback",
+					).length,
+				},
+			};
 		}),
 	clearPendingEvents: () =>
 		set({

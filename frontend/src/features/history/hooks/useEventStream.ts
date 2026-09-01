@@ -38,6 +38,7 @@ export function scrollToTop(element?: HTMLElement | null): void {
  * Hook that listens to SignalR hub events (DeviceStatusChanged, DeviceMediaChanged,
  * SpotifyPlaybackChanged, AutomationExecutionResult) and debounces real-time background
  * fetching of newly persisted SystemEvents without manufacturing synthetic objects.
+ * Accurately diffs incoming events against Page 1 cache regardless of the user's active page.
  */
 export function useEventStream(
 	queryParams: GetHistoryParams,
@@ -52,6 +53,18 @@ export function useEventStream(
 	const debounceTimerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 	const queryParamsRef = useRef(queryParams);
 	queryParamsRef.current = queryParams;
+
+	const latestKnownTopEventIdRef = useRef<string | null>(null);
+
+	// Registra o ID do evento mais recente conhecido no cache da página 1
+	useEffect(() => {
+		const page1Cache = queryClient.getQueryData<PagedResponse<HistoryEvent>>(
+			historyKeys.list({ ...queryParams, page: 1 }),
+		);
+		if (page1Cache?.items[0]?.id && !latestKnownTopEventIdRef.current) {
+			latestKnownTopEventIdRef.current = page1Cache.items[0].id;
+		}
+	}, [queryParams, queryClient]);
 
 	useEffect(() => {
 		if (isLoading || !user) return;
@@ -72,47 +85,67 @@ export function useEventStream(
 			debounceTimerRef.current = setTimeout(async () => {
 				try {
 					const activeParams = queryParamsRef.current;
-					const liveEndDateUtc = new Date(
-						Date.now() + 24 * 60 * 60 * 1000,
-					).toISOString();
-					const fetchParams: GetHistoryParams = {
+
+					// Busca sempre a página 1 em background para detectar as novidades reais
+					const page1Params: GetHistoryParams = {
 						...activeParams,
-						endDateUtc:
-							activeParams.endDateUtc && activeParams.endDateUtc > liveEndDateUtc
-								? activeParams.endDateUtc
-								: liveEndDateUtc,
 						page: 1,
-						pageSize: 20,
+						pageSize: activeParams.pageSize || 20,
 					};
 
-					// Busca os eventos reais em segundo plano via API (sem invalidar a query imediatamente)
-					const result = await getEventHistory(fetchParams);
+					const result = await getEventHistory(page1Params);
 
 					if (!result || !result.items) return;
 
-					// Compara com os IDs existentes no cache atual para identificar os novos
-					const currentCache = queryClient.getQueryData<
+					// Compara SEMPRE contra o cache da Página 1 (evita falso positivo quando em página > 1)
+					const page1Cache = queryClient.getQueryData<
 						PagedResponse<HistoryEvent>
-					>(historyKeys.list(activeParams));
-					const currentIds = new Set(
-						currentCache?.items.map((item) => item.id) ?? [],
-					);
+					>(historyKeys.list(page1Params));
 
-					const genuinelyNewItems = result.items.filter(
-						(item) => !currentIds.has(item.id),
-					);
+					let genuinelyNewItems: HistoryEvent[] = [];
+
+					if (page1Cache && page1Cache.items.length > 0) {
+						const page1Ids = new Set(page1Cache.items.map((item) => item.id));
+						genuinelyNewItems = result.items.filter(
+							(item) => !page1Ids.has(item.id),
+						);
+					} else {
+						// Se não havia cache de página 1 prévio (ex: entrou direto na página 6)
+						if (latestKnownTopEventIdRef.current) {
+							const topIndex = result.items.findIndex(
+								(item) => item.id === latestKnownTopEventIdRef.current,
+							);
+							genuinelyNewItems =
+								topIndex > 0 ? result.items.slice(0, topIndex) : [];
+						} else {
+							// Primeira leitura inicial: sincroniza a referência sem disparar falso alarme
+							genuinelyNewItems = [];
+						}
+					}
+
+					// Atualiza referência do item mais recente do topo
+					if (result.items[0]?.id) {
+						latestKnownTopEventIdRef.current = result.items[0].id;
+					}
 
 					if (genuinelyNewItems.length === 0) return;
 
+					// Atualiza os cartões de estatísticas/KPIs em background
+					queryClient.invalidateQueries({
+						queryKey: historyKeys.stats(),
+					});
+
 					// Regra de auto-inserção segura:
-					// Se o usuário está no topo da página E não tem cards expandidos, insere automaticamente
+					// SÓ insere automaticamente se o usuário estiver na PÁGINA 1 (activeParams.page === 1),
+					// no topo do scroll e sem cards expandidos.
+					const isPage1 = (activeParams.page ?? 1) === 1;
 					const atTop = isAtScrollTop(containerRef?.current);
 					const hasNoExpanded =
 						useHistoryUIStore.getState().expandedEventIds.length === 0;
 
-					if (atTop && hasNoExpanded) {
+					if (isPage1 && atTop && hasNoExpanded) {
 						queryClient.setQueryData<PagedResponse<HistoryEvent>>(
-							historyKeys.list(activeParams),
+							historyKeys.list(page1Params),
 							(oldData) => {
 								if (!oldData) return result;
 								const existingIds = new Set(
@@ -121,16 +154,26 @@ export function useEventStream(
 								const uniqueNew = genuinelyNewItems.filter(
 									(item) => !existingIds.has(item.id),
 								);
+								const newTotal = oldData.totalCount + uniqueNew.length;
+								const pageSize =
+									oldData.pageSize || activeParams.pageSize || 20;
+
 								return {
 									...oldData,
 									items: [...uniqueNew, ...oldData.items],
-									totalCount: oldData.totalCount + uniqueNew.length,
+									totalCount: newTotal,
+									totalPages: Math.ceil(newTotal / pageSize) || 1,
 								};
 							},
 						);
 						clearPendingEvents();
 					} else {
-						// Caso contrário, acumula no buffer de pendências para o NewEventsPill
+						// Se estiver em página > 1, com scroll para baixo ou com cards expandidos:
+						// Atualiza o cache da página 1 em background e acumula as pendências no NewEventsPill
+						queryClient.setQueryData<PagedResponse<HistoryEvent>>(
+							historyKeys.list(page1Params),
+							result,
+						);
 						setPendingEvents(genuinelyNewItems);
 					}
 				} catch (error: unknown) {
