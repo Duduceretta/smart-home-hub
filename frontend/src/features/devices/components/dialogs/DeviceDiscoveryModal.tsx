@@ -7,6 +7,7 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from "@/core/components/ui/dialog";
+import { cn } from "@/core/utils";
 import { useDeviceDiscovery } from "../../hooks/useDeviceDiscovery";
 import { useDevicesUIStore } from "../../store/devices-ui.store";
 import { DiscoveryStepConfigure } from "./discovery/DiscoveryStepConfigure";
@@ -29,10 +30,17 @@ export const DeviceDiscoveryModal: React.FC = () => {
 				if (!open) closeDiscoveryModal();
 			}}
 		>
-			<DialogContent className="gap-0 overflow-hidden rounded-2xl border border-border-subtle bg-surface-container p-0 text-foreground shadow-2xl sm:max-w-5xl">
-				<div className="flex max-h-[85vh] min-h-137.5">
-					{/* Coluna esquerda: contexto + stepper vertical */}
-					<div className="flex w-[34%] shrink-0 flex-col justify-between border-r border-border-subtle bg-surface-low/75 p-6">
+			<DialogContent
+				className={cn(
+					"gap-0 overflow-hidden border border-border-subtle bg-surface-container p-0 text-foreground shadow-2xl sm:max-w-5xl sm:rounded-2xl",
+					// Abaixo de sm vira tela cheia, mesmo padrão do
+					// EditRoomPreviewModal (Dashboard)/EditDeviceModal.
+					"max-sm:fixed max-sm:inset-0 max-sm:top-0 max-sm:left-0 max-sm:flex max-sm:h-dvh max-sm:max-w-none max-sm:w-full max-sm:translate-x-0 max-sm:translate-y-0 max-sm:flex-col max-sm:rounded-none",
+				)}
+			>
+				<div className="flex max-h-full min-h-0 flex-col sm:max-h-[85vh] sm:min-h-137.5 sm:flex-row">
+					{/* Coluna esquerda (linha acima de sm): contexto + stepper vertical */}
+					<div className="flex shrink-0 flex-col justify-between gap-6 border-b border-border-subtle bg-surface-low/75 p-4 sm:w-[34%] sm:border-r sm:border-b-0 sm:p-6">
 						<div className="flex flex-col gap-6">
 							<div className="flex flex-col gap-3.5">
 								<span className="flex h-10 w-10 items-center justify-center rounded-xl border border-border-subtle bg-surface-high text-primary shadow-xs">
@@ -59,8 +67,8 @@ export const DeviceDiscoveryModal: React.FC = () => {
 						</div>
 					</div>
 
-					{/* Coluna direita: conteúdo dinâmico do passo atual */}
-					<div className="flex min-w-0 flex-1 flex-col overflow-y-auto p-6 scrollbar-gutter-stable scrollbar-thin bg-surface-container">
+					{/* Coluna direita (área abaixo, <sm): conteúdo dinâmico do passo atual */}
+					<div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-y-auto p-4 scrollbar-gutter-stable scrollbar-thin bg-surface-container sm:p-6">
 						<div
 							key={discoveryStep}
 							className="flex flex-1 flex-col animate-fade-in"

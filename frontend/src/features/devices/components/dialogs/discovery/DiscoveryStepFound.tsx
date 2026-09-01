@@ -1,9 +1,9 @@
 import { Loader2, RefreshCw, Search, Settings2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { cn } from "@/core/utils";
 import { INTEGRATION_ICON } from "../../../constants/devices.constants";
 import { useDevicesUIStore } from "../../../store/devices-ui.store";
 import { INTEGRATION_TYPE_LABEL_KEYS } from "../../../types/devices.types";
-import { cn } from "@/core/utils";
 
 export const DiscoveryStepFound: React.FC = () => {
 	const { t } = useTranslation("devices");
@@ -77,7 +77,7 @@ export const DiscoveryStepFound: React.FC = () => {
 					)}
 				</div>
 			) : (
-				<div className="grid flex-1 auto-rows-min grid-cols-2 gap-3 overflow-y-auto scrollbar-gutter-stable scrollbar-thin">
+				<div className="grid flex-1 auto-rows-min grid-cols-1 gap-3 overflow-y-auto scrollbar-gutter-stable scrollbar-thin sm:grid-cols-2">
 					{discoveredDevices.map((device) => {
 						const Icon = INTEGRATION_ICON[device.integrationType];
 						return (

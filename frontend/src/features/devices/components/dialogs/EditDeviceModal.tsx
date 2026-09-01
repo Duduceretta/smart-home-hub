@@ -183,7 +183,15 @@ export const EditDeviceModal: React.FC = () => {
 				if (!open) closeEditModal();
 			}}
 		>
-			<DialogContent className="gap-0 overflow-hidden rounded-2xl border border-border-subtle bg-surface-container p-0 text-foreground shadow-2xl sm:max-w-2xl">
+			<DialogContent
+				className={cn(
+					"gap-0 overflow-hidden border border-border-subtle bg-surface-container p-0 text-foreground shadow-2xl sm:max-w-2xl sm:rounded-2xl",
+					// Abaixo de sm vira tela cheia (sem bordas flutuantes/raio), mesmo
+					// padrão do EditRoomPreviewModal (Dashboard) — telas pequenas não
+					// têm espaço sobrando pra margem/raio ao redor.
+					"max-sm:fixed max-sm:inset-0 max-sm:top-0 max-sm:left-0 max-sm:flex max-sm:h-dvh max-sm:max-w-none max-sm:w-full max-sm:translate-x-0 max-sm:translate-y-0 max-sm:flex-col max-sm:rounded-none",
+				)}
+			>
 				{isLoadingDevice || !device ? (
 					<div className="flex h-72 flex-col items-center justify-center gap-2.5 p-6 text-muted-foreground">
 						<Loader2 className="h-6 w-6 animate-spin text-primary" />
@@ -195,7 +203,7 @@ export const EditDeviceModal: React.FC = () => {
 					<form
 						noValidate
 						onSubmit={handleSubmit(onSubmit)}
-						className="flex max-h-[85vh] flex-col"
+						className="flex max-h-full flex-col sm:max-h-[85vh]"
 					>
 						{/* Cabeçalho do Modal */}
 						<div className="flex items-start gap-4 border-b border-border-subtle/60 bg-surface-low/30 p-6 pb-4">

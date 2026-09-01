@@ -11,6 +11,7 @@ import {
 	YAxis,
 } from "recharts";
 import { Button } from "@/core/components/ui/button";
+import { useMediaQuery } from "@/core/hooks/useMediaQuery";
 import { useDeviceEnergy } from "../../hooks/useDeviceEnergy";
 import {
 	formatDeviceEnergy,
@@ -44,6 +45,7 @@ export function DeviceEnergyChart({ deviceId }: DeviceEnergyChartProps) {
 		deviceId,
 		range,
 	);
+	const isNarrowViewport = useMediaQuery("(max-width: 639px)");
 
 	const chartData = (data?.chart ?? []).map((point) => {
 		const date = new Date(point.timestamp);
@@ -63,7 +65,7 @@ export function DeviceEnergyChart({ deviceId }: DeviceEnergyChartProps) {
 		};
 	});
 
-	const MAX_VISIBLE_TICKS = 8;
+	const MAX_VISIBLE_TICKS = isNarrowViewport ? 4 : 8;
 	const xAxisTickInterval =
 		chartData.length > MAX_VISIBLE_TICKS
 			? Math.ceil(chartData.length / MAX_VISIBLE_TICKS)
