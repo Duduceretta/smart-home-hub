@@ -43,10 +43,10 @@ export function GoogleAuthButton({ actionText }: GoogleAuthButtonProps) {
 			variant="outline"
 			onClick={handleGoogleLogin}
 			disabled={isLoading}
-			className="btn-sso w-full border-zinc-800 bg-zinc-950/50 text-zinc-300 transition-colors hover:bg-zinc-900 hover:text-zinc-50 disabled:opacity-50"
+			className="h-11 w-full border-border-subtle bg-surface-container/60 text-foreground transition-colors hover:bg-surface-high disabled:opacity-50 cursor-pointer"
 		>
 			{isLoading ? (
-				<Loader2 className="mr-2 h-4 w-4 animate-spin text-zinc-400" />
+				<Loader2 className="mr-2 h-4 w-4 animate-spin text-muted-foreground" />
 			) : (
 				<svg
 					className="mr-2 h-4 w-4"

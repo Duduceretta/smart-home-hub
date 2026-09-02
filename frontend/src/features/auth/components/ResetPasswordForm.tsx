@@ -19,35 +19,35 @@ export function ResetPasswordForm() {
 	} = useResetPasswordForm();
 
 	return (
-		<div className="relative w-full max-w-md overflow-hidden rounded-2xl border border-zinc-800/80 bg-zinc-900/50 p-8 shadow-2xl backdrop-blur-xl animate-fade-up">
+		<div className="relative w-full max-w-md overflow-hidden rounded-2xl border border-border-subtle bg-surface-low/80 p-6 sm:p-8 shadow-2xl backdrop-blur-xl animate-fade-up">
 			<div className="shimmer-line absolute left-0 right-0 top-0 h-px" />
 
-			<div className="mb-6">
-				<h2 className="mb-1 text-3xl font-semibold text-zinc-50">
+			<div className="mb-6 sm:mb-8">
+				<h2 className="mb-1 text-2xl sm:text-3xl font-semibold text-foreground">
 					{t("resetPassword.title")}
 				</h2>
 				{email && !tokenError && (
-					<p className="text-sm text-zinc-400">
+					<p className="text-sm text-muted-foreground">
 						{t("resetPassword.resettingFor")}{" "}
-						<span className="text-indigo-400">{email}</span>
+						<span className="text-primary font-medium">{email}</span>
 					</p>
 				)}
 			</div>
 
 			{isVerifying ? (
 				<div className="flex flex-col items-center justify-center py-8">
-					<Loader2 className="h-8 w-8 animate-spin text-indigo-500" />
-					<p className="mt-4 text-sm text-zinc-400">
+					<Loader2 className="h-8 w-8 animate-spin text-primary" />
+					<p className="mt-4 text-sm text-muted-foreground">
 						{t("resetPassword.verifying")}
 					</p>
 				</div>
 			) : tokenError ? (
 				<div className="flex flex-col items-center justify-center space-y-4 py-4 text-center">
-					<AlertCircle className="h-12 w-12 text-red-500" />
-					<p className="text-sm font-medium text-red-400">{tokenError}</p>
+					<AlertCircle className="h-12 w-12 text-destructive" />
+					<p className="text-sm font-medium text-destructive">{tokenError}</p>
 					<Link
 						to="/forgot-password"
-						className="mt-4 flex items-center text-sm font-medium text-indigo-400 hover:text-indigo-300"
+						className="mt-4 flex items-center text-sm font-medium text-primary transition-colors hover:underline"
 					>
 						{t("resetPassword.requestNewLink")}
 					</Link>
@@ -85,7 +85,7 @@ export function ResetPasswordForm() {
 						<Button
 							type="submit"
 							disabled={isSubmitting}
-							className="btn-primary w-full bg-indigo-600 text-white hover:bg-indigo-500 disabled:opacity-50"
+							className="h-11 w-full bg-primary text-primary-foreground hover:bg-primary/90 font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer"
 						>
 							{isSubmitting
 								? t("resetPassword.submitting")
@@ -101,7 +101,7 @@ export function ResetPasswordForm() {
 					>
 						<Link
 							to="/login"
-							className="flex items-center justify-center text-sm font-medium text-zinc-400 hover:text-indigo-300"
+							className="flex items-center justify-center text-sm font-medium text-muted-foreground transition-colors hover:text-foreground hover:underline"
 						>
 							<ArrowLeft className="mr-2 h-4 w-4" />
 							{t("resetPassword.backToLogin")}

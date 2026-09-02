@@ -19,16 +19,18 @@ export function RegisterForm() {
 
 	return (
 		<div
-			className="relative w-full max-w-md overflow-hidden rounded-2xl border border-zinc-800/80 bg-zinc-900/50 p-8 shadow-2xl backdrop-blur-xl animate-fade-up delay-100 opacity-0-init"
+			className="relative w-full max-w-md overflow-hidden rounded-2xl border border-border-subtle bg-surface-low/80 p-6 sm:p-8 shadow-2xl backdrop-blur-xl animate-fade-up delay-100 opacity-0-init"
 			style={{ animationFillMode: "forwards" }}
 		>
 			<div className="shimmer-line absolute left-0 right-0 top-0 h-px" />
 
-			<div className="mb-8">
-				<h2 className="mb-1 text-3xl font-semibold text-zinc-50">
+			<div className="mb-6 sm:mb-8">
+				<h2 className="mb-1 text-2xl sm:text-3xl font-semibold text-foreground">
 					{t("register.title")}
 				</h2>
-				<p className="text-sm text-zinc-400">{t("register.subtitle")}</p>
+				<p className="text-sm text-muted-foreground">
+					{t("register.subtitle")}
+				</p>
 			</div>
 
 			<form
@@ -87,7 +89,7 @@ export function RegisterForm() {
 					<Button
 						type="submit"
 						disabled={isSubmitting}
-						className="btn-primary w-full bg-indigo-600 text-white hover:bg-indigo-500 disabled:cursor-not-allowed disabled:opacity-50"
+						className="h-11 w-full bg-primary text-primary-foreground hover:bg-primary/90 font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer"
 					>
 						{isSubmitting
 							? t("register.submitting")
@@ -103,10 +105,10 @@ export function RegisterForm() {
 				style={{ animationFillMode: "forwards" }}
 			>
 				<div className="absolute inset-0 flex items-center">
-					<span className="w-full border-t border-zinc-800/80" />
+					<span className="w-full border-t border-border-subtle" />
 				</div>
-				<div className="relative flex justify-center text-xs">
-					<span className="bg-zinc-900/80 px-2 text-zinc-500 backdrop-blur-sm">
+				<div className="relative flex justify-center text-xs uppercase">
+					<span className="bg-surface-low px-2 text-muted-foreground backdrop-blur-sm">
 						{t("register.orContinueWith")}
 					</span>
 				</div>
@@ -123,11 +125,11 @@ export function RegisterForm() {
 				className="mt-4 text-center animate-fade-up delay-700 opacity-0-init"
 				style={{ animationFillMode: "forwards" }}
 			>
-				<p className="text-sm text-zinc-400">
+				<p className="text-sm text-muted-foreground">
 					{t("register.hasAccount")}{" "}
 					<Link
 						to="/login"
-						className="font-medium text-indigo-400 transition-colors hover:text-indigo-300"
+						className="font-medium text-primary transition-colors hover:underline"
 					>
 						{t("register.signIn")}
 					</Link>

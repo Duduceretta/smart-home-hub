@@ -21,10 +21,10 @@ export function FormGlobalError({ error, className }: FormGlobalErrorProps) {
 					<div
 						role="alert"
 						aria-live="assertive"
-						className="flex items-center gap-2.5 rounded-lg border border-red-500/25 bg-red-500/10 px-3 py-2.5 shadow-sm"
+						className="flex items-center gap-2.5 rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-2.5 shadow-sm"
 					>
-						<AlertTriangle className="h-4 w-4 shrink-0 text-red-400" />
-						<p className="text-xs font-medium text-red-300 leading-relaxed min-w-0 wrap-break-word">
+						<AlertTriangle className="h-4 w-4 shrink-0 text-destructive" />
+						<p className="text-xs font-medium text-destructive leading-relaxed min-w-0 wrap-break-word">
 							{error}
 						</p>
 					</div>

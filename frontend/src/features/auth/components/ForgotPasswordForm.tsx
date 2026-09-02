@@ -18,27 +18,29 @@ export function ForgotPasswordForm() {
 
 	return (
 		<div
-			className="relative w-full max-w-md overflow-hidden rounded-2xl border border-zinc-800/80 bg-zinc-900/50 p-8 shadow-2xl backdrop-blur-xl animate-fade-up delay-100 opacity-0-init"
+			className="relative w-full max-w-md overflow-hidden rounded-2xl border border-border-subtle bg-surface-low/80 p-6 sm:p-8 shadow-2xl backdrop-blur-xl animate-fade-up delay-100 opacity-0-init"
 			style={{ animationFillMode: "forwards" }}
 		>
 			<div className="shimmer-line absolute left-0 right-0 top-0 h-px" />
 
-			<div className="mb-6">
-				<h2 className="mb-1 text-3xl font-semibold text-zinc-50">
+			<div className="mb-6 sm:mb-8">
+				<h2 className="mb-1 text-2xl sm:text-3xl font-semibold text-foreground">
 					{t("forgotPassword.title")}
 				</h2>
-				<p className="text-sm text-zinc-400">{t("forgotPassword.subtitle")}</p>
+				<p className="text-sm text-muted-foreground">
+					{t("forgotPassword.subtitle")}
+				</p>
 			</div>
 
 			{isSuccess ? (
 				<div className="flex flex-col items-center justify-center space-y-4 py-6 text-center animate-fade-up">
-					<CheckCircle2 className="h-12 w-12 text-emerald-500" />
-					<p className="text-sm font-medium text-zinc-300">
+					<CheckCircle2 className="h-12 w-12 text-primary" />
+					<p className="text-sm font-medium text-foreground">
 						{t("forgotPassword.successMessage")}
 					</p>
 					<Link
 						to="/login"
-						className="mt-4 flex items-center text-sm font-medium text-indigo-400 transition-colors hover:text-indigo-300"
+						className="mt-4 flex items-center text-sm font-medium text-primary transition-colors hover:underline"
 					>
 						<ArrowLeft className="mr-2 h-4 w-4" />
 						{t("forgotPassword.backToLogin")}
@@ -69,7 +71,7 @@ export function ForgotPasswordForm() {
 						<Button
 							type="submit"
 							disabled={isSubmitting}
-							className="btn-primary w-full bg-indigo-600 text-white hover:bg-indigo-500 disabled:cursor-not-allowed disabled:opacity-50"
+							className="h-11 w-full bg-primary text-primary-foreground hover:bg-primary/90 font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer"
 						>
 							{isSubmitting
 								? t("forgotPassword.submitting")
@@ -85,7 +87,7 @@ export function ForgotPasswordForm() {
 					>
 						<Link
 							to="/login"
-							className="flex items-center justify-center text-sm font-medium text-zinc-400 transition-colors hover:text-indigo-300"
+							className="flex items-center justify-center text-sm font-medium text-muted-foreground transition-colors hover:text-foreground hover:underline"
 						>
 							<ArrowLeft className="mr-2 h-4 w-4" />
 							{t("forgotPassword.rememberedPassword")}
