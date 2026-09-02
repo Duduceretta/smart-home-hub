@@ -30,13 +30,6 @@ interface DeviceGroupsUIState {
 		options?: { focusDevices?: boolean },
 	) => void;
 	closeFormDialog: () => void;
-
-	// Legacy / convenience aliases for backward compatibility
-	isCreateSheetOpen: boolean;
-	openCreateSheet: () => void;
-	closeCreateSheet: () => void;
-	openEditSheet: (group: DeviceGroup) => void;
-	closeEditSheet: () => void;
 }
 
 /**
@@ -72,33 +65,6 @@ export const useDeviceGroupsUIStore = create<DeviceGroupsUIState>((set) => ({
 			editDialogFocusDevices: options?.focusDevices ?? false,
 		}),
 	closeFormDialog: () =>
-		set({
-			isCreateDialogOpen: false,
-			editingGroup: null,
-			editDialogFocusDevices: false,
-		}),
-
-	// Legacy aliases
-	isCreateSheetOpen: false,
-	openCreateSheet: () =>
-		set({
-			isCreateDialogOpen: true,
-			editingGroup: null,
-			editDialogFocusDevices: false,
-		}),
-	closeCreateSheet: () =>
-		set({
-			isCreateDialogOpen: false,
-			editingGroup: null,
-			editDialogFocusDevices: false,
-		}),
-	openEditSheet: (group) =>
-		set({
-			editingGroup: group,
-			isCreateDialogOpen: false,
-			editDialogFocusDevices: false,
-		}),
-	closeEditSheet: () =>
 		set({
 			isCreateDialogOpen: false,
 			editingGroup: null,
