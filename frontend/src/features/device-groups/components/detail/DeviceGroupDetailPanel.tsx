@@ -1,4 +1,4 @@
-import { Pencil } from "lucide-react";
+import { ArrowLeft, Pencil } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/core/components/ui/button";
 import { GROUP_ICON_MAP } from "../../constants/device-groups.constants";
@@ -8,19 +8,44 @@ import { DeviceGroupDetailContent } from "./DeviceGroupDetailContent";
 
 interface DeviceGroupDetailPanelProps {
 	group: DeviceGroup | null;
+	onBack?: () => void;
 }
 
 /**
  * Right column detail panel for a selected DeviceGroup.
  * Header displays group icon, name, badge count, and edit trigger button.
  */
-export function DeviceGroupDetailPanel({ group }: DeviceGroupDetailPanelProps) {
+export function DeviceGroupDetailPanel({
+	group,
+	onBack,
+}: DeviceGroupDetailPanelProps) {
 	const { t } = useTranslation("device-groups");
 	const openEditDialog = useDeviceGroupsUIStore((s) => s.openEditDialog);
 
+	const MobileBackButton = onBack && (
+		<button
+			type="button"
+			onClick={onBack}
+			aria-label={t("detail.backToList", "Voltar pra lista")}
+			className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-surface-high hover:text-foreground cursor-pointer lg:hidden"
+		>
+			<ArrowLeft className="h-5 w-5" />
+		</button>
+	);
+
 	if (!group) {
 		return (
-			<div className="flex h-full max-h-full min-h-50 flex-col items-center justify-center rounded-xl border border-dashed border-border-subtle bg-surface-low text-center">
+			<div className="flex h-full max-h-full min-h-50 flex-col items-center justify-center p-6 text-center lg:rounded-xl lg:border lg:border-dashed lg:border-border-subtle lg:bg-surface-low">
+				{onBack && (
+					<button
+						type="button"
+						onClick={onBack}
+						className="mb-4 inline-flex h-11 items-center gap-1.5 rounded-lg border border-border-subtle bg-surface-container px-3 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground cursor-pointer lg:hidden"
+					>
+						<ArrowLeft className="h-4 w-4" />
+						{t("detail.backToList", "Voltar pra lista")}
+					</button>
+				)}
 				<p className="text-sm text-muted-foreground">
 					{t(
 						"detail.selectPrompt",
@@ -34,10 +59,11 @@ export function DeviceGroupDetailPanel({ group }: DeviceGroupDetailPanelProps) {
 	const Icon = GROUP_ICON_MAP[group.icon ?? ""] ?? GROUP_ICON_MAP.default;
 
 	return (
-		<div className="flex h-full max-h-full flex-col overflow-hidden rounded-xl border border-border-subtle bg-surface-low shadow-sm">
+		<div className="flex h-full max-h-full flex-col lg:overflow-hidden lg:rounded-xl lg:border lg:border-border-subtle lg:bg-surface-low lg:shadow-sm">
 			{/* Panel Header */}
-			<div className="flex shrink-0 items-center justify-between gap-4 bg-surface-container/50 p-6 border-b border-border-subtle/50">
-				<div className="flex min-w-0 items-center gap-4">
+			<div className="flex shrink-0 items-center justify-between gap-4 border-b border-border-subtle/50 pb-4 lg:bg-surface-container/50 lg:p-6">
+				<div className="flex min-w-0 items-center gap-2 sm:gap-4">
+					{MobileBackButton}
 					<div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-surface-high text-primary shadow-xs">
 						<Icon className="h-6 w-6" />
 					</div>

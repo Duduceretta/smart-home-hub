@@ -1,7 +1,9 @@
 import { AlertTriangle, Boxes, Loader2, Plus, Trash2 } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { useLocation, useSearchParams } from "react-router-dom";
 import { useConfirm } from "@/core/components/providers/ConfirmDialogProvider";
+import { useMediaQuery } from "@/core/hooks/useMediaQuery";
 import { cn } from "@/core/utils";
 import { useDeleteDeviceGroup } from "../hooks/useDeleteDeviceGroup";
 import { useDeviceGroups } from "../hooks/useDeviceGroups";
@@ -15,12 +17,18 @@ import { DeviceGroupsSummaryBar } from "./list/DeviceGroupsSummaryBar";
 /**
  * View de Grupos de Dispositivos — estrutura Master-Detail em duas colunas,
  * espelhando fielmente o padrão de Ambientes (RoomsView).
- * Coluna esquerda fixa com busca, contagem e lista de grupos;
- * Coluna direita ocupando o restante do espaço com o detalhe do grupo selecionado,
- * ações em lote e grid de dispositivos.
+ * Navegação Master-Detail orientada a URL (?group=<id>) com pilha
+ * em telas estreitas (<lg) e split-view lado a lado em telas largas (lg+).
  */
 export function DeviceGroupsView() {
 	const { t } = useTranslation("device-groups");
+	const location = useLocation();
+	const [searchParams, setSearchParams] = useSearchParams();
+	const isDesktopMasterDetail = useMediaQuery("(min-width: 1024px)");
+
+	const stateGroupId = (location.state as { selectedGroupId?: string })
+		?.selectedGroupId;
+
 	const {
 		data: groups = [],
 		isLoading: isLoadingGroups,
@@ -31,13 +39,56 @@ export function DeviceGroupsView() {
 	const [query, setQuery] = useState("");
 	const viewMode = useDeviceGroupsUIStore((s) => s.viewMode);
 	const setViewMode = useDeviceGroupsUIStore((s) => s.setViewMode);
-	const selectedGroupId = useDeviceGroupsUIStore((s) => s.selectedGroupId);
-	const setSelectedGroupId = useDeviceGroupsUIStore(
-		(s) => s.setSelectedGroupId,
-	);
 	const openCreateDialog = useDeviceGroupsUIStore((s) => s.openCreateDialog);
 	const confirm = useConfirm();
 	const deleteGroup = useDeleteDeviceGroup();
+
+	const selectedGroupId = searchParams.get("group");
+
+	/** Seleção via toque/clique numa linha da lista — histórico só cresce
+	 * abaixo de `lg` (pilha mobile); em telas largas troca a URL sem
+	 * empilhar, preservando o comportamento de mouse já existente. */
+	const selectGroup = useCallback(
+		(id: string) => {
+			setSearchParams(
+				(prev) => {
+					const next = new URLSearchParams(prev);
+					next.set("group", id);
+					return next;
+				},
+				{ replace: isDesktopMasterDetail },
+			);
+		},
+		[setSearchParams, isDesktopMasterDetail],
+	);
+
+	/** Seleção programática (default inicial / correção de filtro) — nunca
+	 * empilha histórico, só acontece em telas largas (`autoSelectFirst`). */
+	const setDefaultGroup = useCallback(
+		(id: string | null) => {
+			setSearchParams(
+				(prev) => {
+					const next = new URLSearchParams(prev);
+					if (id) next.set("group", id);
+					else next.delete("group");
+					return next;
+				},
+				{ replace: true },
+			);
+		},
+		[setSearchParams],
+	);
+
+	/** Botão "voltar" do painel de detalhe (só existe <lg) — sempre empilha,
+	 * pra o botão físico de voltar do navegador desfazer exatamente essa ação
+	 * (volta pro detalhe), e não sair da tela de Grupos. */
+	const clearSelection = useCallback(() => {
+		setSearchParams((prev) => {
+			const next = new URLSearchParams(prev);
+			next.delete("group");
+			return next;
+		});
+	}, [setSearchParams]);
 
 	const handleDeleteGroup = async (group: DeviceGroup) => {
 		const confirmed = await confirm({
@@ -61,16 +112,32 @@ export function DeviceGroupsView() {
 		return groups.filter((group) => group.name.toLowerCase().includes(search));
 	}, [groups, query]);
 
+	// Chegada via location.state (ex: Dashboard "ver grupo")
+	// biome-ignore lint/correctness/useExhaustiveDependencies: dispara só na chegada com stateGroupId
 	useEffect(() => {
-		if (selectedGroupId === null && visibleGroups.length > 0) {
-			setSelectedGroupId(visibleGroups[0].id);
-		} else if (
-			selectedGroupId !== null &&
+		if (stateGroupId) {
+			setDefaultGroup(stateGroupId);
+		}
+	}, [stateGroupId]);
+
+	// Auto-seleção do primeiro item só acontece em telas desktop master-detail (lg+)
+	useEffect(() => {
+		if (isDesktopMasterDetail && !selectedGroupId && visibleGroups.length > 0) {
+			setDefaultGroup(visibleGroups[0].id);
+		}
+	}, [isDesktopMasterDetail, selectedGroupId, visibleGroups, setDefaultGroup]);
+
+	// Se o grupo selecionado não existir mais no conjunto filtrado/excluído (em desktop)
+	useEffect(() => {
+		if (
+			isDesktopMasterDetail &&
+			selectedGroupId &&
+			visibleGroups.length > 0 &&
 			!visibleGroups.some((group) => group.id === selectedGroupId)
 		) {
-			setSelectedGroupId(visibleGroups[0]?.id ?? null);
+			setDefaultGroup(visibleGroups[0].id);
 		}
-	}, [selectedGroupId, visibleGroups, setSelectedGroupId]);
+	}, [isDesktopMasterDetail, selectedGroupId, visibleGroups, setDefaultGroup]);
 
 	const selectedGroup =
 		groups.find((group) => group.id === selectedGroupId) ?? null;
@@ -151,7 +218,7 @@ export function DeviceGroupsView() {
 							<DeviceGroupListPanel
 								groups={visibleGroups}
 								selectedId={selectedGroupId}
-								onSelect={setSelectedGroupId}
+								onSelect={selectGroup}
 								onDelete={handleDeleteGroup}
 								onCreate={openCreateDialog}
 								viewMode={viewMode}
@@ -171,7 +238,10 @@ export function DeviceGroupsView() {
 					selectedGroupId ? "flex" : "hidden lg:flex",
 				)}
 			>
-				<DeviceGroupDetailPanel group={selectedGroup} />
+				<DeviceGroupDetailPanel
+					group={selectedGroup}
+					onBack={clearSelection}
+				/>
 			</div>
 
 			{/* Form Dialog (Create / Edit) */}

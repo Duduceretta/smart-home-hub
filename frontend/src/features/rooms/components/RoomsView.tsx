@@ -1,7 +1,9 @@
 import { AlertTriangle, DoorOpen, Loader2, Plus, Trash2 } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { useLocation, useSearchParams } from "react-router-dom";
 import { useConfirm } from "@/core/components/providers/ConfirmDialogProvider";
+import { useMediaQuery } from "@/core/hooks/useMediaQuery";
 import { cn } from "@/core/utils";
 import { useAssignableDevices } from "../hooks/useAssignableDevices";
 import { useDeleteRoom } from "../hooks/useDeleteRoom";
@@ -17,15 +19,18 @@ import { RoomsSummaryBar } from "./list/RoomsSummaryBar";
  * View de Ambientes — duas colunas desde o topo: título/subtítulo + stats +
  * painel de lista (busca/criação/itens) empilhados numa coluna esquerda de
  * largura fixa, painel de detalhe ocupando a coluna direita, nivelado com o
- * título. Busca e criação de ambiente vivem só dentro do `RoomListPanel`
- * (topo da lista, mais o ghost card no fim) — não há mais controles no
- * header da página. `selectedRoomId`/`viewMode` vivem na `useRoomsUIStore`
- * (mesmo racional de devices-ui.store.ts); `query` é `useState` local por
- * não precisar sobreviver a navegação/remontagem. Criação/edição/exclusão
- * também na store (modais).
+ * título. Navegação Master-Detail orientada a URL (?room=<id>) com pilha
+ * em telas estreitas (<lg) e split-view lado a lado em telas largas (lg+).
  */
 export function RoomsView() {
 	const { t } = useTranslation("rooms");
+	const location = useLocation();
+	const [searchParams, setSearchParams] = useSearchParams();
+	const isDesktopMasterDetail = useMediaQuery("(min-width: 1024px)");
+
+	const stateRoomId = (location.state as { selectedRoomId?: string })
+		?.selectedRoomId;
+
 	const {
 		data: rooms = [],
 		isLoading: isLoadingRooms,
@@ -37,11 +42,56 @@ export function RoomsView() {
 	const [query, setQuery] = useState("");
 	const viewMode = useRoomsUIStore((s) => s.viewMode);
 	const setViewMode = useRoomsUIStore((s) => s.setViewMode);
-	const selectedRoomId = useRoomsUIStore((s) => s.selectedRoomId);
-	const setSelectedRoomId = useRoomsUIStore((s) => s.setSelectedRoomId);
 	const openCreateDialog = useRoomsUIStore((s) => s.openCreateDialog);
 	const confirm = useConfirm();
 	const deleteRoom = useDeleteRoom();
+
+	const selectedRoomId = searchParams.get("room");
+
+	/** Seleção via toque/clique numa linha da lista — histórico só cresce
+	 * abaixo de `lg` (pilha mobile); em telas largas troca a URL sem
+	 * empilhar, preservando o comportamento de mouse já existente. */
+	const selectRoom = useCallback(
+		(id: string) => {
+			setSearchParams(
+				(prev) => {
+					const next = new URLSearchParams(prev);
+					next.set("room", id);
+					return next;
+				},
+				{ replace: isDesktopMasterDetail },
+			);
+		},
+		[setSearchParams, isDesktopMasterDetail],
+	);
+
+	/** Seleção programática (default inicial / correção de filtro) — nunca
+	 * empilha histórico, só acontece em telas largas (`autoSelectFirst`). */
+	const setDefaultRoom = useCallback(
+		(id: string | null) => {
+			setSearchParams(
+				(prev) => {
+					const next = new URLSearchParams(prev);
+					if (id) next.set("room", id);
+					else next.delete("room");
+					return next;
+				},
+				{ replace: true },
+			);
+		},
+		[setSearchParams],
+	);
+
+	/** Botão "voltar" do painel de detalhe (só existe <lg) — sempre empilha,
+	 * pra o botão físico de voltar do navegador desfazer exatamente essa ação
+	 * (volta pro detalhe), e não sair da tela de Ambientes. */
+	const clearSelection = useCallback(() => {
+		setSearchParams((prev) => {
+			const next = new URLSearchParams(prev);
+			next.delete("room");
+			return next;
+		});
+	}, [setSearchParams]);
 
 	const handleDeleteRoom = async (room: Room) => {
 		const confirmed = await confirm({
@@ -65,16 +115,32 @@ export function RoomsView() {
 		return rooms.filter((room) => room.name.toLowerCase().includes(search));
 	}, [rooms, query]);
 
+	// Chegada via location.state (ex: Dashboard "ver ambiente")
+	// biome-ignore lint/correctness/useExhaustiveDependencies: dispara só na chegada com stateRoomId
 	useEffect(() => {
-		if (selectedRoomId === null && visibleRooms.length > 0) {
-			setSelectedRoomId(visibleRooms[0].id);
-		} else if (
-			selectedRoomId !== null &&
+		if (stateRoomId) {
+			setDefaultRoom(stateRoomId);
+		}
+	}, [stateRoomId]);
+
+	// Auto-seleção do primeiro item só acontece em telas desktop master-detail (lg+)
+	useEffect(() => {
+		if (isDesktopMasterDetail && !selectedRoomId && visibleRooms.length > 0) {
+			setDefaultRoom(visibleRooms[0].id);
+		}
+	}, [isDesktopMasterDetail, selectedRoomId, visibleRooms, setDefaultRoom]);
+
+	// Se o ambiente selecionado não existir mais no conjunto filtrado/excluído (em desktop)
+	useEffect(() => {
+		if (
+			isDesktopMasterDetail &&
+			selectedRoomId &&
+			visibleRooms.length > 0 &&
 			!visibleRooms.some((room) => room.id === selectedRoomId)
 		) {
-			setSelectedRoomId(visibleRooms[0]?.id ?? null);
+			setDefaultRoom(visibleRooms[0].id);
 		}
-	}, [selectedRoomId, visibleRooms, setSelectedRoomId]);
+	}, [isDesktopMasterDetail, selectedRoomId, visibleRooms, setDefaultRoom]);
 
 	const devicesByRoom = useMemo(() => {
 		const map = new Map<string, RoomPickerDevice[]>();
@@ -162,7 +228,7 @@ export function RoomsView() {
 								rooms={visibleRooms}
 								devicesByRoom={devicesByRoom}
 								selectedId={selectedRoomId}
-								onSelect={setSelectedRoomId}
+								onSelect={selectRoom}
 								onDelete={handleDeleteRoom}
 								onCreate={openCreateDialog}
 								viewMode={viewMode}
@@ -181,7 +247,11 @@ export function RoomsView() {
 					selectedRoomId ? "flex" : "hidden lg:flex",
 				)}
 			>
-				<RoomDetailPanel room={selectedRoom} devices={selectedRoomDevices} />
+				<RoomDetailPanel
+					room={selectedRoom}
+					devices={selectedRoomDevices}
+					onBack={clearSelection}
+				/>
 			</div>
 
 			<RoomFormDialog />
