@@ -89,7 +89,7 @@ export function AutomationRow({
 						</span>
 						{/** biome-ignore lint/a11y/noStaticElementInteractions: só existe pra isolar o clique do Switch da seleção da linha (stopPropagation) */}
 						<span
-							className="shrink-0"
+							className="flex h-11 w-11 lg:h-7 lg:w-7 shrink-0 items-center justify-center -mr-2"
 							onClick={(event) => event.stopPropagation()}
 							onKeyDown={(event) => event.stopPropagation()}
 						>

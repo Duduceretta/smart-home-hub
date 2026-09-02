@@ -29,13 +29,13 @@ export function AutomationDetailHeader({
 	onDelete,
 }: AutomationDetailHeaderProps) {
 	return (
-		<div className="flex shrink-0 flex-col gap-4 border-b border-border-subtle/50 bg-surface-container/50 p-6">
+		<div className="flex shrink-0 flex-col gap-4 border-b border-border-subtle/50 bg-surface-container/50 p-4 sm:p-6">
 			<button
 				type="button"
 				onClick={onBack}
-				className="inline-flex w-fit items-center gap-1 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground cursor-pointer lg:hidden"
+				className="inline-flex h-11 w-fit items-center gap-1.5 -ml-2 px-2 rounded-lg text-xs font-medium text-muted-foreground transition-colors hover:bg-surface-high hover:text-foreground cursor-pointer lg:hidden"
 			>
-				<ArrowLeft className="h-3.5 w-3.5" />
+				<ArrowLeft className="h-4 w-4" />
 				Voltar
 			</button>
 
@@ -77,12 +77,14 @@ export function AutomationDetailHeader({
 				</div>
 
 				{!automation.isDraft && (
-					<Switch
-						checked={automation.isActive}
-						onCheckedChange={(checked) => onToggle(automation.id, checked)}
-						aria-label={`${automation.isActive ? "Desativar" : "Ativar"} automação ${automation.name}`}
-						className="shrink-0"
-					/>
+					<div className="flex h-11 items-center shrink-0">
+						<Switch
+							checked={automation.isActive}
+							onCheckedChange={(checked) => onToggle(automation.id, checked)}
+							aria-label={`${automation.isActive ? "Desativar" : "Ativar"} automação ${automation.name}`}
+							className="shrink-0"
+						/>
+					</div>
 				)}
 			</div>
 
@@ -91,7 +93,7 @@ export function AutomationDetailHeader({
 					variant="outline"
 					size="sm"
 					onClick={() => onEdit(automation)}
-					className="border-border-subtle bg-surface-container text-foreground hover:bg-surface-high hover:border-primary/40 cursor-pointer"
+					className="h-11 lg:h-8 border-border-subtle bg-surface-container text-foreground hover:bg-surface-high hover:border-primary/40 cursor-pointer"
 				>
 					<Pencil className="h-3.5 w-3.5 mr-1" />
 					Editar
@@ -100,7 +102,7 @@ export function AutomationDetailHeader({
 					variant="outline"
 					size="sm"
 					onClick={() => onDuplicate(automation)}
-					className="border-border-subtle bg-surface-container text-foreground hover:bg-surface-high hover:border-primary/40 cursor-pointer"
+					className="h-11 lg:h-8 border-border-subtle bg-surface-container text-foreground hover:bg-surface-high hover:border-primary/40 cursor-pointer"
 				>
 					<Copy className="h-3.5 w-3.5 mr-1" />
 					Duplicar
@@ -109,7 +111,7 @@ export function AutomationDetailHeader({
 					variant="outline"
 					size="sm"
 					onClick={onDelete}
-					className="ml-auto border-destructive/30 bg-destructive/10 text-xs font-semibold text-destructive transition-all hover:bg-destructive/20 hover:border-destructive/40 cursor-pointer shadow-xs"
+					className="ml-auto h-11 lg:h-8 border-destructive/30 bg-destructive/10 text-xs font-semibold text-destructive transition-all hover:bg-destructive/20 hover:border-destructive/40 cursor-pointer shadow-xs"
 				>
 					<Trash2 className="h-3.5 w-3.5 mr-1" />
 					Excluir
@@ -118,3 +120,4 @@ export function AutomationDetailHeader({
 		</div>
 	);
 }
+

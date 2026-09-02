@@ -1,4 +1,4 @@
-import { Trash2 } from "lucide-react";
+import { ArrowLeft, Trash2 } from "lucide-react";
 import { useConfirm } from "@/core/components/providers/ConfirmDialogProvider";
 import { AUTOMATION_TRIGGER_ICON } from "../../constants/automations.constants";
 import type { AutomationView } from "../../types/automations.types";
@@ -31,13 +31,22 @@ export function AutomationDetailPanel({
 
 	if (!automation) {
 		return (
-			<div className="flex h-full max-h-full min-h-50 flex-col items-center justify-center rounded-xl border border-dashed border-border-subtle bg-surface-low text-center">
+			<div className="flex h-full max-h-full min-h-50 flex-col items-center justify-center rounded-xl border border-dashed border-border-subtle bg-surface-low p-6 text-center">
+				<button
+					type="button"
+					onClick={onBack}
+					className="mb-4 inline-flex h-11 items-center gap-1.5 rounded-lg border border-border-subtle bg-surface-container px-3 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground cursor-pointer lg:hidden"
+				>
+					<ArrowLeft className="h-4 w-4" />
+					Voltar para lista
+				</button>
 				<p className="text-sm text-muted-foreground">
 					Selecione uma automação pra ver os detalhes.
 				</p>
 			</div>
 		);
 	}
+
 
 	const TriggerIcon = AUTOMATION_TRIGGER_ICON[automation.triggerKind];
 

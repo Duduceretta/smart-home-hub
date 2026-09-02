@@ -44,7 +44,7 @@ function DeviceSelect({
 }) {
 	return (
 		<Select value={value || undefined} onValueChange={onChange}>
-			<SelectTrigger className="w-full" disabled={isLoading}>
+			<SelectTrigger className="h-11 sm:h-9 w-full" disabled={isLoading}>
 				<SelectValue placeholder={isLoading ? "Carregando..." : placeholder} />
 			</SelectTrigger>
 			<SelectContent>
@@ -99,7 +99,7 @@ export function TriggerConfigStep({
 					/>
 				</div>
 
-				<div className="grid grid-cols-3 gap-4">
+				<div className="grid grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-4">
 					<div className="flex flex-col gap-1.5">
 						<Label>Métrica</Label>
 						<Select
@@ -110,7 +110,7 @@ export function TriggerConfigStep({
 								})
 							}
 						>
-							<SelectTrigger className="w-full">
+							<SelectTrigger className="h-11 sm:h-9 w-full">
 								<SelectValue />
 							</SelectTrigger>
 							<SelectContent>
@@ -133,7 +133,7 @@ export function TriggerConfigStep({
 								})
 							}
 						>
-							<SelectTrigger className="w-full">
+							<SelectTrigger className="h-11 sm:h-9 w-full">
 								<SelectValue />
 							</SelectTrigger>
 							<SelectContent>
@@ -156,7 +156,7 @@ export function TriggerConfigStep({
 								updateSensorConfig({ value: event.target.value })
 							}
 							placeholder="Ex: 28"
-							className="h-8 w-full rounded-lg border border-border-subtle bg-surface-high px-3 text-sm text-foreground outline-none transition-colors focus:border-primary/50 focus:ring-1 focus:ring-primary/50"
+							className="h-11 sm:h-9 w-full rounded-lg border border-border-subtle bg-surface-high px-3 text-sm text-foreground outline-none transition-colors focus:border-primary/50 focus:ring-1 focus:ring-primary/50"
 						/>
 					</div>
 				</div>
@@ -205,7 +205,7 @@ export function TriggerConfigStep({
 							aria-pressed={deviceConfig.desiredIsOn}
 							onClick={() => updateDeviceConfig({ desiredIsOn: true })}
 							className={cn(
-								"rounded-lg border px-3 py-2 text-xs font-medium transition-colors cursor-pointer",
+								"h-11 sm:h-8.5 rounded-lg border px-3 py-2 text-xs font-medium transition-colors cursor-pointer",
 								deviceConfig.desiredIsOn
 									? "border-primary/40 bg-primary/10 text-primary"
 									: "border-border-subtle bg-surface-high text-muted-foreground hover:text-foreground",
@@ -218,7 +218,7 @@ export function TriggerConfigStep({
 							aria-pressed={!deviceConfig.desiredIsOn}
 							onClick={() => updateDeviceConfig({ desiredIsOn: false })}
 							className={cn(
-								"rounded-lg border px-3 py-2 text-xs font-medium transition-colors cursor-pointer",
+								"h-11 sm:h-8.5 rounded-lg border px-3 py-2 text-xs font-medium transition-colors cursor-pointer",
 								!deviceConfig.desiredIsOn
 									? "border-primary/40 bg-primary/10 text-primary"
 									: "border-border-subtle bg-surface-high text-muted-foreground hover:text-foreground",
@@ -257,7 +257,7 @@ export function TriggerConfigStep({
 					onChange={(event) =>
 						updateScheduleConfig({ time: event.target.value })
 					}
-					className="h-8 w-40 rounded-lg border border-border-subtle bg-surface-high px-3 text-sm text-foreground outline-none transition-colors focus:border-primary/50 focus:ring-1 focus:ring-primary/50"
+					className="h-11 sm:h-9 w-full sm:w-40 rounded-lg border border-border-subtle bg-surface-high px-3 text-sm text-foreground outline-none transition-colors focus:border-primary/50 focus:ring-1 focus:ring-primary/50"
 				/>
 			</div>
 
@@ -274,7 +274,7 @@ export function TriggerConfigStep({
 								title={day.label}
 								onClick={() => toggleWeekday(day.value)}
 								className={cn(
-									"flex h-8 w-8 items-center justify-center rounded-full text-xs font-medium transition-colors cursor-pointer",
+									"flex h-11 w-11 sm:h-8 sm:w-8 items-center justify-center rounded-full text-xs font-medium transition-colors cursor-pointer",
 									isSelected
 										? "bg-primary/15 text-primary ring-1 ring-primary/40"
 										: "bg-surface-high text-muted-foreground hover:text-foreground",

@@ -22,7 +22,7 @@ interface AutomationsUIState {
 	viewMode: AutomationViewMode;
 	setViewMode: (mode: AutomationViewMode) => void;
 
-	// Master-detail selection state
+	/** Item selecionado no painel master-detail (opcional, gerenciado primariamente pela URL ?automation=<id>). */
 	selectedId: string | null;
 	setSelectedId: (id: string | null) => void;
 
@@ -39,7 +39,7 @@ interface AutomationsUIState {
 
 /**
  * Zustand store managing ephemeral client-side UI state (modal visibility,
- * active filters, seleção master-detail, view mode da lista).
+ * active filters, view mode da lista).
  */
 export const useAutomationsUIStore = create<AutomationsUIState>((set) => ({
 	// Default Values
@@ -59,7 +59,7 @@ export const useAutomationsUIStore = create<AutomationsUIState>((set) => ({
 	// List presentation actions
 	setViewMode: (viewMode) => set({ viewMode }),
 
-	// Selection actions
+	// Selection actions (retrocompatibilidade, primariamente pela URL)
 	setSelectedId: (selectedId) => set({ selectedId }),
 
 	// Create Wizard Actions
@@ -70,3 +70,4 @@ export const useAutomationsUIStore = create<AutomationsUIState>((set) => ({
 	openEditModal: (automation) => set({ editingAutomation: automation }),
 	closeEditModal: () => set({ editingAutomation: null }),
 }));
+

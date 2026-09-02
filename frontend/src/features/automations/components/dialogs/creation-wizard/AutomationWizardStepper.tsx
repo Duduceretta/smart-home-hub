@@ -27,53 +27,104 @@ export function AutomationWizardStepper({
 	currentStep,
 }: AutomationWizardStepperProps) {
 	return (
-		<ol className="flex flex-col gap-1">
-			{SEGMENTS.map((segment, index) => {
-				const maxStep = Math.max(...segment.steps);
-				const isActive = segment.steps.includes(currentStep);
-				const isCompleted = currentStep > maxStep;
-				const isLast = index === SEGMENTS.length - 1;
+		<div>
+			{/* Mobile (<sm): Stepper horizontal compacto */}
+			<div className="flex sm:hidden items-center justify-between gap-1.5">
+				{SEGMENTS.map((segment, index) => {
+					const maxStep = Math.max(...segment.steps);
+					const isActive = segment.steps.includes(currentStep);
+					const isCompleted = currentStep > maxStep;
 
-				return (
-					<li key={segment.label} className="flex gap-4">
-						<div className="flex flex-col items-center">
+					return (
+						<div
+							key={segment.label}
+							className="flex flex-1 items-center gap-1.5 min-w-0"
+						>
 							<span
 								className={cn(
-									"flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-semibold transition-all duration-300 ease-out",
+									"flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-semibold transition-all duration-200",
 									isActive
-										? "scale-110 bg-primary/15 text-primary ring-1 ring-primary/50"
+										? "bg-primary text-primary-foreground ring-2 ring-primary/40 font-bold"
 										: isCompleted
-											? "bg-primary/10 text-primary"
+											? "bg-primary/20 text-primary font-semibold"
 											: "bg-surface-high text-muted-foreground",
 								)}
 							>
-								{isCompleted ? <Check className="h-3.5 w-3.5" /> : index + 1}
+								{isCompleted ? <Check className="h-3 w-3" /> : index + 1}
 							</span>
-							{!isLast && (
+							<span
+								className={cn(
+									"text-xs truncate",
+									isActive
+										? "font-semibold text-foreground"
+										: "text-muted-foreground",
+								)}
+							>
+								{segment.label}
+							</span>
+							{index < SEGMENTS.length - 1 && (
 								<div
 									className={cn(
-										"w-px flex-1 transition-colors duration-300",
-										isCompleted ? "bg-primary/40" : "bg-border-subtle/30",
+										"h-0.5 flex-1 transition-colors duration-200 min-w-2",
+										isCompleted ? "bg-primary/40" : "bg-border-subtle",
 									)}
 								/>
 							)}
 						</div>
-						<div className={cn("pb-6", isLast && "pb-0")}>
-							<p
-								className={cn(
-									"text-sm font-medium transition-colors duration-300",
-									isActive ? "text-foreground" : "text-muted-foreground",
+					);
+				})}
+			</div>
+
+			{/* Desktop / Tablet (sm+): Stepper vertical */}
+			<ol className="hidden sm:flex flex-col gap-1">
+				{SEGMENTS.map((segment, index) => {
+					const maxStep = Math.max(...segment.steps);
+					const isActive = segment.steps.includes(currentStep);
+					const isCompleted = currentStep > maxStep;
+					const isLast = index === SEGMENTS.length - 1;
+
+					return (
+						<li key={segment.label} className="flex gap-4">
+							<div className="flex flex-col items-center">
+								<span
+									className={cn(
+										"flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-semibold transition-all duration-300 ease-out",
+										isActive
+											? "scale-110 bg-primary/15 text-primary ring-1 ring-primary/50"
+											: isCompleted
+												? "bg-primary/10 text-primary"
+												: "bg-surface-high text-muted-foreground",
+									)}
+								>
+									{isCompleted ? <Check className="h-3.5 w-3.5" /> : index + 1}
+								</span>
+								{!isLast && (
+									<div
+										className={cn(
+											"w-px flex-1 transition-colors duration-300",
+											isCompleted ? "bg-primary/40" : "bg-border-subtle/30",
+										)}
+									/>
 								)}
-							>
-								{segment.label}
-							</p>
-							<p className="mt-0.5 text-sm text-muted-foreground">
-								{segment.description}
-							</p>
-						</div>
-					</li>
-				);
-			})}
-		</ol>
+							</div>
+							<div className={cn("pb-6", isLast && "pb-0")}>
+								<p
+									className={cn(
+										"text-sm font-medium transition-colors duration-300",
+										isActive ? "text-foreground font-semibold" : "text-muted-foreground",
+									)}
+								>
+									{segment.label}
+								</p>
+								<p className="mt-0.5 text-sm text-muted-foreground">
+									{segment.description}
+								</p>
+							</div>
+						</li>
+					);
+				})}
+			</ol>
+		</div>
 	);
 }
+

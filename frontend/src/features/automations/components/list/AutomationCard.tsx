@@ -86,7 +86,7 @@ export function AutomationCard({
 			{!automation.isDraft && (
 				// biome-ignore lint/a11y/noStaticElementInteractions: só existe pra isolar o clique do Switch da seleção do card (stopPropagation)
 				<span
-					className="shrink-0"
+					className="flex h-11 w-11 shrink-0 items-center justify-center -mr-2"
 					onClick={(event) => event.stopPropagation()}
 					onKeyDown={(event) => event.stopPropagation()}
 				>

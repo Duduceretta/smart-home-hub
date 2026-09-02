@@ -28,7 +28,7 @@ export function TriggerSourceStep({
 				</p>
 			</div>
 
-			<div className="grid grid-cols-2 gap-4">
+			<div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">
 				{TRIGGER_SOURCE_OPTIONS.map((option) => {
 					const Icon = option.icon;
 					const isSelected = selected === option.value;

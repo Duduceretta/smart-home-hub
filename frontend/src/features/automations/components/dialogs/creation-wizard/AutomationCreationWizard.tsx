@@ -10,6 +10,7 @@ import {
 	DialogTitle,
 } from "@/core/components/ui/dialog";
 import { ScrollFadeBottom } from "@/core/components/ui/scroll-fade-bottom";
+import { cn } from "@/core/utils";
 import { TRIGGER_SOURCE_OPTIONS } from "../../../constants/automations.constants";
 import { useAutomationWizard } from "../../../hooks/useAutomationWizard";
 import { useCreateAutomation } from "../../../hooks/useCreateAutomation";
@@ -84,17 +85,24 @@ export function AutomationCreationWizard() {
 				if (!open) handleClose();
 			}}
 		>
-			<DialogContent className="gap-0 overflow-hidden rounded-2xl p-0 sm:max-w-4xl">
-				<div className="flex max-h-[80vh] min-h-[520px]">
+			<DialogContent
+				className={cn(
+					"gap-0 overflow-hidden border border-border-subtle bg-surface-container p-0 text-foreground shadow-2xl sm:max-w-4xl sm:rounded-2xl",
+					"max-sm:fixed max-sm:inset-0 max-sm:top-0 max-sm:left-0 max-sm:flex max-sm:h-dvh max-sm:max-w-none max-sm:w-full max-sm:translate-x-0 max-sm:translate-y-0 max-sm:flex-col max-sm:rounded-none",
+				)}
+			>
+				<div className="flex max-h-full min-h-0 flex-1 flex-col sm:max-h-[85vh] sm:min-h-[520px] sm:flex-row">
 					{/* Coluna esquerda: contexto + stepper */}
-					<div className="flex w-[32%] shrink-0 flex-col justify-between border-r border-border-subtle/10 bg-surface-low p-6">
-						<div className="flex flex-col gap-6">
-							<div className="flex flex-col gap-4">
-								<span className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/15 text-primary ring-1 ring-primary/30">
+					<div className="flex shrink-0 flex-col justify-between gap-4 border-b border-border-subtle bg-surface-low/75 p-4 sm:w-[32%] sm:border-r sm:border-b-0 sm:p-6">
+						<div className="flex flex-col gap-4 sm:gap-6">
+							<div className="flex items-center gap-3 sm:flex-col sm:items-start sm:gap-4">
+								<span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/15 text-primary ring-1 ring-primary/30">
 									<Zap className="h-5 w-5" />
 								</span>
-								<DialogHeader className="gap-1">
-									<DialogTitle className="text-lg">Nova Automação</DialogTitle>
+								<DialogHeader className="gap-1 text-left">
+									<DialogTitle className="text-base sm:text-lg">
+										Nova Automação
+									</DialogTitle>
 									<DialogDescription className="text-xs">
 										Configure um gatilho e as ações que ele dispara.
 									</DialogDescription>
@@ -106,8 +114,8 @@ export function AutomationCreationWizard() {
 					</div>
 
 					{/* Coluna direita: conteúdo do passo atual */}
-					<div className="relative flex min-w-0 flex-1 flex-col overflow-hidden">
-						<div className="flex flex-1 flex-col overflow-y-auto p-6">
+					<div className="relative flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-surface-container">
+						<div className="flex flex-1 flex-col overflow-y-auto p-4 scrollbar-gutter-stable scrollbar-thin sm:p-6">
 							<div
 								ref={contentRef}
 								key={state.step}
@@ -119,9 +127,10 @@ export function AutomationCreationWizard() {
 											selected={state.triggerSource}
 											onSelect={wizard.selectTriggerSource}
 										/>
-										<div className="mt-4 flex items-center justify-end border-t border-border-subtle/10 pt-4">
+										<div className="mt-6 flex items-center justify-end border-t border-border-subtle/10 pt-4">
 											<Button
 												type="button"
+												className="h-11 w-full sm:h-9 sm:w-auto"
 												disabled={
 													!state.triggerSource ||
 													TRIGGER_SOURCE_OPTIONS.find(
@@ -143,16 +152,18 @@ export function AutomationCreationWizard() {
 											devices={devices}
 											isLoadingDevices={isLoadingDevices}
 										/>
-										<div className="mt-4 flex items-center justify-between border-t border-border-subtle/10 pt-4">
+										<div className="mt-6 flex items-center justify-between gap-3 border-t border-border-subtle/10 pt-4">
 											<Button
 												type="button"
 												variant="outline"
+												className="h-11 sm:h-9"
 												onClick={() => wizard.goToStep(1)}
 											>
 												Voltar
 											</Button>
 											<Button
 												type="button"
+												className="h-11 sm:h-9"
 												disabled={!isTriggerConfigValid}
 												onClick={() => wizard.goToStep(3)}
 											>
@@ -169,16 +180,18 @@ export function AutomationCreationWizard() {
 											devices={devices}
 											isLoadingDevices={isLoadingDevices}
 										/>
-										<div className="mt-4 flex items-center justify-between border-t border-border-subtle/10 pt-4">
+										<div className="mt-6 flex items-center justify-between gap-3 border-t border-border-subtle/10 pt-4">
 											<Button
 												type="button"
 												variant="outline"
+												className="h-11 sm:h-9"
 												onClick={() => wizard.goToStep(2)}
 											>
 												Voltar
 											</Button>
 											<Button
 												type="button"
+												className="h-11 sm:h-9"
 												disabled={!isActionsStepValid}
 												onClick={() => wizard.goToStep(4)}
 											>

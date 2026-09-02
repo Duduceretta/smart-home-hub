@@ -98,6 +98,7 @@ export function ReviewStep({
 					onChange={(event) => setName(event.target.value)}
 					placeholder="Ex: Desligar tudo à noite"
 					maxLength={150}
+					className="h-11 sm:h-9"
 				/>
 			</div>
 
@@ -109,7 +110,7 @@ export function ReviewStep({
 					<button
 						type="button"
 						onClick={() => goToStep(2)}
-						className="inline-flex items-center gap-1 text-sm text-primary hover:underline cursor-pointer"
+						className="inline-flex h-11 sm:h-auto items-center gap-1 text-sm text-primary hover:underline cursor-pointer"
 					>
 						<Pencil className="h-3 w-3" />
 						Editar
@@ -128,7 +129,7 @@ export function ReviewStep({
 					<button
 						type="button"
 						onClick={() => goToStep(3)}
-						className="inline-flex items-center gap-1 text-sm text-primary hover:underline cursor-pointer"
+						className="inline-flex h-11 sm:h-auto items-center gap-1 text-sm text-primary hover:underline cursor-pointer"
 					>
 						<Pencil className="h-3 w-3" />
 						Editar
@@ -157,17 +158,20 @@ export function ReviewStep({
 						Se desligado, a automação fica salva mas pausada.
 					</p>
 				</div>
-				<Switch
-					checked={state.activateImmediately}
-					onCheckedChange={setActivateImmediately}
-					aria-label="Ativar automação imediatamente"
-				/>
+				<div className="flex h-11 items-center shrink-0">
+					<Switch
+						checked={state.activateImmediately}
+						onCheckedChange={setActivateImmediately}
+						aria-label="Ativar automação imediatamente"
+					/>
+				</div>
 			</div>
 
-			<div className="mt-auto flex items-center justify-between border-t border-border-subtle/10 pt-4">
+			<div className="mt-auto flex items-center justify-between gap-3 border-t border-border-subtle/10 pt-4">
 				<Button
 					type="button"
 					variant="outline"
+					className="h-11 sm:h-9"
 					onClick={() => goToStep(3)}
 					disabled={isSubmitting}
 				>
@@ -175,6 +179,7 @@ export function ReviewStep({
 				</Button>
 				<Button
 					type="button"
+					className="h-11 sm:h-9"
 					onClick={onSubmit}
 					disabled={isSubmitting || !isNameValid(state)}
 				>

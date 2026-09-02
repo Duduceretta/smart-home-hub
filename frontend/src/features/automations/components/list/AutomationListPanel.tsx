@@ -85,7 +85,7 @@ export function AutomationListPanel({
 	// mutação dos dados.
 	// biome-ignore lint/correctness/useExhaustiveDependencies: resetKey não é lido no corpo de propósito — só dispara o reset quando muda, padrão comum de "reset on change"
 	useEffect(() => {
-		containerRef.current?.scrollTo({ top: 0 });
+		containerRef.current?.scrollTo?.({ top: 0 });
 	}, [resetKey]);
 
 	const hasMoreRef = useRef(hasMore);
@@ -100,7 +100,7 @@ export function AutomationListPanel({
 	// valor mais recente sem precisar recriar o observer a cada render.
 	useEffect(() => {
 		const sentinel = sentinelRef.current;
-		if (!sentinel) return;
+		if (!sentinel || typeof IntersectionObserver === "undefined") return;
 
 		const observer = new IntersectionObserver(
 			([entry]) => {
@@ -188,14 +188,14 @@ export function AutomationListPanel({
 
 				<div className="flex items-center gap-2">
 					<div className="relative flex-1">
-						<Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+						<Search className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground lg:h-3.5 lg:w-3.5" />
 						<input
 							ref={searchInputRef}
 							type="text"
 							value={query}
 							onChange={(event) => onQueryChange(event.target.value)}
 							placeholder="Buscar automação..."
-							className="h-8 w-full rounded-lg bg-surface-high/80 pl-8 pr-12 text-sm text-foreground placeholder:text-muted-foreground outline-none transition-colors focus:bg-surface-high focus:ring-1 focus:ring-primary/40"
+							className="h-11 w-full rounded-lg bg-surface-high/80 pl-8 pr-12 text-sm text-foreground placeholder:text-muted-foreground outline-none transition-colors focus:bg-surface-high focus:ring-1 focus:ring-primary/40 lg:h-8"
 						/>
 						<kbd className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 rounded bg-surface-low px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
 							{isMac ? "⌘K" : "Ctrl K"}
@@ -207,7 +207,7 @@ export function AutomationListPanel({
 						onClick={onCreate}
 						aria-label="Nova automação"
 						title="Nova automação"
-						className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-surface-high/80 text-muted-foreground transition-colors hover:bg-surface-highest hover:text-primary cursor-pointer"
+						className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-surface-high/80 text-muted-foreground transition-colors hover:bg-surface-highest hover:text-primary cursor-pointer lg:h-8 lg:w-8"
 					>
 						<Plus className="h-4 w-4" />
 					</button>
@@ -272,7 +272,7 @@ export function AutomationListPanel({
 					onClick={onCreate}
 					className={cn(
 						"group flex w-full items-center gap-3 rounded-lg bg-surface-container/40 text-left transition-all hover:bg-surface-container cursor-pointer",
-						viewMode === "cards" ? "h-16 gap-4 p-4" : "h-10 px-3 py-2",
+						viewMode === "cards" ? "h-16 gap-4 p-4" : "h-11 px-3 py-2 lg:h-10",
 					)}
 				>
 					<span

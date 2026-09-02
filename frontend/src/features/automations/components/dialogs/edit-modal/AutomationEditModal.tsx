@@ -13,6 +13,7 @@ import {
 } from "@/core/components/ui/dialog";
 import { ScrollFadeBottom } from "@/core/components/ui/scroll-fade-bottom";
 import { Switch } from "@/core/components/ui/switch";
+import { cn } from "@/core/utils";
 import { TRIGGER_SOURCE_OPTIONS } from "../../../constants/automations.constants";
 import { useEditAutomationForm } from "../../../hooks/useEditAutomationForm";
 import { usePickerDevices } from "../../../hooks/usePickerDevices";
@@ -94,14 +95,21 @@ export function AutomationEditModal() {
 				if (!open) handleClose();
 			}}
 		>
-			<DialogContent className="gap-0 overflow-hidden rounded-2xl p-0 sm:max-w-2xl">
-				<div className="flex max-h-[85vh] flex-col">
-					<div className="flex items-start gap-4 border-b border-border-subtle/10 p-6 pb-4">
+			<DialogContent
+				className={cn(
+					"gap-0 overflow-hidden border border-border-subtle bg-surface-container p-0 text-foreground shadow-2xl sm:max-w-2xl sm:rounded-2xl",
+					"max-sm:fixed max-sm:inset-0 max-sm:top-0 max-sm:left-0 max-sm:flex max-sm:h-dvh max-sm:max-w-none max-sm:w-full max-sm:translate-x-0 max-sm:translate-y-0 max-sm:flex-col max-sm:rounded-none",
+				)}
+			>
+				<div className="flex max-h-full min-h-0 flex-1 flex-col sm:max-h-[85vh]">
+					<div className="flex items-start gap-4 border-b border-border-subtle/10 p-4 sm:p-6 sm:pb-4">
 						<span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/15 text-primary ring-1 ring-primary/30">
 							<Pencil className="h-5 w-5" />
 						</span>
-						<DialogHeader className="gap-1">
-							<DialogTitle className="text-lg">Editar Automação</DialogTitle>
+						<DialogHeader className="gap-1 text-left">
+							<DialogTitle className="text-base sm:text-lg">
+								Editar Automação
+							</DialogTitle>
 							<DialogDescription className="text-xs">
 								Ajuste o gatilho, as ações ou o status dessa automação.
 							</DialogDescription>
@@ -109,7 +117,7 @@ export function AutomationEditModal() {
 					</div>
 
 					<div className="relative min-h-0 flex-1">
-						<div className="h-full overflow-y-auto p-6">
+						<div className="h-full overflow-y-auto p-4 sm:p-6">
 							<div className="flex flex-col gap-6">
 								<FormGlobalError error={updateAutomation.error?.message} />
 
@@ -122,7 +130,7 @@ export function AutomationEditModal() {
 										onChange={(event) => form.setName(event.target.value)}
 										placeholder="Ex: Desligar tudo à noite"
 										maxLength={150}
-										className="h-8 w-full rounded-lg border border-border-subtle bg-surface-high px-3 text-sm text-foreground outline-none transition-colors focus:border-primary/50 focus:ring-1 focus:ring-primary/50"
+										className="h-11 sm:h-8 w-full rounded-lg border border-border-subtle bg-surface-high px-3 text-sm text-foreground outline-none transition-colors focus:border-primary/50 focus:ring-1 focus:ring-primary/50"
 									/>
 								</FormSection>
 
@@ -178,11 +186,13 @@ export function AutomationEditModal() {
 												Se desligado, a automação fica salva mas pausada.
 											</p>
 										</div>
-										<Switch
-											checked={form.state.activateImmediately}
-											onCheckedChange={form.setActivateImmediately}
-											aria-label="Automação ativa"
-										/>
+										<div className="flex h-11 items-center shrink-0">
+											<Switch
+												checked={form.state.activateImmediately}
+												onCheckedChange={form.setActivateImmediately}
+												aria-label="Automação ativa"
+											/>
+										</div>
 									</div>
 								</FormSection>
 							</div>
@@ -194,6 +204,7 @@ export function AutomationEditModal() {
 						<Button
 							type="button"
 							variant="outline"
+							className="h-11 sm:h-9"
 							onClick={handleClose}
 							disabled={updateAutomation.isPending}
 						>
@@ -201,6 +212,7 @@ export function AutomationEditModal() {
 						</Button>
 						<Button
 							type="button"
+							className="h-11 sm:h-9"
 							onClick={handleSubmit}
 							disabled={isSaveDisabled}
 						>

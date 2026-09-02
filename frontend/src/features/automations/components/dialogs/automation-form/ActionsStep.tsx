@@ -107,7 +107,8 @@ export function ActionsStep({
 							<Button
 								type="button"
 								variant="ghost"
-								size="icon-sm"
+								size="icon"
+								className="h-11 w-11 sm:h-8 sm:w-8"
 								onClick={() => editAction(action.id)}
 								aria-label={`Editar ação ${deviceName(action.deviceId)}`}
 							>
@@ -116,7 +117,8 @@ export function ActionsStep({
 							<Button
 								type="button"
 								variant="ghost"
-								size="icon-sm"
+								size="icon"
+								className="h-11 w-11 sm:h-8 sm:w-8"
 								onClick={() => removeAction(action.id)}
 								aria-label={`Remover ação ${deviceName(action.deviceId)}`}
 							>
@@ -137,7 +139,7 @@ export function ActionsStep({
 								setDraft((prev) => ({ ...prev, deviceId }))
 							}
 						>
-							<SelectTrigger className="w-full" disabled={isLoadingDevices}>
+							<SelectTrigger className="h-11 sm:h-9 w-full" disabled={isLoadingDevices}>
 								<SelectValue
 									placeholder={
 										isLoadingDevices
@@ -166,7 +168,7 @@ export function ActionsStep({
 									setDraft((prev) => ({ ...prev, desiredState: true }))
 								}
 								className={cn(
-									"rounded-lg border px-3 py-2 text-xs font-medium transition-colors cursor-pointer",
+									"h-11 sm:h-8.5 rounded-lg border px-3 py-2 text-xs font-medium transition-colors cursor-pointer",
 									draft.desiredState
 										? "border-primary/40 bg-primary/10 text-primary"
 										: "border-border-subtle bg-surface-low text-muted-foreground hover:text-foreground",
@@ -181,7 +183,7 @@ export function ActionsStep({
 									setDraft((prev) => ({ ...prev, desiredState: false }))
 								}
 								className={cn(
-									"rounded-lg border px-3 py-2 text-xs font-medium transition-colors cursor-pointer",
+									"h-11 sm:h-8.5 rounded-lg border px-3 py-2 text-xs font-medium transition-colors cursor-pointer",
 									!draft.desiredState
 										? "border-primary/40 bg-primary/10 text-primary"
 										: "border-border-subtle bg-surface-low text-muted-foreground hover:text-foreground",
@@ -193,12 +195,19 @@ export function ActionsStep({
 					</div>
 
 					<div className="flex items-center justify-end gap-2">
-						<Button type="button" variant="ghost" size="sm" onClick={closeForm}>
+						<Button
+							type="button"
+							variant="ghost"
+							size="sm"
+							className="h-11 sm:h-9"
+							onClick={closeForm}
+						>
 							Cancelar
 						</Button>
 						<Button
 							type="button"
 							size="sm"
+							className="h-11 sm:h-9"
 							disabled={!draft.deviceId}
 							onClick={handleSave}
 						>
@@ -212,7 +221,7 @@ export function ActionsStep({
 					variant="outline"
 					size="sm"
 					onClick={() => setIsAdding(true)}
-					className="w-fit"
+					className="h-11 sm:h-9 w-full sm:w-fit"
 				>
 					<Plus className="h-3.5 w-3.5" />
 					Adicionar Ação
