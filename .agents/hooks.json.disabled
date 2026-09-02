@@ -5,7 +5,7 @@
         "matcher": "write_to_file|replace_file_content|multi_replace_file_content",
         "hooks": [
           {
-            "command": "powershell -ExecutionPolicy Bypass -File .agents/hooks/format-on-save.ps1",
+            "command": "powershell -ExecutionPolicy Bypass -File \"C:\\Users\\Eduardo\\Downloads\\smart-home-hub\\.agents\\hooks\\format-on-save.ps1\"",
             "timeout": 30
           }
         ]
@@ -18,7 +18,7 @@
         "matcher": "replace_file_content|multi_replace_file_content",
         "hooks": [
           {
-            "command": "powershell -ExecutionPolicy Bypass -File .agents/hooks/guard-cascade-removal.ps1",
+            "command": "powershell -ExecutionPolicy Bypass -File \"C:\\Users\\Eduardo\\Downloads\\smart-home-hub\\.agents\\hooks\\guard-cascade-removal.ps1\"",
             "timeout": 15
           }
         ]

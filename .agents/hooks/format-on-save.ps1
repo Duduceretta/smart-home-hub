@@ -1,5 +1,5 @@
-$json = [Console]::In.ReadToEnd() | ConvertFrom-Json
-$filePath = $json.toolCall.args.TargetFile
+$inputJson = [Console]::In.ReadToEnd() | ConvertFrom-Json
+$filePath = $inputJson.tool_input.file_path
 
 if (-not $filePath) {
     Write-Output '{}'

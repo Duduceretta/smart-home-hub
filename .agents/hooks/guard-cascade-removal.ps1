@@ -1,6 +1,6 @@
-$json = [Console]::In.ReadToEnd() | ConvertFrom-Json
-$toolName = $json.toolCall.name
-$toolArgs = $json.toolCall.args
+$inputJson = [Console]::In.ReadToEnd() | ConvertFrom-Json
+$toolName = $inputJson.toolCall.name
+$toolArgs = $inputJson.toolCall.args
 
 $oldText = ""
 $newText = ""
@@ -10,9 +10,6 @@ if ($toolName -eq "replace_file_content") {
     $newText = $toolArgs.ReplacementContent
 }
 elseif ($toolName -eq "multi_replace_file_content") {
-    # Formato exato de cada item em ReplacementChunks não confirmado na doc oficial —
-    # assume TargetContent/ReplacementContent por chunk, igual ao replace_file_content.
-    # Se não bater, ajuste os nomes de campo aqui.
     foreach ($chunk in $toolArgs.ReplacementChunks) {
         $oldText += "`n" + $chunk.TargetContent
         $newText += "`n" + $chunk.ReplacementContent
