@@ -145,7 +145,9 @@ describe("RoomsView Integration Tests", () => {
 
 		// Assert — mobile renders the list, does not open detail
 		expect(await screen.findByText("Sala de Estar")).toBeInTheDocument();
-		expect(screen.queryByText("1 dispositivo conectado")).not.toBeInTheDocument();
+		expect(
+			screen.queryByText("1 dispositivo conectado"),
+		).not.toBeInTheDocument();
 	});
 
 	it("RoomsView_Mobile_ClickRoom_ShouldNavigateToDetailAndBackReturnsToList", async () => {

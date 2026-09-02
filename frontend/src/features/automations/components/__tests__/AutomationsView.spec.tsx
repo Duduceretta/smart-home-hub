@@ -66,7 +66,6 @@ function mockAutomationsBackend(automations: unknown[] = []) {
 	);
 }
 
-
 beforeEach(() => {
 	useAutomationsUIStore.setState({
 		query: "",
@@ -147,9 +146,7 @@ describe("AutomationsView Integration Tests", () => {
 		renderAutomationsView();
 
 		// Assert
-		expect(
-			await screen.findByText("Ligar luz da Sala"),
-		).toBeInTheDocument();
+		expect(await screen.findByText("Ligar luz da Sala")).toBeInTheDocument();
 		expect(screen.getByText("Desligar Ar Condicionado")).toBeInTheDocument();
 		expect(screen.getByText("2 automações")).toBeInTheDocument();
 	});
@@ -195,4 +192,3 @@ describe("AutomationsView Integration Tests", () => {
 		await user.click(backButton);
 	});
 });
-

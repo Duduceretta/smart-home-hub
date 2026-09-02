@@ -47,7 +47,6 @@ export function AutomationDetailPanel({
 		);
 	}
 
-
 	const TriggerIcon = AUTOMATION_TRIGGER_ICON[automation.triggerKind];
 
 	const handleDelete = async () => {

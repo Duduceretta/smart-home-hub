@@ -129,7 +129,9 @@ describe("DeviceGroupsView Integration Tests", () => {
 
 		// Assert — renders list, does not open detail
 		expect(await screen.findByText("Iluminação Geral")).toBeInTheDocument();
-		expect(screen.queryByText("Controle Mestre do Grupo")).not.toBeInTheDocument();
+		expect(
+			screen.queryByText("Controle Mestre do Grupo"),
+		).not.toBeInTheDocument();
 	});
 
 	it("DeviceGroupsView_Mobile_ClickGroup_ShouldNavigateToDetailAndBackReturnsToList", async () => {

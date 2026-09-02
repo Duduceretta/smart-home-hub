@@ -238,10 +238,7 @@ export function DeviceGroupsView() {
 					selectedGroupId ? "flex" : "hidden lg:flex",
 				)}
 			>
-				<DeviceGroupDetailPanel
-					group={selectedGroup}
-					onBack={clearSelection}
-				/>
+				<DeviceGroupDetailPanel group={selectedGroup} onBack={clearSelection} />
 			</div>
 
 			{/* Form Dialog (Create / Edit) */}

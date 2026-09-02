@@ -169,10 +169,19 @@ export function AutomationsView() {
 
 	// Auto-seleção do primeiro item só acontece em telas desktop master-detail (lg+)
 	useEffect(() => {
-		if (isDesktopMasterDetail && !selectedAutomationId && automationViews.length > 0) {
+		if (
+			isDesktopMasterDetail &&
+			!selectedAutomationId &&
+			automationViews.length > 0
+		) {
 			setDefaultAutomation(automationViews[0].id);
 		}
-	}, [isDesktopMasterDetail, selectedAutomationId, automationViews, setDefaultAutomation]);
+	}, [
+		isDesktopMasterDetail,
+		selectedAutomationId,
+		automationViews,
+		setDefaultAutomation,
+	]);
 
 	// Se a automação selecionada não existir mais no conjunto filtrado/excluído (em desktop)
 	useEffect(() => {
@@ -184,7 +193,12 @@ export function AutomationsView() {
 		) {
 			setDefaultAutomation(automationViews[0].id);
 		}
-	}, [isDesktopMasterDetail, selectedAutomationId, automationViews, setDefaultAutomation]);
+	}, [
+		isDesktopMasterDetail,
+		selectedAutomationId,
+		automationViews,
+		setDefaultAutomation,
+	]);
 
 	const selectedAutomation =
 		automationViews.find((a) => a.id === selectedAutomationId) ?? null;
@@ -353,4 +367,3 @@ export function AutomationsView() {
 		</div>
 	);
 }
-

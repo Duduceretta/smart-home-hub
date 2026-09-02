@@ -111,7 +111,9 @@ export function AutomationWizardStepper({
 								<p
 									className={cn(
 										"text-sm font-medium transition-colors duration-300",
-										isActive ? "text-foreground font-semibold" : "text-muted-foreground",
+										isActive
+											? "text-foreground font-semibold"
+											: "text-muted-foreground",
 									)}
 								>
 									{segment.label}
@@ -127,4 +129,3 @@ export function AutomationWizardStepper({
 		</div>
 	);
 }
-

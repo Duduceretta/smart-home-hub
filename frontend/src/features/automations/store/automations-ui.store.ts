@@ -70,4 +70,3 @@ export const useAutomationsUIStore = create<AutomationsUIState>((set) => ({
 	openEditModal: (automation) => set({ editingAutomation: automation }),
 	closeEditModal: () => set({ editingAutomation: null }),
 }));
-

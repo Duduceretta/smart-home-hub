@@ -139,7 +139,10 @@ export function ActionsStep({
 								setDraft((prev) => ({ ...prev, deviceId }))
 							}
 						>
-							<SelectTrigger className="h-11 sm:h-9 w-full" disabled={isLoadingDevices}>
+							<SelectTrigger
+								className="h-11 sm:h-9 w-full"
+								disabled={isLoadingDevices}
+							>
 								<SelectValue
 									placeholder={
 										isLoadingDevices

@@ -12,7 +12,11 @@ interface RoomDetailPanelProps {
 	onBack?: () => void;
 }
 
-export function RoomDetailPanel({ room, devices, onBack }: RoomDetailPanelProps) {
+export function RoomDetailPanel({
+	room,
+	devices,
+	onBack,
+}: RoomDetailPanelProps) {
 	const { t } = useTranslation("rooms");
 	const openEditDialog = useRoomsUIStore((s) => s.openEditDialog);
 

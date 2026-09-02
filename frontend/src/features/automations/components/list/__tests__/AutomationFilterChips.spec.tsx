@@ -25,8 +25,12 @@ describe("AutomationFilterChips Integration Tests", () => {
 
 		// Assert
 		expect(screen.getByRole("button", { name: /^Todas/i })).toBeInTheDocument();
-		expect(screen.getByRole("button", { name: /^Ativas/i })).toBeInTheDocument();
-		expect(screen.getByRole("button", { name: /^Inativas/i })).toBeInTheDocument();
+		expect(
+			screen.getByRole("button", { name: /^Ativas/i }),
+		).toBeInTheDocument();
+		expect(
+			screen.getByRole("button", { name: /^Inativas/i }),
+		).toBeInTheDocument();
 		expect(
 			screen.getByRole("button", { name: /Por horário/i }),
 		).toBeInTheDocument();

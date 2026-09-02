@@ -1,11 +1,4 @@
-import {
-	Clock,
-	FileEdit,
-	Filter,
-	Power,
-	PowerOff,
-	Radio,
-} from "lucide-react";
+import { Clock, FileEdit, Filter, Power, PowerOff, Radio } from "lucide-react";
 import type { ComponentType } from "react";
 import { useScrollFade } from "@/core/hooks/useScrollFade";
 import { cn } from "@/core/utils";

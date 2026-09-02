@@ -4,7 +4,9 @@ import type {
 	PickerDevice,
 } from "@/features/automations/types/automations.types";
 
-export function createAutomationMock(overrides?: Partial<Automation>): Automation {
+export function createAutomationMock(
+	overrides?: Partial<Automation>,
+): Automation {
 	const defaultMock: Automation = {
 		id: "automation-01",
 		name: "Desligar tudo à noite",
