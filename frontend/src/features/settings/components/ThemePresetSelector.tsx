@@ -11,7 +11,7 @@ export function ThemePresetSelector() {
 		<div
 			role="radiogroup"
 			aria-label="Tema de cores do aplicativo"
-			className="grid grid-cols-2 gap-4 sm:grid-cols-4"
+			className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5 sm:gap-4"
 		>
 			{THEME_PRESET_OPTIONS.map((option) => {
 				const selected = option.id === preset;

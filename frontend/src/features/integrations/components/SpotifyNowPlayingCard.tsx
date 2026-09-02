@@ -59,12 +59,12 @@ export const SpotifyNowPlayingCard: React.FC = () => {
 
 	if (!status?.connected) {
 		return (
-			<div className="flex flex-col items-center gap-4 rounded-xl border border-border-subtle bg-surface-container p-4 text-center transition-all duration-200 hover:border-border">
+			<div className="flex flex-col items-center gap-4 rounded-xl border border-border-subtle bg-surface-low p-4 text-center transition-all duration-200 hover:border-border">
 				<div className="flex h-11 w-11 items-center justify-center rounded-full bg-[#1DB954]/15 text-[#1DB954]">
 					<Disc3 className="h-5 w-5" />
 				</div>
 				<div>
-					<p className="text-sm font-semibold text-foreground">
+					<p className="text-sm font-medium text-foreground">
 						Spotify desconectado
 					</p>
 					<p className="mt-0.5 text-xs text-muted-foreground">
@@ -75,7 +75,7 @@ export const SpotifyNowPlayingCard: React.FC = () => {
 					type="button"
 					disabled={isConnecting}
 					onClick={() => connectSpotify()}
-					className="inline-flex h-8 items-center rounded-full bg-[#1DB954] px-4 text-xs font-bold text-black shadow-xs transition-colors hover:bg-[#1ed760] disabled:cursor-not-allowed disabled:opacity-40 cursor-pointer"
+					className="inline-flex h-11 sm:h-8 items-center rounded-full bg-[#1DB954] px-4 text-xs font-semibold text-black shadow-xs transition-colors hover:bg-[#1ed760] disabled:cursor-not-allowed disabled:opacity-40 cursor-pointer"
 				>
 					Conectar Spotify
 				</button>
@@ -85,11 +85,11 @@ export const SpotifyNowPlayingCard: React.FC = () => {
 
 	if (!playback?.title) {
 		return (
-			<div className="flex flex-col items-center gap-2 rounded-xl border border-border-subtle bg-surface-container p-4 text-center transition-all duration-200 hover:border-border">
+			<div className="flex flex-col items-center gap-2 rounded-xl border border-border-subtle bg-surface-low p-4 text-center transition-all duration-200 hover:border-border">
 				<div className="flex h-11 w-11 items-center justify-center rounded-full bg-surface-high text-muted-foreground">
 					<Disc3 className="h-5 w-5" />
 				</div>
-				<p className="text-sm font-semibold text-foreground">
+				<p className="text-sm font-medium text-foreground">
 					Nada tocando no momento
 				</p>
 				<p className="text-xs text-muted-foreground">
@@ -100,10 +100,10 @@ export const SpotifyNowPlayingCard: React.FC = () => {
 	}
 
 	return (
-		<div className="flex flex-col gap-4 rounded-xl border border-border-subtle bg-surface-container p-4 transition-all duration-200 hover:border-border">
+		<div className="flex flex-col gap-4 rounded-xl border border-border-subtle bg-surface-low p-4 transition-all duration-200 hover:border-border">
 			{/* Faixa e Capa */}
 			<div className="flex items-center gap-3.5">
-				<div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-border-subtle bg-surface-low">
+				<div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-border-subtle bg-surface-container">
 					{playback.albumCoverUrl ? (
 						<img
 							src={playback.albumCoverUrl}
@@ -115,14 +115,14 @@ export const SpotifyNowPlayingCard: React.FC = () => {
 					)}
 				</div>
 				<div className="flex min-w-0 flex-1 flex-col">
-					<span className="truncate text-sm font-semibold text-foreground">
+					<span className="truncate text-sm font-medium text-foreground">
 						{playback.title}
 					</span>
 					<span className="truncate text-xs text-muted-foreground">
 						{playback.artist}
 					</span>
 					{playback.deviceName && (
-						<span className="mt-0.5 truncate text-[11px] text-muted-foreground/70">
+						<span className="mt-0.5 truncate text-xs text-muted-foreground/80">
 							Reproduzindo em {playback.deviceName}
 						</span>
 					)}

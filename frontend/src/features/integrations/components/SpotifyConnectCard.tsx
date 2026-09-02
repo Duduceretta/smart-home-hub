@@ -33,20 +33,22 @@ export const SpotifyConnectCard: React.FC = () => {
 	}, []);
 
 	return (
-		<div className="rounded-xl border border-border-subtle bg-surface-container p-4 transition-all duration-200 hover:border-border">
-			<div className="flex items-center gap-4">
-				<span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#1DB954]/15 text-[#1DB954]">
-					<Music2 className="h-5 w-5" />
-				</span>
-				<div className="flex min-w-0 flex-1 flex-col">
-					<span className="text-sm font-semibold text-foreground">Spotify</span>
-					<span className="truncate text-xs text-muted-foreground">
-						{isLoading
-							? "Verificando conexão..."
-							: status?.connected
-								? `Conectado como ${status.displayName}`
-								: "Acompanhe o que está tocando em tempo real."}
+		<div className="rounded-xl border border-border-subtle bg-surface-low p-4 transition-all duration-200 hover:border-border">
+			<div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+				<div className="flex items-center gap-3.5 min-w-0">
+					<span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#1DB954]/15 text-[#1DB954]">
+						<Music2 className="h-5 w-5" />
 					</span>
+					<div className="flex min-w-0 flex-1 flex-col">
+						<span className="text-sm font-medium text-foreground">Spotify</span>
+						<span className="truncate text-xs text-muted-foreground">
+							{isLoading
+								? "Verificando conexão..."
+								: status?.connected
+									? `Conectado como ${status.displayName}`
+									: "Acompanhe o que está tocando em tempo real."}
+						</span>
+					</div>
 				</div>
 
 				{status?.connected ? (
@@ -55,7 +57,7 @@ export const SpotifyConnectCard: React.FC = () => {
 						variant="outline"
 						disabled={isDisconnecting}
 						onClick={() => disconnect()}
-						className="border-border-subtle bg-surface-low/50 text-xs font-medium text-destructive transition-all hover:border-destructive/30 hover:bg-destructive/10 hover:text-destructive cursor-pointer"
+						className="h-11 sm:h-9 w-full sm:w-auto border-border-subtle bg-surface-container/60 text-xs font-medium text-destructive transition-all hover:border-destructive/30 hover:bg-destructive/10 hover:text-destructive cursor-pointer justify-center"
 					>
 						{isDisconnecting ? (
 							<Loader2 className="h-4 w-4 animate-spin" />
@@ -69,9 +71,11 @@ export const SpotifyConnectCard: React.FC = () => {
 						type="button"
 						disabled={isConnecting}
 						onClick={() => connect()}
-						className="bg-[#1DB954] text-xs font-bold text-black shadow-xs transition-colors hover:bg-[#1ed760] cursor-pointer"
+						className="h-11 sm:h-9 w-full sm:w-auto bg-[#1DB954] text-xs font-semibold text-black shadow-xs transition-colors hover:bg-[#1ed760] cursor-pointer justify-center"
 					>
-						{isConnecting ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+						{isConnecting ? (
+							<Loader2 className="h-4 w-4 animate-spin mr-1" />
+						) : null}
 						Conectar Spotify
 					</Button>
 				)}
