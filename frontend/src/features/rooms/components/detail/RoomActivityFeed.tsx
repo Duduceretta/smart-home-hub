@@ -25,7 +25,9 @@ const EVENT_STYLE: Record<
 	},
 	Spotify: {
 		icon: Music,
+		// design-token-lint-ignore: verde oficial da marca Spotify, identidade visual de terceiro
 		color: "text-[#1DB954]",
+		// design-token-lint-ignore: verde oficial da marca Spotify, identidade visual de terceiro
 		border: "border-[#1DB954]",
 	},
 	AutomationExecuted: {

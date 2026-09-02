@@ -20,26 +20,31 @@ export const THEME_PRESET_OPTIONS: ThemePresetOption[] = [
 	{
 		id: "zinc-minimalist",
 		label: "Zinc Minimalist",
+		// design-token-lint-ignore: prévia fixa do preset, não segue o tema ativo
 		swatch: { background: "#09090b", card: "#18181b", primary: "#fafafa" },
 	},
 	{
 		id: "indigo",
 		label: "Indigo",
+		// design-token-lint-ignore: prévia fixa do preset, não segue o tema ativo
 		swatch: { background: "#08090d", card: "#151824", primary: "#5e6ad2" },
 	},
 	{
 		id: "slate-cyan",
 		label: "Slate & Cyan",
+		// design-token-lint-ignore: prévia fixa do preset, não segue o tema ativo
 		swatch: { background: "#0b0f17", card: "#172033", primary: "#06b6d4" },
 	},
 	{
 		id: "github-dimmed",
 		label: "GitHub Dimmed",
+		// design-token-lint-ignore: prévia fixa do preset, não segue o tema ativo
 		swatch: { background: "#0d1117", card: "#21262d", primary: "#2f81f7" },
 	},
 	{
 		id: "contrast-safe-graphite",
 		label: "Contrast Safe Graphite",
+		// design-token-lint-ignore: prévia fixa do preset, não segue o tema ativo
 		swatch: { background: "#09090b", card: "#414141", primary: "#5e6ad2" },
 	},
 ];

@@ -36,6 +36,7 @@ export const SpotifyConnectCard: React.FC = () => {
 		<div className="rounded-xl border border-border-subtle bg-surface-low p-4 transition-all duration-200 hover:border-border">
 			<div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
 				<div className="flex items-center gap-3.5 min-w-0">
+					{/* design-token-lint-ignore: verde oficial da marca Spotify, identidade visual de terceiro */}
 					<span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#1DB954]/15 text-[#1DB954]">
 						<Music2 className="h-5 w-5" />
 					</span>
@@ -71,6 +72,7 @@ export const SpotifyConnectCard: React.FC = () => {
 						type="button"
 						disabled={isConnecting}
 						onClick={() => connect()}
+						// design-token-lint-ignore: verde oficial da marca Spotify, identidade visual de terceiro
 						className="h-11 sm:h-9 w-full sm:w-auto bg-[#1DB954] text-xs font-semibold text-black shadow-xs transition-colors hover:bg-[#1ed760] cursor-pointer justify-center"
 					>
 						{isConnecting ? (

@@ -79,8 +79,9 @@ export function ColorWheel({
 			style={{
 				width: size,
 				height: size,
+				// Roda de matizes RGB real da lâmpada — dado de domínio (cor da luz), não decisão de estilo da interface.
 				background:
-					"radial-gradient(circle at center, #fff 0%, rgba(255,255,255,0) 70%), conic-gradient(from 0deg, #ff0000, #ffff00, #00ff00, #00ffff, #0000ff, #ff00ff, #ff0000)",
+					"radial-gradient(circle at center, #fff 0%, rgba(255,255,255,0) 70%), conic-gradient(from 0deg, #ff0000, #ffff00, #00ff00, #00ffff, #0000ff, #ff00ff, #ff0000)", // design-token-lint-ignore
 				cursor: disabled ? "not-allowed" : "pointer",
 				opacity: disabled ? 0.5 : 1,
 			}}

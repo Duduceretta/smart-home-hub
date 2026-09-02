@@ -60,6 +60,7 @@ export const SpotifyNowPlayingCard: React.FC = () => {
 	if (!status?.connected) {
 		return (
 			<div className="flex flex-col items-center gap-4 rounded-xl border border-border-subtle bg-surface-low p-4 text-center transition-all duration-200 hover:border-border">
+				{/* design-token-lint-ignore: verde oficial da marca Spotify, identidade visual de terceiro */}
 				<div className="flex h-11 w-11 items-center justify-center rounded-full bg-[#1DB954]/15 text-[#1DB954]">
 					<Disc3 className="h-5 w-5" />
 				</div>
@@ -75,6 +76,7 @@ export const SpotifyNowPlayingCard: React.FC = () => {
 					type="button"
 					disabled={isConnecting}
 					onClick={() => connectSpotify()}
+					// design-token-lint-ignore: verde oficial da marca Spotify, identidade visual de terceiro
 					className="inline-flex h-11 sm:h-8 items-center rounded-full bg-[#1DB954] px-4 text-xs font-semibold text-black shadow-xs transition-colors hover:bg-[#1ed760] disabled:cursor-not-allowed disabled:opacity-40 cursor-pointer"
 				>
 					Conectar Spotify
@@ -145,6 +147,7 @@ export const SpotifyNowPlayingCard: React.FC = () => {
 					aria-label={playback.isPlaying ? "Pausar" : "Reproduzir"}
 					disabled={isToggling}
 					onClick={() => togglePlayback()}
+					// design-token-lint-ignore: verde oficial da marca Spotify, identidade visual de terceiro
 					className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#1DB954] text-black shadow-xs transition-colors hover:bg-[#1ed760] disabled:cursor-not-allowed disabled:opacity-40 cursor-pointer"
 				>
 					{playback.isPlaying ? (
@@ -199,6 +202,7 @@ export const SpotifyNowPlayingCard: React.FC = () => {
 				>
 					<div
 						className={cn(
+							// design-token-lint-ignore: verde oficial da marca Spotify, identidade visual de terceiro
 							"relative h-full rounded-full bg-[#1DB954]",
 							!isDragging && "transition-all",
 						)}

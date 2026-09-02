@@ -10,13 +10,14 @@ import { useToggleDevice } from "../../../hooks/useToggleDevice";
 import { ColorWheel } from "./ColorWheel";
 import type { DeviceControlPanelProps } from "./device-control-panel.types";
 
+// Cores RGB reais selecionáveis pra lâmpada — dado de domínio (cor da luz), não decisão de estilo da interface.
 const PRESET_COLORS = [
-	"#FF0000",
-	"#00FF00",
-	"#0000FF",
-	"#FFA500",
-	"#FF00FF",
-	"#FFFFFF",
+	"#FF0000", // design-token-lint-ignore
+	"#00FF00", // design-token-lint-ignore
+	"#0000FF", // design-token-lint-ignore
+	"#FFA500", // design-token-lint-ignore
+	"#FF00FF", // design-token-lint-ignore
+	"#FFFFFF", // design-token-lint-ignore
 ];
 
 /**

@@ -46,6 +46,8 @@ export type DeviceIconConfig = {
 	text: string;
 };
 
+// Paleta categórica intencional (uma cor distinta por tipo de dispositivo, não
+// segue tokens semânticos do design system) — design-token-lint-ignore
 export const DEVICE_CONFIG: Record<DeviceTypeEnum, DeviceIconConfig> = {
 	[DeviceTypeEnum.Light]: {
 		icon: Lightbulb,
@@ -54,8 +56,8 @@ export const DEVICE_CONFIG: Record<DeviceTypeEnum, DeviceIconConfig> = {
 	},
 	[DeviceTypeEnum.Switch]: {
 		icon: Power,
-		bg: "bg-indigo-500/10",
-		text: "text-indigo-400",
+		bg: "bg-indigo-500/10", // design-token-lint-ignore
+		text: "text-indigo-400", // design-token-lint-ignore
 	},
 	[DeviceTypeEnum.Sensor]: {
 		icon: Radar,
@@ -69,13 +71,13 @@ export const DEVICE_CONFIG: Record<DeviceTypeEnum, DeviceIconConfig> = {
 	},
 	[DeviceTypeEnum.Camera]: {
 		icon: CameraIcon,
-		bg: "bg-slate-500/10",
-		text: "text-slate-300",
+		bg: "bg-slate-500/10", // design-token-lint-ignore
+		text: "text-slate-300", // design-token-lint-ignore
 	},
 	[DeviceTypeEnum.Lock]: {
 		icon: Lock,
-		bg: "bg-red-500/10",
-		text: "text-red-400",
+		bg: "bg-red-500/10", // design-token-lint-ignore
+		text: "text-red-400", // design-token-lint-ignore
 	},
 	[DeviceTypeEnum.Alarm]: {
 		icon: Siren,
