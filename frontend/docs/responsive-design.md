@@ -218,6 +218,47 @@ Com a extensão da navegação em pilha orientada a URL para as telas de Ambient
   - `history`: Barra de filtros superior com lista paginada em linha temporal.
   - `integrations` / `settings`: Telas baseadas em seções/abas/modais.
 
+## 15. Responsividade Mobile da Tela de Histórico & Auditoria
+
+A tela de Histórico ([`HistoryView.tsx`](file:///C:/Users/Eduardo/Downloads/smart-home-hub/frontend/src/features/history/components/HistoryView.tsx)) não é master-detail; utiliza timeline paginada de auditoria com filtros combinados superiores e KPIs agregados:
+
+- **Cards de KPI (`HistoryKpiCards.tsx`)**:
+  - Breakpoint corrigido para `grid-cols-1 sm:grid-cols-2 lg:grid-cols-4`.
+  - Em 375px, cada card ocupa 100% da largura útil, eliminando truncamentos severos em rótulos longos ("Execuções de Automação", "Total de Eventos").
+- **Barra de Filtros Combinados (`HistoryFiltersBar.tsx`)**:
+  - No mobile (<sm), o campo de busca e os 3 selects (Período, Severidade, Origem) adotam grade vertical de largura total (`grid-cols-1 gap-2 sm:flex sm:flex-wrap`), garantindo alvos de toque de 44px (`h-11 sm:h-10`) e eliminando quebras irregulares de layout.
+  - Botão "Limpar filtros" com transição suave zero-CLS e altura de toque compatível (`h-11 sm:h-10`).
+- **Botões de Ação do Header (`HistoryHeader.tsx`)**:
+  - No mobile (<sm), os botões "Expandir todos", "Atualizar" e "Exportar Logs" adotam `grid grid-cols-3 gap-2 w-full` com altura `h-11 sm:h-8`.
+  - Em telas estreitas (<sm), ícones centralizados com `aria-label` e `title` garantem acessibilidade sem overflow de texto; rótulos completos expandem a partir de `sm` (`hidden sm:inline`).
+- **Pill Flutuante de Novos Eventos (`NewEventsPill.tsx`)**:
+  - Alvo de toque ajustado para `h-11 sm:h-9 px-4`, posicionado com `sticky top-2 z-20` (não colide com a barra de navegação inferior mobile).
+- **Linhas da Timeline & IDs Técnicos (`HistoryEventRow.tsx`)**:
+  - Descrição com `line-clamp-2 sm:line-clamp-1` para leitura confortável sem vazamento lateral.
+  - No card expandido, IDs UUID longos são abreviados visualmente (`c3b12345...9abc`) com `title` informativo e botão de copiar preservando o UUID completo de 36 caracteres no clipboard.
+- **Barra de Paginação & Voltar ao Topo (`HistoryPagination.tsx`, `HistoryBackToTopButton.tsx`)**:
+  - Botões "Anterior" / "Próxima" e botão flutuante com altura de toque de 44px (`h-11 sm:h-8` e `h-11 w-11 sm:h-10 sm:w-10`).
+
+## 16. Aderência ao Design System e Responsividade em Autenticação e Configurações
+
+As telas de **Login**, **Registro/Cadastro**, **Recuperação de Senha** e **Configurações** passaram por alinhamento completo com o design system do monorepo e auditoria mobile a 375px:
+
+- **Eliminação de Hex Crus e Cores Hardcoded**:
+  - `AuthLayout`, `LoginForm`, `RegisterForm`, `ForgotPasswordForm` e `ResetPasswordForm` foram desvinculados de `zinc-*`, `indigo-*` e `red-*` crus, adotando tokens semânticos (`background`, `border-border-subtle`, `surface-low`, `primary`, `destructive`, `foreground`, `muted-foreground`).
+  - O divisor de autenticação (*"Ou continue com"*) teve o hex cru `#121215` substituído por `bg-surface-low`, garantindo suporte nativo a todos os 5 temas alternativos (`zinc`, `indigo`, `slate-cyan`, `github-dimmed`, `contrast-safe-graphite`).
+  - O logotipo SVG do Google em [`GoogleAuthButton.tsx`](file:///C:/Users/Eduardo/Downloads/smart-home-hub/frontend/src/features/auth/components/GoogleAuthButton.tsx) manteve as 4 cores oficiais da marca registradas intactas, enquanto seu botão e loader adotaram tokens semânticos (`surface-container/60`, `border-border-subtle`, `text-foreground`).
+- **Prevenção de CLS e Piso Tipográfico nos Inputs (`FormInput.tsx`, `PasswordInput.tsx`)**:
+  - Mensagens de erro de validação tiveram a tipografia ajustada para o piso oficial `text-xs` (eliminando a classe fora de escala `text-[11px]`).
+  - A reserva de espaço anti-CLS foi padronizada em `min-h-5` (20px), evitando deslocamentos repentinos no layout.
+  - Inputs com altura `h-11 sm:h-10` garantem área de toque confortável no mobile.
+- **Espaçamento e Alvos de Toque em Telas de Auth**:
+  - Container externo ajustado para `p-4 py-8 sm:p-8 md:p-12` e cartões de formulário para `p-6 sm:p-8`, aumentando a largura líquida disponível em 375px para 327px.
+  - Botões principais de submit em `h-11 w-full bg-primary text-primary-foreground`.
+- **Tela de Configurações (`SettingsPage.tsx`)**:
+  - `ThemePresetSelector`: Grid ajustado para `grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5 sm:gap-4`, distribuindo os 5 temas sem cartões órfãos.
+  - `LanguageSettingRow`: Layout adaptativo `flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between`, permitindo que o seletor de idioma ocupe 100% da largura em mobile (`w-full sm:w-48`) e a descrição do hub não seja comprimida.
+  - `SpotifyConnectCard`: Layout flex adaptativo com botão de conexão em largura total `w-full sm:w-auto h-11 sm:h-9` no mobile.
+
 ## Checklist de verificação usado nesta auditoria
 
 Testado nas três larguras abaixo antes de considerar cada correção concluída:
