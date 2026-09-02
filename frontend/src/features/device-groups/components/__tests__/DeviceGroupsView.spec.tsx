@@ -1,6 +1,6 @@
 import { HttpResponse, http } from "msw";
 import { MemoryRouter } from "react-router-dom";
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { useDeviceGroupsUIStore } from "@/features/device-groups/store/device-groups-ui.store";
 import {
 	createDeviceGroupMock,
@@ -15,9 +15,9 @@ import {
 } from "@/testing/test-utils";
 import { DeviceGroupsView } from "../DeviceGroupsView";
 
-function renderDeviceGroupsView() {
+function renderDeviceGroupsView(initialEntries = ["/device-groups"]) {
 	return renderWithProviders(
-		<MemoryRouter>
+		<MemoryRouter initialEntries={initialEntries}>
 			<DeviceGroupsView />
 		</MemoryRouter>,
 	);
@@ -114,8 +114,73 @@ describe("DeviceGroupsView Integration Tests", () => {
 		).toBeInTheDocument();
 	});
 
-	it("DeviceGroupsView_GroupsLoaded_ShouldAutoSelectFirstGroupAndShowDetailPanel", async () => {
+	it("DeviceGroupsView_Mobile_ShouldOpenOnListWithoutAutoSelection", async () => {
 		// Arrange
+		const group = createDeviceGroupMock({
+			id: "group-01",
+			name: "Iluminação Geral",
+		});
+		mockGroupsList([group]);
+		mockPickerDevices();
+		mockDeviceGroupDetailSubResources();
+
+		// Act (Mobile: matchMedia matches = false)
+		renderDeviceGroupsView();
+
+		// Assert — renders list, does not open detail
+		expect(await screen.findByText("Iluminação Geral")).toBeInTheDocument();
+		expect(screen.queryByText("Controle Mestre do Grupo")).not.toBeInTheDocument();
+	});
+
+	it("DeviceGroupsView_Mobile_ClickGroup_ShouldNavigateToDetailAndBackReturnsToList", async () => {
+		// Arrange
+		const group = createDeviceGroupMock({
+			id: "group-01",
+			name: "Iluminação Geral",
+			devices: [
+				createDeviceInGroupMock({
+					id: "dev-01",
+					name: "Luz Quarto",
+					isOn: true,
+					type: 1,
+				}),
+			],
+		});
+		mockGroupsList([group]);
+		mockPickerDevices();
+		mockDeviceGroupDetailSubResources();
+		const user = userEvent.setup();
+
+		// Act (Mobile)
+		renderDeviceGroupsView();
+		await user.click(await screen.findByText("Iluminação Geral"));
+
+		// Assert detail is open
+		expect(
+			await screen.findByRole("button", { name: "Voltar pra lista" }),
+		).toBeInTheDocument();
+		expect(
+			screen.getByRole("heading", { name: "Iluminação Geral" }),
+		).toBeInTheDocument();
+		expect(screen.getByText("Luz Quarto")).toBeInTheDocument();
+
+		// Click Voltar
+		await user.click(screen.getByRole("button", { name: "Voltar pra lista" }));
+	});
+
+	it("DeviceGroupsView_Desktop_ShouldAutoSelectFirstGroupAndShowDetailPanel", async () => {
+		// Arrange (Desktop: matchMedia matches = true)
+		window.matchMedia = vi.fn().mockImplementation((query: string) => ({
+			matches: true,
+			media: query,
+			onchange: null,
+			addListener: vi.fn(),
+			removeListener: vi.fn(),
+			addEventListener: vi.fn(),
+			removeEventListener: vi.fn(),
+			dispatchEvent: vi.fn(),
+		}));
+
 		const group = createDeviceGroupMock({
 			id: "group-01",
 			name: "Iluminação Geral",
@@ -135,7 +200,7 @@ describe("DeviceGroupsView Integration Tests", () => {
 		// Act
 		renderDeviceGroupsView();
 
-		// Assert — auto-selects the first group and displays header in detail panel
+		// Assert — auto-selects the first group and displays header in detail panel on desktop
 		expect(
 			await screen.findByRole("heading", { name: "Iluminação Geral" }),
 		).toBeInTheDocument();

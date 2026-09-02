@@ -1,6 +1,6 @@
 import { HttpResponse, http } from "msw";
 import { MemoryRouter } from "react-router-dom";
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { useRoomsUIStore } from "@/features/rooms/store/rooms-ui.store";
 import {
 	createRoomMock,
@@ -15,9 +15,9 @@ import {
 } from "@/testing/test-utils";
 import { RoomsView } from "../RoomsView";
 
-function renderRoomsView() {
+function renderRoomsView(initialEntries = ["/rooms"]) {
 	return renderWithProviders(
-		<MemoryRouter>
+		<MemoryRouter initialEntries={initialEntries}>
 			<RoomsView />
 		</MemoryRouter>,
 	);
@@ -132,8 +132,59 @@ describe("RoomsView Integration Tests", () => {
 		).toBeInTheDocument();
 	});
 
-	it("RoomsView_RoomsLoaded_ShouldAutoSelectFirstRoomAndShowDetailPanel", async () => {
+	it("RoomsView_Mobile_ShouldOpenOnListWithoutAutoSelection", async () => {
 		// Arrange
+		const room = createRoomMock({ id: "room-01", name: "Sala de Estar" });
+		const device = createRoomPickerDeviceMock({ roomId: "room-01" });
+		mockRoomsList([room]);
+		mockAssignableDevices([device]);
+		mockRoomDetailSubResources();
+
+		// Act (Mobile: matchMedia matches = false by default)
+		renderRoomsView();
+
+		// Assert — mobile renders the list, does not open detail
+		expect(await screen.findByText("Sala de Estar")).toBeInTheDocument();
+		expect(screen.queryByText("1 dispositivo conectado")).not.toBeInTheDocument();
+	});
+
+	it("RoomsView_Mobile_ClickRoom_ShouldNavigateToDetailAndBackReturnsToList", async () => {
+		// Arrange
+		const room = createRoomMock({ id: "room-01", name: "Sala de Estar" });
+		mockRoomsList([room]);
+		mockAssignableDevices();
+		mockRoomDetailSubResources();
+		const user = userEvent.setup();
+
+		// Act (Mobile)
+		renderRoomsView();
+		await user.click(await screen.findByText("Sala de Estar"));
+
+		// Assert detail is open
+		expect(
+			await screen.findByRole("button", { name: "Voltar pra lista" }),
+		).toBeInTheDocument();
+		expect(
+			screen.getByRole("heading", { name: "Sala de Estar" }),
+		).toBeInTheDocument();
+
+		// Click Voltar
+		await user.click(screen.getByRole("button", { name: "Voltar pra lista" }));
+	});
+
+	it("RoomsView_Desktop_ShouldAutoSelectFirstRoomAndShowDetailPanel", async () => {
+		// Arrange (Desktop: matchMedia matches = true)
+		window.matchMedia = vi.fn().mockImplementation((query: string) => ({
+			matches: true,
+			media: query,
+			onchange: null,
+			addListener: vi.fn(),
+			removeListener: vi.fn(),
+			addEventListener: vi.fn(),
+			removeEventListener: vi.fn(),
+			dispatchEvent: vi.fn(),
+		}));
+
 		const room = createRoomMock({ id: "room-01", name: "Sala de Estar" });
 		const device = createRoomPickerDeviceMock({ roomId: "room-01" });
 		mockRoomsList([room]);
@@ -143,7 +194,7 @@ describe("RoomsView Integration Tests", () => {
 		// Act
 		renderRoomsView();
 
-		// Assert — auto-seleção do primeiro ambiente (nenhum selectedRoomId prévio)
+		// Assert — auto-seleção do primeiro ambiente no desktop
 		expect(
 			await screen.findByRole("heading", { name: "Sala de Estar" }),
 		).toBeInTheDocument();
@@ -163,8 +214,6 @@ describe("RoomsView Integration Tests", () => {
 		renderRoomsView();
 
 		// Assert
-		// "Sala" auto-seleciona e aparece tanto no item da lista quanto no
-		// cabeçalho do painel de detalhes.
 		await screen.findAllByText("Sala");
 		expect(screen.getByText("2")).toBeInTheDocument();
 		expect(screen.getByText("ambientes")).toBeInTheDocument();
