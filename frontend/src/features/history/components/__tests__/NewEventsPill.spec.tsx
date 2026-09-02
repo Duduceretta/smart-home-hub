@@ -1,15 +1,15 @@
 import { QueryClient } from "@tanstack/react-query";
+import type React from "react";
 import { beforeEach, describe, expect, it } from "vitest";
 import { useHistoryUIStore } from "@/features/history/store/history-ui.store";
 import type { GetHistoryParams } from "@/features/history/types/history.types";
 import { createHistoryEventMock } from "@/testing/mocks/history.mock";
 import {
-	createTestQueryClient,
+	type createTestQueryClient,
 	renderWithProviders,
 	screen,
 	userEvent,
 } from "@/testing/test-utils";
-import type React from "react";
 import { historyKeys } from "../../hooks/history.keys";
 import { NewEventsPill } from "../NewEventsPill";
 

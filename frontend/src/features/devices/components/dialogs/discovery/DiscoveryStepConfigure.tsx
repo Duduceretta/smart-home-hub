@@ -17,6 +17,7 @@ import { useTranslation } from "react-i18next";
 import { FormInput } from "@/core/components/forms/FormInput";
 import { FormSelect } from "@/core/components/forms/FormSelect";
 import { Tabs, TabsList, TabsTrigger } from "@/core/components/ui/tabs";
+import { cn } from "@/core/utils";
 import { formatIpAddress, formatMacAddress } from "@/core/utils/formatters";
 import { useRooms } from "@/features/rooms/hooks/useRooms";
 import { INTEGRATION_FIELD_VISIBILITY } from "../../../constants/devices.constants";
@@ -34,7 +35,6 @@ import {
 	IntegrationTypeEnum,
 } from "../../../types/devices.types";
 import { TvSetupGuideCallout } from "../TvSetupGuideCallout";
-import { cn } from "@/core/utils";
 
 const EMPTY_DEFAULTS: CreateDeviceFormInput = {
 	name: "",

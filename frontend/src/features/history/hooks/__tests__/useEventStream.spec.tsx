@@ -1,14 +1,14 @@
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { renderHook, waitFor } from "@testing-library/react";
 import type { User } from "firebase/auth";
 import { HttpResponse, http } from "msw";
+import type React from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { useAuthStore } from "@/features/auth/store/useAuthStore";
 import { useHistoryUIStore } from "@/features/history/store/history-ui.store";
 import type { GetHistoryParams } from "@/features/history/types/history.types";
 import { createHistoryEventMock } from "@/testing/mocks/history.mock";
 import { server } from "@/testing/mocks/server";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import type React from "react";
 import { historyKeys } from "../history.keys";
 import { useEventStream } from "../useEventStream";
 
@@ -131,11 +131,11 @@ describe("useEventStream Unit Tests", () => {
 		expect(mediaHandler).toBeDefined();
 
 		// Burst of 3 triggers within 100ms
-		deviceStatusHandler!({ deviceId: "d-1", isOn: true, isOnline: true });
+		deviceStatusHandler?.({ deviceId: "d-1", isOn: true, isOnline: true });
 		await vi.advanceTimersByTimeAsync(200);
-		mediaHandler!({ deviceId: "d-1", title: "Música 1" });
+		mediaHandler?.({ deviceId: "d-1", title: "Música 1" });
 		await vi.advanceTimersByTimeAsync(200);
-		deviceStatusHandler!({ deviceId: "d-1", isOn: false, isOnline: true });
+		deviceStatusHandler?.({ deviceId: "d-1", isOn: false, isOnline: true });
 
 		// Fast forward past debounce window (800ms)
 		await vi.advanceTimersByTimeAsync(900);
@@ -190,7 +190,7 @@ describe("useEventStream Unit Tests", () => {
 		// Act
 		renderHook(() => useEventStream(defaultParams), { wrapper });
 		const spotifyHandler = getRegisteredHandler("SpotifyPlaybackChanged");
-		spotifyHandler!({ title: "Song", isPlaying: true });
+		spotifyHandler?.({ title: "Song", isPlaying: true });
 
 		await vi.advanceTimersByTimeAsync(900);
 
@@ -245,7 +245,7 @@ describe("useEventStream Unit Tests", () => {
 		// Act
 		renderHook(() => useEventStream(defaultParams), { wrapper });
 		const autoHandler = getRegisteredHandler("AutomationExecutionResult");
-		autoHandler!({
+		autoHandler?.({
 			automationId: "a-1",
 			deviceId: "d-1",
 			success: true,
@@ -325,7 +325,7 @@ describe("useEventStream Unit Tests", () => {
 		// Act
 		renderHook(() => useEventStream(page6Params), { wrapper });
 		const spotifyHandler = getRegisteredHandler("SpotifyPlaybackChanged");
-		spotifyHandler!({ title: "Nova Música", isPlaying: true });
+		spotifyHandler?.({ title: "Nova Música", isPlaying: true });
 
 		await vi.advanceTimersByTimeAsync(900);
 

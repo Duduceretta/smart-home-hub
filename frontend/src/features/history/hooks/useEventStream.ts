@@ -95,7 +95,7 @@ export function useEventStream(
 
 					const result = await getEventHistory(page1Params);
 
-					if (!result || !result.items) return;
+					if (!result?.items) return;
 
 					// Compara SEMPRE contra o cache da Página 1 (evita falso positivo quando em página > 1)
 					const page1Cache = queryClient.getQueryData<

@@ -136,6 +136,7 @@ export function DeviceGroupDeviceCard({
 				</div>
 			</div>
 
+			{/* biome-ignore lint/a11y/noStaticElementInteractions: only stops click/keydown bubbling to the card's own role="button" handler above */}
 			<div
 				className="flex items-center gap-2"
 				onClick={(e) => e.stopPropagation()}
