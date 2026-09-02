@@ -31,15 +31,16 @@ export function HistoryPagination({
 				})}
 			</span>
 
-			<div className="flex items-center gap-2">
+			<div className="flex w-full items-center justify-between gap-2 sm:w-auto sm:justify-start">
 				<Button
 					variant="outline"
 					size="sm"
 					onClick={() => onPageChange(page - 1)}
 					disabled={page <= 1}
-					className="h-8 px-2.5 text-xs border-border-subtle bg-surface-container hover:bg-surface-high cursor-pointer"
+					aria-label={t("pagination.previous", "Anterior")}
+					className="h-11 sm:h-8 px-3 text-xs border-border-subtle bg-surface-container hover:bg-surface-high cursor-pointer justify-center"
 				>
-					<ChevronLeft className="h-3.5 w-3.5 mr-1" />
+					<ChevronLeft className="h-4 w-4 sm:h-3.5 sm:w-3.5 mr-1" />
 					<span>{t("pagination.previous", "Anterior")}</span>
 				</Button>
 
@@ -52,10 +53,11 @@ export function HistoryPagination({
 					size="sm"
 					onClick={() => onPageChange(page + 1)}
 					disabled={page >= totalPages}
-					className="h-8 px-2.5 text-xs border-border-subtle bg-surface-container hover:bg-surface-high cursor-pointer"
+					aria-label={t("pagination.next", "Próxima")}
+					className="h-11 sm:h-8 px-3 text-xs border-border-subtle bg-surface-container hover:bg-surface-high cursor-pointer justify-center"
 				>
 					<span>{t("pagination.next", "Próxima")}</span>
-					<ChevronRight className="h-3.5 w-3.5 ml-1" />
+					<ChevronRight className="h-4 w-4 sm:h-3.5 sm:w-3.5 ml-1" />
 				</Button>
 			</div>
 		</div>

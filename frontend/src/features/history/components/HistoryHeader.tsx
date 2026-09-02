@@ -75,14 +75,19 @@ export function HistoryHeader({
 				</p>
 			</div>
 
-			<div className="flex flex-wrap items-center gap-2">
+			<div className="grid grid-cols-3 gap-2 w-full sm:w-auto sm:flex sm:flex-wrap sm:items-center">
 				{/* Toggle Expand / Collapse All */}
 				<Button
 					variant="outline"
 					size="sm"
 					onClick={onToggleExpandAll}
 					disabled={events.length === 0}
-					className="border-border-subtle bg-surface-container hover:bg-surface-high text-foreground cursor-pointer transition-colors"
+					aria-label={
+						areAllExpanded
+							? t("actions.collapseAll", "Recolher todos")
+							: t("actions.expandAll", "Expandir todos")
+					}
+					className="h-11 sm:h-8 border-border-subtle bg-surface-container hover:bg-surface-high text-foreground cursor-pointer transition-colors px-2.5 sm:px-3 justify-center"
 					title={
 						areAllExpanded
 							? t("actions.collapseAll", "Recolher todos")
@@ -91,13 +96,17 @@ export function HistoryHeader({
 				>
 					{areAllExpanded ? (
 						<>
-							<ChevronsDownUp className="h-4 w-4 mr-1.5 text-muted-foreground" />
-							<span>{t("actions.collapseAll", "Recolher todos")}</span>
+							<ChevronsDownUp className="h-4 w-4 sm:mr-1.5 text-muted-foreground shrink-0" />
+							<span className="hidden sm:inline">
+								{t("actions.collapseAll", "Recolher todos")}
+							</span>
 						</>
 					) : (
 						<>
-							<ChevronsUpDown className="h-4 w-4 mr-1.5 text-muted-foreground" />
-							<span>{t("actions.expandAll", "Expandir todos")}</span>
+							<ChevronsUpDown className="h-4 w-4 sm:mr-1.5 text-muted-foreground shrink-0" />
+							<span className="hidden sm:inline">
+								{t("actions.expandAll", "Expandir todos")}
+							</span>
 						</>
 					)}
 				</Button>
@@ -108,12 +117,16 @@ export function HistoryHeader({
 					size="sm"
 					onClick={onRefresh}
 					disabled={isRefetching}
-					className="border-border-subtle bg-surface-container hover:bg-surface-high text-foreground cursor-pointer transition-colors"
+					aria-label={t("actions.refresh", "Atualizar")}
+					title={t("actions.refresh", "Atualizar")}
+					className="h-11 sm:h-8 border-border-subtle bg-surface-container hover:bg-surface-high text-foreground cursor-pointer transition-colors px-2.5 sm:px-3 justify-center"
 				>
 					<RefreshCw
-						className={`h-4 w-4 mr-1.5 ${isRefetching ? "animate-spin text-primary" : ""}`}
+						className={`h-4 w-4 sm:mr-1.5 shrink-0 ${isRefetching ? "animate-spin text-primary" : ""}`}
 					/>
-					<span>{t("actions.refresh", "Atualizar")}</span>
+					<span className="hidden sm:inline">
+						{t("actions.refresh", "Atualizar")}
+					</span>
 				</Button>
 
 				{/* Export Menu */}
@@ -123,10 +136,14 @@ export function HistoryHeader({
 							variant="outline"
 							size="sm"
 							disabled={events.length === 0}
-							className="border-border-subtle bg-surface-container hover:bg-surface-high text-foreground cursor-pointer transition-colors"
+							aria-label={t("actions.export", "Exportar Logs")}
+							title={t("actions.export", "Exportar Logs")}
+							className="h-11 sm:h-8 border-border-subtle bg-surface-container hover:bg-surface-high text-foreground cursor-pointer transition-colors px-2.5 sm:px-3 justify-center"
 						>
-							<Download className="h-4 w-4 mr-1.5" />
-							<span>{t("actions.export", "Exportar Logs")}</span>
+							<Download className="h-4 w-4 sm:mr-1.5 shrink-0" />
+							<span className="hidden sm:inline">
+								{t("actions.export", "Exportar Logs")}
+							</span>
 						</Button>
 					</DropdownMenuTrigger>
 					<DropdownMenuContent

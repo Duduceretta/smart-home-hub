@@ -59,14 +59,14 @@ export function HistoryFiltersBar() {
 							"Buscar evento por descrição, dispositivo ou cômodo (Ctrl+K)...",
 						)}
 						aria-label={t("filters.searchLabel", "Buscar eventos")}
-						className="h-10 w-full rounded-xl border border-border-subtle bg-surface-container pl-10 pr-16 text-sm text-foreground placeholder:text-muted-foreground/60 outline-none transition-colors focus:border-primary/50 focus:ring-2 focus:ring-primary/20"
+						className="h-11 sm:h-10 w-full rounded-xl border border-border-subtle bg-surface-container pl-10 pr-16 text-sm text-foreground placeholder:text-muted-foreground/60 outline-none transition-colors focus:border-primary/50 focus:ring-2 focus:ring-primary/20"
 					/>
 					<div className="pointer-events-none absolute right-3 top-1/2 flex -translate-y-1/2 items-center gap-1">
 						{searchQuery ? (
 							<button
 								type="button"
 								onClick={() => setSearchQuery("")}
-								className="pointer-events-auto flex h-5 w-5 items-center justify-center rounded-md text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+								className="pointer-events-auto flex h-6 w-6 sm:h-5 sm:w-5 items-center justify-center rounded-md text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
 								title="Limpar busca"
 							>
 								<X className="h-3.5 w-3.5" />
@@ -79,10 +79,10 @@ export function HistoryFiltersBar() {
 					</div>
 				</div>
 
-				{/* Inline Selects & Smooth Action Drawer */}
-				<div className="flex flex-wrap items-center gap-2 shrink-0">
+				{/* Inline Selects & Action Drawer */}
+				<div className="grid grid-cols-1 gap-2 sm:flex sm:flex-wrap sm:items-center sm:gap-2 shrink-0">
 					{/* Timeframe selector */}
-					<div className="flex items-center gap-1.5 rounded-xl border border-border-subtle bg-surface-container px-3 h-10 transition-colors hover:border-border">
+					<div className="flex items-center gap-1.5 rounded-xl border border-border-subtle bg-surface-container px-3 h-11 sm:h-10 transition-colors hover:border-border w-full sm:w-auto">
 						<Calendar className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
 						<select
 							value={timeframe}
@@ -90,7 +90,7 @@ export function HistoryFiltersBar() {
 								setTimeframe(e.target.value as HistoryTimeframePreset)
 							}
 							aria-label={t("filters.timeframe", "Período")}
-							className="bg-transparent text-xs font-medium text-foreground outline-none cursor-pointer pr-1"
+							className="bg-transparent text-xs font-medium text-foreground outline-none cursor-pointer pr-1 w-full sm:w-auto"
 						>
 							<option value="24h" className="bg-popover text-foreground">
 								{t("filters.periods.24h", "Últimas 24h")}
@@ -108,13 +108,13 @@ export function HistoryFiltersBar() {
 					</div>
 
 					{/* Severity filter */}
-					<div className="flex items-center gap-1.5 rounded-xl border border-border-subtle bg-surface-container px-3 h-10 transition-colors hover:border-border">
+					<div className="flex items-center gap-1.5 rounded-xl border border-border-subtle bg-surface-container px-3 h-11 sm:h-10 transition-colors hover:border-border w-full sm:w-auto">
 						<Filter className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
 						<select
 							value={selectedSeverity}
 							onChange={(e) => setSelectedSeverity(e.target.value)}
 							aria-label={t("filters.severity", "Severidade")}
-							className="bg-transparent text-xs font-medium text-foreground outline-none cursor-pointer pr-1"
+							className="bg-transparent text-xs font-medium text-foreground outline-none cursor-pointer pr-1 w-full sm:w-auto"
 						>
 							<option value="all" className="bg-popover text-foreground">
 								{t("filters.allSeverities", "Todas as severidades")}
@@ -135,12 +135,12 @@ export function HistoryFiltersBar() {
 					</div>
 
 					{/* Source filter */}
-					<div className="flex items-center gap-1.5 rounded-xl border border-border-subtle bg-surface-container px-3 h-10 transition-colors hover:border-border">
+					<div className="flex items-center gap-1.5 rounded-xl border border-border-subtle bg-surface-container px-3 h-11 sm:h-10 transition-colors hover:border-border w-full sm:w-auto">
 						<select
 							value={selectedSource}
 							onChange={(e) => setSelectedSource(e.target.value)}
 							aria-label={t("filters.source", "Origem")}
-							className="bg-transparent text-xs font-medium text-foreground outline-none cursor-pointer pr-1"
+							className="bg-transparent text-xs font-medium text-foreground outline-none cursor-pointer pr-1 w-full sm:w-auto"
 						>
 							<option value="all" className="bg-popover text-foreground">
 								{t("filters.allSources", "Todas as origens")}
@@ -166,17 +166,17 @@ export function HistoryFiltersBar() {
 					{/* Smooth Zero-CLS Reset Filters Button */}
 					<div
 						className={cn(
-							"overflow-hidden transition-[max-width,opacity] duration-200 ease-out flex items-center",
+							"overflow-hidden transition-[max-width,max-height,opacity] duration-200 ease-out flex items-center",
 							isDirty
-								? "max-w-36 opacity-100"
-								: "max-w-0 opacity-0 pointer-events-none",
+								? "max-h-12 max-w-full sm:max-w-36 opacity-100"
+								: "max-h-0 max-w-0 opacity-0 pointer-events-none",
 						)}
 					>
 						<Button
 							variant="ghost"
 							size="sm"
 							onClick={resetFilters}
-							className="h-10 px-3 text-xs text-muted-foreground hover:text-foreground whitespace-nowrap cursor-pointer"
+							className="h-11 sm:h-10 px-3 text-xs text-muted-foreground hover:text-foreground whitespace-nowrap cursor-pointer w-full sm:w-auto justify-center sm:justify-start"
 						>
 							<X className="h-3.5 w-3.5 mr-1 shrink-0" />
 							<span>{t("actions.clearFilters", "Limpar filtros")}</span>

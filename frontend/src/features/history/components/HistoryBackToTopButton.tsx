@@ -52,7 +52,7 @@ export function HistoryBackToTopButton({
 			onClick={() => scrollToTop(containerRef?.current)}
 			aria-label={t("actions.backToTop", "Voltar ao topo")}
 			className={cn(
-				"fixed bottom-20 right-4 z-40 md:bottom-8 md:right-8 flex h-10 w-10 items-center justify-center rounded-full border border-border bg-card/90 text-primary shadow-lg backdrop-blur-md transition-all duration-200 hover:bg-surface-highest hover:scale-105 active:scale-95 cursor-pointer",
+				"fixed bottom-20 right-4 z-40 md:bottom-8 md:right-8 flex h-11 w-11 sm:h-10 sm:w-10 items-center justify-center rounded-full border border-border bg-card/90 text-primary shadow-lg backdrop-blur-md transition-all duration-200 hover:bg-surface-highest hover:scale-105 active:scale-95 cursor-pointer",
 				isVisible
 					? "opacity-100 translate-y-0 pointer-events-auto"
 					: "opacity-0 translate-y-4 pointer-events-none",

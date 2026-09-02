@@ -102,7 +102,7 @@ export function NewEventsPill({
 			<button
 				type="button"
 				onClick={handleApplyPendingEvents}
-				className="group inline-flex items-center gap-2.5 rounded-full border border-border bg-surface-high/95 backdrop-blur-md px-4 py-1.5 text-xs font-medium text-primary shadow-md hover:bg-surface-highest hover:border-border transition-all duration-200 cursor-pointer animate-in fade-in-50 zoom-in-95 active:scale-95"
+				className="group inline-flex h-11 sm:h-9 items-center gap-2.5 rounded-full border border-border bg-surface-high/95 backdrop-blur-md px-4 text-xs font-medium text-primary shadow-md hover:bg-surface-highest hover:border-border transition-all duration-200 cursor-pointer animate-in fade-in-50 zoom-in-95 active:scale-95"
 				aria-label={label}
 			>
 				<span className="relative flex h-2 w-2">

@@ -125,13 +125,13 @@ export function HistoryEventRow({
 						</span>
 					)}
 
-					<span className="truncate text-xs text-foreground/90 font-normal">
+					<span className="text-xs text-foreground/90 font-normal line-clamp-2 sm:line-clamp-1 sm:truncate">
 						{event.description}
 					</span>
 
 					{/* State Change Pill (e.g., off → on) */}
 					{hasStateChange && (
-						<span className="inline-flex items-center gap-1 rounded bg-surface-container px-1.5 py-0.5 text-[10px] font-mono text-muted-foreground border border-border-subtle/50">
+						<span className="inline-flex items-center gap-1 rounded bg-surface-container px-1.5 py-0.5 text-[10px] font-mono text-muted-foreground border border-border-subtle/50 shrink-0">
 							<span className="text-muted-foreground/80">{event.oldValue}</span>
 							<ArrowRight className="h-2.5 w-2.5 text-primary/70" />
 							<span className="text-foreground font-semibold">
@@ -159,7 +159,7 @@ export function HistoryEventRow({
 
 					<ChevronRight
 						className={cn(
-							"h-4 w-4 transition-transform duration-200 ease-out",
+							"h-4 w-4 transition-transform duration-200 ease-out shrink-0",
 							isExpanded
 								? "rotate-90 text-foreground"
 								: "text-muted-foreground/40 group-hover:text-foreground group-hover:translate-x-0.5",
@@ -257,24 +257,33 @@ export function HistoryEventRow({
 
 							{/* Technical IDs & UTC Info */}
 							<div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-border-subtle bg-surface-high/40 px-3 py-2 text-[11px] font-mono text-muted-foreground">
-								<div className="flex items-center gap-2">
-									<span>ID: {event.id}</span>
+								<div className="flex items-center gap-1.5 min-w-0">
+									<span
+										className="font-mono text-[11px] text-muted-foreground truncate"
+										title={event.id}
+									>
+										ID:{" "}
+										{event.id.length > 20
+											? `${event.id.slice(0, 8)}...${event.id.slice(-4)}`
+											: event.id}
+									</span>
 									<button
 										type="button"
 										onClick={handleCopyId}
-										className="inline-flex items-center gap-1 rounded p-1 hover:bg-surface-high hover:text-foreground transition-colors cursor-pointer"
+										className="inline-flex h-7 w-7 sm:h-6 sm:w-6 shrink-0 items-center justify-center rounded p-1 hover:bg-surface-high hover:text-foreground transition-colors cursor-pointer"
 										title="Copiar Event ID"
+										aria-label="Copiar Event ID"
 									>
 										{copied ? (
-											<Check className="h-3 w-3 text-primary" />
+											<Check className="h-3.5 w-3.5 text-primary" />
 										) : (
-											<Copy className="h-3 w-3" />
+											<Copy className="h-3.5 w-3.5" />
 										)}
 									</button>
 								</div>
 
 								<div className="flex items-center gap-2">
-									<span>UTC: {event.timestampUtc}</span>
+									<span className="truncate">UTC: {event.timestampUtc}</span>
 								</div>
 							</div>
 						</div>
