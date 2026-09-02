@@ -80,7 +80,7 @@ export const SheetLayout: React.FC<SheetLayoutProps> = ({
 			<div
 				role="dialog"
 				aria-modal="true"
-				className={`relative z-10 flex h-full w-full max-w-xl flex-col border-l border-[#27272a] bg-[#09090b] shadow-2xl ${
+				className={`relative z-10 flex h-full w-full max-w-xl flex-col border-l border-border-subtle bg-background shadow-2xl ${
 					isClosing ? "animate-sheet-out" : "animate-sheet-in"
 				}`}
 			>
@@ -93,19 +93,21 @@ export const SheetLayout: React.FC<SheetLayoutProps> = ({
 					className="flex h-full flex-col justify-between overflow-hidden"
 				>
 					{/* Cabeçalho */}
-					<div className="flex shrink-0 items-start justify-between border-b border-[#27272a] p-6">
+					<div className="flex shrink-0 items-start justify-between border-b border-border-subtle p-6">
 						<div>
 							<h2 className="text-lg font-bold tracking-tight text-white">
 								{title}
 							</h2>
 							{description && (
-								<p className="mt-1 text-sm text-[#a1a1aa]">{description}</p>
+								<p className="mt-1 text-sm text-muted-foreground">
+									{description}
+								</p>
 							)}
 						</div>
 						<button
 							type="button"
 							onClick={onClose}
-							className="rounded-md p-1 text-[#a1a1aa] transition-colors hover:bg-[#27272a] hover:text-white cursor-pointer"
+							className="rounded-md p-1 text-muted-foreground transition-colors hover:bg-surface-high hover:text-white cursor-pointer"
 						>
 							<X className="h-5 w-5" />
 						</button>
@@ -116,7 +118,7 @@ export const SheetLayout: React.FC<SheetLayoutProps> = ({
 
 					{/* Rodapé fixo na base */}
 					{footer && (
-						<div className="flex shrink-0 justify-end gap-3 border-t border-[#27272a] bg-[#09090b] p-6">
+						<div className="flex shrink-0 justify-end gap-3 border-t border-border-subtle bg-background p-6">
 							{footer}
 						</div>
 					)}

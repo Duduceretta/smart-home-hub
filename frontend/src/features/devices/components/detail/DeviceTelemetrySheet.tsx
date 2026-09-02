@@ -76,7 +76,7 @@ export const DeviceTelemetrySheet: React.FC<DeviceTelemetrySheetProps> = ({
 			title={device.name}
 			description={t("telemetry.subtitle")}
 			footer={
-				<div className="flex w-full items-center justify-between font-mono text-[11px] text-zinc-500">
+				<div className="flex w-full items-center justify-between font-mono text-[11px] text-muted-foreground">
 					<span>ID: {device.externalId}</span>
 					{device.ipAddress && <span>IP: {device.ipAddress}</span>}
 				</div>
@@ -85,7 +85,7 @@ export const DeviceTelemetrySheet: React.FC<DeviceTelemetrySheetProps> = ({
 			<div className="space-y-5">
 				{/* SEÇÃO 1: Status Operacional & Faixa Temporal */}
 				<div className="space-y-2.5">
-					<div className="flex items-center justify-between border-b border-zinc-800/80 pb-1.5 text-indigo-400">
+					<div className="flex items-center justify-between border-b border-border-subtle/80 pb-1.5 text-primary">
 						<div className="flex items-center gap-2">
 							<Radio className="h-3.5 w-3.5" />
 							<span className="text-[11px] font-bold uppercase tracking-wider">
@@ -95,7 +95,7 @@ export const DeviceTelemetrySheet: React.FC<DeviceTelemetrySheetProps> = ({
 
 						{/* Seletor de Período */}
 						<div className="flex items-center gap-1">
-							<Calendar className="mr-1 h-3 w-3 text-zinc-500" />
+							<Calendar className="mr-1 h-3 w-3 text-muted-foreground" />
 							{(["24h", "7d", "30d"] as const).map((r) => (
 								<button
 									key={r}
@@ -103,8 +103,8 @@ export const DeviceTelemetrySheet: React.FC<DeviceTelemetrySheetProps> = ({
 									onClick={() => setRange(r)}
 									className={`rounded px-2 py-0.5 text-[11px] font-medium transition-colors cursor-pointer ${
 										range === r
-											? "bg-indigo-600 text-white"
-											: "text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200"
+											? "bg-primary text-primary-foreground"
+											: "text-muted-foreground hover:bg-surface-high hover:text-foreground"
 									}`}
 								>
 									{t(`ranges.${r}`)}
@@ -115,14 +115,14 @@ export const DeviceTelemetrySheet: React.FC<DeviceTelemetrySheetProps> = ({
 
 					<div className="grid grid-cols-3 gap-2.5 pt-1">
 						{/* Consumo */}
-						<div className="rounded-lg border border-zinc-800/80 bg-zinc-900/40 p-3">
+						<div className="rounded-lg border border-border-subtle/80 bg-surface-container/40 p-3">
 							<div className="mb-1.5 flex h-6 w-6 items-center justify-center rounded bg-amber-500/10 text-amber-400">
 								<Zap className="h-3.5 w-3.5" />
 							</div>
-							<p className="text-[10px] font-medium uppercase tracking-wider text-zinc-500">
+							<p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
 								{t("telemetry.currentConsumption")}
 							</p>
-							<p className="text-sm font-semibold text-zinc-100">
+							<p className="text-sm font-semibold text-foreground">
 								{latestPoint?.powerUsageWatts !== undefined &&
 								latestPoint.powerUsageWatts !== null
 									? `${latestPoint.powerUsageWatts} W`
@@ -131,14 +131,14 @@ export const DeviceTelemetrySheet: React.FC<DeviceTelemetrySheetProps> = ({
 						</div>
 
 						{/* Temperatura */}
-						<div className="rounded-lg border border-zinc-800/80 bg-zinc-900/40 p-3">
+						<div className="rounded-lg border border-border-subtle/80 bg-surface-container/40 p-3">
 							<div className="mb-1.5 flex h-6 w-6 items-center justify-center rounded bg-cyan-500/10 text-cyan-400">
 								<Thermometer className="h-3.5 w-3.5" />
 							</div>
-							<p className="text-[10px] font-medium uppercase tracking-wider text-zinc-500">
+							<p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
 								{t("telemetry.temperature")}
 							</p>
-							<p className="text-sm font-semibold text-zinc-100">
+							<p className="text-sm font-semibold text-foreground">
 								{latestPoint?.temperatureCelsius !== undefined &&
 								latestPoint.temperatureCelsius !== null
 									? `${latestPoint.temperatureCelsius} °C`
@@ -147,14 +147,14 @@ export const DeviceTelemetrySheet: React.FC<DeviceTelemetrySheetProps> = ({
 						</div>
 
 						{/* Tensão / Voltagem */}
-						<div className="rounded-lg border border-zinc-800/80 bg-zinc-900/40 p-3">
+						<div className="rounded-lg border border-border-subtle/80 bg-surface-container/40 p-3">
 							<div className="mb-1.5 flex h-6 w-6 items-center justify-center rounded bg-emerald-500/10 text-emerald-400">
 								<Wifi className="h-3.5 w-3.5" />
 							</div>
-							<p className="text-[10px] font-medium uppercase tracking-wider text-zinc-500">
+							<p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
 								{t("telemetry.voltage")}
 							</p>
-							<p className="text-sm font-semibold text-zinc-100">
+							<p className="text-sm font-semibold text-foreground">
 								{latestPoint?.voltage ? `${latestPoint.voltage} V` : "--"}
 							</p>
 						</div>
@@ -163,7 +163,7 @@ export const DeviceTelemetrySheet: React.FC<DeviceTelemetrySheetProps> = ({
 
 				{/* SEÇÃO 2: Curvas Históricas */}
 				<div className="space-y-4 pt-1">
-					<div className="flex items-center gap-2 border-b border-zinc-800/80 pb-1.5 text-indigo-400">
+					<div className="flex items-center gap-2 border-b border-border-subtle/80 pb-1.5 text-primary">
 						<Cpu className="h-3.5 w-3.5" />
 						<span className="text-[11px] font-bold uppercase tracking-wider">
 							{t("telemetry.timeSeries")}
@@ -171,8 +171,8 @@ export const DeviceTelemetrySheet: React.FC<DeviceTelemetrySheetProps> = ({
 					</div>
 
 					{isLoading ? (
-						<div className="flex h-52 flex-col items-center justify-center gap-2 text-zinc-500">
-							<Loader2 className="h-5 w-5 animate-spin text-indigo-400" />
+						<div className="flex h-52 flex-col items-center justify-center gap-2 text-muted-foreground">
+							<Loader2 className="h-5 w-5 animate-spin text-primary" />
 							<p className="text-xs">{t("telemetry.loading")}</p>
 						</div>
 					) : isError ? (
@@ -180,12 +180,12 @@ export const DeviceTelemetrySheet: React.FC<DeviceTelemetrySheetProps> = ({
 							{t("telemetry.errorLoading")}
 						</div>
 					) : chartData.length === 0 ? (
-						<div className="flex h-52 flex-col items-center justify-center rounded-lg border border-dashed border-zinc-800 p-6 text-center text-zinc-500">
-							<Activity className="mb-2 h-6 w-6 stroke-1 text-zinc-600" />
-							<p className="text-xs font-medium text-zinc-300">
+						<div className="flex h-52 flex-col items-center justify-center rounded-lg border border-dashed border-border-subtle p-6 text-center text-muted-foreground">
+							<Activity className="mb-2 h-6 w-6 stroke-1 text-muted-foreground" />
+							<p className="text-xs font-medium text-muted-foreground">
 								{t("telemetry.noRecords")}
 							</p>
-							<p className="mt-0.5 text-[11px] text-zinc-500">
+							<p className="mt-0.5 text-[11px] text-muted-foreground">
 								{t("telemetry.mqttHint")}
 							</p>
 						</div>
@@ -193,10 +193,10 @@ export const DeviceTelemetrySheet: React.FC<DeviceTelemetrySheetProps> = ({
 						<div className="space-y-5">
 							{/* Gráfico 1: Consumo Watts */}
 							<div className="space-y-1.5">
-								<span className="text-[11px] font-medium text-zinc-400">
+								<span className="text-[11px] font-medium text-muted-foreground">
 									{t("telemetry.powerUsage")}
 								</span>
-								<div className="h-40 w-full rounded-lg border border-zinc-800/80 bg-zinc-900/30 p-2">
+								<div className="h-40 w-full rounded-lg border border-border-subtle/80 bg-surface-container/30 p-2">
 									<ResponsiveContainer width="100%" height="100%">
 										<AreaChart data={chartData}>
 											<defs>
@@ -209,46 +209,46 @@ export const DeviceTelemetrySheet: React.FC<DeviceTelemetrySheetProps> = ({
 												>
 													<stop
 														offset="5%"
-														stopColor="#6366f1"
+														stopColor="var(--chart-1)"
 														stopOpacity={0.4}
 													/>
 													<stop
 														offset="95%"
-														stopColor="#6366f1"
+														stopColor="var(--chart-1)"
 														stopOpacity={0}
 													/>
 												</linearGradient>
 											</defs>
 											<CartesianGrid
 												strokeDasharray="3 3"
-												stroke="#27272a"
+												stroke="var(--border-subtle)"
 												vertical={false}
 											/>
 											<XAxis
 												dataKey="formattedTime"
-												stroke="#71717a"
+												stroke="var(--muted-foreground)"
 												fontSize={10}
 												tickLine={false}
 											/>
 											<YAxis
-												stroke="#71717a"
+												stroke="var(--muted-foreground)"
 												fontSize={10}
 												tickLine={false}
 												axisLine={false}
 											/>
 											<Tooltip
 												contentStyle={{
-													backgroundColor: "#18181b",
-													borderColor: "#27272a",
+													backgroundColor: "var(--card)",
+													borderColor: "var(--border-subtle)",
 													borderRadius: "0.375rem",
-													color: "#f4f4f5",
+													color: "var(--foreground)",
 													fontSize: "11px",
 												}}
 											/>
 											<Area
 												type="monotone"
 												dataKey="powerUsageWatts"
-												stroke="#6366f1"
+												stroke="var(--chart-1)"
 												strokeWidth={2}
 												fillOpacity={1}
 												fill="url(#powerGrad)"
@@ -261,42 +261,42 @@ export const DeviceTelemetrySheet: React.FC<DeviceTelemetrySheetProps> = ({
 
 							{/* Gráfico 2: Temperatura */}
 							<div className="space-y-1.5">
-								<span className="text-[11px] font-medium text-zinc-400">
+								<span className="text-[11px] font-medium text-muted-foreground">
 									{t("telemetry.temperature")}
 								</span>
-								<div className="h-36 w-full rounded-lg border border-zinc-800/80 bg-zinc-900/30 p-2">
+								<div className="h-36 w-full rounded-lg border border-border-subtle/80 bg-surface-container/30 p-2">
 									<ResponsiveContainer width="100%" height="100%">
 										<LineChart data={chartData}>
 											<CartesianGrid
 												strokeDasharray="3 3"
-												stroke="#27272a"
+												stroke="var(--border-subtle)"
 												vertical={false}
 											/>
 											<XAxis
 												dataKey="formattedTime"
-												stroke="#71717a"
+												stroke="var(--muted-foreground)"
 												fontSize={10}
 												tickLine={false}
 											/>
 											<YAxis
-												stroke="#71717a"
+												stroke="var(--muted-foreground)"
 												fontSize={10}
 												tickLine={false}
 												axisLine={false}
 											/>
 											<Tooltip
 												contentStyle={{
-													backgroundColor: "#18181b",
-													borderColor: "#27272a",
+													backgroundColor: "var(--card)",
+													borderColor: "var(--border-subtle)",
 													borderRadius: "0.375rem",
-													color: "#f4f4f5",
+													color: "var(--foreground)",
 													fontSize: "11px",
 												}}
 											/>
 											<Line
 												type="monotone"
 												dataKey="temperatureCelsius"
-												stroke="#06b6d4"
+												stroke="var(--chart-2)"
 												strokeWidth={2}
 												dot={false}
 												name={t("telemetry.temperature")}

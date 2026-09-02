@@ -64,8 +64,8 @@ export function FormSelect<T extends FieldValues>({
 			<Label
 				htmlFor={id}
 				className={cn(
-					"block text-xs font-medium uppercase tracking-wide text-zinc-400 transition-colors truncate",
-					error && "text-red-400",
+					"block text-xs font-medium uppercase tracking-wide text-muted-foreground transition-colors truncate",
+					error && "text-destructive",
 					disabled && "opacity-50 cursor-not-allowed",
 				)}
 			>
@@ -101,17 +101,18 @@ export function FormSelect<T extends FieldValues>({
 						>
 							<div
 								className={cn(
-									"relative w-full rounded-lg border bg-zinc-950/50 transition-all",
+									"relative w-full rounded-lg border bg-surface-container/60 transition-all",
 									error
-										? "border-red-500/50 focus-within:border-red-500 focus-within:ring-1 focus-within:ring-red-500"
-										: "border-zinc-800 focus-within:border-indigo-500/50 focus-within:ring-1 focus-within:ring-indigo-500/50",
-									disabled && "opacity-50 cursor-not-allowed bg-zinc-900/30",
+										? "border-destructive/50 focus-within:border-destructive focus-within:ring-1 focus-within:ring-destructive/30"
+										: "border-border-subtle focus-within:border-primary/50 focus-within:ring-1 focus-within:ring-primary/20",
+									disabled &&
+										"opacity-50 cursor-not-allowed bg-surface-container/30",
 								)}
 							>
 								<div
 									className={cn(
 										"pointer-events-none absolute inset-y-0 left-0 z-10 flex items-center pl-3 transition-colors",
-										error ? "text-red-400/50" : "text-zinc-500",
+										error ? "text-destructive/70" : "text-muted-foreground",
 									)}
 								>
 									{icon}
@@ -121,18 +122,18 @@ export function FormSelect<T extends FieldValues>({
 									id={id}
 									aria-invalid={!!error}
 									aria-describedby={error ? errorId : undefined}
-									className="w-full border-0 bg-transparent py-2.5 pl-10 pr-8 text-sm text-zinc-100 shadow-none focus:ring-0 focus:ring-offset-0 data-placeholder:text-zinc-600 truncate text-left disabled:cursor-not-allowed cursor-pointer"
+									className="w-full border-0 bg-transparent py-2.5 pl-10 pr-8 text-sm text-foreground shadow-none focus:ring-0 focus:ring-offset-0 data-placeholder:text-muted-foreground/60 truncate text-left disabled:cursor-not-allowed cursor-pointer"
 								>
 									<SelectValue placeholder={placeholder} />
 								</SelectTrigger>
 							</div>
 
-							<SelectContent className="border-zinc-800 bg-zinc-900 text-zinc-100 shadow-xl z-99999">
+							<SelectContent className="border-border-subtle shadow-xl z-99999">
 								{options.map((opt) => (
 									<SelectItem
 										key={opt.value}
 										value={opt.value.toString()}
-										className="cursor-pointer text-xs focus:bg-zinc-800 focus:text-indigo-300 truncate"
+										className="cursor-pointer text-xs truncate"
 									>
 										{opt.label}
 									</SelectItem>
@@ -149,7 +150,7 @@ export function FormSelect<T extends FieldValues>({
 						<motion.p
 							id={errorId}
 							{...errorAnimation}
-							className="pl-1 text-[11px] font-medium text-red-400 truncate w-full leading-tight"
+							className="pl-1 text-[11px] font-medium text-destructive truncate w-full leading-tight"
 						>
 							{error}
 						</motion.p>

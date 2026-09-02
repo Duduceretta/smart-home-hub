@@ -45,7 +45,7 @@ export function LogoutButton() {
 			onClick={handleLogoutClick}
 			disabled={isLoggingOut}
 			aria-label={isLoggingOut ? t("logout.loggingOut") : t("logout.button")}
-			className="h-11! w-11! justify-center gap-2 border-zinc-800 bg-zinc-950/50 px-0! text-zinc-300 transition-colors hover:bg-zinc-800 hover:text-zinc-50 disabled:opacity-50 cursor-pointer sm:w-fit! sm:px-2.5! md:h-8!"
+			className="h-11! w-11! justify-center gap-2 border-border-subtle bg-surface-container/50 px-0! text-muted-foreground transition-colors hover:bg-surface-high hover:text-foreground disabled:opacity-50 cursor-pointer sm:w-fit! sm:px-2.5! md:h-8!"
 		>
 			<LogOut className="h-4 w-4 shrink-0" />
 			<span className="hidden sm:inline">

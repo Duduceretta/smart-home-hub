@@ -73,7 +73,7 @@ export function TvControlPanel({ device }: DeviceControlPanelProps) {
 			<div className="flex items-center gap-4 rounded-lg border border-border-subtle bg-surface-high p-2">
 				<div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded bg-surface-highest">
 					<div className="flex h-full w-full items-center justify-center bg-linear-to-tr from-indigo-950 to-zinc-800">
-						<Disc3 className="h-5 w-5 text-zinc-300 opacity-60" />
+						<Disc3 className="h-5 w-5 text-muted-foreground opacity-60" />
 					</div>
 				</div>
 				<div className="flex min-w-0 flex-1 flex-col">

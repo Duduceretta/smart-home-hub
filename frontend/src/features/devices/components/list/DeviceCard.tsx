@@ -237,7 +237,7 @@ export const DeviceCard: React.FC<DeviceCardProps> = ({ device }) => {
 					<div className="flex items-center gap-4 bg-surface-low rounded-lg p-2 border border-border-subtle">
 						<div className="w-10 h-10 rounded bg-surface-container flex items-center justify-center overflow-hidden shrink-0">
 							<div className="w-full h-full bg-linear-to-tr from-indigo-950 to-zinc-800 flex items-center justify-center">
-								<Disc3 className="w-5 h-5 text-zinc-300 opacity-60" />
+								<Disc3 className="w-5 h-5 text-muted-foreground opacity-60" />
 							</div>
 						</div>
 						<div className="flex flex-col flex-1 min-w-0">
@@ -291,7 +291,7 @@ export const DeviceCard: React.FC<DeviceCardProps> = ({ device }) => {
 							type="button"
 							disabled={volumeDisabled}
 							aria-label={t("card.volume", "Volume")}
-							className="relative z-20 block flex-1 h-1.5 rounded-full bg-[#0e0e0f] overflow-visible cursor-pointer group/slider disabled:cursor-not-allowed touch-none"
+							className="relative z-20 block flex-1 h-1.5 rounded-full bg-surface-low overflow-visible cursor-pointer group/slider disabled:cursor-not-allowed touch-none"
 							onPointerDown={(e) => {
 								e.stopPropagation();
 								if (volumeDisabled) return;
@@ -558,7 +558,7 @@ export const DeviceCard: React.FC<DeviceCardProps> = ({ device }) => {
 								<DropdownMenuItem
 									onClick={handleDeleteClick}
 									disabled={isDeleting}
-									className="cursor-pointer gap-2 text-xs text-alert-foreground focus:bg-alert/20 focus:text-[#ffdad6]"
+									className="cursor-pointer gap-2 text-xs text-alert-foreground focus:bg-alert/20 focus:text-alert-foreground"
 								>
 									<Trash2 className="h-3.5 w-3.5" />
 									<span>{t("common:actions.delete")}</span>
