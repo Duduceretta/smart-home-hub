@@ -31,7 +31,7 @@ export function AutomationDetailPanel({
 
 	if (!automation) {
 		return (
-			<div className="flex h-full max-h-full min-h-50 flex-col items-center justify-center rounded-xl border border-dashed border-border-subtle bg-surface-low p-6 text-center">
+			<div className="flex h-full max-h-full min-h-50 flex-col items-center justify-center p-6 text-center lg:rounded-xl lg:border lg:border-dashed lg:border-border-subtle lg:bg-surface-low">
 				<button
 					type="button"
 					onClick={onBack}
@@ -62,7 +62,7 @@ export function AutomationDetailPanel({
 	};
 
 	return (
-		<div className="flex h-full max-h-full flex-col overflow-hidden rounded-xl border border-border-subtle bg-surface-low shadow-sm">
+		<div className="flex h-full max-h-full flex-col lg:overflow-hidden lg:rounded-xl lg:border lg:border-border-subtle lg:bg-surface-low lg:shadow-sm">
 			<AutomationDetailHeader
 				automation={automation}
 				triggerIcon={TriggerIcon}

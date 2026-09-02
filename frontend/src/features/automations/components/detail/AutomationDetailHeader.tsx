@@ -29,7 +29,7 @@ export function AutomationDetailHeader({
 	onDelete,
 }: AutomationDetailHeaderProps) {
 	return (
-		<div className="flex shrink-0 flex-col gap-4 border-b border-border-subtle/50 bg-surface-container/50 p-4 sm:p-6">
+		<div className="flex shrink-0 flex-col gap-4 border-b border-border-subtle/50 pb-4 lg:bg-surface-container/50 lg:p-6">
 			<button
 				type="button"
 				onClick={onBack}

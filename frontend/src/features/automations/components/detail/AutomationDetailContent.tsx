@@ -19,7 +19,7 @@ export function AutomationDetailContent({
 }: AutomationDetailContentProps) {
 	return (
 		<div className="relative min-h-0 flex-1">
-			<div className="h-full overflow-y-auto p-5 scrollbar-gutter-stable scrollbar-thin">
+			<div className="h-full overflow-y-auto pt-4 lg:p-5 scrollbar-gutter-stable scrollbar-thin">
 				<div key={automation.id} className="space-y-4 animate-fade-in">
 					<AutomationFlowDiagram
 						automation={automation}

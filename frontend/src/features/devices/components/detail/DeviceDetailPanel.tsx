@@ -46,11 +46,11 @@ export function DeviceDetailPanel({ device, onBack }: DeviceDetailPanelProps) {
 
 	if (!device) {
 		return (
-			<div className="flex h-full max-h-full flex-col overflow-hidden rounded-xl border border-dashed border-border-subtle bg-surface-low">
-				<div className="flex shrink-0 items-center border-b border-border-subtle/50 p-3 lg:hidden">
+			<div className="flex h-full max-h-full flex-col lg:overflow-hidden lg:rounded-xl lg:border lg:border-dashed lg:border-border-subtle lg:bg-surface-low">
+				<div className="flex shrink-0 items-center border-b border-border-subtle/50 pb-3 lg:hidden">
 					{MobileBackButton}
 				</div>
-				<div className="flex flex-1 flex-col items-center justify-center text-center">
+				<div className="flex flex-1 flex-col items-center justify-center p-6 text-center">
 					<p className="text-sm text-muted-foreground">
 						{t(
 							"detail.selectPrompt",
@@ -89,8 +89,8 @@ export function DeviceDetailPanel({ device, onBack }: DeviceDetailPanelProps) {
 	};
 
 	return (
-		<div className="flex h-full max-h-full flex-col overflow-hidden rounded-xl border border-border-subtle bg-surface-low shadow-sm">
-			<div className="flex shrink-0 items-center justify-between gap-4 border-b border-border-subtle/50 bg-surface-container/50 p-3 sm:p-6">
+		<div className="flex h-full max-h-full flex-col lg:overflow-hidden lg:rounded-xl lg:border lg:border-border-subtle lg:bg-surface-low lg:shadow-sm">
+			<div className="flex shrink-0 items-center justify-between gap-4 border-b border-border-subtle/50 pb-4 lg:bg-surface-container/50 lg:p-6">
 				<div className="flex min-w-0 items-center gap-2 sm:gap-4">
 					{MobileBackButton}
 					<div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-surface-high text-primary shadow-xs">
