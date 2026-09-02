@@ -7,6 +7,7 @@ import {
 	Volume2,
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useDebouncedValue } from "@/core/hooks/useDebouncedValue";
 import { cn } from "@/core/utils";
 import { useConnectSpotify } from "../hooks/useConnectSpotify";
@@ -20,6 +21,7 @@ import { useSpotifyStatus } from "../hooks/useSpotifyStatus";
 import { useToggleSpotifyPlayback } from "../hooks/useToggleSpotifyPlayback";
 
 export const SpotifyNowPlayingCard: React.FC = () => {
+	const { t } = useTranslation("integrations");
 	const { data: status } = useSpotifyStatus();
 	const { data: playback } = useSpotifyPlayback({
 		enabled: Boolean(status?.connected),
@@ -66,10 +68,10 @@ export const SpotifyNowPlayingCard: React.FC = () => {
 				</div>
 				<div>
 					<p className="text-sm font-medium text-foreground">
-						Spotify desconectado
+						{t("spotify.nowPlayingCard.disconnectedTitle")}
 					</p>
 					<p className="mt-0.5 text-xs text-muted-foreground">
-						Conecte sua conta pra controlar a reprodução por aqui.
+						{t("spotify.nowPlayingCard.disconnectedHint")}
 					</p>
 				</div>
 				<button
@@ -79,7 +81,7 @@ export const SpotifyNowPlayingCard: React.FC = () => {
 					// design-token-lint-ignore: verde oficial da marca Spotify, identidade visual de terceiro
 					className="inline-flex h-11 sm:h-8 items-center rounded-full bg-[#1DB954] px-4 text-xs font-semibold text-black shadow-xs transition-colors hover:bg-[#1ed760] disabled:cursor-not-allowed disabled:opacity-40 cursor-pointer"
 				>
-					Conectar Spotify
+					{t("spotify.nowPlayingCard.connectButton")}
 				</button>
 			</div>
 		);
@@ -92,10 +94,10 @@ export const SpotifyNowPlayingCard: React.FC = () => {
 					<Disc3 className="h-5 w-5" />
 				</div>
 				<p className="text-sm font-medium text-foreground">
-					Nada tocando no momento
+					{t("spotify.nowPlayingCard.nothingPlayingTitle")}
 				</p>
 				<p className="text-xs text-muted-foreground">
-					Toque algo no Spotify pra ver aqui.
+					{t("spotify.nowPlayingCard.nothingPlayingHint")}
 				</p>
 			</div>
 		);
@@ -125,7 +127,9 @@ export const SpotifyNowPlayingCard: React.FC = () => {
 					</span>
 					{playback.deviceName && (
 						<span className="mt-0.5 truncate text-xs text-muted-foreground/80">
-							Reproduzindo em {playback.deviceName}
+							{t("spotify.nowPlayingCard.playingOn", {
+								device: playback.deviceName,
+							})}
 						</span>
 					)}
 				</div>
@@ -135,7 +139,7 @@ export const SpotifyNowPlayingCard: React.FC = () => {
 			<div className="flex items-center justify-center gap-3">
 				<button
 					type="button"
-					aria-label="Faixa anterior"
+					aria-label={t("spotify.nowPlayingCard.previousTrack")}
 					disabled={isSkippingPrevious}
 					onClick={() => skipPrevious()}
 					className="flex h-8 w-8 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-surface-high hover:text-foreground disabled:cursor-not-allowed disabled:opacity-40 cursor-pointer"
@@ -144,7 +148,11 @@ export const SpotifyNowPlayingCard: React.FC = () => {
 				</button>
 				<button
 					type="button"
-					aria-label={playback.isPlaying ? "Pausar" : "Reproduzir"}
+					aria-label={
+						playback.isPlaying
+							? t("spotify.nowPlayingCard.pause")
+							: t("spotify.nowPlayingCard.play")
+					}
 					disabled={isToggling}
 					onClick={() => togglePlayback()}
 					// design-token-lint-ignore: verde oficial da marca Spotify, identidade visual de terceiro
@@ -158,7 +166,7 @@ export const SpotifyNowPlayingCard: React.FC = () => {
 				</button>
 				<button
 					type="button"
-					aria-label="Próxima faixa"
+					aria-label={t("spotify.nowPlayingCard.nextTrack")}
 					disabled={isSkippingNext}
 					onClick={() => skipNext()}
 					className="flex h-8 w-8 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-surface-high hover:text-foreground disabled:cursor-not-allowed disabled:opacity-40 cursor-pointer"
@@ -172,7 +180,7 @@ export const SpotifyNowPlayingCard: React.FC = () => {
 				<Volume2 className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
 				<button
 					type="button"
-					aria-label="Volume"
+					aria-label={t("spotify.nowPlayingCard.volume")}
 					className="group/slider relative z-20 block h-1.5 flex-1 rounded-full bg-surface-low overflow-visible cursor-pointer touch-none"
 					onPointerDown={(e) => {
 						e.currentTarget.setPointerCapture(e.pointerId);

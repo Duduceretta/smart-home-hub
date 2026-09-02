@@ -13,15 +13,17 @@ const LANGUAGES = [
 ] as const;
 
 export function LanguageSettingRow() {
-	const { i18n } = useTranslation();
+	const { t, i18n } = useTranslation("settings");
 	const currentLanguage = i18n.language.startsWith("pt") ? "pt-BR" : "en-US";
 
 	return (
 		<div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between rounded-xl border border-border-subtle bg-surface-low p-4">
 			<div className="flex min-w-0 flex-col gap-0.5">
-				<span className="text-sm font-medium text-foreground">Idioma</span>
+				<span className="text-sm font-medium text-foreground">
+					{t("language.label")}
+				</span>
 				<span className="text-xs text-muted-foreground">
-					Idioma usado na interface do hub.
+					{t("language.description")}
 				</span>
 			</div>
 
@@ -31,7 +33,7 @@ export function LanguageSettingRow() {
 			>
 				<SelectTrigger
 					className="h-11 sm:h-9 w-full sm:w-48 shrink-0"
-					aria-label="Idioma"
+					aria-label={t("language.label")}
 				>
 					<SelectValue />
 				</SelectTrigger>

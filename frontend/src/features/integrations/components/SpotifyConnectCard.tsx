@@ -1,5 +1,6 @@
 import { Loader2, Music2, Unplug } from "lucide-react";
 import { useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 import { Button } from "@/core/components/ui/button";
@@ -8,6 +9,7 @@ import { useDisconnectSpotify } from "../hooks/useDisconnectSpotify";
 import { useSpotifyStatus } from "../hooks/useSpotifyStatus";
 
 export const SpotifyConnectCard: React.FC = () => {
+	const { t } = useTranslation("integrations");
 	const [searchParams, setSearchParams] = useSearchParams();
 	const { data: status, isLoading } = useSpotifyStatus();
 	const { mutate: connect, isPending: isConnecting } = useConnectSpotify();
@@ -20,11 +22,9 @@ export const SpotifyConnectCard: React.FC = () => {
 		if (!result) return;
 
 		if (result === "connected") {
-			toast.success("Conta do Spotify conectada com sucesso!");
+			toast.success(t("spotify.connectCard.connectedToast"));
 		} else if (result === "error") {
-			toast.error(
-				"Não foi possível conectar sua conta do Spotify. Tente novamente.",
-			);
+			toast.error(t("spotify.connectCard.connectRedirectErrorToast"));
 		}
 
 		const next = new URLSearchParams(searchParams);
@@ -44,10 +44,12 @@ export const SpotifyConnectCard: React.FC = () => {
 						<span className="text-sm font-medium text-foreground">Spotify</span>
 						<span className="truncate text-xs text-muted-foreground">
 							{isLoading
-								? "Verificando conexão..."
+								? t("spotify.connectCard.checkingConnection")
 								: status?.connected
-									? `Conectado como ${status.displayName}`
-									: "Acompanhe o que está tocando em tempo real."}
+									? t("spotify.connectCard.connectedAs", {
+											name: status.displayName,
+										})
+									: t("spotify.connectCard.trackingHint")}
 						</span>
 					</div>
 				</div>
@@ -65,7 +67,7 @@ export const SpotifyConnectCard: React.FC = () => {
 						) : (
 							<Unplug className="h-4 w-4" />
 						)}
-						Desconectar
+						{t("spotify.connectCard.disconnectButton")}
 					</Button>
 				) : (
 					<Button
@@ -78,7 +80,7 @@ export const SpotifyConnectCard: React.FC = () => {
 						{isConnecting ? (
 							<Loader2 className="h-4 w-4 animate-spin mr-1" />
 						) : null}
-						Conectar Spotify
+						{t("spotify.connectCard.connectButton")}
 					</Button>
 				)}
 			</div>

@@ -1,0 +1,37 @@
+{
+	"spotify": {
+		"connectCard": {
+			"checkingConnection": "Checking connection...",
+			"connectedAs": "Connected as {{name}}",
+			"trackingHint": "Track what's playing in real time.",
+			"disconnectButton": "Disconnect",
+			"connectButton": "Connect Spotify",
+			"connectedToast": "Spotify account connected successfully!",
+			"connectRedirectErrorToast": "Couldn't connect your Spotify account. Please try again."
+		},
+		"nowPlayingCard": {
+			"disconnectedTitle": "Spotify disconnected",
+			"disconnectedHint": "Connect your account to control playback from here.",
+			"connectButton": "Connect Spotify",
+			"nothingPlayingTitle": "Nothing playing right now",
+			"nothingPlayingHint": "Play something on Spotify to see it here.",
+			"playingOn": "Playing on {{device}}",
+			"previousTrack": "Previous track",
+			"pause": "Pause",
+			"play": "Play",
+			"nextTrack": "Next track",
+			"volume": "Volume"
+		},
+		"errors": {
+			"connectFailed": "Couldn't connect to Spotify",
+			"disconnectFailed": "Couldn't disconnect from Spotify",
+			"volumeFailed": "Couldn't adjust Spotify's volume",
+			"skipNextFailed": "Couldn't skip to the next track",
+			"skipPreviousFailed": "Couldn't go back to the previous track",
+			"toggleFailed": "Couldn't toggle Spotify playback"
+		},
+		"success": {
+			"disconnected": "Spotify account disconnected."
+		}
+	}
+}

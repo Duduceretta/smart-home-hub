@@ -1,16 +1,18 @@
 import { CheckIcon } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { cn } from "@/core/utils";
 import { useThemeUIStore } from "../store/theme-ui.store";
 import { THEME_PRESET_OPTIONS } from "../types/theme.types";
 
 export function ThemePresetSelector() {
+	const { t } = useTranslation("settings");
 	const preset = useThemeUIStore((state) => state.preset);
 	const setPreset = useThemeUIStore((state) => state.setPreset);
 
 	return (
 		<div
 			role="radiogroup"
-			aria-label="Tema de cores do aplicativo"
+			aria-label={t("theme.ariaLabel")}
 			className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5 sm:gap-4"
 		>
 			{THEME_PRESET_OPTIONS.map((option) => {

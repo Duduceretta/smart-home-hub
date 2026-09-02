@@ -1,4 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import type { AppError } from "@/core/errors/app.errors";
 import { Logger } from "@/core/logger/app.logger";
@@ -6,6 +7,7 @@ import { disconnectSpotifyRequest } from "../api/integrations.api";
 import { integrationsKeys } from "./integrations.keys";
 
 export function useDisconnectSpotify() {
+	const { t } = useTranslation("integrations");
 	const queryClient = useQueryClient();
 
 	return useMutation<void, AppError>({
@@ -18,12 +20,12 @@ export function useDisconnectSpotify() {
 			queryClient.invalidateQueries({
 				queryKey: integrationsKeys.spotifyPlayback(),
 			});
-			toast.success("Conta do Spotify desconectada.");
+			toast.success(t("spotify.success.disconnected"));
 		},
 
 		onError: (error) => {
 			Logger.error("Falha ao desconectar a conta do Spotify", error);
-			toast.error("Não foi possível desconectar do Spotify", {
+			toast.error(t("spotify.errors.disconnectFailed"), {
 				description: error.message,
 			});
 		},

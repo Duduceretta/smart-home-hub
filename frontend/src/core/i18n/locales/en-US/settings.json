@@ -1,0 +1,16 @@
+{
+	"title": "Settings",
+	"subtitle": "Manage your hub's integrations and preferences.",
+	"sections": {
+		"appearance": "Appearance",
+		"preferences": "Preferences",
+		"integrations": "Integrations"
+	},
+	"theme": {
+		"ariaLabel": "Application color theme"
+	},
+	"language": {
+		"label": "Language",
+		"description": "Language used in the hub's interface."
+	}
+}

@@ -1,0 +1,16 @@
+{
+	"title": "Configurações",
+	"subtitle": "Gerencie integrações e preferências do seu hub.",
+	"sections": {
+		"appearance": "Aparência",
+		"preferences": "Preferências",
+		"integrations": "Integrações"
+	},
+	"theme": {
+		"ariaLabel": "Tema de cores do aplicativo"
+	},
+	"language": {
+		"label": "Idioma",
+		"description": "Idioma usado na interface do hub."
+	}
+}

@@ -1,4 +1,5 @@
 import { useMutation } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import type { AppError } from "@/core/errors/app.errors";
 import { Logger } from "@/core/logger/app.logger";
@@ -10,6 +11,8 @@ import { getSpotifyLoginUrlRequest } from "../api/integrations.api";
  * o `state` do OAuth ao usuário logado antes de devolver a URL.
  */
 export function useConnectSpotify() {
+	const { t } = useTranslation("integrations");
+
 	return useMutation<{ authorizeUrl: string }, AppError>({
 		mutationFn: getSpotifyLoginUrlRequest,
 
@@ -19,7 +22,7 @@ export function useConnectSpotify() {
 
 		onError: (error) => {
 			Logger.error("Falha ao iniciar conexão com o Spotify", error);
-			toast.error("Não foi possível conectar ao Spotify", {
+			toast.error(t("spotify.errors.connectFailed"), {
 				description: error.message,
 			});
 		},

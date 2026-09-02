@@ -1,4 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import type { AppError } from "@/core/errors/app.errors";
 import { Logger } from "@/core/logger/app.logger";
@@ -11,6 +12,7 @@ interface ToggleSpotifyContext {
 }
 
 export function useToggleSpotifyPlayback() {
+	const { t } = useTranslation("integrations");
 	const queryClient = useQueryClient();
 
 	return useMutation<void, AppError, void, ToggleSpotifyContext>({
@@ -44,7 +46,7 @@ export function useToggleSpotifyPlayback() {
 				);
 			}
 			Logger.error("Falha ao alternar reprodução do Spotify", error);
-			toast.error("Não foi possível alternar a reprodução do Spotify", {
+			toast.error(t("spotify.errors.toggleFailed"), {
 				description: error.message,
 			});
 		},

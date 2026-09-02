@@ -1,4 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import type { AppError } from "@/core/errors/app.errors";
 import { Logger } from "@/core/logger/app.logger";
@@ -9,6 +10,7 @@ import {
 import { integrationsKeys } from "./integrations.keys";
 
 export function useSkipToNextSpotifyTrack() {
+	const { t } = useTranslation("integrations");
 	const queryClient = useQueryClient();
 
 	return useMutation<void, AppError, void>({
@@ -16,7 +18,7 @@ export function useSkipToNextSpotifyTrack() {
 
 		onError: (error) => {
 			Logger.error("Falha ao pular para a próxima faixa do Spotify", error);
-			toast.error("Não foi possível pular para a próxima faixa", {
+			toast.error(t("spotify.errors.skipNextFailed"), {
 				description: error.message,
 			});
 		},
@@ -30,6 +32,7 @@ export function useSkipToNextSpotifyTrack() {
 }
 
 export function useSkipToPreviousSpotifyTrack() {
+	const { t } = useTranslation("integrations");
 	const queryClient = useQueryClient();
 
 	return useMutation<void, AppError, void>({
@@ -37,7 +40,7 @@ export function useSkipToPreviousSpotifyTrack() {
 
 		onError: (error) => {
 			Logger.error("Falha ao voltar para a faixa anterior do Spotify", error);
-			toast.error("Não foi possível voltar para a faixa anterior", {
+			toast.error(t("spotify.errors.skipPreviousFailed"), {
 				description: error.message,
 			});
 		},
