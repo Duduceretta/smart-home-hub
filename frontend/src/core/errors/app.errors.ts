@@ -29,6 +29,9 @@ export class AppError extends Error {
 	}
 }
 
+const GENERIC_FALLBACK_MESSAGE =
+	"Ocorreu um erro crítico e inesperado. Tente novamente.";
+
 export function handleApplicationError(
 	error: unknown,
 	fallbackMessage: string,
@@ -52,16 +55,22 @@ export function handleApplicationError(
 			);
 		}
 
+		// Response came back but without a ProblemDetails body (non-JSON, empty,
+		// malformed) — the caller's contextual fallbackMessage is a better user-
+		// facing message than a bare status code.
 		return new AppError(
-			`Erro de comunicação (Status: ${status})`,
+			fallbackMessage || GENERIC_FALLBACK_MESSAGE,
 			status,
 			undefined,
 			error,
 		);
 	}
 
+	// No response at all (network error, timeout, CORS) — same fallback logic,
+	// GENERIC_FALLBACK_MESSAGE is only reached if a caller passes an empty
+	// fallbackMessage.
 	return new AppError(
-		"Ocorreu um erro crítico e inesperado. Tente novamente.",
+		fallbackMessage || GENERIC_FALLBACK_MESSAGE,
 		500,
 		undefined,
 		error,

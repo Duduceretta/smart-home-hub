@@ -60,9 +60,10 @@ describe("picker-devices.api Integration Tests", () => {
 	});
 
 	it("fetchPickerDevices_ApiReturnsProblemDetails500_ShouldThrowAppErrorWithApiTitle", async () => {
-		// Arrange — handleApplicationError surfaces the ProblemDetails
-		// title/detail from the response, not the caller's fallback message
-		// (that fallback is only ever used for the internal Logger.error call).
+		// Arrange — handleApplicationError prioritizes the ProblemDetails
+		// title/detail from the response over the caller's fallback message
+		// (the fallback only kicks in when the API doesn't send one — see
+		// core/errors/__tests__/app.errors.spec.ts for that branch).
 		server.use(
 			http.get("*/api/devices", () =>
 				HttpResponse.json(
