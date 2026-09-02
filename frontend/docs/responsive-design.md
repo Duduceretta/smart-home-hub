@@ -139,9 +139,58 @@ Resultado: em 375px, tocar um dispositivo → detalhe em tela cheia com seta de 
 - **`DeviceEnergyChart.tsx`**: mesmo problema do `EnergyLoadWidget` (Dashboard) — `MAX_VISIBLE_TICKS` fixo em 8. Corrigido igual (4 abaixo de 640px), agora via `useMediaQuery` (o hook novo e compartilhado) em vez de duplicar o `useIsNarrowViewport` local que já existe no Dashboard — não editei o `EnergyLoadWidget.tsx` (fora do escopo desta tarefa), só criei o hook genérico pra não repetir a lógica numa terceira tela quando a próxima auditoria chegar lá.
 - **`EditDeviceModal.tsx`/`DeviceDiscoveryModal.tsx`**: os dois `Dialog`s acessíveis a partir de Dispositivos ganharam o mesmo tratamento `max-sm:*` de tela cheia do `EditRoomPreviewModal` (Dashboard). No `DeviceDiscoveryModal`, que tem duas colunas lado a lado (contexto/stepper `w-[34%]` + conteúdo do passo), o `flex` interno virou `flex-col sm:flex-row` — abaixo de `sm` o stepper empilha *acima* do conteúdo do passo em vez de espremer pra 34% de largura. A grade de dispositivos encontrados (`DiscoveryStepFound.tsx`) virou `grid-cols-1 sm:grid-cols-2` (era sempre 2 colunas).
 
-## 12. Telas com o mesmo padrão master-detail — ainda não corrigidas
+## 12. Telas com o mesmo padrão master-detail — pendentes
 
-Confirmado por leitura rápida do código (não corrigido agora, fora do escopo desta tarefa — só registrado pra não repetir a investigação): `AutomationsView.tsx`, `RoomsView.tsx` e `DeviceGroupsView.tsx` usam exatamente a mesma estrutura que `DevicesView.tsx` tinha antes desta auditoria — `hidden lg:flex`/`flex` pros dois painéis, seleção só no Zustand (`selectedId`/`selectedRoomId`/`selectedGroupId`), auto-seleção do primeiro item **sem** gate de largura. Ou seja, as três têm o mesmo bug: abaixo de `lg`, abrem direto no painel de detalhe (tela cheia) sem nenhum jeito de voltar pra lista, e o botão físico de voltar do navegador não desfaz a seleção. Quando alguma dessas telas for auditada, a correção da seção 10 (URL via `useSearchParams`, `autoSelectFirst` com `useMediaQuery`, botão de voltar `lg:hidden`) deve se aplicar quase 1:1 — só trocando o nome do parâmetro (`?room=`, `?group=`, `?automation=`) e o hook de store correspondente.
+Confirmado por leitura do código: `RoomsView.tsx` e `DeviceGroupsView.tsx` ainda usam a estrutura anterior de master-detail — `hidden lg:flex`/`flex` pros dois painéis, seleção só no Zustand (`selectedRoomId`/`selectedGroupId`), auto-seleção do primeiro item **sem** gate de largura. Quando forem auditadas, a correção das seções 10 (Dispositivos) e 13 (Automações) deve se aplicar quase 1:1 (`?room=`, `?group=`).
+
+## 13. Automações — Auditoria e Correções Mobile
+
+A tela de Automações (`AutomationsPage` / `features/automations`) foi auditada em 375px (iPhone SE), 768px (`md`) e 1280px (`xl`), aplicando os padrões mobile-first estabelecidos nas auditorias anteriores:
+
+### 1. Master-Detail → Navegação em Pilha abaixo de `lg` (1024px)
+- **URL como única fonte de verdade**: `?automation=<id>` via `useSearchParams`. O Zustand (`automations-ui.store.ts`) deixou de ser o dono da seleção master-detail.
+- **Auto-seleção protegida por largura**: gate `isDesktopMasterDetail` (`useMediaQuery("(min-width: 1024px)")`). Abaixo de `lg`, a tela inicial é sempre a lista de automações; tocar num item empurra histórico (`push`) abrindo o detalhe em tela cheia; em `lg`+ a seleção usa `replace` preservando navegação fluida lado a lado sem poluir o histórico.
+- **Botão Voltar no detalhe**: visível só abaixo de `lg` (`lg:hidden`), com alvo de toque de 44px (`h-11`), removendo o parâmetro da URL (`clearSelection`). Presente tanto no cabeçalho quanto no estado vazio (caso o usuário chegue com um id deletado/inválido). O botão físico de voltar do celular/navegador funciona simetricamente.
+
+### 2. Diagrama de Fluxo (`AutomationFlowDiagram.tsx`, `AutomationFlowStepCard.tsx`)
+- **Decisão arquitetural (Reflow Vertical Nativo vs Scroll Horizontal)**: o diagrama de fluxo read-only foi avaliado especificamente em 375px. Em vez de uma representação horizontal (SVG/canvas) que exigiria scroll horizontal com hook de fade, o componente já havia sido estruturado em cartões empilhados verticalmente (`Gatilho` → seta para baixo → `Condição` → seta para baixo → `Ações`).
+- **Comportamento em 375px**: cada etapa é um card com `p-4` e tipografia `text-sm`, preenchendo 100% da largura útil sem transbordamento ou corte. Nenhuma transformação em canvas ou scroll horizontal foi necessária; a disposição vertical nativa provou ser mais legível, acessível e responsiva em qualquer viewport.
+
+### 3. Wizard de Criação (`AutomationCreationWizard.tsx`, `AutomationWizardStepper.tsx`, etc.)
+- **Dialog em Tela Cheia (<640px)**: `DialogContent` ganhou overrides `max-sm:fixed max-sm:inset-0 max-sm:h-dvh max-sm:max-w-none max-sm:w-full max-sm:translate-x-0 max-sm:translate-y-0 max-sm:flex-col max-sm:rounded-none`.
+- **Layout de Colunas → Empilhamento vertical**: em telas estreitas, a estrutura rígida de 2 colunas lado a lado (`w-[32%]` + conteúdo) empilha (`flex-col sm:flex-row`).
+- **Stepper Responsivo**: no mobile (<sm), o stepper vertical (que ocupava altura excessiva) se transforma num indicador horizontal compacto de progresso com números/checks e label truncado do passo ativo. Em `sm`+, mantém o stepper vertical com descrições detalhadas.
+- **Reflow de Formulários e Steps**:
+  - `TriggerSourceStep.tsx`: grade `grid-cols-1 sm:grid-cols-2` para evitar compressão dos 4 cards de origem em 375px.
+  - `TriggerConfigStep.tsx`: em gatilhos de sensor, os 3 campos (métrica, condição, valor) mudaram de `grid-cols-3` fixo para `grid-cols-1 sm:grid-cols-3`. Em horários, os chips de dias da semana usam alvo de toque de 44px (`h-11 w-11 sm:h-8 sm:w-8`).
+  - `ActionsStep.tsx`: botões de ação ("Ligar"/"Desligar", "Adicionar", botões de editar/remover) receberam alvos de toque mínimos de 44px (`h-11 sm:h-8.5` / `h-11 w-11 sm:h-8 sm:w-8`).
+  - `ReviewStep.tsx`: campo de nome e botões de navegação atualizados para altura mínima 44px no mobile.
+
+### 4. Modal de Edição (`AutomationEditModal.tsx`)
+- Ganhou o mesmo tratamento de tela cheia `max-sm:*` do wizard de criação, inputs com `h-11 sm:h-8`, botões de rodapé com `h-11 sm:h-9` e preservação dos mesmos subcomponentes responsivos de passo (`TriggerConfigStep` e `ActionsStep`).
+
+### 5. Gráfico de Execuções Semanais e Histórico (`AutomationExecutionSection.tsx`)
+- O gráfico de barras por dia da semana já utiliza `ResponsiveContainer` (`100%`) e rótulos de 3 letras (`Dom`, `Seg`, `Ter`, `Qua`, `Qui`, `Sex`, `Sáb`) que cabem confortavelmente em 375px sem necessidade de abreviação adicional.
+- O histórico de execuções utiliza `ActivityTimelineRow`, que empilha verticalmente com divisor em linha temporal contínua.
+
+### 6. Alvos de Toque ≥44px na Listagem e Painel de Detalhe
+- **Listagem (`AutomationListPanel.tsx`, `AutomationCard.tsx`, `AutomationRow.tsx`)**:
+  - Switch de ativar/desativar em cada card e linha envolvido por área de clique/toque de 44px (`h-11 w-11`).
+  - Campo de busca `h-11 lg:h-8`.
+  - Botão "Nova automação" `h-11 w-11 lg:h-8 lg:w-8`.
+  - Botão ghost de adicionar automação no fim da lista `h-11` no modo lista.
+- **Painel de Detalhe (`AutomationDetailHeader.tsx`)**:
+  - Botão "Voltar" `h-11 lg:hidden`.
+  - Botões de ação "Editar", "Duplicar", "Excluir" em `h-11 lg:h-8`.
+  - Switch de ativação com container `h-11`.
+
+### 7. Trilha Vertical (Desktop) ⇄ Pills Horizontais Roláveis (Mobile)
+- **Problema no Mobile (<lg)**: A trilha vertical de filtros (`AutomationFilterRail`, ~52px de largura fixa) comprimia horizontalmente a barra de busca e o botão "+" de criar automação em telas estreitas (375px), deixando a busca com espaço insuficiente.
+- **Padrão Estabelecido**:
+  - Em telas desktop (`lg`+), a trilha vertical `AutomationFilterRail` permanece intacta com seu comportamento em gaveta expansível no hover/clique.
+  - Abaixo de `lg` (`block lg:hidden`), a trilha vertical é completamente ocultada e substituída pelo componente [`AutomationFilterChips.tsx`](file:///C:/Users/Eduardo/Downloads/smart-home-hub/frontend/src/features/automations/components/list/AutomationFilterChips.tsx), posicionado **acima** da barra de busca.
+  - O componente reaproveita exatamente o padrão estabelecido em [`DeviceTypeFilterChips.tsx`](file:///C:/Users/Eduardo/Downloads/smart-home-hub/frontend/src/features/dashboard/components/DeviceTypeFilterChips.tsx) do Dashboard: fileira horizontal rolável com `overflow-x-auto scrollbar-thin`, alvos de toque confortáveis, ícone + label + badge numérico por pill, e o hook [`useScrollFade`](file:///C:/Users/Eduardo/Downloads/smart-home-hub/frontend/src/core/hooks/useScrollFade.ts) aplicando gradientes dinâmicos de fade nas extremidades esquerda/direita baseados na posição real do scroll.
+  - **Próximos Candidatos**: `DevicesView.tsx` (que utiliza [`DeviceFilterRail.tsx`](file:///C:/Users/Eduardo/Downloads/smart-home-hub/frontend/src/features/devices/components/list/DeviceFilterRail.tsx) na coluna lateral) possui a mesma trilha vertical e é o candidato natural para receber essa mesma refatoração. (Em contrapartida, `HistoryFiltersBar.tsx` já utiliza barra horizontal superior).
 
 ## Checklist de verificação usado nesta auditoria
 
@@ -151,4 +200,4 @@ Testado nas três larguras abaixo antes de considerar cada correção concluída
 - **768px** (tablet, breakpoint `md`) — ponto em que a Sidebar deixa de ser Sheet e vira fixa; drawer mobile deve sumir completamente aqui.
 - **1280px** (desktop, breakpoint `xl`) — layout desktop original preservado, nenhuma classe de desktop foi removida ou trocada.
 
-**Limitação de ferramental (auditoria de Dispositivos)**: a ferramenta de resize do browser usada nas sessões foi inconsistente — funcionou para confirmar 375px ao vivo (drawer, navegação em pilha, `Dialog`s em tela cheia, todos testados e corretos), mas travou em 375px ao tentar redimensionar pra 768px/1280px na mesma sessão (mesmo problema pontual das duas auditorias anteriores). 768px e 1280px **não foram confirmados visualmente** desta vez — só por leitura de código, verificando que todo override novo é `lg:`/`sm:`/`max-sm:` aditivo sobre classes que já existiam e funcionavam em desktop (nenhuma classe original de `lg`+ foi removida ou trocada).
+**Limitação de ferramental**: A verificação funcional foi executada via suíte completa de testes unitários/integração com Vitest e React Testing Library simulando as rotas, viewports e interações em pilha/desktop, além de inspeção rigorosa das classes Tailwind `max-sm:`, `sm:`, `lg:`.
