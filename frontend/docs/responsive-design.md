@@ -192,6 +192,32 @@ A tela de Automações (`AutomationsPage` / `features/automations`) foi auditada
   - O componente reaproveita exatamente o padrão estabelecido em [`DeviceTypeFilterChips.tsx`](file:///C:/Users/Eduardo/Downloads/smart-home-hub/frontend/src/features/dashboard/components/DeviceTypeFilterChips.tsx) do Dashboard: fileira horizontal rolável com `overflow-x-auto scrollbar-thin`, alvos de toque confortáveis, ícone + label + badge numérico por pill, e o hook [`useScrollFade`](file:///C:/Users/Eduardo/Downloads/smart-home-hub/frontend/src/core/hooks/useScrollFade.ts) aplicando gradientes dinâmicos de fade nas extremidades esquerda/direita baseados na posição real do scroll.
   - **Próximos Candidatos**: `DevicesView.tsx` (que utiliza [`DeviceFilterRail.tsx`](file:///C:/Users/Eduardo/Downloads/smart-home-hub/frontend/src/features/devices/components/list/DeviceFilterRail.tsx) na coluna lateral) possui a mesma trilha vertical e é o candidato natural para receber essa mesma refatoração. (Em contrapartida, `HistoryFiltersBar.tsx` já utiliza barra horizontal superior).
 
+### 8. Remoção de Chrome Redundante em Master-Detail Full-Screen Mobile
+- **Problema no Mobile (<lg)**: No desktop (split-view), o painel de detalhe à direita utiliza uma moldura externa de card (`rounded-xl border border-border-subtle bg-surface-low shadow-sm`) com cabeçalho elevado e padding lateral para se separar visualmente da lista à esquerda. No mobile, onde a tela opera em navegação em pilha (tela cheia), essa moldura externa é redundante: consome preciosa largura útil (20px+ de cada lado somando bordas e paddings encadeados) e gera cartões aninhados dentro de outro cartão desnecessário.
+- **Padrão Estabelecido**:
+  - Abaixo de `lg` (`<lg`), o wrapper externo do painel de detalhe ([`AutomationDetailPanel`](file:///C:/Users/Eduardo/Downloads/smart-home-hub/frontend/src/features/automations/components/detail/AutomationDetailPanel.tsx), [`DeviceDetailPanel`](file:///C:/Users/Eduardo/Downloads/smart-home-hub/frontend/src/features/devices/components/detail/DeviceDetailPanel.tsx), [`RoomDetailPanel`](file:///C:/Users/Eduardo/Downloads/smart-home-hub/frontend/src/features/rooms/components/detail/RoomDetailPanel.tsx), [`DeviceGroupDetailPanel`](file:///C:/Users/Eduardo/Downloads/smart-home-hub/frontend/src/features/device-groups/components/detail/DeviceGroupDetailPanel.tsx)) remove a moldura (`lg:overflow-hidden lg:rounded-xl lg:border lg:border-border-subtle lg:bg-surface-low lg:shadow-sm`), encostando direto no `bg-background` da página.
+  - O cabeçalho do detalhe remove o fundo cinza e paddings laterais extras (`pb-4 lg:bg-surface-container/50 lg:p-6`), mantendo apenas a divisão inferior e o espaçamento adequado para título, botões de ação e switches.
+  - O conteúdo rolável do detalhe ([`AutomationDetailContent`](file:///C:/Users/Eduardo/Downloads/smart-home-hub/frontend/src/features/automations/components/detail/AutomationDetailContent.tsx), [`DeviceDetailContent`](file:///C:/Users/Eduardo/Downloads/smart-home-hub/frontend/src/features/devices/components/detail/DeviceDetailContent.tsx), etc.) reduz o padding para `pt-4 pb-8 lg:px-6 lg:pt-6`, permitindo que os agrupamentos internos de informação (diagrama de fluxo, gráficos de consumo, cards de KPI, grids de dispositivos) utilizem 100% da largura útil da tela com seus próprios cartões independentes.
+  - No desktop (`lg`+), o comportamento e visual de split-panel permanecem 100% intactos com a moldura e elevação originais.
+
+## 14. Unificação Master-Detail em Ambientes e Grupos de Dispositivos
+
+Com a extensão da navegação em pilha orientada a URL para as telas de Ambientes ([`RoomsView.tsx`](file:///C:/Users/Eduardo/Downloads/smart-home-hub/frontend/src/features/rooms/components/RoomsView.tsx)) e Grupos de Dispositivos ([`DeviceGroupsView.tsx`](file:///C:/Users/Eduardo/Downloads/smart-home-hub/frontend/src/features/device-groups/components/DeviceGroupsView.tsx)), **100% das telas master-detail do projeto agora compartilham a mesma arquitetura**:
+
+| Tela | Query Param | Componente Master | Componente Detail | Comportamento Mobile (`<lg`) | Comportamento Desktop (`lg`+) |
+|---|---|---|---|---|---|
+| **Dispositivos** | `?device=<id>` | `DeviceListPanel` | `DeviceDetailPanel` | Abre na lista; toque empilha no histórico; botão voltar limpa param | Auto-seleciona 1º item; split-panel lado a lado |
+| **Automações** | `?automation=<id>` | `AutomationListPanel` | `AutomationDetailPanel` | Abre na lista; toque empilha no histórico; botão voltar limpa param | Auto-seleciona 1º item; split-panel lado a lado |
+| **Ambientes** | `?room=<id>` | `RoomListPanel` | `RoomDetailPanel` | Abre na lista; toque empilha no histórico; botão voltar limpa param | Auto-seleciona 1º item; split-panel lado a lado |
+| **Grupos** | `?group=<id>` | `DeviceGroupListPanel` | `DeviceGroupDetailPanel` | Abre na lista; toque empilha no histórico; botão voltar limpa param | Auto-seleciona 1º item; split-panel lado a lado |
+
+### Inventário do Projeto
+- **Telas Master-Detail**: 4 telas no total (`devices`, `automations`, `rooms`, `device-groups`). Todas as 4 estão 100% migradas e padronizadas.
+- **Outras Telas**:
+  - `dashboard`: Grid responsivo de cards e widgets (sem master-detail).
+  - `history`: Barra de filtros superior com lista paginada em linha temporal.
+  - `integrations` / `settings`: Telas baseadas em seções/abas/modais.
+
 ## Checklist de verificação usado nesta auditoria
 
 Testado nas três larguras abaixo antes de considerar cada correção concluída:
@@ -201,3 +227,5 @@ Testado nas três larguras abaixo antes de considerar cada correção concluída
 - **1280px** (desktop, breakpoint `xl`) — layout desktop original preservado, nenhuma classe de desktop foi removida ou trocada.
 
 **Limitação de ferramental**: A verificação funcional foi executada via suíte completa de testes unitários/integração com Vitest e React Testing Library simulando as rotas, viewports e interações em pilha/desktop, além de inspeção rigorosa das classes Tailwind `max-sm:`, `sm:`, `lg:`.
+
+
