@@ -103,6 +103,8 @@ O `dev` é um caso especial: existe só em ambiente de desenvolvimento. A rota `
 
 **Linter & Formatter — Biome.** Substitui Babel/ESLint/Prettier com velocidade maior e zero configuração adicional (`npm run lint` / `npm run format`).
 
+**Lint de tokens de design — `npm run lint:tokens`.** Script custom (`scripts/lint-tokens.mjs`, roda automaticamente como parte de `npm run lint`) que varre `src/**/*.{ts,tsx}` e falha (`exit 1`) ao encontrar hex cru (`#fff`, `#09090b`, etc.) ou classes Tailwind de cor bruta com equivalente semântico (`bg-zinc-*`, `text-zinc-*`, `border-zinc-*`, `bg-indigo-*`, `text-indigo-*`, `bg-slate-*`, `text-slate-*`, `bg-red-*`, `text-red-*`, `border-red-*`) fora de `src/app/styles/` (único lugar legítimo pra hex cru, arquivos de tema). Existe pra impedir regressão do tipo já corrigido em Login/Registro/Configurações. Exceção legítima (ex: cor de marca de terceiro): comentário `// design-token-lint-ignore` na mesma linha ou linha anterior — ver `GoogleAuthButton.tsx`.
+
 **Nomenclatura de arquivos:**
 
 | Sufixo/Prefixo | Tipo | Exemplo real |

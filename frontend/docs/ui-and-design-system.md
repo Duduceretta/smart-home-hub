@@ -124,6 +124,14 @@ Quando precisar de um efeito "mais claro que o tom mais claro definido" (ex.: ho
   ```
   O tom inicial do gradiente (`from-*`) deve ser sempre igual ao `bg-*` real do container ambiente (`from-surface-low` num painel, `from-popover` dentro de um Dialog) — nunca uma cor fixa diferente da superfície onde o gradiente está.
 
+## 9.1. Enforcement Automatizado — `npm run lint:tokens`
+
+Regressão de token de design (hex cru ou classe Tailwind de cor bruta com equivalente semântico, ex: `bg-zinc-900` em vez de `bg-surface-low`) é o exato tipo de desvio que auditorias manuais (Login/Registro/Configurações) já encontraram mais de uma vez. `frontend/scripts/lint-tokens.mjs` bloqueia isso automaticamente (`npm run lint:tokens`, incluído em `npm run lint`), varrendo `src/**/*.{ts,tsx}` — exceto `src/app/styles/` (único lugar legítimo pra hex cru: arquivos de tema).
+
+Paletas Tailwind cruas bloqueadas (têm equivalente semântico no projeto): `zinc`, `indigo`, `slate`, `red` (`bg-`/`text-`/`border-`).
+
+**Exceção legítima** (cor de marca de terceiro, ex: o "G" colorido do Google em `GoogleAuthButton.tsx`, que não deve seguir o design system por ser identidade visual externa): comentário `// design-token-lint-ignore` na mesma linha ou na linha imediatamente anterior à ocorrência. Não abusar disso — é pra terceiros/casos excepcionais documentados, não pra "resolver" uma falha de lint sem migrar pro token certo.
+
 ## 10. Exemplos de Antes → Depois (auditorias já aplicadas)
 
 Casos reais corrigidos nas auditorias de Automações/Layout/Dashboard/Dispositivos, pra referência rápida do tipo de desvio a evitar:
