@@ -17,9 +17,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const SRC_ROOT = path.resolve(__dirname, "..", "src");
 
 const EXCLUDED_DIRS = new Set(["node_modules", "dist"]);
-const EXCLUDED_PATH_SEGMENTS = [
-	path.join("src", "app", "styles") + path.sep,
-];
+const EXCLUDED_PATH_SEGMENTS = [path.join("src", "app", "styles") + path.sep];
 
 const IGNORE_COMMENT = "design-token-lint-ignore";
 
@@ -99,10 +97,7 @@ function main() {
 	let totalViolations = 0;
 
 	for (const filePath of files) {
-		const relativePath = path.relative(
-			path.resolve(__dirname, ".."),
-			filePath,
-		);
+		const relativePath = path.relative(path.resolve(__dirname, ".."), filePath);
 		const violations = findViolationsInFile(filePath);
 
 		for (const violation of violations) {
@@ -123,7 +118,9 @@ function main() {
 		process.exit(1);
 	}
 
-	console.log("✔ lint:tokens — nenhuma regressão de token de design encontrada.");
+	console.log(
+		"✔ lint:tokens — nenhuma regressão de token de design encontrada.",
+	);
 	process.exit(0);
 }
 
