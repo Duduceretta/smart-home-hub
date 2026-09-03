@@ -61,9 +61,9 @@ export const SpotifyNowPlayingCard: React.FC = () => {
 
 	if (!status?.connected) {
 		return (
-			<div className="flex flex-col items-center gap-4 rounded-xl border border-border-subtle bg-surface-low p-4 text-center transition-all duration-200 hover:border-border">
+			<div className="flex flex-col items-center gap-4 rounded-xl border border-border-subtle bg-surface-container p-4 text-center transition-all duration-200 hover:border-border">
 				{/* design-token-lint-ignore: verde oficial da marca Spotify, identidade visual de terceiro */}
-				<div className="flex h-11 w-11 items-center justify-center rounded-full bg-[#1DB954]/15 text-[#1DB954]">
+				<div className="flex h-11 w-11 items-center justify-center rounded-full bg-[#1DB954]/10 text-[#1DB954] border border-[#1DB954]/20">
 					<Disc3 className="h-5 w-5" />
 				</div>
 				<div>
@@ -78,8 +78,7 @@ export const SpotifyNowPlayingCard: React.FC = () => {
 					type="button"
 					disabled={isConnecting}
 					onClick={() => connectSpotify()}
-					// design-token-lint-ignore: verde oficial da marca Spotify, identidade visual de terceiro
-					className="inline-flex h-11 sm:h-8 items-center rounded-full bg-[#1DB954] px-4 text-xs font-semibold text-black shadow-xs transition-colors hover:bg-[#1ed760] disabled:cursor-not-allowed disabled:opacity-40 cursor-pointer"
+					className="inline-flex h-11 sm:h-8 items-center rounded-full bg-primary px-4 text-xs font-semibold text-primary-foreground shadow-xs transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-40 cursor-pointer"
 				>
 					{t("spotify.nowPlayingCard.connectButton")}
 				</button>
@@ -89,7 +88,7 @@ export const SpotifyNowPlayingCard: React.FC = () => {
 
 	if (!playback?.title) {
 		return (
-			<div className="flex flex-col items-center gap-2 rounded-xl border border-border-subtle bg-surface-low p-4 text-center transition-all duration-200 hover:border-border">
+			<div className="flex flex-col items-center gap-2 rounded-xl border border-border-subtle bg-surface-container p-4 text-center transition-all duration-200 hover:border-border">
 				<div className="flex h-11 w-11 items-center justify-center rounded-full bg-surface-high text-muted-foreground">
 					<Disc3 className="h-5 w-5" />
 				</div>
@@ -104,10 +103,10 @@ export const SpotifyNowPlayingCard: React.FC = () => {
 	}
 
 	return (
-		<div className="flex flex-col gap-4 rounded-xl border border-border-subtle bg-surface-low p-4 transition-all duration-200 hover:border-border">
+		<div className="flex flex-col gap-4 rounded-xl border border-border-subtle bg-surface-container p-4 transition-all duration-200 hover:border-border">
 			{/* Faixa e Capa */}
 			<div className="flex items-center gap-3.5">
-				<div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-border-subtle bg-surface-container">
+				<div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-border-subtle bg-surface-high">
 					{playback.albumCoverUrl ? (
 						<img
 							src={playback.albumCoverUrl}
@@ -155,8 +154,7 @@ export const SpotifyNowPlayingCard: React.FC = () => {
 					}
 					disabled={isToggling}
 					onClick={() => togglePlayback()}
-					// design-token-lint-ignore: verde oficial da marca Spotify, identidade visual de terceiro
-					className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#1DB954] text-black shadow-xs transition-colors hover:bg-[#1ed760] disabled:cursor-not-allowed disabled:opacity-40 cursor-pointer"
+					className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-xs transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-40 cursor-pointer"
 				>
 					{playback.isPlaying ? (
 						<Pause className="h-4 w-4 fill-current" />
@@ -210,15 +208,14 @@ export const SpotifyNowPlayingCard: React.FC = () => {
 				>
 					<div
 						className={cn(
-							// design-token-lint-ignore: verde oficial da marca Spotify, identidade visual de terceiro
-							"relative h-full rounded-full bg-[#1DB954]",
+							"relative h-full rounded-full bg-primary",
 							!isDragging && "transition-all",
 						)}
 						style={{ width: `${localVolume}%` }}
 					>
 						<div
 							className={cn(
-								"absolute right-0 top-1/2 h-3 w-3 -translate-y-1/2 rounded-full bg-white shadow-xs transition-opacity",
+								"absolute right-0 top-1/2 h-3 w-3 -translate-y-1/2 rounded-full bg-primary-foreground shadow-xs transition-opacity border border-border-subtle",
 								isDragging
 									? "opacity-100"
 									: "opacity-0 group-hover/slider:opacity-100",

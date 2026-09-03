@@ -11,14 +11,14 @@ export function CameraFeedCard() {
 
 	return (
 		<div className="overflow-hidden rounded-xl border border-border-subtle bg-surface-container transition-all duration-200 hover:border-border">
-			<div className="flex items-center gap-2 border-b border-border-subtle px-4 py-2.5">
-				<Shield className="h-3.5 w-3.5 text-destructive" />
-				<span className="text-xs font-semibold tracking-wide text-foreground">
+			<div className="flex items-center justify-between border-b border-border-subtle px-4 py-3">
+				<span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
 					{t("cameraFeed.title", "Aether Secure")}
 				</span>
+				<Shield className="h-4 w-4 text-muted-foreground" />
 			</div>
 
-			<div className="relative aspect-video overflow-hidden bg-surface-low grayscale">
+			<div className="relative aspect-video overflow-hidden bg-surface-low/60 grayscale">
 				<div
 					className="absolute inset-0 opacity-30 pointer-events-none"
 					style={{
@@ -29,9 +29,9 @@ export function CameraFeedCard() {
 				<div className="absolute inset-0 flex items-center justify-center text-muted-foreground/30">
 					<Video className="h-9 w-9" />
 				</div>
-				<div className="absolute left-2.5 top-2.5 flex items-center gap-1.5 rounded bg-black/70 px-2 py-0.5 backdrop-blur-xs">
-					<span className="h-1.5 w-1.5 rounded-full bg-destructive animate-pulse" />
-					<span className="font-mono text-[10px] font-bold tracking-widest text-white">
+				<div className="absolute left-2.5 top-2.5 flex items-center gap-1.5 rounded-md border border-border-subtle/40 bg-surface-container/90 px-2 py-0.5 backdrop-blur-xs">
+					<span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+					<span className="font-mono text-xs font-medium tracking-wider text-foreground">
 						{t("cameraFeed.liveLabel", "LIVE")}
 					</span>
 				</div>

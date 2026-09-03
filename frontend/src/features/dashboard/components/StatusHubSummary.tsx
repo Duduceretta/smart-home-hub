@@ -56,7 +56,7 @@ export function StatusHubSummary() {
 				<div className="flex flex-col gap-0.5">
 					<div>
 						<span
-							className="text-2xl font-bold tracking-tight text-foreground"
+							className="text-2xl font-semibold tracking-tight text-foreground"
 							title={
 								summary.isEnergyEstimated
 									? t(
@@ -73,7 +73,7 @@ export function StatusHubSummary() {
 							{energy.unit}
 						</span>
 					</div>
-					<span className="truncate text-[11px] text-muted-foreground">
+					<span className="truncate text-xs text-muted-foreground">
 						{t("metrics.energyConsumptionSubtitle", "Acumulado hoje")}
 						{summary.isEnergyEstimated &&
 							` · ${t("metrics.energyEstimatedShort", "inclui estimativa")}`}
@@ -81,18 +81,17 @@ export function StatusHubSummary() {
 				</div>
 			</div>
 
-			{/* Card 2: Dispositivos Online (Card Destaque) */}
-			<div className="relative flex flex-col justify-between gap-4 overflow-hidden rounded-xl border border-primary/30 bg-surface-container p-4 transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/50">
-				<div className="pointer-events-none absolute inset-0 bg-linear-to-br from-primary/5 to-transparent" />
-				<div className="relative z-10 flex items-center justify-between">
+			{/* Card 2: Dispositivos Online */}
+			<div className="flex flex-col justify-between gap-4 rounded-xl border border-border-subtle bg-surface-container p-4 transition-all duration-200 hover:-translate-y-0.5 hover:border-border">
+				<div className="flex items-center justify-between">
 					<span className="min-w-0 flex-1 truncate text-xs font-semibold uppercase tracking-wider text-muted-foreground">
 						{t("metrics.onlineDevices")}
 					</span>
 					<Wifi className="h-4 w-4 shrink-0 text-primary" />
 				</div>
-				<div className="relative z-10 flex flex-col gap-2.5">
+				<div className="flex flex-col gap-2.5">
 					<div>
-						<span className="text-2xl font-bold tracking-tight text-foreground">
+						<span className="text-2xl font-semibold tracking-tight text-foreground">
 							{summary.onlineDevicesCount}
 						</span>
 						<span className="ml-1 text-xs font-medium text-muted-foreground">
@@ -119,10 +118,10 @@ export function StatusHubSummary() {
 					<Thermometer className="h-4 w-4 shrink-0 text-sky-400" />
 				</div>
 				<div className="flex items-baseline gap-2">
-					<span className="text-2xl font-bold tracking-tight text-foreground">
+					<span className="text-2xl font-semibold tracking-tight text-foreground">
 						{Math.round(summary.averageTemperatureCelsius)}°C
 					</span>
-					<span className="rounded-md border border-border-subtle bg-surface-low px-1.5 py-0.5 text-[11px] font-semibold tabular-nums text-foreground">
+					<span className="rounded-md border border-border-subtle bg-surface-low px-1.5 py-0.5 text-xs font-semibold tabular-nums text-foreground">
 						{summary.temperatureTrend > 0 ? "+" : ""}
 						{summary.temperatureTrend}°C
 					</span>
@@ -145,7 +144,7 @@ export function StatusHubSummary() {
 				</div>
 				<div>
 					<span
-						className={`text-2xl font-bold tracking-tight ${
+						className={`text-2xl font-semibold tracking-tight ${
 							summary.activeAlertsCount > 0
 								? "text-destructive"
 								: "text-foreground"
