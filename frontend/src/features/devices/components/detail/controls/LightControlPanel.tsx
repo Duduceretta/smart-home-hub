@@ -1,12 +1,12 @@
 import { Lightbulb, Palette, Sun } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { useSyncedDeviceControl } from "@/core/hooks/useSyncedDeviceControl";
 import { useDeviceWorkMode } from "../../../hooks/useDeviceWorkMode";
 import { useSetDeviceBrightness } from "../../../hooks/useSetDeviceBrightness";
 import { useSetDeviceColor } from "../../../hooks/useSetDeviceColor";
 import { useSetDeviceColorTemp } from "../../../hooks/useSetDeviceColorTemp";
 import { useSetDeviceWorkMode } from "../../../hooks/useSetDeviceWorkMode";
-import { useSyncedDeviceControl } from "../../../hooks/useSyncedDeviceControl";
 import { useToggleDevice } from "../../../hooks/useToggleDevice";
 import { ColorWheel } from "./ColorWheel";
 import type { DeviceControlPanelProps } from "./device-control-panel.types";

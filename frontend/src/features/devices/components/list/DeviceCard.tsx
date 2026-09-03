@@ -23,9 +23,11 @@ import {
 	DropdownMenuTrigger,
 } from "@/core/components/ui/dropdown-menu";
 import { useDebouncedValue } from "@/core/hooks/useDebouncedValue";
+import { useSyncedDeviceControl } from "@/core/hooks/useSyncedDeviceControl";
 import { DEVICE_CONFIG } from "../../constants/devices.constants";
 import { useDeleteDevice } from "../../hooks/useDeleteDevice";
 import { useDeviceMedia } from "../../hooks/useDeviceMedia";
+import { useSetDeviceBrightness } from "../../hooks/useSetDeviceBrightness";
 import { useSetDeviceVolume } from "../../hooks/useSetDeviceVolume";
 import { useToggleDevice } from "../../hooks/useToggleDevice";
 import { useDevicesUIStore } from "../../store/devices-ui.store";
@@ -47,15 +49,40 @@ export const DeviceCard: React.FC<DeviceCardProps> = ({ device }) => {
 	const confirm = useConfirm();
 	const [isTelemetryModalOpen, setIsTelemetryModalOpen] = useState(false);
 
-	// Estados locais para controles interativos embutidos
-	const [brightness, setBrightness] = useState(80);
-	const [isDraggingBrightness, setIsDraggingBrightness] = useState(false);
+	// Estados locais para controles interativos embutidos.
+	// Temperatura/modo do AC seguem mock puro de propósito (sem endpoint de
+	// temperatura-alvo no back-end hoje — fora de escopo aqui, ver
+	// ClimateControlPanel.tsx).
 	const [temperature, setTemperature] = useState(22);
 	const [climateMode, setClimateMode] = useState<"cool" | "fan">("cool");
 
 	const { mutate: toggleDevice, isPending: isToggling } = useToggleDevice();
 	const { mutate: deleteDevice, isPending: isDeleting } = useDeleteDevice();
 	const openEditModal = useDevicesUIStore((s) => s.openEditModal);
+
+	// Brilho (DP22) — mesmo padrão já usado em LightControlPanel.tsx: sincroniza
+	// com device.brightness (guardado contra sobrescrita durante arraste ativo
+	// via useSyncedDeviceControl) e reaproveita a mesma mutation de commit.
+	const {
+		value: brightness,
+		setValue: setBrightness,
+		isInteracting: isDraggingBrightness,
+		setIsInteracting: setIsDraggingBrightness,
+		lastCommittedRef: lastCommittedBrightnessRef,
+	} = useSyncedDeviceControl(device.brightness, 50);
+	const { mutate: commitBrightness_ } = useSetDeviceBrightness();
+
+	const commitBrightness = (value: number) => {
+		commitBrightness_(
+			{ deviceId: device.id, brightnessPercent: value },
+			{
+				onSuccess: () => {
+					lastCommittedBrightnessRef.current = value;
+				},
+				onError: () => setBrightness(lastCommittedBrightnessRef.current),
+			},
+		);
+	};
 
 	const handleDeleteClick = async () => {
 		const confirmed = await confirm({
@@ -183,6 +210,7 @@ export const DeviceCard: React.FC<DeviceCardProps> = ({ device }) => {
 								e.currentTarget.releasePointerCapture(e.pointerId);
 							}
 							setIsDraggingBrightness(false);
+							commitBrightness(brightness);
 						}}
 					>
 						<div

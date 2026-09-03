@@ -1,5 +1,5 @@
 import { HttpResponse, http } from "msw";
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { Toaster } from "@/core/components/ui/sonner";
 import {
 	DeviceTypeEnum,
@@ -8,6 +8,7 @@ import {
 import { createDeviceMock } from "@/testing/mocks/device.mock";
 import { server } from "@/testing/mocks/server";
 import {
+	fireEvent,
 	renderWithProviders,
 	screen,
 	userEvent,
@@ -16,6 +17,29 @@ import {
 } from "@/testing/test-utils";
 import { useDevicesUIStore } from "../../../store/devices-ui.store";
 import { DeviceCard } from "../DeviceCard";
+
+/** jsdom returns an all-zero rect by default; give the slider a real width
+ * so the pointer-drag percentage math resolves to a real number instead of
+ * NaN. Native PointerEvent capture (setPointerCapture) also isn't
+ * meaningfully simulated by userEvent.pointer() in this jsdom setup, so
+ * drag tests use fireEvent directly — same exception already used for the
+ * identical pattern in LightControlPanel's brightness slider test. */
+function mockSliderGeometry(slider: HTMLElement) {
+	vi.spyOn(slider, "getBoundingClientRect").mockReturnValue({
+		left: 0,
+		top: 0,
+		width: 100,
+		height: 10,
+		right: 100,
+		bottom: 10,
+		x: 0,
+		y: 0,
+		toJSON: () => {},
+	});
+	slider.setPointerCapture = vi.fn();
+	slider.releasePointerCapture = vi.fn();
+	slider.hasPointerCapture = vi.fn().mockReturnValue(true);
+}
 
 function mockTelemetry() {
 	server.use(
@@ -265,6 +289,119 @@ describe("DeviceCard Integration Tests", () => {
 		// Assert
 		expect(screen.getByText("Brilho")).toBeInTheDocument();
 		expect(screen.getByRole("button", { name: "Brilho" })).toBeInTheDocument();
+	});
+
+	it("DeviceCard_LightHasBrightness_ShouldInitializeSliderWithRemoteValue", () => {
+		// Arrange
+		const mockDevice = createDeviceMock({
+			type: DeviceTypeEnum.Light,
+			isOn: true,
+			isOnline: true,
+			brightness: 65,
+		});
+
+		// Act
+		renderWithProviders(<DeviceCard device={mockDevice} />);
+
+		// Assert
+		expect(screen.getByText("65%")).toBeInTheDocument();
+	});
+
+	it("DeviceCard_LightBrightnessIsNull_ShouldFallbackTo50Percent", () => {
+		// Arrange
+		const mockDevice = createDeviceMock({
+			type: DeviceTypeEnum.Light,
+			isOn: true,
+			isOnline: true,
+			brightness: null,
+		});
+
+		// Act
+		renderWithProviders(<DeviceCard device={mockDevice} />);
+
+		// Assert
+		expect(screen.getByText("50%")).toBeInTheDocument();
+	});
+
+	it("DeviceCard_LightBrightnessPropUpdatesWhenNotDragging_ShouldReflectNewValue", async () => {
+		// Arrange — simulates a refetch (or a SignalR-driven update) bringing a
+		// brightness set from somewhere else while the card stays mounted.
+		const mockDevice = createDeviceMock({
+			type: DeviceTypeEnum.Light,
+			isOn: true,
+			isOnline: true,
+			brightness: 30,
+		});
+		const { rerender } = renderWithProviders(
+			<DeviceCard device={mockDevice} />,
+		);
+		expect(screen.getByText("30%")).toBeInTheDocument();
+
+		// Act
+		rerender(<DeviceCard device={{ ...mockDevice, brightness: 90 }} />);
+
+		// Assert
+		expect(screen.getByText("90%")).toBeInTheDocument();
+		expect(screen.queryByText("30%")).not.toBeInTheDocument();
+	});
+
+	it("DeviceCard_LightBrightnessPropUpdatesDuringActiveDrag_ShouldNotOverwriteLocalValueMidGesture", async () => {
+		// Arrange
+		const mockDevice = createDeviceMock({
+			type: DeviceTypeEnum.Light,
+			isOn: true,
+			isOnline: true,
+			brightness: 30,
+		});
+		const { rerender } = renderWithProviders(
+			<DeviceCard device={mockDevice} />,
+		);
+		const slider = screen.getByRole("button", { name: "Brilho" });
+		mockSliderGeometry(slider);
+
+		// Act — starts dragging (sets local brightness to 75% via the pointer
+		// position), then a concurrent refetch delivers a different remote value.
+		fireEvent.pointerDown(slider, { clientX: 75, pointerId: 1 });
+		expect(screen.getByText("75%")).toBeInTheDocument();
+
+		rerender(<DeviceCard device={{ ...mockDevice, brightness: 90 }} />);
+
+		// Assert — the mid-gesture value must survive the concurrent update
+		expect(screen.getByText("75%")).toBeInTheDocument();
+		expect(screen.queryByText("90%")).not.toBeInTheDocument();
+
+		fireEvent.pointerUp(slider, { pointerId: 1 });
+	});
+
+	it("DeviceCard_LightBrightnessDragReleased_ShouldCommitBrightnessMutationWithDraggedValue", async () => {
+		// Arrange
+		let capturedBody: unknown = null;
+		server.use(
+			http.put("*/api/devices/:id/brightness", async ({ request }) => {
+				capturedBody = await request.json();
+				return new HttpResponse(null, { status: 200 });
+			}),
+		);
+		const mockDevice = createDeviceMock({
+			id: "device-light-1",
+			type: DeviceTypeEnum.Light,
+			isOn: true,
+			isOnline: true,
+			brightness: 30,
+		});
+		renderWithProviders(<DeviceCard device={mockDevice} />);
+		const slider = screen.getByRole("button", { name: "Brilho" });
+		mockSliderGeometry(slider);
+
+		// Act
+		fireEvent.pointerDown(slider, { clientX: 40, pointerId: 1 });
+		fireEvent.pointerUp(slider, { pointerId: 1 });
+
+		// Assert
+		expect(screen.getByText("40%")).toBeInTheDocument();
+		await waitFor(() => {
+			expect(capturedBody).toEqual({ brightnessPercent: 40 });
+		});
 	});
 
 	it("DeviceCard_SwitchType_ShouldRenderPowerConsumptionAndVoltage", () => {
