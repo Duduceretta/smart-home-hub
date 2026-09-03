@@ -8,7 +8,11 @@ public class SystemEventConfiguration : IEntityTypeConfiguration<SystemEvent>
 {
     public void Configure(EntityTypeBuilder<SystemEvent> builder)
     {
-        builder.HasKey(events => events.Id);
+        // Chave composta (Id, Timestamp), não só Id: TimescaleDB exige que a
+        // coluna de particionamento (Timestamp) faça parte de toda PK/unique
+        // constraint numa hypertable — Id sozinho não seria suficiente pra
+        // converter esta tabela via create_hypertable.
+        builder.HasKey(events => new { events.Id, events.Timestamp });
 
         builder.Property(events => events.Title).IsRequired().HasMaxLength(100);
         builder.Property(events => events.Description).HasMaxLength(255);
