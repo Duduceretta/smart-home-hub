@@ -17,6 +17,12 @@ Conforme o monólito cresce, adotamos defesas arquiteturais:
 - **Agregados (DDD):** Tratamos as raízes (ex: `Device`). O código nunca manipula o `DeviceTelemetryLog` solto — ele passa pelas regras do Device.
 - **Diagramas (Mermaid.js):** Recomendado para prever impactos visuais de novas tabelas antes de migrar — ainda não formalizado como processo obrigatório no fluxo de PR.
 
+### 1.3. Exceção deliberada: `Database.SqlQuery<T>` para Continuous Aggregates
+
+O projeto é LINQ-to-Entities por padrão — toda consulta contra uma entidade mapeada pelo `AppDbContext` passa por `DbSet<T>`/LINQ, nunca SQL cru. A exceção **intencional** é consultar *Continuous Aggregates* do TimescaleDB (ex: `device_telemetry_daily`, criada via `CREATE MATERIALIZED VIEW ... WITH (timescaledb.continuous)` numa migration): essas views não são entidades do EF Core — não têm `DbSet`, não aparecem no `OnModelCreating`, e o EF não tem como gerar LINQ pra elas.
+
+Pra esse caso específico, `dbContext.Database.SqlQuery<TProjection>($"...")` é o padrão correto, não um desvio a ser "corrigido" de volta pra LINQ numa auditoria futura — desde que a interpolação use sempre `$"..."` (gera `FormattableString`, parametrizado de verdade pelo EF Core) e nunca concatenação manual de string. Ver `GetDeviceTelemetryHistoryQuery.cs` como referência real: junta pontos vindos da tabela bruta (`DeviceTelemetryLogs`, via LINQ normal) com pontos vindos da aggregate (via `SqlQuery<T>`) no mesmo DTO de saída.
+
 ---
 
 ## 2. Padrões de Projeto do Back-end
