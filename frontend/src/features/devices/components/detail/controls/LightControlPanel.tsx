@@ -33,10 +33,12 @@ const PRESET_COLORS = [
  * liga/desliga migrado pra esquerda do card (era só o ícone no canto
  * superior direito).
  *
- * Sem estado de brilho/cor/temp vindo do GET (write-only, sem DP de leitura
- * exposto pela API) — os controles começam num valor local e refletem só a
- * última intenção enviada nesta sessão, exceto a aba ativa (essa sim lida
- * do hardware real).
+ * Brilho já é lido de verdade do GET (`device.brightness`, persistido no
+ * banco após confirmação do hardware Tuya) e sincronizado a cada
+ * atualização de `device` — mesmo padrão do volume de TV em
+ * `DeviceCard.tsx`. Cor e temperatura de cor continuam write-only (sem DP
+ * de leitura exposto pela API ainda) — controles começam num valor local e
+ * refletem só a última intenção enviada nesta sessão.
  */
 export function LightControlPanel({ device }: DeviceControlPanelProps) {
 	const { t } = useTranslation("devices");
@@ -71,11 +73,34 @@ export function LightControlPanel({ device }: DeviceControlPanelProps) {
 	};
 
 	// --- Brilho (DP22) ---
-	const [brightness, setBrightness] = useState(80);
+	// Fallback 50 só pra dispositivo que nunca teve brilho definido
+	// (device.brightness null) — não é mais um valor fixo de sessão.
+	const [brightness, setBrightness] = useState(device.brightness ?? 50);
 	const [isDraggingBrightness, setIsDraggingBrightness] = useState(false);
-	const lastCommittedBrightnessRef = useRef(80);
+	const lastCommittedBrightnessRef = useRef(device.brightness ?? 50);
 	const { mutate: commitBrightness_, isPending: isSettingBrightness } =
 		useSetDeviceBrightness();
+
+	// Espelha isDraggingBrightness num ref só pra ler dentro do efeito abaixo
+	// sem listar isDraggingBrightness nas deps — ver comentário do efeito.
+	const isDraggingBrightnessRef = useRef(isDraggingBrightness);
+	useEffect(() => {
+		isDraggingBrightnessRef.current = isDraggingBrightness;
+	}, [isDraggingBrightness]);
+
+	// Sincroniza com o valor real vindo da API (GET inicial, refetch, ou
+	// evento SignalR de outra origem — ex: automação) — mesmo padrão já
+	// usado pro volume de TV em DeviceCard.tsx. Só dispara quando
+	// device.brightness muda de verdade (não quando o arraste termina) —
+	// se isDraggingBrightness estivesse nas deps, soltar o dedo re-rodaria
+	// o efeito com o `device` ainda desatualizado (o refetch é assíncrono) e
+	// "puxaria" o valor recém-arrastado de volta pro antigo por um instante.
+	useEffect(() => {
+		if (isDraggingBrightnessRef.current) return;
+		const remoteBrightness = device.brightness ?? 50;
+		setBrightness(remoteBrightness);
+		lastCommittedBrightnessRef.current = remoteBrightness;
+	}, [device.brightness]);
 
 	const commitBrightness = (value: number) => {
 		commitBrightness_(

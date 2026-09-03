@@ -93,6 +93,8 @@ export interface Device {
 	supportsColor: boolean;
 	/** Cru (null = detecção automática, true/false = override manual) — usar só pra pré-preencher o EditDeviceModal. */
 	supportsColorOverride: boolean | null;
+	/** Último brilho (0-100) confirmado com sucesso no hardware — null se o dispositivo nunca teve brilho definido via PUT .../brightness. */
+	brightness: number | null;
 }
 
 /**

@@ -21,6 +21,7 @@ export function createDeviceMock(overrides?: Partial<Device>): Device {
 		lastActivityMinutes: 5,
 		supportsColor: false,
 		supportsColorOverride: null,
+		brightness: null,
 	};
 
 	return {
