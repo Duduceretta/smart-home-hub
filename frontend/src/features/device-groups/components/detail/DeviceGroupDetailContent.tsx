@@ -27,7 +27,11 @@ export function DeviceGroupDetailContent({
 		<div className="min-h-0 flex-1 overflow-y-auto pt-4 pb-8 lg:px-6 lg:pt-6 scrollbar-thin">
 			<div className="flex flex-col gap-6">
 				{/* Compact Master Group Control (Power + Collective Brightness) */}
-				<DeviceGroupMasterControl groupId={group.id} devices={group.devices} />
+				<DeviceGroupMasterControl
+					groupId={group.id}
+					devices={group.devices}
+					averageBrightness={group.averageBrightness}
+				/>
 
 				{/* Group Summary KPIs */}
 				<div className="grid grid-cols-1 gap-3 sm:grid-cols-3">

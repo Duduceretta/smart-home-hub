@@ -1,8 +1,8 @@
 import { Loader2, Power, Sun } from "lucide-react";
-import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { Switch } from "@/core/components/ui/switch";
+import { useSyncedDeviceControl } from "@/core/hooks/useSyncedDeviceControl";
 import { cn } from "@/core/utils";
 import { useSetDeviceGroupBrightness } from "../../hooks/useSetDeviceGroupBrightness";
 import { useSetDeviceGroupPower } from "../../hooks/useSetDeviceGroupPower";
@@ -11,6 +11,8 @@ import type { DeviceInGroup } from "../../types/device-groups.types";
 interface DeviceGroupMasterControlProps {
 	groupId: string;
 	devices: DeviceInGroup[];
+	/** Média arredondada do brilho das luzes online do grupo (ver `DeviceGroupDto.AverageBrightness` no backend) — null se nenhuma luz atender aos critérios. */
+	averageBrightness: number | null;
 }
 
 /**
@@ -20,12 +22,23 @@ interface DeviceGroupMasterControlProps {
 export function DeviceGroupMasterControl({
 	groupId,
 	devices,
+	averageBrightness,
 }: DeviceGroupMasterControlProps) {
 	const { t } = useTranslation("device-groups");
 	const setPower = useSetDeviceGroupPower();
 	const setBrightness = useSetDeviceGroupBrightness();
 
-	const [collectiveBrightness, setCollectiveBrightness] = useState(80);
+	// Sincroniza com o brilho médio real vindo da API (GET inicial, refetch) —
+	// mesmo padrão já usado no brilho individual de LightControlPanel.tsx/
+	// DeviceCard.tsx. Fallback 50 = ponto médio, só usado quando nenhuma luz
+	// do grupo atende aos critérios do backend (nenhuma online com brilho
+	// definido) — não há "80% de sessão" mais.
+	const {
+		value: collectiveBrightness,
+		setValue: setCollectiveBrightness,
+		setIsInteracting: setIsInteractingBrightness,
+		lastCommittedRef: lastCommittedBrightnessRef,
+	} = useSyncedDeviceControl(averageBrightness, 50);
 
 	const totalCount = devices.length;
 	const activeCount = devices.filter((d) => d.isOn).length;
@@ -89,6 +102,7 @@ export function DeviceGroupMasterControl({
 			{ groupId, brightnessPercent: val },
 			{
 				onSuccess: () => {
+					lastCommittedBrightnessRef.current = val;
 					toast.success(
 						t(
 							"masterControl.brightnessSuccess",
@@ -99,6 +113,9 @@ export function DeviceGroupMasterControl({
 							},
 						),
 					);
+				},
+				onError: () => {
+					setCollectiveBrightness(lastCommittedBrightnessRef.current);
 				},
 			},
 		);
@@ -191,7 +208,11 @@ export function DeviceGroupMasterControl({
 							value={collectiveBrightness}
 							disabled={isBrightnessPending || !isAnyOn}
 							onChange={(e) => setCollectiveBrightness(Number(e.target.value))}
-							onPointerUp={() => handleCommitBrightness(collectiveBrightness)}
+							onPointerDown={() => setIsInteractingBrightness(true)}
+							onPointerUp={() => {
+								setIsInteractingBrightness(false);
+								handleCommitBrightness(collectiveBrightness);
+							}}
 							aria-label={t(
 								"masterControl.brightnessAria",
 								"Ajustar brilho coletivo",

@@ -20,6 +20,8 @@ export interface DeviceGroup {
 	name: string;
 	icon?: string | null;
 	devices: DeviceInGroup[];
+	/** Média arredondada do brilho (0-100) das luzes online do grupo que já têm brilho confirmado — null se nenhuma atender aos dois critérios. */
+	averageBrightness: number | null;
 }
 
 /**

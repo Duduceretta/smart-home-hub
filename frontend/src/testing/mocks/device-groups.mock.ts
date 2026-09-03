@@ -34,6 +34,7 @@ export function createDeviceGroupMock(
 				isOn: true,
 			}),
 		],
+		averageBrightness: null,
 	};
 
 	return { ...defaultMock, ...overrides };
