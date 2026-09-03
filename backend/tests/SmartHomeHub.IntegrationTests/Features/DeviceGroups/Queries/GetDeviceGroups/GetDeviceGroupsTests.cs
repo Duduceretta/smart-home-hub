@@ -16,14 +16,17 @@ public class GetDeviceGroupsTests(IntegrationTestWebAppFactory factory)
         string Brand,
         string ExternalId,
         DeviceType Type,
-        bool IsOn
+        bool IsOn,
+        bool IsOnline,
+        int? Brightness
     );
 
     private record DeviceGroupResponse(
         Guid Id,
         string Name,
         string? Icon,
-        List<DeviceInGroupResponse> Devices
+        List<DeviceInGroupResponse> Devices,
+        int? AverageBrightness
     );
 
     public record PagedResponse<T>(
@@ -183,5 +186,218 @@ public class GetDeviceGroupsTests(IntegrationTestWebAppFactory factory)
         pagedResult.Items.Should().HaveCount(2);
         pagedResult.Items[0].Name.Should().Be("C_Grupo");
         pagedResult.Items[1].Name.Should().Be("D_Grupo");
+    }
+
+    [Fact]
+    public async Task GetDeviceGroups_MultipleOnlineLightsWithBrightness_ShouldReturnRoundedAverage()
+    {
+        var loggedUser = new User
+        {
+            Id = Guid.NewGuid(),
+            Name = "Eduardo",
+            ExternalAuthUid = "firebase-token-123",
+        };
+
+        var light1 = new Device
+        {
+            UserId = loggedUser.Id,
+            Name = "Luz 1",
+            Brand = "A",
+            ExternalId = "M1",
+            Type = DeviceType.Light,
+            IsOnline = true,
+            Brightness = 40,
+        };
+        var light2 = new Device
+        {
+            UserId = loggedUser.Id,
+            Name = "Luz 2",
+            Brand = "A",
+            ExternalId = "M2",
+            Type = DeviceType.Light,
+            IsOnline = true,
+            Brightness = 81,
+        };
+
+        var group = new DeviceGroup
+        {
+            UserId = loggedUser.Id,
+            Name = "Sala",
+            Devices = [light1, light2],
+        };
+
+        DbContext.Users.Add(loggedUser);
+        DbContext.Devices.AddRange(light1, light2);
+        DbContext.DeviceGroups.Add(group);
+        await DbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+
+        var response = await Client.GetAsync(
+            "/api/device-groups",
+            TestContext.Current.CancellationToken
+        );
+        var pagedResult = await response.Content.ReadFromJsonAsync<
+            PagedResponse<DeviceGroupResponse>
+        >(cancellationToken: TestContext.Current.CancellationToken);
+
+        // (40 + 81) / 2 = 60.5 -> arredonda pra 60 (banker's rounding do Math.Round)
+        pagedResult!.Items.Single().AverageBrightness.Should().Be(60);
+    }
+
+    [Fact]
+    public async Task GetDeviceGroups_LightOfflineOrWithoutBrightness_ShouldBeExcludedFromAverage()
+    {
+        var loggedUser = new User
+        {
+            Id = Guid.NewGuid(),
+            Name = "Eduardo",
+            ExternalAuthUid = "firebase-token-123",
+        };
+
+        var onlineLightWithBrightness = new Device
+        {
+            UserId = loggedUser.Id,
+            Name = "Luz Online",
+            Brand = "A",
+            ExternalId = "M1",
+            Type = DeviceType.Light,
+            IsOnline = true,
+            Brightness = 50,
+        };
+        var offlineLightWithBrightness = new Device
+        {
+            UserId = loggedUser.Id,
+            Name = "Luz Offline",
+            Brand = "A",
+            ExternalId = "M2",
+            Type = DeviceType.Light,
+            IsOnline = false,
+            Brightness = 90,
+        };
+        var onlineLightWithoutBrightness = new Device
+        {
+            UserId = loggedUser.Id,
+            Name = "Luz Sem Brilho Ajustado",
+            Brand = "A",
+            ExternalId = "M3",
+            Type = DeviceType.Light,
+            IsOnline = true,
+            Brightness = null,
+        };
+        var onlineSwitchWithBrightness = new Device
+        {
+            UserId = loggedUser.Id,
+            Name = "Tomada (não é luz)",
+            Brand = "A",
+            ExternalId = "M4",
+            Type = DeviceType.Switch,
+            IsOnline = true,
+            Brightness = 100,
+        };
+
+        var group = new DeviceGroup
+        {
+            UserId = loggedUser.Id,
+            Name = "Sala",
+            Devices =
+            [
+                onlineLightWithBrightness,
+                offlineLightWithBrightness,
+                onlineLightWithoutBrightness,
+                onlineSwitchWithBrightness,
+            ],
+        };
+
+        DbContext.Users.Add(loggedUser);
+        DbContext.Devices.AddRange(
+            onlineLightWithBrightness,
+            offlineLightWithBrightness,
+            onlineLightWithoutBrightness,
+            onlineSwitchWithBrightness
+        );
+        DbContext.DeviceGroups.Add(group);
+        await DbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+
+        var response = await Client.GetAsync(
+            "/api/device-groups",
+            TestContext.Current.CancellationToken
+        );
+        var pagedResult = await response.Content.ReadFromJsonAsync<
+            PagedResponse<DeviceGroupResponse>
+        >(cancellationToken: TestContext.Current.CancellationToken);
+
+        // Só a "Luz Online" (50) conta — offline, sem brilho, e não-luz ficam de fora.
+        pagedResult!.Items.Single().AverageBrightness.Should().Be(50);
+    }
+
+    [Fact]
+    public async Task GetDeviceGroups_NoLightMeetsBothCriteria_ShouldReturnNullAverageBrightness()
+    {
+        var loggedUser = new User
+        {
+            Id = Guid.NewGuid(),
+            Name = "Eduardo",
+            ExternalAuthUid = "firebase-token-123",
+        };
+
+        var offlineLight = new Device
+        {
+            UserId = loggedUser.Id,
+            Name = "Luz Offline",
+            Brand = "A",
+            ExternalId = "M1",
+            Type = DeviceType.Light,
+            IsOnline = false,
+            Brightness = 70,
+        };
+        var group = new DeviceGroup
+        {
+            UserId = loggedUser.Id,
+            Name = "Sala",
+            Devices = [offlineLight],
+        };
+
+        DbContext.Users.Add(loggedUser);
+        DbContext.Devices.Add(offlineLight);
+        DbContext.DeviceGroups.Add(group);
+        await DbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+
+        var response = await Client.GetAsync(
+            "/api/device-groups",
+            TestContext.Current.CancellationToken
+        );
+        var pagedResult = await response.Content.ReadFromJsonAsync<
+            PagedResponse<DeviceGroupResponse>
+        >(cancellationToken: TestContext.Current.CancellationToken);
+
+        pagedResult!.Items.Single().AverageBrightness.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task GetDeviceGroups_GroupWithNoDevicesAtAll_ShouldReturnNullAverageBrightnessWithoutBreaking()
+    {
+        var loggedUser = new User
+        {
+            Id = Guid.NewGuid(),
+            Name = "Eduardo",
+            ExternalAuthUid = "firebase-token-123",
+        };
+        var emptyGroup = new DeviceGroup { UserId = loggedUser.Id, Name = "Grupo Vazio" };
+
+        DbContext.Users.Add(loggedUser);
+        DbContext.DeviceGroups.Add(emptyGroup);
+        await DbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+
+        var response = await Client.GetAsync(
+            "/api/device-groups",
+            TestContext.Current.CancellationToken
+        );
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        var pagedResult = await response.Content.ReadFromJsonAsync<
+            PagedResponse<DeviceGroupResponse>
+        >(cancellationToken: TestContext.Current.CancellationToken);
+
+        pagedResult!.Items.Single().AverageBrightness.Should().BeNull();
     }
 }

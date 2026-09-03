@@ -31,7 +31,9 @@ public class GetDeviceGroupByIdQueryHandler(IAppDbContext dbContext)
                         device.Brand,
                         device.ExternalId,
                         device.Type,
-                        device.IsOn
+                        device.IsOn,
+                        device.IsOnline,
+                        device.Brightness
                     ))
                     .ToList()
             ))
