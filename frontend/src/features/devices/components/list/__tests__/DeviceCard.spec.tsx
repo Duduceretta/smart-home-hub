@@ -1,6 +1,10 @@
 import { HttpResponse, http } from "msw";
-import { describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 import { Toaster } from "@/core/components/ui/sonner";
+import {
+	DeviceTypeEnum,
+	IntegrationTypeEnum,
+} from "@/features/devices/types/devices.types";
 import { createDeviceMock } from "@/testing/mocks/device.mock";
 import { server } from "@/testing/mocks/server";
 import {
@@ -10,9 +14,26 @@ import {
 	waitFor,
 	within,
 } from "@/testing/test-utils";
+import { useDevicesUIStore } from "../../../store/devices-ui.store";
 import { DeviceCard } from "../DeviceCard";
 
+function mockTelemetry() {
+	server.use(
+		http.get("*/api/devices/:id/telemetry", () =>
+			HttpResponse.json({
+				deviceId: "device-light-1",
+				deviceName: "Lâmpada da Sala",
+				points: [],
+			}),
+		),
+	);
+}
+
 describe("DeviceCard Integration Tests", () => {
+	beforeEach(() => {
+		useDevicesUIStore.setState({ editingDevice: null });
+	});
+
 	it("DeviceCard_DeviceOnline_ShouldRenderInfoAndActiveSwitch", () => {
 		// Arrange
 		const mockDevice = createDeviceMock({
@@ -161,5 +182,258 @@ describe("DeviceCard Integration Tests", () => {
 		await waitFor(() => {
 			expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument();
 		});
+	});
+
+	it("DeviceCard_CancelDeleteConfirmation_ShouldNotCallDeleteApi", async () => {
+		// Arrange
+		let deleteCalled = false;
+		server.use(
+			http.delete("*/api/devices/:id", async () => {
+				deleteCalled = true;
+				return new HttpResponse(null, { status: 204 });
+			}),
+		);
+		const user = userEvent.setup();
+		const mockDevice = createDeviceMock({ name: "Lâmpada da Sala" });
+		renderWithProviders(<DeviceCard device={mockDevice} />);
+
+		// Act
+		await user.click(
+			screen.getByRole("button", { name: /mais opções do dispositivo/i }),
+		);
+		await user.click(await screen.findByRole("menuitem", { name: /excluir/i }));
+		const confirmDialog = await screen.findByRole("alertdialog");
+		await user.click(
+			within(confirmDialog).getByRole("button", { name: /^cancelar$/i }),
+		);
+
+		// Assert
+		await waitFor(() => {
+			expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument();
+		});
+		expect(deleteCalled).toBe(false);
+		expect(screen.getByText("Lâmpada da Sala")).toBeInTheDocument();
+	});
+
+	it("DeviceCard_EditViaOptionsMenu_ShouldLoadDeviceIntoEditModalStore", async () => {
+		// Arrange
+		const user = userEvent.setup();
+		const mockDevice = createDeviceMock({
+			id: "device-edit-1",
+			name: "Lâmpada da Sala",
+		});
+		renderWithProviders(<DeviceCard device={mockDevice} />);
+
+		// Act
+		await user.click(
+			screen.getByRole("button", { name: /mais opções do dispositivo/i }),
+		);
+		await user.click(await screen.findByRole("menuitem", { name: /editar/i }));
+
+		// Assert
+		expect(useDevicesUIStore.getState().editingDevice).toEqual(mockDevice);
+	});
+
+	it("DeviceCard_ClickDeviceName_ShouldOpenTelemetrySheet", async () => {
+		// Arrange
+		mockTelemetry();
+		const user = userEvent.setup();
+		const mockDevice = createDeviceMock({
+			id: "device-light-1",
+			name: "Lâmpada da Sala",
+		});
+		renderWithProviders(<DeviceCard device={mockDevice} />);
+
+		// Act
+		await user.click(screen.getByRole("button", { name: "Lâmpada da Sala" }));
+
+		// Assert
+		const sheet = await screen.findByRole("dialog");
+		expect(within(sheet).getByText("Lâmpada da Sala")).toBeInTheDocument();
+	});
+
+	it("DeviceCard_LightType_ShouldRenderBrightnessControl", () => {
+		// Arrange
+		const mockDevice = createDeviceMock({
+			type: DeviceTypeEnum.Light,
+			isOn: true,
+		});
+
+		// Act
+		renderWithProviders(<DeviceCard device={mockDevice} />);
+
+		// Assert
+		expect(screen.getByText("Brilho")).toBeInTheDocument();
+		expect(screen.getByRole("button", { name: "Brilho" })).toBeInTheDocument();
+	});
+
+	it("DeviceCard_SwitchType_ShouldRenderPowerConsumptionAndVoltage", () => {
+		// Arrange
+		const mockDevice = createDeviceMock({ type: DeviceTypeEnum.Switch });
+
+		// Act
+		renderWithProviders(<DeviceCard device={mockDevice} />);
+
+		// Assert
+		expect(screen.getByText("Consumo")).toBeInTheDocument();
+		expect(screen.getByText("Tensão")).toBeInTheDocument();
+		expect(screen.getByText("127V")).toBeInTheDocument();
+	});
+
+	it("DeviceCard_ThermostatType_ShouldRenderTemperatureControls", () => {
+		// Arrange
+		const mockDevice = createDeviceMock({ type: DeviceTypeEnum.Thermostat });
+
+		// Act
+		renderWithProviders(<DeviceCard device={mockDevice} />);
+
+		// Assert
+		expect(screen.getByText("TEMPERATURA ALVO")).toBeInTheDocument();
+		expect(screen.getByText("22")).toBeInTheDocument();
+	});
+
+	it("DeviceCard_ThermostatTypeOffline_ShouldDisableTemperatureButtons", () => {
+		// Arrange — the +/-/mode icon buttons carry no accessible name, so this
+		// asserts on the DOM's disabled state directly rather than by role name.
+		const mockDevice = createDeviceMock({
+			type: DeviceTypeEnum.Thermostat,
+			isOnline: false,
+		});
+
+		// Act
+		const { container } = renderWithProviders(
+			<DeviceCard device={mockDevice} />,
+		);
+
+		// Assert
+		const temperatureSection = screen
+			.getByText("TEMPERATURA ALVO")
+			.closest("div")?.parentElement;
+		const controlButtons = within(
+			(temperatureSection ?? container) as HTMLElement,
+		).getAllByRole("button");
+		expect(controlButtons.length).toBeGreaterThan(0);
+		for (const button of controlButtons) {
+			expect(button).toBeDisabled();
+		}
+	});
+
+	it("DeviceCard_ThermostatOnlineClickControls_ShouldAdjustTemperatureAndSwitchMode", async () => {
+		// Arrange — +/-/mode buttons carry no accessible name; scope the query
+		// to the temperature section and rely on click order (+, -, fan mode).
+		const user = userEvent.setup();
+		const mockDevice = createDeviceMock({
+			type: DeviceTypeEnum.Thermostat,
+			isOnline: true,
+		});
+		renderWithProviders(<DeviceCard device={mockDevice} />);
+		const temperatureSection = screen
+			.getByText("TEMPERATURA ALVO")
+			.closest("div")?.parentElement as HTMLElement;
+		const [increaseButton, decreaseButton, , fanModeButton] =
+			within(temperatureSection).getAllByRole("button");
+
+		// Act
+		await user.click(increaseButton);
+		await user.click(increaseButton);
+		await user.click(decreaseButton);
+
+		// Assert — 22 (default) + 1 + 1 - 1 = 23
+		expect(screen.getByText("23")).toBeInTheDocument();
+
+		// Act — switches from the default "cool" mode to "fan"
+		await user.click(fanModeButton);
+
+		// Assert
+		expect(fanModeButton.className).toContain("bg-cool");
+	});
+
+	it("DeviceCard_TelevisionWithMediaPlaying_ShouldShowNowPlayingInfoAndReproducingBadge", async () => {
+		// Arrange
+		server.use(
+			http.get("*/api/devices/:id/media", () =>
+				HttpResponse.json({
+					volumePercent: 30,
+					isPlaying: true,
+					title: "Filme em Cartaz",
+					artist: "Estúdio X",
+				}),
+			),
+		);
+		const mockDevice = createDeviceMock({
+			id: "tv-1",
+			type: DeviceTypeEnum.Television,
+			integrationType: IntegrationTypeEnum.AndroidTvAdb,
+			isOnline: true,
+		});
+
+		// Act
+		renderWithProviders(<DeviceCard device={mockDevice} />);
+
+		// Assert
+		expect(await screen.findByText("Filme em Cartaz")).toBeInTheDocument();
+		expect(screen.getByText("REPRODUZINDO")).toBeInTheDocument();
+	});
+
+	it("DeviceCard_TelevisionOnlineAndAdbControllable_ShouldEnableVolumeControl", () => {
+		// Arrange
+		const mockDevice = createDeviceMock({
+			type: DeviceTypeEnum.Television,
+			integrationType: IntegrationTypeEnum.AndroidTvAdb,
+			isOnline: true,
+		});
+
+		// Act
+		renderWithProviders(<DeviceCard device={mockDevice} />);
+
+		// Assert
+		expect(screen.getByRole("button", { name: "Volume" })).toBeEnabled();
+	});
+
+	it("DeviceCard_TelevisionOffline_ShouldDisableVolumeControlAndShowOfflineLabel", () => {
+		// Arrange
+		const mockDevice = createDeviceMock({
+			type: DeviceTypeEnum.Television,
+			integrationType: IntegrationTypeEnum.AndroidTvAdb,
+			isOnline: false,
+		});
+
+		// Act
+		renderWithProviders(<DeviceCard device={mockDevice} />);
+
+		// Assert
+		expect(screen.getByRole("button", { name: "Volume" })).toBeDisabled();
+		expect(screen.getAllByText("Dispositivo offline")[0]).toBeInTheDocument();
+	});
+
+	it("DeviceCard_TelevisionNotAdbControllable_ShouldDisableVolumeControlEvenOnline", () => {
+		// Arrange — LG WebOS TVs aren't ADB-controllable, so volume can't be set.
+		const mockDevice = createDeviceMock({
+			type: DeviceTypeEnum.Television,
+			integrationType: IntegrationTypeEnum.LgWebOs,
+			isOnline: true,
+		});
+
+		// Act
+		renderWithProviders(<DeviceCard device={mockDevice} />);
+
+		// Assert
+		expect(screen.getByRole("button", { name: "Volume" })).toBeDisabled();
+	});
+
+	it("DeviceCard_SensorType_ShouldRenderGenericOnOffStateBadge", () => {
+		// Arrange
+		const mockDevice = createDeviceMock({
+			type: DeviceTypeEnum.Sensor,
+			isOn: true,
+			isOnline: true,
+		});
+
+		// Act
+		renderWithProviders(<DeviceCard device={mockDevice} />);
+
+		// Assert
+		expect(screen.getByText("Estado")).toBeInTheDocument();
+		expect(screen.getByText("Ligado")).toBeInTheDocument();
 	});
 });
