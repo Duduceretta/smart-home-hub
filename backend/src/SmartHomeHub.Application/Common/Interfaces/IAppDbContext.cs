@@ -1,10 +1,13 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using SmartHomeHub.Domain.Entities;
 
 namespace SmartHomeHub.Application.Common.Interfaces;
 
 public interface IAppDbContext
 {
+    DatabaseFacade Database { get; }
+
     DbSet<User> Users { get; }
     DbSet<Room> Rooms { get; }
     DbSet<Device> Devices { get; }
