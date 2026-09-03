@@ -65,10 +65,7 @@ public class UpdateAutomationTests(IntegrationTestWebAppFactory factory)
 
         var physicalAutomation = await DbContext
             .Automations.AsNoTracking()
-            .FirstAsync(
-                a => a.Id == automation.Id,
-                TestContext.Current.CancellationToken
-            );
+            .FirstAsync(a => a.Id == automation.Id, TestContext.Current.CancellationToken);
 
         physicalAutomation.Name.Should().Be("Nome Novo");
         physicalAutomation.UpdatedAt.Should().NotBeNull();
@@ -113,10 +110,7 @@ public class UpdateAutomationTests(IntegrationTestWebAppFactory factory)
 
         var physicalAutomation = await DbContext
             .Automations.AsNoTracking()
-            .FirstAsync(
-                a => a.Id == victimAutomation.Id,
-                TestContext.Current.CancellationToken
-            );
+            .FirstAsync(a => a.Id == victimAutomation.Id, TestContext.Current.CancellationToken);
         physicalAutomation.Name.Should().Be("Rotina da Vítima");
     }
 
@@ -157,11 +151,7 @@ public class UpdateAutomationTests(IntegrationTestWebAppFactory factory)
 
         RecurringJobExists(automation.Id).Should().BeFalse();
 
-        var request = new UpdateAutomationRequest(
-            "Rotina Noturna",
-            PayloadWithCronTrigger,
-            true
-        );
+        var request = new UpdateAutomationRequest("Rotina Noturna", PayloadWithCronTrigger, true);
 
         var response = await Client.PutAsJsonAsync(
             $"/api/automations/{automation.Id}",
@@ -197,20 +187,14 @@ public class UpdateAutomationTests(IntegrationTestWebAppFactory factory)
         await DbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         // Simula o agendamento original que o Create teria feito.
-        RecurringJob.AddOrUpdate<
-            SmartHomeHub.Application.Common.Interfaces.IAutomationTimeTriggerJob
-        >(
+        RecurringJob.AddOrUpdate<SmartHomeHub.Application.Common.Interfaces.IAutomationTimeTriggerJob>(
             $"automation_time_{automation.Id}",
             job => job.ExecuteAsync(automation.Id),
             "0 22 * * *"
         );
         RecurringJobExists(automation.Id).Should().BeTrue();
 
-        var request = new UpdateAutomationRequest(
-            "Rotina Noturna",
-            PayloadWithCronTrigger,
-            false
-        );
+        var request = new UpdateAutomationRequest("Rotina Noturna", PayloadWithCronTrigger, false);
 
         var response = await Client.PutAsJsonAsync(
             $"/api/automations/{automation.Id}",

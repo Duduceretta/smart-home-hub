@@ -12,7 +12,9 @@ public class CompleteSpotifyConnectionCommandValidator
 {
     public CompleteSpotifyConnectionCommandValidator()
     {
-        RuleFor(command => command.State).NotEmpty().WithMessage("O parâmetro state é obrigatório.");
+        RuleFor(command => command.State)
+            .NotEmpty()
+            .WithMessage("O parâmetro state é obrigatório.");
         RuleFor(command => command.Code).NotEmpty().WithMessage("O parâmetro code é obrigatório.");
     }
 }
@@ -37,7 +39,11 @@ public class CompleteSpotifyConnectionCommandHandler(
                 )
             );
 
-        await spotifyMediaService.ExchangeCodeForTokensAsync(firebaseUid, request.Code, cancellationToken);
+        await spotifyMediaService.ExchangeCodeForTokensAsync(
+            firebaseUid,
+            request.Code,
+            cancellationToken
+        );
 
         return Result.Success();
     }

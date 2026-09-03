@@ -13,7 +13,8 @@ namespace SmartHomeHub.Application.Features.Devices.Queries.GetDeviceWorkMode;
 /// </summary>
 public record DeviceWorkModeResponseDto(string? WorkMode);
 
-public record GetDeviceWorkModeQuery(Guid DeviceId, string FirebaseUid) : IQuery<Result<DeviceWorkModeResponseDto>>;
+public record GetDeviceWorkModeQuery(Guid DeviceId, string FirebaseUid)
+    : IQuery<Result<DeviceWorkModeResponseDto>>;
 
 public class GetDeviceWorkModeQueryValidator : AbstractValidator<GetDeviceWorkModeQuery>
 {
@@ -71,8 +72,13 @@ public class GetDeviceWorkModeQueryHandler(
             device.Configuration.ProtocolVersion
         );
 
-        var tuyaResult = await tuyaLocalControlService.GetWorkModeAsync(connection, cancellationToken);
+        var tuyaResult = await tuyaLocalControlService.GetWorkModeAsync(
+            connection,
+            cancellationToken
+        );
 
-        return Result.Success(new DeviceWorkModeResponseDto(tuyaResult.IsSuccess ? tuyaResult.Value : null));
+        return Result.Success(
+            new DeviceWorkModeResponseDto(tuyaResult.IsSuccess ? tuyaResult.Value : null)
+        );
     }
 }

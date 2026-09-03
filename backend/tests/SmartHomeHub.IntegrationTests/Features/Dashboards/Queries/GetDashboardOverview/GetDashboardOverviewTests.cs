@@ -454,9 +454,7 @@ public class GetDashboardOverviewTests(IntegrationTestWebAppFactory factory)
 
         overview
             .RoomUsage.Should()
-            .ContainSingle(usage =>
-                usage.RoomId == livingRoom.Id && usage.Value == 0.25
-            );
+            .ContainSingle(usage => usage.RoomId == livingRoom.Id && usage.Value == 0.25);
         overview
             .RoomUsage.Should()
             .ContainSingle(usage => usage.RoomId == bedroom.Id && usage.Value == 0.1);

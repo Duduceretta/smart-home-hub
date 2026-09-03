@@ -186,8 +186,7 @@ public static class DevEndpoints
 
                     var mockDeviceIds = await dbContext
                         .Devices.Where(d =>
-                            d.UserId == user.Id
-                            && d.ExternalId.StartsWith(MockExternalIdPrefix)
+                            d.UserId == user.Id && d.ExternalId.StartsWith(MockExternalIdPrefix)
                         )
                         .Select(d => d.Id)
                         .ToListAsync(ct);
@@ -204,9 +203,7 @@ public static class DevEndpoints
                     }
 
                     var mockRoomIds = await dbContext
-                        .Rooms.Where(r =>
-                            r.UserId == user.Id && r.Name.EndsWith(MockRoomSuffix)
-                        )
+                        .Rooms.Where(r => r.UserId == user.Id && r.Name.EndsWith(MockRoomSuffix))
                         .Select(r => r.Id)
                         .ToListAsync(ct);
 
@@ -221,9 +218,7 @@ public static class DevEndpoints
                             roomsRemoved++;
                     }
 
-                    return Results.Ok(
-                        new ClearMockHouseResponse(devicesRemoved, roomsRemoved)
-                    );
+                    return Results.Ok(new ClearMockHouseResponse(devicesRemoved, roomsRemoved));
                 }
             )
             .RequireAuthorization()
@@ -377,9 +372,7 @@ public static class DevEndpoints
                         ct
                     );
 
-                    return Results.Ok(
-                        dps.ToDictionary(kv => kv.Key.ToString(), kv => kv.Value)
-                    );
+                    return Results.Ok(dps.ToDictionary(kv => kv.Key.ToString(), kv => kv.Value));
                 }
             )
             .RequireAuthorization()

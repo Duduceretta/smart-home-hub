@@ -24,7 +24,10 @@ public class TuyaColorConverterTests
     [Theory]
     [InlineData(-10, 10)]
     [InlineData(150, 1000)]
-    public void PercentToDeviceBrightness_OutOfRangePercent_ShouldClamp(int percent, int expectedDeviceValue)
+    public void PercentToDeviceBrightness_OutOfRangePercent_ShouldClamp(
+        int percent,
+        int expectedDeviceValue
+    )
     {
         // Act
         var result = TuyaColorConverter.PercentToDeviceBrightness(percent);

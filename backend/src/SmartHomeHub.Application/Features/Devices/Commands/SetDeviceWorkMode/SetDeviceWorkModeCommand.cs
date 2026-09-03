@@ -11,13 +11,16 @@ namespace SmartHomeHub.Application.Features.Devices.Commands.SetDeviceWorkMode;
 /// Troca as abas "Branco"/"Cor" no front-end — é uma mudança real de DP no
 /// dispositivo (work_mode), não só estado de UI, espelhando o app Smart Life.
 /// </summary>
-public record SetDeviceWorkModeCommand(Guid DeviceId, string FirebaseUid, string WorkMode) : ICommand<Result>;
+public record SetDeviceWorkModeCommand(Guid DeviceId, string FirebaseUid, string WorkMode)
+    : ICommand<Result>;
 
 public class SetDeviceWorkModeCommandValidator : AbstractValidator<SetDeviceWorkModeCommand>
 {
     public SetDeviceWorkModeCommandValidator()
     {
-        RuleFor(command => command.DeviceId).NotEmpty().WithMessage("O ID do dispositivo é obrigatório.");
+        RuleFor(command => command.DeviceId)
+            .NotEmpty()
+            .WithMessage("O ID do dispositivo é obrigatório.");
 
         RuleFor(command => command.FirebaseUid)
             .NotEmpty()
@@ -34,7 +37,10 @@ public class SetDeviceWorkModeCommandHandler(
     ITuyaLocalControlService tuyaLocalControlService
 ) : ICommandHandler<SetDeviceWorkModeCommand, Result>
 {
-    public async ValueTask<Result> Handle(SetDeviceWorkModeCommand request, CancellationToken cancellationToken)
+    public async ValueTask<Result> Handle(
+        SetDeviceWorkModeCommand request,
+        CancellationToken cancellationToken
+    )
     {
         var device = await dbContext.Devices.FirstOrDefaultAsync(
             d => d.Id == request.DeviceId && d.User.ExternalAuthUid == request.FirebaseUid,
@@ -46,12 +52,18 @@ public class SetDeviceWorkModeCommandHandler(
 
         if (device.Type != DeviceType.Light || device.IntegrationType != IntegrationType.TuyaLocal)
             return Result.Failure(
-                new Error("Device.WorkModeUnsupported", "Este dispositivo não suporta troca de modo.")
+                new Error(
+                    "Device.WorkModeUnsupported",
+                    "Este dispositivo não suporta troca de modo."
+                )
             );
 
         if (string.IsNullOrWhiteSpace(device.Configuration.LocalKey))
             return Result.Failure(
-                new Error("Device.MissingConfiguration", "O dispositivo Tuya não tem local_key configurada.")
+                new Error(
+                    "Device.MissingConfiguration",
+                    "O dispositivo Tuya não tem local_key configurada."
+                )
             );
 
         var connection = new TuyaDeviceConnectionInfo(
@@ -62,7 +74,11 @@ public class SetDeviceWorkModeCommandHandler(
             device.Configuration.ProtocolVersion
         );
 
-        var tuyaResult = await tuyaLocalControlService.SetWorkModeAsync(connection, request.WorkMode, cancellationToken);
+        var tuyaResult = await tuyaLocalControlService.SetWorkModeAsync(
+            connection,
+            request.WorkMode,
+            cancellationToken
+        );
 
         if (tuyaResult.IsFailure)
             return Result.Failure(tuyaResult.Error);

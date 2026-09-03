@@ -5,10 +5,10 @@ using Microsoft.Extensions.Logging;
 using NSubstitute;
 using SmartHomeHub.Application.Common.Interfaces;
 using SmartHomeHub.Application.Features.Dashboards.ActivityLog;
-using SmartHomeHub.Domain.Common.Constants;
 using SmartHomeHub.Application.Features.Devices.Commands.SetDeviceState;
 using SmartHomeHub.Application.Features.Devices.Common;
 using SmartHomeHub.Application.Features.Telemetry.Commands.ProcessTelemetry;
+using SmartHomeHub.Domain.Common.Constants;
 using SmartHomeHub.Domain.Common.Primitives;
 using SmartHomeHub.Domain.Entities;
 using SmartHomeHub.Domain.Enums;
@@ -21,14 +21,18 @@ namespace SmartHomeHub.UnitTests.Application.Features.History;
 public class SystemEventWritersTests
 {
     private readonly AppDbContext _dbContext;
-    private readonly IRealtimeNotificationService _notificationService = Substitute.For<IRealtimeNotificationService>();
+    private readonly IRealtimeNotificationService _notificationService =
+        Substitute.For<IRealtimeNotificationService>();
     private readonly IMqttService _mqttService = Substitute.For<IMqttService>();
     private readonly IGoogleTvService _googleTvService = Substitute.For<IGoogleTvService>();
-    private readonly IChromecastWakeService _chromecastWakeService = Substitute.For<IChromecastWakeService>();
+    private readonly IChromecastWakeService _chromecastWakeService =
+        Substitute.For<IChromecastWakeService>();
     private readonly IWakeOnLanService _wakeOnLanService = Substitute.For<IWakeOnLanService>();
-    private readonly ITuyaLocalControlService _tuyaService = Substitute.For<ITuyaLocalControlService>();
+    private readonly ITuyaLocalControlService _tuyaService =
+        Substitute.For<ITuyaLocalControlService>();
     private readonly IDeviceProbeService _probeService = Substitute.For<IDeviceProbeService>();
-    private readonly ISpotifyMediaService _spotifyMediaService = Substitute.For<ISpotifyMediaService>();
+    private readonly ISpotifyMediaService _spotifyMediaService =
+        Substitute.For<ISpotifyMediaService>();
     private readonly Mediator.IPublisher _publisher = Substitute.For<Mediator.IPublisher>();
 
     public SystemEventWritersTests()
@@ -44,7 +48,12 @@ public class SystemEventWritersTests
     {
         // Arrange
         var user = new User { Id = Guid.NewGuid(), ExternalAuthUid = "fb-user-1" };
-        var room = new Room { Id = Guid.NewGuid(), Name = "Cozinha", UserId = user.Id };
+        var room = new Room
+        {
+            Id = Guid.NewGuid(),
+            Name = "Cozinha",
+            UserId = user.Id,
+        };
         var device = new Device
         {
             Id = Guid.NewGuid(),
@@ -107,7 +116,12 @@ public class SystemEventWritersTests
     {
         // Arrange
         var user = new User { Id = Guid.NewGuid(), ExternalAuthUid = "fb-user-2" };
-        var room = new Room { Id = Guid.NewGuid(), Name = "Escritório", UserId = user.Id };
+        var room = new Room
+        {
+            Id = Guid.NewGuid(),
+            Name = "Escritório",
+            UserId = user.Id,
+        };
         var device = new Device
         {
             Id = Guid.NewGuid(),
@@ -127,7 +141,11 @@ public class SystemEventWritersTests
         _dbContext.Devices.Add(device);
         await _dbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
-        var handler = new ProcessTelemetryCommandHandler(_dbContext, _notificationService, _publisher);
+        var handler = new ProcessTelemetryCommandHandler(
+            _dbContext,
+            _notificationService,
+            _publisher
+        );
         var payload = """{"isOn": true, "powerUsageWatts": 15.0}""";
         var command = new ProcessTelemetryCommand("home/telemetry/sonoff-lamp-01", payload);
 
@@ -156,7 +174,12 @@ public class SystemEventWritersTests
     {
         // Arrange
         var user = new User { Id = Guid.NewGuid(), ExternalAuthUid = "fb-user-3" };
-        var room = new Room { Id = Guid.NewGuid(), Name = "Garagem", UserId = user.Id };
+        var room = new Room
+        {
+            Id = Guid.NewGuid(),
+            Name = "Garagem",
+            UserId = user.Id,
+        };
         var device = new Device
         {
             Id = Guid.NewGuid(),
@@ -186,7 +209,9 @@ public class SystemEventWritersTests
 
         var serviceProvider = Substitute.For<IServiceProvider>();
         serviceProvider.GetService(typeof(IAppDbContext)).Returns(_dbContext);
-        serviceProvider.GetService(typeof(IRealtimeNotificationService)).Returns(_notificationService);
+        serviceProvider
+            .GetService(typeof(IRealtimeNotificationService))
+            .Returns(_notificationService);
 
         var scope = Substitute.For<IServiceScope>();
         scope.ServiceProvider.Returns(serviceProvider);
@@ -246,7 +271,9 @@ public class SystemEventWritersTests
 
         var serviceProvider = Substitute.For<IServiceProvider>();
         serviceProvider.GetService(typeof(IAppDbContext)).Returns(_dbContext);
-        serviceProvider.GetService(typeof(IRealtimeNotificationService)).Returns(_notificationService);
+        serviceProvider
+            .GetService(typeof(IRealtimeNotificationService))
+            .Returns(_notificationService);
         serviceProvider.GetService(typeof(ISpotifyMediaService)).Returns(_spotifyMediaService);
 
         var scope = Substitute.For<IServiceScope>();
@@ -283,8 +310,18 @@ public class SystemEventWritersTests
     {
         // Arrange
         var user = new User { Id = Guid.NewGuid(), ExternalAuthUid = "fb-user-immutability" };
-        var room1 = new Room { Id = Guid.NewGuid(), Name = "Sala de Estar", UserId = user.Id };
-        var room2 = new Room { Id = Guid.NewGuid(), Name = "Quarto Principal", UserId = user.Id };
+        var room1 = new Room
+        {
+            Id = Guid.NewGuid(),
+            Name = "Sala de Estar",
+            UserId = user.Id,
+        };
+        var room2 = new Room
+        {
+            Id = Guid.NewGuid(),
+            Name = "Quarto Principal",
+            UserId = user.Id,
+        };
         var device = new Device
         {
             Id = Guid.NewGuid(),
@@ -316,7 +353,12 @@ public class SystemEventWritersTests
 
         // Act 1: Record initial state change
         await handler.Handle(
-            new SetDeviceStateCommand(device.Id, user.ExternalAuthUid, true, "trace-immutability-1"),
+            new SetDeviceStateCommand(
+                device.Id,
+                user.ExternalAuthUid,
+                true,
+                "trace-immutability-1"
+            ),
             TestContext.Current.CancellationToken
         );
 

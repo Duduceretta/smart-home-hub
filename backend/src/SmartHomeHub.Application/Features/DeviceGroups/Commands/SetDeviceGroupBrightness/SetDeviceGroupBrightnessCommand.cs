@@ -8,7 +8,11 @@ using SmartHomeHub.Domain.Enums;
 
 namespace SmartHomeHub.Application.Features.DeviceGroups.Commands.SetDeviceGroupBrightness;
 
-public record DeviceGroupBulkBrightnessResultDto(int SucceededCount, int FailedCount, int TotalCount);
+public record DeviceGroupBulkBrightnessResultDto(
+    int SucceededCount,
+    int FailedCount,
+    int TotalCount
+);
 
 public record SetDeviceGroupBrightnessCommand(
     Guid GroupId,
@@ -65,7 +69,10 @@ public class SetDeviceGroupBrightnessCommandHandler(IAppDbContext dbContext, ISe
 
         if (group == null)
             return Result.Failure<DeviceGroupBulkBrightnessResultDto>(
-                new Error("DeviceGroup.NotFound", "Grupo de dispositivos não encontrado ou sem permissão de acesso.")
+                new Error(
+                    "DeviceGroup.NotFound",
+                    "Grupo de dispositivos não encontrado ou sem permissão de acesso."
+                )
             );
 
         var lightDeviceIds = await dbContext
@@ -73,9 +80,7 @@ public class SetDeviceGroupBrightnessCommandHandler(IAppDbContext dbContext, ISe
             .Where(g => g.Id == request.GroupId && g.UserId == user.Id && !g.IsDeleted)
             .SelectMany(g => g.Devices)
             .Where(device =>
-                !device.IsDeleted
-                && device.IsOnline
-                && device.Type == DeviceType.Light
+                !device.IsDeleted && device.IsOnline && device.Type == DeviceType.Light
             )
             .Select(device => device.Id)
             .ToListAsync(cancellationToken);
@@ -104,7 +109,11 @@ public class SetDeviceGroupBrightnessCommandHandler(IAppDbContext dbContext, ISe
         }
 
         return Result.Success(
-            new DeviceGroupBulkBrightnessResultDto(succeededCount, failedCount, lightDeviceIds.Count)
+            new DeviceGroupBulkBrightnessResultDto(
+                succeededCount,
+                failedCount,
+                lightDeviceIds.Count
+            )
         );
     }
 }

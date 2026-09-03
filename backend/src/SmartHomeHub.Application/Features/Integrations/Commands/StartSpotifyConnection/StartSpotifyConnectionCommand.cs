@@ -7,7 +7,8 @@ namespace SmartHomeHub.Application.Features.Integrations.Commands.StartSpotifyCo
 
 public record StartSpotifyConnectionCommand(string FirebaseUid) : ICommand<Result<string>>;
 
-public class StartSpotifyConnectionCommandValidator : AbstractValidator<StartSpotifyConnectionCommand>
+public class StartSpotifyConnectionCommandValidator
+    : AbstractValidator<StartSpotifyConnectionCommand>
 {
     public StartSpotifyConnectionCommandValidator()
     {

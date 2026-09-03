@@ -214,7 +214,11 @@ public static class DeviceGroupEndpoints
                     if (string.IsNullOrEmpty(firebaseUid))
                         return Results.Unauthorized();
 
-                    var command = new SetDeviceGroupPowerCommand(id, firebaseUid, DesiredState: true);
+                    var command = new SetDeviceGroupPowerCommand(
+                        id,
+                        firebaseUid,
+                        DesiredState: true
+                    );
                     var result = await mediator.Send(command, cancellationToken);
 
                     return result.IsFailure ? result.ToProblemDetails() : Results.Ok(result.Value);
@@ -241,7 +245,11 @@ public static class DeviceGroupEndpoints
                     if (string.IsNullOrEmpty(firebaseUid))
                         return Results.Unauthorized();
 
-                    var command = new SetDeviceGroupPowerCommand(id, firebaseUid, DesiredState: false);
+                    var command = new SetDeviceGroupPowerCommand(
+                        id,
+                        firebaseUid,
+                        DesiredState: false
+                    );
                     var result = await mediator.Send(command, cancellationToken);
 
                     return result.IsFailure ? result.ToProblemDetails() : Results.Ok(result.Value);

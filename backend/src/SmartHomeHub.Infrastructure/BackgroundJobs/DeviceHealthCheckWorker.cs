@@ -49,7 +49,8 @@ public sealed class DeviceHealthCheckWorker(
     {
         using var scope = scopeFactory.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<IAppDbContext>();
-        var notificationService = scope.ServiceProvider.GetRequiredService<IRealtimeNotificationService>();
+        var notificationService =
+            scope.ServiceProvider.GetRequiredService<IRealtimeNotificationService>();
 
         var candidates = await dbContext
             .Devices.Include(device => device.User)
@@ -67,14 +68,16 @@ public sealed class DeviceHealthCheckWorker(
         }
 
         var probeResults = await Task.WhenAll(
-            probeable.Select(async device => (
-                Device: device,
-                IsOnline: await probeService.ProbeDeviceAsync(
-                    device.Configuration.IpAddress!,
-                    device.IntegrationType,
-                    cancellationToken
+            probeable.Select(async device =>
+                (
+                    Device: device,
+                    IsOnline: await probeService.ProbeDeviceAsync(
+                        device.Configuration.IpAddress!,
+                        device.IntegrationType,
+                        cancellationToken
+                    )
                 )
-            ))
+            )
         );
 
         var changed = new List<Device>();

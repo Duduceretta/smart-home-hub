@@ -18,7 +18,8 @@ public class TuyaUdpPacketDecoderTests
     [Fact]
     public void TryParse_WithPlainJsonOnPort6666_ShouldReturnDto()
     {
-        var json = """{"ip":"192.168.1.20","gwId":"abc123def456","active":2,"productKey":"pk1","version":"3.3"}""";
+        var json =
+            """{"ip":"192.168.1.20","gwId":"abc123def456","active":2,"productKey":"pk1","version":"3.3"}""";
         var datagram = BuildPacket(Encoding.UTF8.GetBytes(json));
 
         var result = TuyaUdpPacketDecoder.TryParse(datagram, 6666, "192.168.1.20");
@@ -104,14 +105,12 @@ public class TuyaUdpPacketDecoderTests
         stream.Write([0x00, 0x00, 0x55, 0xAA]); // prefix
         stream.Write([0x00, 0x00, 0x00, 0x01]); // seq
         stream.Write([0x00, 0x00, 0x00, 0x00]); // cmd
-        stream.Write(
-            [
-                (byte)(payloadLength >> 24),
-                (byte)(payloadLength >> 16),
-                (byte)(payloadLength >> 8),
-                (byte)payloadLength,
-            ]
-        );
+        stream.Write([
+            (byte)(payloadLength >> 24),
+            (byte)(payloadLength >> 16),
+            (byte)(payloadLength >> 8),
+            (byte)payloadLength,
+        ]);
         stream.Write(payload);
         stream.Write([0x00, 0x00, 0x00, 0x00]); // crc (não validado pelo decoder)
         stream.Write([0x00, 0x00, 0xAA, 0x55]); // suffix

@@ -66,7 +66,8 @@ public sealed class TuyaSessionProtocolClient : ITuyaProtocolClient
         string tuyaDeviceId,
         string localKey,
         CancellationToken cancellationToken
-    ) => await ExecuteAsync(ipAddress, localKey, CmdDpQueryNew, "{}"u8.ToArray(), cancellationToken);
+    ) =>
+        await ExecuteAsync(ipAddress, localKey, CmdDpQueryNew, "{}"u8.ToArray(), cancellationToken);
 
     public Task<IReadOnlyDictionary<int, object?>> SetDpAsync(
         string ipAddress,
@@ -75,13 +76,14 @@ public sealed class TuyaSessionProtocolClient : ITuyaProtocolClient
         int dp,
         bool value,
         CancellationToken cancellationToken
-    ) => SetDpsAsync(
-        ipAddress,
-        tuyaDeviceId,
-        localKey,
-        new Dictionary<int, object> { [dp] = value },
-        cancellationToken
-    );
+    ) =>
+        SetDpsAsync(
+            ipAddress,
+            tuyaDeviceId,
+            localKey,
+            new Dictionary<int, object> { [dp] = value },
+            cancellationToken
+        );
 
     public async Task<IReadOnlyDictionary<int, object?>> SetDpsAsync(
         string ipAddress,
@@ -102,7 +104,13 @@ public sealed class TuyaSessionProtocolClient : ITuyaProtocolClient
                 data = new { dps = dpsPayload },
             }
         );
-        return await ExecuteAsync(ipAddress, localKey, CmdControlNew, System.Text.Encoding.UTF8.GetBytes(json), cancellationToken);
+        return await ExecuteAsync(
+            ipAddress,
+            localKey,
+            CmdControlNew,
+            System.Text.Encoding.UTF8.GetBytes(json),
+            cancellationToken
+        );
     }
 
     private async Task<IReadOnlyDictionary<int, object?>> ExecuteAsync(
@@ -125,13 +133,28 @@ public sealed class TuyaSessionProtocolClient : ITuyaProtocolClient
         var localNonce = _fixedLocalNonce ?? RandomNumberGenerator.GetBytes(16);
         var gcmIv = _fixedGcmMessageIv; // null => cada frame GCM gera nonce próprio abaixo
 
-        var startFrame = BuildHandshakeStartFrame(_useGcm, localKeyBytes, localNonce, gcmIv ?? RandomNumberGenerator.GetBytes(12));
+        var startFrame = BuildHandshakeStartFrame(
+            _useGcm,
+            localKeyBytes,
+            localNonce,
+            gcmIv ?? RandomNumberGenerator.GetBytes(12)
+        );
         await SendAsync(stream, startFrame, cancellationToken);
 
         var respFrame = await ReceiveFrameAsync(stream, cancellationToken);
-        var (remoteNonce, _) = ProcessHandshakeResponse(_useGcm, localKeyBytes, localNonce, respFrame);
+        var (remoteNonce, _) = ProcessHandshakeResponse(
+            _useGcm,
+            localKeyBytes,
+            localNonce,
+            respFrame
+        );
 
-        var finishFrame = BuildHandshakeFinishFrame(_useGcm, localKeyBytes, remoteNonce, gcmIv ?? RandomNumberGenerator.GetBytes(12));
+        var finishFrame = BuildHandshakeFinishFrame(
+            _useGcm,
+            localKeyBytes,
+            remoteNonce,
+            gcmIv ?? RandomNumberGenerator.GetBytes(12)
+        );
         await SendAsync(stream, finishFrame, cancellationToken);
 
         var sessionKey = DeriveSessionKey(_useGcm, localKeyBytes, localNonce, remoteNonce);
@@ -164,7 +187,11 @@ public sealed class TuyaSessionProtocolClient : ITuyaProtocolClient
 
         var buffer = new byte[4096];
         var read = await stream.ReadAsync(buffer, timeoutCts.Token);
-        _logger.LogDebug("RECV [{Length} bytes]: {Hex}", read, Convert.ToHexString(buffer.AsSpan(0, Math.Max(read, 0))));
+        _logger.LogDebug(
+            "RECV [{Length} bytes]: {Hex}",
+            read,
+            Convert.ToHexString(buffer.AsSpan(0, Math.Max(read, 0)))
+        );
         if (read <= 0)
         {
             throw new IOException("Conexão Tuya encerrada sem resposta.");
@@ -174,17 +201,51 @@ public sealed class TuyaSessionProtocolClient : ITuyaProtocolClient
 
     // ---- Construção de frames (puro, sem I/O — usado direto pelos testes) ----
 
-    public static byte[] BuildHandshakeStartFrame(bool useGcm, byte[] localKey, byte[] localNonce, byte[] gcmMessageIv) =>
+    public static byte[] BuildHandshakeStartFrame(
+        bool useGcm,
+        byte[] localKey,
+        byte[] localNonce,
+        byte[] gcmMessageIv
+    ) =>
         useGcm
-            ? PackGcmFrame(CmdSessKeyNegStart, seqno: 1, localKey, localNonce, gcmMessageIv, retcode: null)
-            : PackHmacFrame(CmdSessKeyNegStart, seqno: 1, localKey, Aes_EncryptEcb(localKey, localNonce));
+            ? PackGcmFrame(
+                CmdSessKeyNegStart,
+                seqno: 1,
+                localKey,
+                localNonce,
+                gcmMessageIv,
+                retcode: null
+            )
+            : PackHmacFrame(
+                CmdSessKeyNegStart,
+                seqno: 1,
+                localKey,
+                Aes_EncryptEcb(localKey, localNonce)
+            );
 
-    public static byte[] BuildHandshakeFinishFrame(bool useGcm, byte[] localKey, byte[] remoteNonce, byte[] gcmMessageIv)
+    public static byte[] BuildHandshakeFinishFrame(
+        bool useGcm,
+        byte[] localKey,
+        byte[] remoteNonce,
+        byte[] gcmMessageIv
+    )
     {
         var rkeyHmac = HMACSHA256.HashData(localKey, remoteNonce);
         return useGcm
-            ? PackGcmFrame(CmdSessKeyNegFinish, seqno: 2, localKey, rkeyHmac, gcmMessageIv, retcode: null)
-            : PackHmacFrame(CmdSessKeyNegFinish, seqno: 2, localKey, Aes_EncryptEcb(localKey, rkeyHmac));
+            ? PackGcmFrame(
+                CmdSessKeyNegFinish,
+                seqno: 2,
+                localKey,
+                rkeyHmac,
+                gcmMessageIv,
+                retcode: null
+            )
+            : PackHmacFrame(
+                CmdSessKeyNegFinish,
+                seqno: 2,
+                localKey,
+                Aes_EncryptEcb(localKey, rkeyHmac)
+            );
     }
 
     public static byte[] BuildCommandFrame(
@@ -199,10 +260,9 @@ public sealed class TuyaSessionProtocolClient : ITuyaProtocolClient
         // CONTROL/CONTROL_NEW levam o cabeçalho de versão "3.x\0..."(15 bytes) antes
         // do JSON; DP_QUERY(_NEW) e os comandos de negociação de sessão não levam
         // (NO_PROTOCOL_HEADER_CMDS) — confirmado por captura real de tráfego.
-        var payload =
-            commandCode is CmdControl or CmdControlNew
-                ? Concat(useGcm ? VersionHeader35 : VersionHeader34, plaintextPayload)
-                : plaintextPayload;
+        var payload = commandCode is CmdControl or CmdControlNew
+            ? Concat(useGcm ? VersionHeader35 : VersionHeader34, plaintextPayload)
+            : plaintextPayload;
 
         return useGcm
             ? PackGcmFrame(commandCode, seqno, sessionKey, payload, gcmMessageIv, retcode: null)
@@ -230,7 +290,14 @@ public sealed class TuyaSessionProtocolClient : ITuyaProtocolClient
         return Concat(dataNoEnd, mac, suffix);
     }
 
-    private static byte[] PackGcmFrame(int cmd, uint seqno, byte[] gcmKey, byte[] plaintext, byte[] iv, int? retcode)
+    private static byte[] PackGcmFrame(
+        int cmd,
+        uint seqno,
+        byte[] gcmKey,
+        byte[] plaintext,
+        byte[] iv,
+        int? retcode
+    )
     {
         var raw = retcode is int r ? Concat(IntBE(r), plaintext) : plaintext;
 
@@ -264,7 +331,10 @@ public sealed class TuyaSessionProtocolClient : ITuyaProtocolClient
     {
         var plain = useGcm
             ? UnpackGcmFrame(responseFrame, localKey, stripRetcode: true)
-            : Aes_DecryptEcb(localKey, UnpackHmacFrame(responseFrame, localKey, stripRetcode: true));
+            : Aes_DecryptEcb(
+                localKey,
+                UnpackHmacFrame(responseFrame, localKey, stripRetcode: true)
+            );
 
         var remoteNonce = plain[..16];
         var hmac = plain[16..48];
@@ -272,13 +342,20 @@ public sealed class TuyaSessionProtocolClient : ITuyaProtocolClient
         var expectedHmac = HMACSHA256.HashData(localKey, localNonce);
         if (!expectedHmac.AsSpan().SequenceEqual(hmac))
         {
-            throw new CryptographicException("HMAC da resposta de negociação de sessão Tuya não validou.");
+            throw new CryptographicException(
+                "HMAC da resposta de negociação de sessão Tuya não validou."
+            );
         }
 
         return (remoteNonce, hmac);
     }
 
-    public static byte[] DeriveSessionKey(bool useGcm, byte[] localKey, byte[] localNonce, byte[] remoteNonce)
+    public static byte[] DeriveSessionKey(
+        bool useGcm,
+        byte[] localKey,
+        byte[] localNonce,
+        byte[] remoteNonce
+    )
     {
         var xored = new byte[16];
         for (var i = 0; i < 16; i++)
@@ -299,11 +376,18 @@ public sealed class TuyaSessionProtocolClient : ITuyaProtocolClient
         return Concat(iv, ciphertext, tag)[12..28];
     }
 
-    private static IReadOnlyDictionary<int, object?> ParseCommandResponse(bool useGcm, byte[] sessionKey, byte[] responseFrame)
+    private static IReadOnlyDictionary<int, object?> ParseCommandResponse(
+        bool useGcm,
+        byte[] sessionKey,
+        byte[] responseFrame
+    )
     {
         var plain = useGcm
             ? UnpackGcmFrame(responseFrame, sessionKey, stripRetcode: true)
-            : Aes_DecryptEcb(sessionKey, UnpackHmacFrame(responseFrame, sessionKey, stripRetcode: true));
+            : Aes_DecryptEcb(
+                sessionKey,
+                UnpackHmacFrame(responseFrame, sessionKey, stripRetcode: true)
+            );
 
         // Respostas a CONTROL/CONTROL_NEW vêm com o mesmo cabeçalho de versão
         // "3.x\0..."(15 bytes, conteúdo do preenchimento não é necessariamente
@@ -315,17 +399,20 @@ public sealed class TuyaSessionProtocolClient : ITuyaProtocolClient
             payloadStart = 15;
         }
 
-        var json = System.Text.Encoding.UTF8.GetString(plain, payloadStart, plain.Length - payloadStart).TrimEnd('\0');
+        var json = System
+            .Text.Encoding.UTF8.GetString(plain, payloadStart, plain.Length - payloadStart)
+            .TrimEnd('\0');
         using var document = JsonDocument.Parse(json);
         var root = document.RootElement;
 
         // CONTROL_NEW aninha em "data.dps" (payload "protocol 5"); DP_QUERY(_NEW)
         // devolve "dps" na raiz — confirmado por captura real dos dois formatos.
-        var dpsElement = root.TryGetProperty("dps", out var dps)
-            ? dps
-            : root.TryGetProperty("data", out var data) && data.TryGetProperty("dps", out var nestedDps)
+        var dpsElement =
+            root.TryGetProperty("dps", out var dps) ? dps
+            : root.TryGetProperty("data", out var data)
+            && data.TryGetProperty("dps", out var nestedDps)
                 ? nestedDps
-                : root;
+            : root;
 
         var result = new Dictionary<int, object?>();
         foreach (var property in dpsElement.EnumerateObject())

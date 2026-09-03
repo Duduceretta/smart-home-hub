@@ -11,8 +11,10 @@ namespace SmartHomeHub.UnitTests.Infrastructure.Tuya;
 public class TuyaLocalControlServiceTests
 {
     private readonly ITuyaProtocolClient _protocolClient = Substitute.For<ITuyaProtocolClient>();
-    private readonly ITuyaProtocolClientFactory _protocolClientFactory = Substitute.For<ITuyaProtocolClientFactory>();
-    private readonly ITuyaUdpDiscoveryScanner _ipDiscoveryScanner = Substitute.For<ITuyaUdpDiscoveryScanner>();
+    private readonly ITuyaProtocolClientFactory _protocolClientFactory =
+        Substitute.For<ITuyaProtocolClientFactory>();
+    private readonly ITuyaUdpDiscoveryScanner _ipDiscoveryScanner =
+        Substitute.For<ITuyaUdpDiscoveryScanner>();
     private readonly TuyaLocalControlService _sut;
 
     public TuyaLocalControlServiceTests()
@@ -34,7 +36,12 @@ public class TuyaLocalControlServiceTests
     {
         // Arrange
         _protocolClient
-            .QueryStatusAsync("192.168.1.50", "tuya-device-abc", "local-key-123", Arg.Any<CancellationToken>())
+            .QueryStatusAsync(
+                "192.168.1.50",
+                "tuya-device-abc",
+                "local-key-123",
+                Arg.Any<CancellationToken>()
+            )
             .Returns(new Dictionary<int, object?> { [20] = false, [21] = 100 });
 
         _protocolClient
@@ -49,7 +56,11 @@ public class TuyaLocalControlServiceTests
             .Returns(new Dictionary<int, object?> { [20] = true });
 
         // Act
-        var result = await _sut.SetPowerStateAsync(Connection(), desiredState: true, CancellationToken.None);
+        var result = await _sut.SetPowerStateAsync(
+            Connection(),
+            desiredState: true,
+            CancellationToken.None
+        );
 
         // Assert
         result.IsSuccess.Should().BeTrue();
@@ -63,7 +74,12 @@ public class TuyaLocalControlServiceTests
     {
         // Arrange — DpsPowerKey configurada como "1", mas o dispositivo real não expõe esse DP.
         _protocolClient
-            .QueryStatusAsync("192.168.1.50", "tuya-device-abc", "local-key-123", Arg.Any<CancellationToken>())
+            .QueryStatusAsync(
+                "192.168.1.50",
+                "tuya-device-abc",
+                "local-key-123",
+                Arg.Any<CancellationToken>()
+            )
             .Returns(new Dictionary<int, object?> { [9] = "white", [20] = false });
 
         _protocolClient
@@ -78,7 +94,11 @@ public class TuyaLocalControlServiceTests
             .Returns(new Dictionary<int, object?> { [20] = true });
 
         // Act
-        var result = await _sut.SetPowerStateAsync(Connection("1"), desiredState: true, CancellationToken.None);
+        var result = await _sut.SetPowerStateAsync(
+            Connection("1"),
+            desiredState: true,
+            CancellationToken.None
+        );
 
         // Assert
         result.IsSuccess.Should().BeTrue();
@@ -91,11 +111,20 @@ public class TuyaLocalControlServiceTests
     {
         // Arrange
         _protocolClient
-            .QueryStatusAsync("192.168.1.50", "tuya-device-abc", "local-key-123", Arg.Any<CancellationToken>())
+            .QueryStatusAsync(
+                "192.168.1.50",
+                "tuya-device-abc",
+                "local-key-123",
+                Arg.Any<CancellationToken>()
+            )
             .Returns(new Dictionary<int, object?> { [9] = "white", [22] = 500 });
 
         // Act
-        var result = await _sut.SetPowerStateAsync(Connection(null), desiredState: true, CancellationToken.None);
+        var result = await _sut.SetPowerStateAsync(
+            Connection(null),
+            desiredState: true,
+            CancellationToken.None
+        );
 
         // Assert
         result.IsFailure.Should().BeTrue();
@@ -117,7 +146,12 @@ public class TuyaLocalControlServiceTests
     {
         // Arrange — ack vazio (allowEmptyResponse), sem eco do DP setado.
         _protocolClient
-            .QueryStatusAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .QueryStatusAsync(
+                Arg.Any<string>(),
+                Arg.Any<string>(),
+                Arg.Any<string>(),
+                Arg.Any<CancellationToken>()
+            )
             .Returns(new Dictionary<int, object?> { [20] = false });
 
         _protocolClient
@@ -132,7 +166,11 @@ public class TuyaLocalControlServiceTests
             .Returns(new Dictionary<int, object?>());
 
         // Act
-        var result = await _sut.SetPowerStateAsync(Connection(), desiredState: true, CancellationToken.None);
+        var result = await _sut.SetPowerStateAsync(
+            Connection(),
+            desiredState: true,
+            CancellationToken.None
+        );
 
         // Assert
         result.IsSuccess.Should().BeTrue();
@@ -144,7 +182,12 @@ public class TuyaLocalControlServiceTests
     {
         // Arrange
         _protocolClient
-            .QueryStatusAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .QueryStatusAsync(
+                Arg.Any<string>(),
+                Arg.Any<string>(),
+                Arg.Any<string>(),
+                Arg.Any<CancellationToken>()
+            )
             .Returns<IReadOnlyDictionary<int, object?>>(_ =>
                 throw new System.Net.Sockets.SocketException()
             );
@@ -152,7 +195,11 @@ public class TuyaLocalControlServiceTests
         _ipDiscoveryScanner.ScanAsync(Arg.Any<CancellationToken>()).Returns(EmptyDiscoveryStream());
 
         // Act
-        var result = await _sut.SetPowerStateAsync(Connection(), desiredState: true, CancellationToken.None);
+        var result = await _sut.SetPowerStateAsync(
+            Connection(),
+            desiredState: true,
+            CancellationToken.None
+        );
 
         // Assert
         result.IsFailure.Should().BeTrue();
@@ -164,17 +211,34 @@ public class TuyaLocalControlServiceTests
     {
         // Arrange — IP configurado (192.168.1.50) falha; broadcast revela IP novo (192.168.1.77).
         _protocolClient
-            .QueryStatusAsync("192.168.1.50", Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .QueryStatusAsync(
+                "192.168.1.50",
+                Arg.Any<string>(),
+                Arg.Any<string>(),
+                Arg.Any<CancellationToken>()
+            )
             .Returns<IReadOnlyDictionary<int, object?>>(_ =>
                 throw new System.Net.Sockets.SocketException()
             );
 
         _protocolClient
-            .QueryStatusAsync("192.168.1.77", "tuya-device-abc", "local-key-123", Arg.Any<CancellationToken>())
+            .QueryStatusAsync(
+                "192.168.1.77",
+                "tuya-device-abc",
+                "local-key-123",
+                Arg.Any<CancellationToken>()
+            )
             .Returns(new Dictionary<int, object?> { [20] = false });
 
         _protocolClient
-            .SetDpAsync("192.168.1.77", "tuya-device-abc", "local-key-123", 20, true, Arg.Any<CancellationToken>())
+            .SetDpAsync(
+                "192.168.1.77",
+                "tuya-device-abc",
+                "local-key-123",
+                20,
+                true,
+                Arg.Any<CancellationToken>()
+            )
             .Returns(new Dictionary<int, object?> { [20] = true });
 
         _ipDiscoveryScanner
@@ -197,7 +261,11 @@ public class TuyaLocalControlServiceTests
             );
 
         // Act
-        var result = await _sut.SetPowerStateAsync(Connection(), desiredState: true, CancellationToken.None);
+        var result = await _sut.SetPowerStateAsync(
+            Connection(),
+            desiredState: true,
+            CancellationToken.None
+        );
 
         // Assert
         result.IsSuccess.Should().BeTrue();
@@ -210,7 +278,12 @@ public class TuyaLocalControlServiceTests
     {
         // Arrange
         _protocolClient
-            .QueryStatusAsync("192.168.1.50", "tuya-device-abc", "local-key-123", Arg.Any<CancellationToken>())
+            .QueryStatusAsync(
+                "192.168.1.50",
+                "tuya-device-abc",
+                "local-key-123",
+                Arg.Any<CancellationToken>()
+            )
             .Returns(new Dictionary<int, object?> { [20] = true, [22] = 520.0 });
 
         _protocolClient
@@ -218,14 +291,19 @@ public class TuyaLocalControlServiceTests
                 "192.168.1.50",
                 "tuya-device-abc",
                 "local-key-123",
-                Arg.Is<IReadOnlyDictionary<int, object>>(dps => dps.Count == 1 && (int)dps[22] == 505),
+                Arg.Is<IReadOnlyDictionary<int, object>>(dps =>
+                    dps.Count == 1 && (int)dps[22] == 505
+                ),
                 Arg.Any<CancellationToken>()
             )
             .Returns(new Dictionary<int, object?> { [22] = 505.0 });
 
         // Act
         var result = await _sut.SetBrightnessAsync(
-            Connection() with { DpsBrightnessKey = "22" },
+            Connection() with
+            {
+                DpsBrightnessKey = "22",
+            },
             brightnessPercent: 50,
             CancellationToken.None
         );
@@ -242,7 +320,12 @@ public class TuyaLocalControlServiceTests
         // sozinho pro modo branco (confirmado por diagnóstico manual), então
         // em modo "colour" o brilho tem que virar o V do HSV, sem tocar DP22.
         _protocolClient
-            .QueryStatusAsync("192.168.1.50", "tuya-device-abc", "local-key-123", Arg.Any<CancellationToken>())
+            .QueryStatusAsync(
+                "192.168.1.50",
+                "tuya-device-abc",
+                "local-key-123",
+                Arg.Any<CancellationToken>()
+            )
             .Returns(
                 new Dictionary<int, object?>
                 {
@@ -267,7 +350,11 @@ public class TuyaLocalControlServiceTests
 
         // Act
         var result = await _sut.SetBrightnessAsync(
-            Connection() with { DpsBrightnessKey = "22", DpsColorKey = "24" },
+            Connection() with
+            {
+                DpsBrightnessKey = "22",
+                DpsColorKey = "24",
+            },
             brightnessPercent: 20,
             CancellationToken.None
         );
@@ -290,12 +377,20 @@ public class TuyaLocalControlServiceTests
     {
         // Arrange
         _protocolClient
-            .QueryStatusAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .QueryStatusAsync(
+                Arg.Any<string>(),
+                Arg.Any<string>(),
+                Arg.Any<string>(),
+                Arg.Any<CancellationToken>()
+            )
             .Returns(new Dictionary<int, object?> { [20] = true, [21] = "white" });
 
         // Act
         var result = await _sut.SetBrightnessAsync(
-            Connection() with { DpsBrightnessKey = "99" },
+            Connection() with
+            {
+                DpsBrightnessKey = "99",
+            },
             brightnessPercent: 50,
             CancellationToken.None
         );
@@ -310,7 +405,12 @@ public class TuyaLocalControlServiceTests
     {
         // Arrange — mesmo snapshot real capturado no diagnóstico manual.
         _protocolClient
-            .QueryStatusAsync("192.168.1.50", "tuya-device-abc", "local-key-123", Arg.Any<CancellationToken>())
+            .QueryStatusAsync(
+                "192.168.1.50",
+                "tuya-device-abc",
+                "local-key-123",
+                Arg.Any<CancellationToken>()
+            )
             .Returns(
                 new Dictionary<int, object?>
                 {
@@ -337,7 +437,10 @@ public class TuyaLocalControlServiceTests
 
         // Act
         var result = await _sut.SetColorAsync(
-            Connection() with { DpsColorKey = "24" },
+            Connection() with
+            {
+                DpsColorKey = "24",
+            },
             colorHex: "#FF0000",
             CancellationToken.None
         );
@@ -353,11 +456,23 @@ public class TuyaLocalControlServiceTests
     {
         // Arrange
         _protocolClient
-            .QueryStatusAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .QueryStatusAsync(
+                Arg.Any<string>(),
+                Arg.Any<string>(),
+                Arg.Any<string>(),
+                Arg.Any<CancellationToken>()
+            )
             .Returns(new Dictionary<int, object?> { [20] = true, [21] = "white" });
 
         // Act
-        var result = await _sut.SetColorAsync(Connection() with { DpsColorKey = null }, "#00FF00", CancellationToken.None);
+        var result = await _sut.SetColorAsync(
+            Connection() with
+            {
+                DpsColorKey = null,
+            },
+            "#00FF00",
+            CancellationToken.None
+        );
 
         // Assert
         result.IsFailure.Should().BeTrue();
@@ -369,8 +484,20 @@ public class TuyaLocalControlServiceTests
     {
         // Arrange
         _protocolClient
-            .QueryStatusAsync("192.168.1.50", "tuya-device-abc", "local-key-123", Arg.Any<CancellationToken>())
-            .Returns(new Dictionary<int, object?> { [20] = true, [21] = "colour", [23] = 1000.0 });
+            .QueryStatusAsync(
+                "192.168.1.50",
+                "tuya-device-abc",
+                "local-key-123",
+                Arg.Any<CancellationToken>()
+            )
+            .Returns(
+                new Dictionary<int, object?>
+                {
+                    [20] = true,
+                    [21] = "colour",
+                    [23] = 1000.0,
+                }
+            );
 
         _protocolClient
             .SetDpsAsync(
@@ -386,7 +513,10 @@ public class TuyaLocalControlServiceTests
 
         // Act
         var result = await _sut.SetColorTempAsync(
-            Connection() with { DpsColorTempKey = "23" },
+            Connection() with
+            {
+                DpsColorTempKey = "23",
+            },
             colorTempPercent: 83,
             CancellationToken.None
         );
@@ -401,7 +531,12 @@ public class TuyaLocalControlServiceTests
     {
         // Arrange
         _protocolClient
-            .QueryStatusAsync("192.168.1.50", "tuya-device-abc", "local-key-123", Arg.Any<CancellationToken>())
+            .QueryStatusAsync(
+                "192.168.1.50",
+                "tuya-device-abc",
+                "local-key-123",
+                Arg.Any<CancellationToken>()
+            )
             .Returns(new Dictionary<int, object?> { [20] = true, [21] = "white" });
 
         _protocolClient
@@ -409,7 +544,9 @@ public class TuyaLocalControlServiceTests
                 "192.168.1.50",
                 "tuya-device-abc",
                 "local-key-123",
-                Arg.Is<IReadOnlyDictionary<int, object>>(dps => dps.Count == 1 && (string)dps[21] == "colour"),
+                Arg.Is<IReadOnlyDictionary<int, object>>(dps =>
+                    dps.Count == 1 && (string)dps[21] == "colour"
+                ),
                 Arg.Any<CancellationToken>()
             )
             .Returns(new Dictionary<int, object?> { [21] = "colour" });
@@ -426,7 +563,12 @@ public class TuyaLocalControlServiceTests
     {
         // Arrange
         _protocolClient
-            .QueryStatusAsync("192.168.1.50", "tuya-device-abc", "local-key-123", Arg.Any<CancellationToken>())
+            .QueryStatusAsync(
+                "192.168.1.50",
+                "tuya-device-abc",
+                "local-key-123",
+                Arg.Any<CancellationToken>()
+            )
             .Returns(new Dictionary<int, object?> { [20] = true, [21] = "colour" });
 
         // Act
@@ -442,7 +584,12 @@ public class TuyaLocalControlServiceTests
     {
         // Arrange
         _protocolClient
-            .QueryStatusAsync("192.168.1.50", "tuya-device-abc", "local-key-123", Arg.Any<CancellationToken>())
+            .QueryStatusAsync(
+                "192.168.1.50",
+                "tuya-device-abc",
+                "local-key-123",
+                Arg.Any<CancellationToken>()
+            )
             .Returns(new Dictionary<int, object?> { [20] = true });
 
         // Act
@@ -459,7 +606,9 @@ public class TuyaLocalControlServiceTests
         yield break;
     }
 
-    private static async IAsyncEnumerable<DiscoveredDeviceDto> SingleDiscoveryStream(DiscoveredDeviceDto dto)
+    private static async IAsyncEnumerable<DiscoveredDeviceDto> SingleDiscoveryStream(
+        DiscoveredDeviceDto dto
+    )
     {
         await Task.CompletedTask;
         yield return dto;

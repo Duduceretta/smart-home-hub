@@ -58,7 +58,10 @@ public class GetDeviceGroupAutomationsQueryHandler(IAppDbContext dbContext)
 
         if (group == null)
             return Result.Failure<List<DeviceGroupAutomationDto>>(
-                new Error("DeviceGroup.NotFound", "Grupo de dispositivos não encontrado ou sem permissão de acesso.")
+                new Error(
+                    "DeviceGroup.NotFound",
+                    "Grupo de dispositivos não encontrado ou sem permissão de acesso."
+                )
             );
 
         var groupDeviceIds = await dbContext
@@ -74,7 +77,9 @@ public class GetDeviceGroupAutomationsQueryHandler(IAppDbContext dbContext)
 
         var automations = await dbContext
             .Automations.AsNoTracking()
-            .Where(automation => automation.User.ExternalAuthUid == request.FirebaseUid && !automation.IsDeleted)
+            .Where(automation =>
+                automation.User.ExternalAuthUid == request.FirebaseUid && !automation.IsDeleted
+            )
             .OrderBy(automation => automation.Name)
             .Select(automation => new
             {

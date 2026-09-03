@@ -143,9 +143,7 @@ public class CreateDeviceTests(IntegrationTestWebAppFactory factory) : BaseInteg
         await DbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         const string ipAddress = "192.168.1.88";
-        _googleTvService
-            .GetPowerStateAsync(ipAddress, Arg.Any<CancellationToken>())
-            .Returns(true);
+        _googleTvService.GetPowerStateAsync(ipAddress, Arg.Any<CancellationToken>()).Returns(true);
 
         var request = new CreateDeviceRequest(
             "Android TV Quarto",

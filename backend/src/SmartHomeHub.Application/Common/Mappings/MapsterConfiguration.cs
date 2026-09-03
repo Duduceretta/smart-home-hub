@@ -29,7 +29,9 @@ public static class MapsterConfiguration
         // com RulePayload de Automation, feito só em GetRoomsQuery) — 0 fixo
         // aqui evita duplicar esse cruzamento em consumidores que não
         // precisam dele, como GetRoomByIdQuery.
-        TypeAdapterConfig<Room, RoomDto>.NewConfig().Map(dest => dest.AutomationCount, src => 0);
+        TypeAdapterConfig<Room, RoomDto>
+            .NewConfig()
+            .Map(dest => dest.AutomationCount, src => 0);
     }
 
     private static string GetCategoryFromType(DeviceType type) =>

@@ -42,8 +42,7 @@ try
     var corsSectionKey = builder.Environment.IsDevelopment()
         ? "Cors:AllowedOriginsDevelopment"
         : "Cors:AllowedOrigins";
-    var corsAllowedOrigins =
-        builder.Configuration.GetSection(corsSectionKey).Get<string[]>() ?? [];
+    var corsAllowedOrigins = builder.Configuration.GetSection(corsSectionKey).Get<string[]>() ?? [];
 
     if (corsAllowedOrigins.Length == 0)
     {

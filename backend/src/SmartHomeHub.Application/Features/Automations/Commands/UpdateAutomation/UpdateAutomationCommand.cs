@@ -96,7 +96,8 @@ public class UpdateAutomationCommandHandler(
         automation.IsActive = request.IsActive;
         automation.TriggerKind =
             trigger is TimeTrigger ? AutomationTriggerKind.Schedule : AutomationTriggerKind.Sensor;
-        automation.IsDraft = trigger is null || payload?.Actions is null || payload.Actions.Count == 0;
+        automation.IsDraft =
+            trigger is null || payload?.Actions is null || payload.Actions.Count == 0;
 
         // UpdatedAt é setado automaticamente pelo AppDbContext.SaveChangesAsync
         // para toda entidade Modified — é essa marca de tempo que invalida o

@@ -28,11 +28,7 @@ public class SpotifyMediaService : ISpotifyMediaService
     private readonly string _clientSecret;
     private readonly string _redirectUri;
 
-    private record TokenResponse(
-        string AccessToken,
-        string? RefreshToken,
-        int ExpiresIn
-    );
+    private record TokenResponse(string AccessToken, string? RefreshToken, int ExpiresIn);
 
     public SpotifyMediaService(
         HttpClient httpClient,
@@ -148,7 +144,11 @@ public class SpotifyMediaService : ISpotifyMediaService
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, "Falha ao consultar o playback do Spotify para {FirebaseUid}", firebaseUid);
+            _logger.LogWarning(
+                ex,
+                "Falha ao consultar o playback do Spotify para {FirebaseUid}",
+                firebaseUid
+            );
             return null;
         }
     }
@@ -382,7 +382,8 @@ public class SpotifyMediaService : ISpotifyMediaService
         using var doc = JsonDocument.Parse(json);
         var root = doc.RootElement;
 
-        var isPlaying = root.TryGetProperty("is_playing", out var isPlayingEl) && isPlayingEl.GetBoolean();
+        var isPlaying =
+            root.TryGetProperty("is_playing", out var isPlayingEl) && isPlayingEl.GetBoolean();
 
         string? title = null;
         string? artist = null;
@@ -423,7 +424,10 @@ public class SpotifyMediaService : ISpotifyMediaService
         var volumePercent = 0;
         string? deviceName = null;
 
-        if (root.TryGetProperty("device", out var deviceEl) && deviceEl.ValueKind == JsonValueKind.Object)
+        if (
+            root.TryGetProperty("device", out var deviceEl)
+            && deviceEl.ValueKind == JsonValueKind.Object
+        )
         {
             if (
                 deviceEl.TryGetProperty("volume_percent", out var volEl)

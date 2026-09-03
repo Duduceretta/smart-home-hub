@@ -16,7 +16,11 @@ public class TelemetryHub : Hub
             return;
         }
 
-        await discoveryManager.StartDiscoveryAsync(firebaseUid, timeoutSeconds, Context.ConnectionAborted);
+        await discoveryManager.StartDiscoveryAsync(
+            firebaseUid,
+            timeoutSeconds,
+            Context.ConnectionAborted
+        );
     }
 
     public async Task StopDiscovery(IDeviceDiscoveryManager discoveryManager)

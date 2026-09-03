@@ -41,7 +41,11 @@ public class DeviceStatePollingWorkerTests(IntegrationTestWebAppFactory factory)
 
     private async Task<User> SeedUserAsync()
     {
-        var user = new User { Name = "Power State User", ExternalAuthUid = $"uid-{Guid.NewGuid()}" };
+        var user = new User
+        {
+            Name = "Power State User",
+            ExternalAuthUid = $"uid-{Guid.NewGuid()}",
+        };
         DbContext.Users.Add(user);
         await DbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
         return user;
@@ -274,7 +278,10 @@ public class DeviceStatePollingWorkerTests(IntegrationTestWebAppFactory factory)
                 user.ExternalAuthUid,
                 device.Id,
                 Arg.Is<DeviceMediaStateDto>(state =>
-                    state != null && state.VolumePercent == 0 && !state.IsPlaying && state.Title == null
+                    state != null
+                    && state.VolumePercent == 0
+                    && !state.IsPlaying
+                    && state.Title == null
                 ),
                 Arg.Any<CancellationToken>()
             );

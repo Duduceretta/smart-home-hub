@@ -1,5 +1,4 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
@@ -35,5 +34,4 @@
     <ProjectReference Include="..\..\src\SmartHomeHub.Api\SmartHomeHub.Api.csproj" />
     <ProjectReference Include="..\..\src\SmartHomeHub.Infrastructure\SmartHomeHub.Infrastructure.csproj" />
   </ItemGroup>
-
 </Project>

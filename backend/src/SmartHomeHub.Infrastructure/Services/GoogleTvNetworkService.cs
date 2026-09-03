@@ -92,10 +92,7 @@ public class GoogleTvNetworkService : IGoogleTvService
 
             if (UnreachableWarned.TryRemove(ipAddress, out _))
             {
-                _logger.LogInformation(
-                    "TV em {IpAddress} voltou a responder via ADB.",
-                    ipAddress
-                );
+                _logger.LogInformation("TV em {IpAddress} voltou a responder via ADB.", ipAddress);
             }
 
             return isAwake;
@@ -303,15 +300,22 @@ public class GoogleTvNetworkService : IGoogleTvService
         var title = descriptionMatch.Groups[1].Value.Trim();
         var artist = descriptionMatch.Groups[2].Value.Trim();
 
-        if (string.IsNullOrWhiteSpace(title) || title.Equals("null", StringComparison.OrdinalIgnoreCase))
+        if (
+            string.IsNullOrWhiteSpace(title)
+            || title.Equals("null", StringComparison.OrdinalIgnoreCase)
+        )
             return null;
 
-        var stateMatch = Regex.Match(dumpsysMediaSessionOutput, @"state=PlaybackState\s*\{state=(\d+)");
+        var stateMatch = Regex.Match(
+            dumpsysMediaSessionOutput,
+            @"state=PlaybackState\s*\{state=(\d+)"
+        );
         var isPlaying = stateMatch.Success && stateMatch.Groups[1].Value == "3";
 
         return new MediaSessionInfo(
             title,
-            string.IsNullOrWhiteSpace(artist) || artist.Equals("null", StringComparison.OrdinalIgnoreCase)
+            string.IsNullOrWhiteSpace(artist)
+            || artist.Equals("null", StringComparison.OrdinalIgnoreCase)
                 ? null
                 : artist,
             isPlaying

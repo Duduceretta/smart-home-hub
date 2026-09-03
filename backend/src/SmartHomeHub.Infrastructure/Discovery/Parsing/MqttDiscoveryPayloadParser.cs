@@ -48,7 +48,10 @@ public static class MqttDiscoveryPayloadParser
         var uniqueId = TryGetString(root, "unique_id");
         string? deviceIdentifier = null;
 
-        if (root.TryGetProperty("device", out var deviceElement) && deviceElement.ValueKind == JsonValueKind.Object)
+        if (
+            root.TryGetProperty("device", out var deviceElement)
+            && deviceElement.ValueKind == JsonValueKind.Object
+        )
         {
             if (
                 deviceElement.TryGetProperty("identifiers", out var identifiersElement)
@@ -56,13 +59,15 @@ public static class MqttDiscoveryPayloadParser
             )
             {
                 var first = identifiersElement.EnumerateArray().FirstOrDefault();
-                deviceIdentifier = first.ValueKind == JsonValueKind.String ? first.GetString() : null;
+                deviceIdentifier =
+                    first.ValueKind == JsonValueKind.String ? first.GetString() : null;
             }
         }
 
         var externalId = uniqueId ?? deviceIdentifier ?? $"mqtt:{topic}";
 
-        var name = TryGetString(root, "name")
+        var name =
+            TryGetString(root, "name")
             ?? (
                 root.TryGetProperty("device", out var deviceNameElement)
                 && deviceNameElement.ValueKind == JsonValueKind.Object
@@ -80,9 +85,11 @@ public static class MqttDiscoveryPayloadParser
             ) ?? "ESPHome";
 
         var component = ExtractComponent(topic);
-        var type = component is not null && ComponentToDeviceType.TryGetValue(component, out var mappedType)
-            ? mappedType
-            : DeviceType.Sensor;
+        var type =
+            component is not null
+            && ComponentToDeviceType.TryGetValue(component, out var mappedType)
+                ? mappedType
+                : DeviceType.Sensor;
 
         var commandTopic = TryGetString(root, "command_topic");
         var stateTopic = TryGetString(root, "state_topic");
@@ -112,7 +119,8 @@ public static class MqttDiscoveryPayloadParser
     }
 
     private static string? TryGetString(JsonElement element, string propertyName) =>
-        element.TryGetProperty(propertyName, out var value) && value.ValueKind == JsonValueKind.String
+        element.TryGetProperty(propertyName, out var value)
+        && value.ValueKind == JsonValueKind.String
             ? value.GetString()
             : null;
 

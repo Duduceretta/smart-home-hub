@@ -198,7 +198,9 @@ public class ToggleDeviceTests(IntegrationTestWebAppFactory factory) : BaseInteg
         var physicalDevice = await DbContext
             .Devices.AsNoTracking()
             .FirstAsync(d => d.Id == device.Id, TestContext.Current.CancellationToken);
-        physicalDevice.IsOn.Should().BeTrue("mesmo com timeout residual do Cast, o toggle deve concluir.");
+        physicalDevice
+            .IsOn.Should()
+            .BeTrue("mesmo com timeout residual do Cast, o toggle deve concluir.");
     }
 
     [Fact]

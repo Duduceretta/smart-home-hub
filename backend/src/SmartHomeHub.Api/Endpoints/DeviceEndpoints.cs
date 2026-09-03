@@ -220,7 +220,11 @@ public static class DeviceEndpoints
                     if (string.IsNullOrEmpty(firebaseUid))
                         return Results.Unauthorized();
 
-                    var command = new SetDeviceBrightnessCommand(id, firebaseUid, request.BrightnessPercent);
+                    var command = new SetDeviceBrightnessCommand(
+                        id,
+                        firebaseUid,
+                        request.BrightnessPercent
+                    );
                     var result = await mediator.Send(command, cancellationToken);
 
                     if (result.IsFailure)
@@ -288,7 +292,11 @@ public static class DeviceEndpoints
                     if (string.IsNullOrEmpty(firebaseUid))
                         return Results.Unauthorized();
 
-                    var command = new SetDeviceColorTempCommand(id, firebaseUid, request.ColorTempPercent);
+                    var command = new SetDeviceColorTempCommand(
+                        id,
+                        firebaseUid,
+                        request.ColorTempPercent
+                    );
                     var result = await mediator.Send(command, cancellationToken);
 
                     if (result.IsFailure)

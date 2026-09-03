@@ -25,11 +25,7 @@ public sealed partial class WakeOnLanService(ILogger<WakeOnLanService> logger) :
         }
         catch (Exception ex)
         {
-            logger.LogWarning(
-                ex,
-                "Falha ao enviar Magic Packet WoL para {MacAddress}",
-                macAddress
-            );
+            logger.LogWarning(ex, "Falha ao enviar Magic Packet WoL para {MacAddress}", macAddress);
         }
     }
 

@@ -58,7 +58,8 @@ public class GetDeviceGroupAutomationsTests(IntegrationTestWebAppFactory factory
             UserId = user.Id,
             Name = "Ligar Luz ao Chegar",
             IsActive = true,
-            RulePayload = $"{{\"actions\":[{{\"deviceId\":\"{deviceInGroup.Id}\",\"command\":\"turn-on\"}}]}}",
+            RulePayload =
+                $"{{\"actions\":[{{\"deviceId\":\"{deviceInGroup.Id}\",\"command\":\"turn-on\"}}]}}",
         };
 
         var nonMatchingAutomation = new Automation
@@ -67,7 +68,8 @@ public class GetDeviceGroupAutomationsTests(IntegrationTestWebAppFactory factory
             UserId = user.Id,
             Name = "Ligar Cozinha",
             IsActive = true,
-            RulePayload = $"{{\"actions\":[{{\"deviceId\":\"{deviceOutside.Id}\",\"command\":\"turn-on\"}}]}}",
+            RulePayload =
+                $"{{\"actions\":[{{\"deviceId\":\"{deviceOutside.Id}\",\"command\":\"turn-on\"}}]}}",
         };
 
         DbContext.Users.Add(user);

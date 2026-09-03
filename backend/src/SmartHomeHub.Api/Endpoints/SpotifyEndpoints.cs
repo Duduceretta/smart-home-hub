@@ -20,7 +20,11 @@ public static class SpotifyEndpoints
     {
         app.MapGet(
                 "/api/integrations/spotify/login",
-                async (ClaimsPrincipal userToken, IMediator mediator, CancellationToken cancellationToken) =>
+                async (
+                    ClaimsPrincipal userToken,
+                    IMediator mediator,
+                    CancellationToken cancellationToken
+                ) =>
                 {
                     var firebaseUid = userToken.FindFirst("user_id")?.Value;
                     if (string.IsNullOrEmpty(firebaseUid))
@@ -72,12 +76,18 @@ public static class SpotifyEndpoints
                 }
             )
             .WithTags("🎵 Spotify")
-            .WithSummary("Callback OAuth2 do Spotify (chamado pelo próprio Spotify, sem autenticação)")
+            .WithSummary(
+                "Callback OAuth2 do Spotify (chamado pelo próprio Spotify, sem autenticação)"
+            )
             .Produces(StatusCodes.Status302Found);
 
         app.MapGet(
                 "/api/integrations/spotify/status",
-                async (ClaimsPrincipal userToken, IMediator mediator, CancellationToken cancellationToken) =>
+                async (
+                    ClaimsPrincipal userToken,
+                    IMediator mediator,
+                    CancellationToken cancellationToken
+                ) =>
                 {
                     var firebaseUid = userToken.FindFirst("user_id")?.Value;
                     if (string.IsNullOrEmpty(firebaseUid))
@@ -99,13 +109,20 @@ public static class SpotifyEndpoints
 
         app.MapDelete(
                 "/api/integrations/spotify",
-                async (ClaimsPrincipal userToken, IMediator mediator, CancellationToken cancellationToken) =>
+                async (
+                    ClaimsPrincipal userToken,
+                    IMediator mediator,
+                    CancellationToken cancellationToken
+                ) =>
                 {
                     var firebaseUid = userToken.FindFirst("user_id")?.Value;
                     if (string.IsNullOrEmpty(firebaseUid))
                         return Results.Unauthorized();
 
-                    await mediator.Send(new DisconnectSpotifyCommand(firebaseUid), cancellationToken);
+                    await mediator.Send(
+                        new DisconnectSpotifyCommand(firebaseUid),
+                        cancellationToken
+                    );
 
                     return Results.NoContent();
                 }
@@ -118,7 +135,11 @@ public static class SpotifyEndpoints
 
         app.MapGet(
                 "/api/integrations/spotify/playback",
-                async (ClaimsPrincipal userToken, IMediator mediator, CancellationToken cancellationToken) =>
+                async (
+                    ClaimsPrincipal userToken,
+                    IMediator mediator,
+                    CancellationToken cancellationToken
+                ) =>
                 {
                     var firebaseUid = userToken.FindFirst("user_id")?.Value;
                     if (string.IsNullOrEmpty(firebaseUid))
@@ -170,7 +191,11 @@ public static class SpotifyEndpoints
 
         app.MapPut(
                 "/api/integrations/spotify/toggle",
-                async (ClaimsPrincipal userToken, IMediator mediator, CancellationToken cancellationToken) =>
+                async (
+                    ClaimsPrincipal userToken,
+                    IMediator mediator,
+                    CancellationToken cancellationToken
+                ) =>
                 {
                     var firebaseUid = userToken.FindFirst("user_id")?.Value;
                     if (string.IsNullOrEmpty(firebaseUid))
@@ -196,7 +221,11 @@ public static class SpotifyEndpoints
 
         app.MapPost(
                 "/api/integrations/spotify/next",
-                async (ClaimsPrincipal userToken, IMediator mediator, CancellationToken cancellationToken) =>
+                async (
+                    ClaimsPrincipal userToken,
+                    IMediator mediator,
+                    CancellationToken cancellationToken
+                ) =>
                 {
                     var firebaseUid = userToken.FindFirst("user_id")?.Value;
                     if (string.IsNullOrEmpty(firebaseUid))
@@ -222,7 +251,11 @@ public static class SpotifyEndpoints
 
         app.MapPost(
                 "/api/integrations/spotify/previous",
-                async (ClaimsPrincipal userToken, IMediator mediator, CancellationToken cancellationToken) =>
+                async (
+                    ClaimsPrincipal userToken,
+                    IMediator mediator,
+                    CancellationToken cancellationToken
+                ) =>
                 {
                     var firebaseUid = userToken.FindFirst("user_id")?.Value;
                     if (string.IsNullOrEmpty(firebaseUid))

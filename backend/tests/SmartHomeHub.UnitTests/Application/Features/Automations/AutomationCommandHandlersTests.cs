@@ -21,9 +21,8 @@ public class AutomationCommandHandlersTests
         """;
 
     private readonly AppDbContext _dbContext;
-    private readonly IAutomationSchedulerService _schedulerService = Substitute.For<
-        IAutomationSchedulerService
-    >();
+    private readonly IAutomationSchedulerService _schedulerService =
+        Substitute.For<IAutomationSchedulerService>();
 
     public AutomationCommandHandlersTests()
     {
@@ -226,7 +225,10 @@ public class AutomationCommandHandlersTests
 
         var stillThereIgnoringFilters = await _dbContext
             .Automations.IgnoreQueryFilters()
-            .FirstAsync(a => a.Id == automation.Id, cancellationToken: TestContext.Current.CancellationToken);
+            .FirstAsync(
+                a => a.Id == automation.Id,
+                cancellationToken: TestContext.Current.CancellationToken
+            );
         stillThereIgnoringFilters.IsDeleted.Should().BeTrue();
     }
 

@@ -93,7 +93,10 @@ public class SetDeviceVolumeCommandHandler(
             return Result.Failure(new Error(ex.Code, ex.Message));
         }
 
-        var mediaInfo = await googleTvService.GetMediaSessionInfoAsync(ipAddress, cancellationToken);
+        var mediaInfo = await googleTvService.GetMediaSessionInfoAsync(
+            ipAddress,
+            cancellationToken
+        );
 
         await notificationService.NotifyDeviceMediaChangedAsync(
             request.FirebaseUid,

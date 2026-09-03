@@ -7,7 +7,8 @@ using SmartHomeHub.IntegrationTests.Setup;
 
 namespace SmartHomeHub.IntegrationTests.Features.Devices.Discovery;
 
-public class DeviceDiscoveryHubTests(IntegrationTestWebAppFactory factory) : BaseIntegrationTest(factory)
+public class DeviceDiscoveryHubTests(IntegrationTestWebAppFactory factory)
+    : BaseIntegrationTest(factory)
 {
     private readonly IDeviceDiscoveryManager _manager =
         factory.Services.GetRequiredService<IDeviceDiscoveryManager>();

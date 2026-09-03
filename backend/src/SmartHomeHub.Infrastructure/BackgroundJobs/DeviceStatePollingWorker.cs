@@ -6,8 +6,8 @@ using Microsoft.Extensions.Logging;
 using SmartHomeHub.Application.Common.Extensions;
 using SmartHomeHub.Application.Common.Interfaces;
 using SmartHomeHub.Application.Features.Dashboards.ActivityLog;
-using SmartHomeHub.Domain.Common.Constants;
 using SmartHomeHub.Application.Features.Devices.Common;
+using SmartHomeHub.Domain.Common.Constants;
 using SmartHomeHub.Domain.Entities;
 using SmartHomeHub.Domain.Enums;
 
@@ -58,13 +58,18 @@ public sealed class DeviceStatePollingWorker(
                 }
                 catch (Exception ex)
                 {
-                    logger.LogError(ex, "Ciclo de sondagem de estado de energia falhou de forma inesperada.");
+                    logger.LogError(
+                        ex,
+                        "Ciclo de sondagem de estado de energia falhou de forma inesperada."
+                    );
                 }
             }
         }
         catch (OperationCanceledException)
         {
-            logger.LogInformation("Desligando o worker de sondagem de estado de energia de forma segura...");
+            logger.LogInformation(
+                "Desligando o worker de sondagem de estado de energia de forma segura..."
+            );
         }
     }
 
@@ -72,7 +77,8 @@ public sealed class DeviceStatePollingWorker(
     {
         using var scope = scopeFactory.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<IAppDbContext>();
-        var notificationService = scope.ServiceProvider.GetRequiredService<IRealtimeNotificationService>();
+        var notificationService =
+            scope.ServiceProvider.GetRequiredService<IRealtimeNotificationService>();
 
         var candidates = await dbContext
             .Devices.Include(device => device.User)
@@ -90,13 +96,15 @@ public sealed class DeviceStatePollingWorker(
         if (pollable.Count > 0)
         {
             var pollResults = await Task.WhenAll(
-                pollable.Select(async device => (
-                    Device: device,
-                    IsOn: await googleTvService.GetPowerStateAsync(
-                        device.Configuration.IpAddress!,
-                        cancellationToken
+                pollable.Select(async device =>
+                    (
+                        Device: device,
+                        IsOn: await googleTvService.GetPowerStateAsync(
+                            device.Configuration.IpAddress!,
+                            cancellationToken
+                        )
                     )
-                ))
+                )
             );
 
             var changed = new List<Device>();
@@ -182,7 +190,12 @@ public sealed class DeviceStatePollingWorker(
                 }
             }
 
-            await PollMediaStateAsync(pollResults, dbContext, notificationService, cancellationToken);
+            await PollMediaStateAsync(
+                pollResults,
+                dbContext,
+                notificationService,
+                cancellationToken
+            );
         }
 
         await PollSpotifyStateAsync(scope, dbContext, notificationService, cancellationToken);
@@ -207,13 +220,15 @@ public sealed class DeviceStatePollingWorker(
         var spotifyMediaService = scope.ServiceProvider.GetRequiredService<ISpotifyMediaService>();
 
         var results = await Task.WhenAll(
-            integrations.Select(async integration => (
-                integration.User,
-                MediaState: await spotifyMediaService.GetCurrentPlaybackAsync(
-                    integration.User.ExternalAuthUid,
-                    cancellationToken
-                ) ?? EmptyMediaState
-            ))
+            integrations.Select(async integration =>
+                (
+                    integration.User,
+                    MediaState: await spotifyMediaService.GetCurrentPlaybackAsync(
+                        integration.User.ExternalAuthUid,
+                        cancellationToken
+                    ) ?? EmptyMediaState
+                )
+            )
         );
 
         var changedSpotifyUsers = new List<(User User, DeviceMediaStateDto MediaState)>();
@@ -232,7 +247,10 @@ public sealed class DeviceStatePollingWorker(
 
             logger.LogInformation("Estado de playback do Spotify mudou para {UserId}.", user.Id);
 
-            if (!string.IsNullOrWhiteSpace(mediaState.Title) && mediaState.Title != lastKnown?.Title)
+            if (
+                !string.IsNullOrWhiteSpace(mediaState.Title)
+                && mediaState.Title != lastKnown?.Title
+            )
             {
                 var (title, description) = ActivityLogMessages.SpotifyPlaybackChanged(
                     mediaState.IsPlaying,
@@ -295,7 +313,10 @@ public sealed class DeviceStatePollingWorker(
             adbControllable.Select(async result =>
             {
                 var mediaState = result.IsOn
-                    ? await FetchMediaStateAsync(result.Device.Configuration.IpAddress!, cancellationToken)
+                    ? await FetchMediaStateAsync(
+                        result.Device.Configuration.IpAddress!,
+                        cancellationToken
+                    )
                     : EmptyMediaState;
 
                 return (result.Device, MediaState: mediaState);
@@ -318,7 +339,10 @@ public sealed class DeviceStatePollingWorker(
 
             logger.LogInformation("Estado de mídia do dispositivo {DeviceId} mudou.", device.Id);
 
-            if (!string.IsNullOrWhiteSpace(mediaState.Title) && mediaState.Title != lastKnown?.Title)
+            if (
+                !string.IsNullOrWhiteSpace(mediaState.Title)
+                && mediaState.Title != lastKnown?.Title
+            )
             {
                 var (title, description) = ActivityLogMessages.DeviceMediaChanged(
                     mediaState.Title,
@@ -371,6 +395,11 @@ public sealed class DeviceStatePollingWorker(
         await Task.WhenAll(volumeTask, mediaTask);
 
         var media = mediaTask.Result;
-        return new DeviceMediaStateDto(volumeTask.Result, media?.IsPlaying ?? false, media?.Title, media?.Artist);
+        return new DeviceMediaStateDto(
+            volumeTask.Result,
+            media?.IsPlaying ?? false,
+            media?.Title,
+            media?.Artist
+        );
     }
 }

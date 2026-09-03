@@ -102,9 +102,10 @@ public static class ActivityLogMessages
         if (success)
             return ($"{automationName} disparou", $"Ação executada em {deviceName}.");
 
-        var description = errorMessage != null
-            ? $"Falha ao acionar {deviceName}: {errorMessage}"
-            : $"Falha ao acionar {deviceName}.";
+        var description =
+            errorMessage != null
+                ? $"Falha ao acionar {deviceName}: {errorMessage}"
+                : $"Falha ao acionar {deviceName}.";
 
         return ($"{automationName} falhou", description);
     }

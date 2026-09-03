@@ -98,9 +98,7 @@ public class GetActivityLogTests(IntegrationTestWebAppFactory factory)
             .Should()
             .ContainInOrder("Spotify reproduzindo", "Lâmpada da Sala ligado");
 
-        pagedResult
-            .Items.Should()
-            .NotContain(entry => entry.Title == "Evento do vizinho");
+        pagedResult.Items.Should().NotContain(entry => entry.Title == "Evento do vizinho");
     }
 
     [Fact]

@@ -82,7 +82,9 @@ public class CreateAutomationCommandHandler(
             RulePayload = request.RulePayload,
             IsActive = request.IsActive,
             TriggerKind =
-                trigger is TimeTrigger ? AutomationTriggerKind.Schedule : AutomationTriggerKind.Sensor,
+                trigger is TimeTrigger
+                    ? AutomationTriggerKind.Schedule
+                    : AutomationTriggerKind.Sensor,
             IsDraft = trigger is null || payload?.Actions is null || payload.Actions.Count == 0,
         };
 

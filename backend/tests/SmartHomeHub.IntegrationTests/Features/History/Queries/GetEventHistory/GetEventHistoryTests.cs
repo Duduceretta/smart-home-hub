@@ -8,7 +8,8 @@ using SmartHomeHub.IntegrationTests.Setup;
 
 namespace SmartHomeHub.IntegrationTests.Features.History.Queries.GetEventHistory;
 
-public class GetEventHistoryTests(IntegrationTestWebAppFactory factory) : BaseIntegrationTest(factory)
+public class GetEventHistoryTests(IntegrationTestWebAppFactory factory)
+    : BaseIntegrationTest(factory)
 {
     private record EventHistoryEntryResponse(
         Guid Id,
@@ -139,9 +140,9 @@ public class GetEventHistoryTests(IntegrationTestWebAppFactory factory) : BaseIn
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
 
-        var paged = await response.Content.ReadFromJsonAsync<PagedResponse<EventHistoryEntryResponse>>(
-            cancellationToken: TestContext.Current.CancellationToken
-        );
+        var paged = await response.Content.ReadFromJsonAsync<
+            PagedResponse<EventHistoryEntryResponse>
+        >(cancellationToken: TestContext.Current.CancellationToken);
 
         paged.Should().NotBeNull();
         paged!.Items.Should().HaveCount(2);
@@ -199,9 +200,9 @@ public class GetEventHistoryTests(IntegrationTestWebAppFactory factory) : BaseIn
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
 
-        var paged = await response.Content.ReadFromJsonAsync<PagedResponse<EventHistoryEntryResponse>>(
-            cancellationToken: TestContext.Current.CancellationToken
-        );
+        var paged = await response.Content.ReadFromJsonAsync<
+            PagedResponse<EventHistoryEntryResponse>
+        >(cancellationToken: TestContext.Current.CancellationToken);
 
         paged!.Items.Should().ContainSingle();
         paged.Items[0].DeviceGroupId.Should().Be(group.Id);
@@ -239,9 +240,9 @@ public class GetEventHistoryTests(IntegrationTestWebAppFactory factory) : BaseIn
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
 
-        var paged = await response.Content.ReadFromJsonAsync<PagedResponse<EventHistoryEntryResponse>>(
-            cancellationToken: TestContext.Current.CancellationToken
-        );
+        var paged = await response.Content.ReadFromJsonAsync<
+            PagedResponse<EventHistoryEntryResponse>
+        >(cancellationToken: TestContext.Current.CancellationToken);
 
         paged.Should().NotBeNull();
         paged!.Page.Should().Be(2);
@@ -302,9 +303,9 @@ public class GetEventHistoryTests(IntegrationTestWebAppFactory factory) : BaseIn
         var response = await Client.GetAsync(url, TestContext.Current.CancellationToken);
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
-        var paged = await response.Content.ReadFromJsonAsync<PagedResponse<EventHistoryEntryResponse>>(
-            cancellationToken: TestContext.Current.CancellationToken
-        );
+        var paged = await response.Content.ReadFromJsonAsync<
+            PagedResponse<EventHistoryEntryResponse>
+        >(cancellationToken: TestContext.Current.CancellationToken);
 
         paged.Should().NotBeNull();
         paged!.TotalCount.Should().Be(1);

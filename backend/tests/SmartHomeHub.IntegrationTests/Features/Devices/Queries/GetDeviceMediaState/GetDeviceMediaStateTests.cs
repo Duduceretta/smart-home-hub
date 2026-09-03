@@ -14,7 +14,8 @@ using Xunit;
 
 namespace SmartHomeHub.IntegrationTests.Features.Devices.Queries.GetDeviceMediaState;
 
-public class GetDeviceMediaStateTests(IntegrationTestWebAppFactory factory) : BaseIntegrationTest(factory)
+public class GetDeviceMediaStateTests(IntegrationTestWebAppFactory factory)
+    : BaseIntegrationTest(factory)
 {
     private readonly IGoogleTvService _googleTvService =
         factory.Services.GetRequiredService<IGoogleTvService>();

@@ -53,12 +53,7 @@ public class ToggleDeviceCommandHandler(IAppDbContext dbContext, ISender sender)
         var traceId = Activity.Current?.Id ?? Guid.NewGuid().ToString();
 
         return await sender.Send(
-            new SetDeviceStateCommand(
-                request.DeviceId,
-                request.FirebaseUid,
-                !device.IsOn,
-                traceId
-            ),
+            new SetDeviceStateCommand(request.DeviceId, request.FirebaseUid, !device.IsOn, traceId),
             cancellationToken
         );
     }

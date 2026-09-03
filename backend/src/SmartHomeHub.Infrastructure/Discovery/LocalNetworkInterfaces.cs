@@ -26,7 +26,9 @@ public static class LocalNetworkInterfaces
             .Where(IsQualified)
             .SelectMany(ni =>
                 ni.GetIPProperties()
-                    .UnicastAddresses.Where(a => a.Address.AddressFamily == AddressFamily.InterNetwork)
+                    .UnicastAddresses.Where(a =>
+                        a.Address.AddressFamily == AddressFamily.InterNetwork
+                    )
                     .Select(a => a.Address)
             )
             .Distinct()

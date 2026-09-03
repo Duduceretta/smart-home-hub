@@ -85,11 +85,7 @@ public class CreateAutomationTests(IntegrationTestWebAppFactory factory)
     [Fact]
     public async Task CreateAutomation_WithNonExistentUser_ShouldReturnNotFound()
     {
-        var request = new CreateAutomationRequest(
-            "Rotina Órfã",
-            PayloadWithoutTrigger,
-            true
-        );
+        var request = new CreateAutomationRequest("Rotina Órfã", PayloadWithoutTrigger, true);
 
         var response = await Client.PostAsJsonAsync(
             "/api/automations",
@@ -156,11 +152,7 @@ public class CreateAutomationTests(IntegrationTestWebAppFactory factory)
     {
         await SeedUserAsync();
 
-        var request = new CreateAutomationRequest(
-            "Rotina Noturna",
-            PayloadWithCronTrigger,
-            true
-        );
+        var request = new CreateAutomationRequest("Rotina Noturna", PayloadWithCronTrigger, true);
 
         var response = await Client.PostAsJsonAsync(
             "/api/automations",

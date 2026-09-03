@@ -40,7 +40,10 @@ public static class SsdpResponseParser
         "urn:schemas-upnp-org:service:wanpppconnection:",
     ];
 
-    public static SsdpAnnouncement? TryParseAnnouncement(string rawResponse, IPEndPoint remoteEndPoint)
+    public static SsdpAnnouncement? TryParseAnnouncement(
+        string rawResponse,
+        IPEndPoint remoteEndPoint
+    )
     {
         if (string.IsNullOrWhiteSpace(rawResponse))
         {
@@ -52,7 +55,10 @@ public static class SsdpResponseParser
             StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries
         );
 
-        if (lines.Length == 0 || !lines[0].StartsWith("HTTP/1.1 200", StringComparison.OrdinalIgnoreCase))
+        if (
+            lines.Length == 0
+            || !lines[0].StartsWith("HTTP/1.1 200", StringComparison.OrdinalIgnoreCase)
+        )
         {
             return null;
         }
@@ -84,17 +90,23 @@ public static class SsdpResponseParser
             searchTarget,
             location,
             server,
-            Uri.UnescapeDataString(dlnaDeviceName ?? string.Empty) is { Length: > 0 } decoded ? decoded : null
+            Uri.UnescapeDataString(dlnaDeviceName ?? string.Empty) is { Length: > 0 } decoded
+                ? decoded
+                : null
         );
     }
 
     public static bool IsControllable(IReadOnlyList<SsdpAnnouncement> group) =>
-        group.Any(a => MatchesAnyPrefix(a.SearchTarget, ControllableServicePrefixes)
-            || MatchesAnyPrefix(a.Usn, ControllableServicePrefixes));
+        group.Any(a =>
+            MatchesAnyPrefix(a.SearchTarget, ControllableServicePrefixes)
+            || MatchesAnyPrefix(a.Usn, ControllableServicePrefixes)
+        );
 
     public static bool IsGateway(IReadOnlyList<SsdpAnnouncement> group) =>
-        group.Any(a => MatchesAnyPrefix(a.SearchTarget, GatewayServicePrefixes)
-            || MatchesAnyPrefix(a.Usn, GatewayServicePrefixes));
+        group.Any(a =>
+            MatchesAnyPrefix(a.SearchTarget, GatewayServicePrefixes)
+            || MatchesAnyPrefix(a.Usn, GatewayServicePrefixes)
+        );
 
     private static bool MatchesAnyPrefix(string? value, string[] prefixes) =>
         value is not null
@@ -104,14 +116,19 @@ public static class SsdpResponseParser
     // friendlyName do XML de descrição (mais confiável, mas exige um fetch HTTP
     // à parte — ver SsdpDeviceDescriptionFetcher) > DLNADeviceName (já vem no
     // header da resposta, sem round-trip extra) > Server parseado > genérico.
-    public static string ResolveDisplayName(IReadOnlyList<SsdpAnnouncement> group, string? friendlyNameFromXml)
+    public static string ResolveDisplayName(
+        IReadOnlyList<SsdpAnnouncement> group,
+        string? friendlyNameFromXml
+    )
     {
         if (!string.IsNullOrWhiteSpace(friendlyNameFromXml))
         {
             return friendlyNameFromXml;
         }
 
-        var dlnaName = group.Select(a => a.DlnaDeviceName).FirstOrDefault(n => !string.IsNullOrWhiteSpace(n));
+        var dlnaName = group
+            .Select(a => a.DlnaDeviceName)
+            .FirstOrDefault(n => !string.IsNullOrWhiteSpace(n));
         if (dlnaName is not null)
         {
             return dlnaName;
@@ -122,7 +139,8 @@ public static class SsdpResponseParser
     }
 
     public static string ResolveBrand(IReadOnlyList<SsdpAnnouncement> group) =>
-        group.Select(a => ExtractBrand(a.Server)).FirstOrDefault(b => b is not null) ?? "Desconhecido";
+        group.Select(a => ExtractBrand(a.Server)).FirstOrDefault(b => b is not null)
+        ?? "Desconhecido";
 
     public static DiscoveredDeviceDto BuildDeviceDto(
         IReadOnlyList<SsdpAnnouncement> group,

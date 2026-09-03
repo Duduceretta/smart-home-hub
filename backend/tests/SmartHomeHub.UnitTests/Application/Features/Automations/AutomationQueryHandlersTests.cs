@@ -37,7 +37,12 @@ public class AutomationQueryHandlersTests
         var owner = await SeedUserAsync();
         var otherUser = await SeedUserAsync();
         _dbContext.Automations.AddRange(
-            new Automation { UserId = owner.Id, Name = "Rotina do Owner", RulePayload = Payload },
+            new Automation
+            {
+                UserId = owner.Id,
+                Name = "Rotina do Owner",
+                RulePayload = Payload,
+            },
             new Automation
             {
                 UserId = otherUser.Id,

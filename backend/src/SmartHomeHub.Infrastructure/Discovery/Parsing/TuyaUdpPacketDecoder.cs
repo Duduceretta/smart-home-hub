@@ -55,9 +55,17 @@ public static class TuyaUdpPacketDecoder
         }
     }
 
-    private static DiscoveredDeviceDto? TryParseCore(byte[] datagram, int sourcePort, string sourceIp)
+    private static DiscoveredDeviceDto? TryParseCore(
+        byte[] datagram,
+        int sourcePort,
+        string sourceIp
+    )
     {
-        if (datagram.Length >= 8 && datagram.AsSpan(0, 4).SequenceEqual(GcmPrefix) && datagram.AsSpan(^4).SequenceEqual(GcmSuffix))
+        if (
+            datagram.Length >= 8
+            && datagram.AsSpan(0, 4).SequenceEqual(GcmPrefix)
+            && datagram.AsSpan(^4).SequenceEqual(GcmSuffix)
+        )
         {
             var gcmJson = DecodeGcmBroadcast(datagram);
             return gcmJson is null ? null : BuildDto(gcmJson, sourceIp);
@@ -78,7 +86,8 @@ public static class TuyaUdpPacketDecoder
             return null;
         }
 
-        var payloadLength = (datagram[12] << 24) | (datagram[13] << 16) | (datagram[14] << 8) | datagram[15];
+        var payloadLength =
+            (datagram[12] << 24) | (datagram[13] << 16) | (datagram[14] << 8) | datagram[15];
         const int payloadOffset = 16;
         var payloadEnd = payloadOffset + payloadLength - 8; // desconta CRC(4) + suffix(4) já contados em length
 
@@ -89,7 +98,10 @@ public static class TuyaUdpPacketDecoder
 
         var payloadBytes = datagram[payloadOffset..payloadEnd];
 
-        var json = sourcePort == 6667 ? DecryptAesEcb(payloadBytes) : System.Text.Encoding.UTF8.GetString(payloadBytes);
+        var json =
+            sourcePort == 6667
+                ? DecryptAesEcb(payloadBytes)
+                : System.Text.Encoding.UTF8.GetString(payloadBytes);
 
         return string.IsNullOrWhiteSpace(json) ? null : BuildDto(json, sourceIp);
     }
@@ -137,14 +149,18 @@ public static class TuyaUdpPacketDecoder
         using var document = JsonDocument.Parse(json);
         var root = document.RootElement;
 
-        var gwId = root.TryGetProperty("gwId", out var gwIdElement) ? gwIdElement.GetString() : null;
+        var gwId = root.TryGetProperty("gwId", out var gwIdElement)
+            ? gwIdElement.GetString()
+            : null;
         if (string.IsNullOrEmpty(gwId))
         {
             return null;
         }
 
         var ip = root.TryGetProperty("ip", out var ipElement) ? ipElement.GetString() : sourceIp;
-        var productKey = root.TryGetProperty("productKey", out var pkElement) ? pkElement.GetString() : null;
+        var productKey = root.TryGetProperty("productKey", out var pkElement)
+            ? pkElement.GetString()
+            : null;
         var version = root.TryGetProperty("version", out var versionElement)
             ? versionElement.GetRawText().Trim('"')
             : null;

@@ -12,7 +12,8 @@ using SmartHomeHub.IntegrationTests.Setup;
 
 namespace SmartHomeHub.IntegrationTests.Features.Devices.Commands.SetDeviceState;
 
-public class SetDeviceStateTuyaLocalTests(IntegrationTestWebAppFactory factory) : BaseIntegrationTest(factory)
+public class SetDeviceStateTuyaLocalTests(IntegrationTestWebAppFactory factory)
+    : BaseIntegrationTest(factory)
 {
     private readonly ITuyaLocalControlService _tuyaLocalControlService =
         factory.Services.GetRequiredService<ITuyaLocalControlService>();
@@ -32,7 +33,11 @@ public class SetDeviceStateTuyaLocalTests(IntegrationTestWebAppFactory factory) 
             IntegrationType = IntegrationType.TuyaLocal,
             IsOn = isOn,
             IsOnline = true,
-            Configuration = new DeviceConfiguration { IpAddress = "192.168.1.50", LocalKey = "local-key-123" },
+            Configuration = new DeviceConfiguration
+            {
+                IpAddress = "192.168.1.50",
+                LocalKey = "local-key-123",
+            },
         };
 
         DbContext.Users.Add(user);
@@ -82,7 +87,11 @@ public class SetDeviceStateTuyaLocalTests(IntegrationTestWebAppFactory factory) 
         var device = await SeedTuyaLampAsync(isOn: false);
 
         _tuyaLocalControlService
-            .SetPowerStateAsync(Arg.Any<TuyaDeviceConnectionInfo>(), true, Arg.Any<CancellationToken>())
+            .SetPowerStateAsync(
+                Arg.Any<TuyaDeviceConnectionInfo>(),
+                true,
+                Arg.Any<CancellationToken>()
+            )
             .Returns(
                 Domain.Common.Primitives.Result.Success(
                     new TuyaCommandOutcome(true, "192.168.1.77", "20")
@@ -112,10 +121,17 @@ public class SetDeviceStateTuyaLocalTests(IntegrationTestWebAppFactory factory) 
         var device = await SeedTuyaLampAsync(isOn: false);
 
         _tuyaLocalControlService
-            .SetPowerStateAsync(Arg.Any<TuyaDeviceConnectionInfo>(), true, Arg.Any<CancellationToken>())
+            .SetPowerStateAsync(
+                Arg.Any<TuyaDeviceConnectionInfo>(),
+                true,
+                Arg.Any<CancellationToken>()
+            )
             .Returns(
                 Domain.Common.Primitives.Result.Failure<TuyaCommandOutcome>(
-                    new Domain.Common.Primitives.Error("Device.Offline", "Dispositivo Tuya não respondeu (timeout).")
+                    new Domain.Common.Primitives.Error(
+                        "Device.Offline",
+                        "Dispositivo Tuya não respondeu (timeout)."
+                    )
                 )
             );
 
@@ -130,7 +146,9 @@ public class SetDeviceStateTuyaLocalTests(IntegrationTestWebAppFactory factory) 
         var physicalDevice = await DbContext
             .Devices.AsNoTracking()
             .FirstAsync(d => d.Id == device.Id, TestContext.Current.CancellationToken);
-        physicalDevice.IsOn.Should().BeFalse("comando não confirmado — a UI não deve mostrar ligado.");
+        physicalDevice
+            .IsOn.Should()
+            .BeFalse("comando não confirmado — a UI não deve mostrar ligado.");
         physicalDevice.IsOnline.Should().BeFalse();
     }
 
@@ -153,6 +171,10 @@ public class SetDeviceStateTuyaLocalTests(IntegrationTestWebAppFactory factory) 
 
         await _tuyaLocalControlService
             .DidNotReceive()
-            .SetPowerStateAsync(Arg.Any<TuyaDeviceConnectionInfo>(), Arg.Any<bool>(), Arg.Any<CancellationToken>());
+            .SetPowerStateAsync(
+                Arg.Any<TuyaDeviceConnectionInfo>(),
+                Arg.Any<bool>(),
+                Arg.Any<CancellationToken>()
+            );
     }
 }

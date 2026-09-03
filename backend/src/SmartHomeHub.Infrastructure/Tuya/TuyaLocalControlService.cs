@@ -35,7 +35,10 @@ public sealed class TuyaLocalControlService(
             if (ipAddress is null)
             {
                 return Result.Failure<TuyaCommandOutcome>(
-                    new Error("Device.Offline", "Não foi possível localizar o dispositivo Tuya na rede local.")
+                    new Error(
+                        "Device.Offline",
+                        "Não foi possível localizar o dispositivo Tuya na rede local."
+                    )
                 );
             }
             resolvedIp = ipAddress;
@@ -43,7 +46,13 @@ public sealed class TuyaLocalControlService(
 
         IReadOnlyDictionary<int, object?> status;
         var statusResult = await TryWithTimeoutAsync(
-            ct => protocolClient.QueryStatusAsync(ipAddress, connection.TuyaDeviceId, connection.LocalKey, ct),
+            ct =>
+                protocolClient.QueryStatusAsync(
+                    ipAddress,
+                    connection.TuyaDeviceId,
+                    connection.LocalKey,
+                    ct
+                ),
             connection.TuyaDeviceId,
             ipAddress,
             cancellationToken
@@ -57,7 +66,10 @@ public sealed class TuyaLocalControlService(
                 return Result.Failure<TuyaCommandOutcome>(statusResult.Error);
             }
 
-            var rediscoveredIp = await TryResolveIpAsync(connection.TuyaDeviceId, cancellationToken);
+            var rediscoveredIp = await TryResolveIpAsync(
+                connection.TuyaDeviceId,
+                cancellationToken
+            );
             if (rediscoveredIp is null || rediscoveredIp == ipAddress)
             {
                 return Result.Failure<TuyaCommandOutcome>(statusResult.Error);
@@ -67,7 +79,13 @@ public sealed class TuyaLocalControlService(
             resolvedIp = rediscoveredIp;
 
             statusResult = await TryWithTimeoutAsync(
-                ct => protocolClient.QueryStatusAsync(ipAddress, connection.TuyaDeviceId, connection.LocalKey, ct),
+                ct =>
+                    protocolClient.QueryStatusAsync(
+                        ipAddress,
+                        connection.TuyaDeviceId,
+                        connection.LocalKey,
+                        ct
+                    ),
                 connection.TuyaDeviceId,
                 ipAddress,
                 cancellationToken
@@ -93,7 +111,15 @@ public sealed class TuyaLocalControlService(
         }
 
         var setResult = await TryWithTimeoutAsync(
-            ct => protocolClient.SetDpAsync(ipAddress, connection.TuyaDeviceId, connection.LocalKey, resolvedDp.Value, desiredState, ct),
+            ct =>
+                protocolClient.SetDpAsync(
+                    ipAddress,
+                    connection.TuyaDeviceId,
+                    connection.LocalKey,
+                    resolvedDp.Value,
+                    desiredState,
+                    ct
+                ),
             connection.TuyaDeviceId,
             ipAddress,
             cancellationToken
@@ -105,19 +131,30 @@ public sealed class TuyaLocalControlService(
         }
 
         var confirmedIsOn =
-            setResult.Value.TryGetValue(resolvedDp.Value, out var confirmedValue) && confirmedValue is bool confirmedBool
+            setResult.Value.TryGetValue(resolvedDp.Value, out var confirmedValue)
+            && confirmedValue is bool confirmedBool
                 ? confirmedBool
                 : desiredState;
 
-        var resolvedDpString = connection.DpsPowerKey == resolvedDp.Value.ToString() ? null : resolvedDp.Value.ToString();
+        var resolvedDpString =
+            connection.DpsPowerKey == resolvedDp.Value.ToString()
+                ? null
+                : resolvedDp.Value.ToString();
 
         return Result.Success(new TuyaCommandOutcome(confirmedIsOn, resolvedIp, resolvedDpString));
     }
 
-    private static int? ResolveDp(string? configuredDp, IReadOnlyDictionary<int, object?> status, string tuyaDeviceId)
+    private static int? ResolveDp(
+        string? configuredDp,
+        IReadOnlyDictionary<int, object?> status,
+        string tuyaDeviceId
+    )
     {
-        if (int.TryParse(configuredDp, out var configured) && status.TryGetValue(configured, out var configuredValue)
-            && configuredValue is bool)
+        if (
+            int.TryParse(configuredDp, out var configured)
+            && status.TryGetValue(configured, out var configuredValue)
+            && configuredValue is bool
+        )
         {
             return configured;
         }
@@ -165,16 +202,20 @@ public sealed class TuyaLocalControlService(
             }
 
             var existingColorValue = status[colorDpInColourMode.Value] as string;
-            var newColorValue = TuyaColorConverter.ReplaceHsvValueComponent(existingColorValue, brightnessPercent);
+            var newColorValue = TuyaColorConverter.ReplaceHsvValueComponent(
+                existingColorValue,
+                brightnessPercent
+            );
 
             var colourSetResult = await TryWithTimeoutAsync(
-                ct => protocolClient.SetDpsAsync(
-                    ipAddress,
-                    connection.TuyaDeviceId,
-                    connection.LocalKey,
-                    new Dictionary<int, object> { [colorDpInColourMode.Value] = newColorValue },
-                    ct
-                ),
+                ct =>
+                    protocolClient.SetDpsAsync(
+                        ipAddress,
+                        connection.TuyaDeviceId,
+                        connection.LocalKey,
+                        new Dictionary<int, object> { [colorDpInColourMode.Value] = newColorValue },
+                        ct
+                    ),
                 connection.TuyaDeviceId,
                 ipAddress,
                 cancellationToken
@@ -183,10 +224,16 @@ public sealed class TuyaLocalControlService(
             if (colourSetResult.IsFailure)
                 return Result.Failure<TuyaBrightnessCommandOutcome>(colourSetResult.Error);
 
-            return Result.Success(new TuyaBrightnessCommandOutcome(resolvedIp, ResolvedDpsBrightnessKey: null));
+            return Result.Success(
+                new TuyaBrightnessCommandOutcome(resolvedIp, ResolvedDpsBrightnessKey: null)
+            );
         }
 
-        var brightnessDp = ResolveNumericDp(connection.DpsBrightnessKey, status, DefaultBrightnessDp);
+        var brightnessDp = ResolveNumericDp(
+            connection.DpsBrightnessKey,
+            status,
+            DefaultBrightnessDp
+        );
         if (brightnessDp is null)
         {
             return Result.Failure<TuyaBrightnessCommandOutcome>(
@@ -200,13 +247,14 @@ public sealed class TuyaLocalControlService(
         var deviceValue = TuyaColorConverter.PercentToDeviceBrightness(brightnessPercent);
 
         var setResult = await TryWithTimeoutAsync(
-            ct => protocolClient.SetDpsAsync(
-                ipAddress,
-                connection.TuyaDeviceId,
-                connection.LocalKey,
-                new Dictionary<int, object> { [brightnessDp.Value] = deviceValue },
-                ct
-            ),
+            ct =>
+                protocolClient.SetDpsAsync(
+                    ipAddress,
+                    connection.TuyaDeviceId,
+                    connection.LocalKey,
+                    new Dictionary<int, object> { [brightnessDp.Value] = deviceValue },
+                    ct
+                ),
             connection.TuyaDeviceId,
             ipAddress,
             cancellationToken
@@ -216,7 +264,9 @@ public sealed class TuyaLocalControlService(
             return Result.Failure<TuyaBrightnessCommandOutcome>(setResult.Error);
 
         var resolvedDpString =
-            connection.DpsBrightnessKey == brightnessDp.Value.ToString() ? null : brightnessDp.Value.ToString();
+            connection.DpsBrightnessKey == brightnessDp.Value.ToString()
+                ? null
+                : brightnessDp.Value.ToString();
 
         return Result.Success(new TuyaBrightnessCommandOutcome(resolvedIp, resolvedDpString));
     }
@@ -253,7 +303,9 @@ public sealed class TuyaLocalControlService(
         }
         catch (ArgumentException ex)
         {
-            return Result.Failure<TuyaColorCommandOutcome>(new Error("Device.InvalidColor", ex.Message));
+            return Result.Failure<TuyaColorCommandOutcome>(
+                new Error("Device.InvalidColor", ex.Message)
+            );
         }
 
         var dps = new Dictionary<int, object> { [colorDp.Value] = dpValue };
@@ -270,7 +322,14 @@ public sealed class TuyaLocalControlService(
         }
 
         var setResult = await TryWithTimeoutAsync(
-            ct => protocolClient.SetDpsAsync(ipAddress, connection.TuyaDeviceId, connection.LocalKey, dps, ct),
+            ct =>
+                protocolClient.SetDpsAsync(
+                    ipAddress,
+                    connection.TuyaDeviceId,
+                    connection.LocalKey,
+                    dps,
+                    ct
+                ),
             connection.TuyaDeviceId,
             ipAddress,
             cancellationToken
@@ -279,9 +338,12 @@ public sealed class TuyaLocalControlService(
         if (setResult.IsFailure)
             return Result.Failure<TuyaColorCommandOutcome>(setResult.Error);
 
-        var resolvedDpString = connection.DpsColorKey == colorDp.Value.ToString() ? null : colorDp.Value.ToString();
+        var resolvedDpString =
+            connection.DpsColorKey == colorDp.Value.ToString() ? null : colorDp.Value.ToString();
 
-        return Result.Success(new TuyaColorCommandOutcome(resolvedIp, resolvedDpString, ResolvedSupportsColor: true));
+        return Result.Success(
+            new TuyaColorCommandOutcome(resolvedIp, resolvedDpString, ResolvedSupportsColor: true)
+        );
     }
 
     public async Task<Result<TuyaColorTempCommandOutcome>> SetColorTempAsync(
@@ -322,7 +384,14 @@ public sealed class TuyaLocalControlService(
         }
 
         var setResult = await TryWithTimeoutAsync(
-            ct => protocolClient.SetDpsAsync(ipAddress, connection.TuyaDeviceId, connection.LocalKey, dps, ct),
+            ct =>
+                protocolClient.SetDpsAsync(
+                    ipAddress,
+                    connection.TuyaDeviceId,
+                    connection.LocalKey,
+                    dps,
+                    ct
+                ),
             connection.TuyaDeviceId,
             ipAddress,
             cancellationToken
@@ -332,7 +401,9 @@ public sealed class TuyaLocalControlService(
             return Result.Failure<TuyaColorTempCommandOutcome>(setResult.Error);
 
         var resolvedDpString =
-            connection.DpsColorTempKey == colorTempDp.Value.ToString() ? null : colorTempDp.Value.ToString();
+            connection.DpsColorTempKey == colorTempDp.Value.ToString()
+                ? null
+                : colorTempDp.Value.ToString();
 
         return Result.Success(new TuyaColorTempCommandOutcome(resolvedIp, resolvedDpString));
     }
@@ -363,13 +434,14 @@ public sealed class TuyaLocalControlService(
         }
 
         var setResult = await TryWithTimeoutAsync(
-            ct => protocolClient.SetDpsAsync(
-                ipAddress,
-                connection.TuyaDeviceId,
-                connection.LocalKey,
-                new Dictionary<int, object> { [workModeDp.Value] = workMode },
-                ct
-            ),
+            ct =>
+                protocolClient.SetDpsAsync(
+                    ipAddress,
+                    connection.TuyaDeviceId,
+                    connection.LocalKey,
+                    new Dictionary<int, object> { [workModeDp.Value] = workMode },
+                    ct
+                ),
             connection.TuyaDeviceId,
             ipAddress,
             cancellationToken
@@ -399,7 +471,9 @@ public sealed class TuyaLocalControlService(
         return Result.Success(resolved.Value.Status[workModeDp.Value] as string);
     }
 
-    private async Task<Result<(string IpAddress, string? ResolvedIp, IReadOnlyDictionary<int, object?> Status)>> ResolveIpAndStatusAsync(
+    private async Task<
+        Result<(string IpAddress, string? ResolvedIp, IReadOnlyDictionary<int, object?> Status)>
+    > ResolveIpAndStatusAsync(
         TuyaDeviceConnectionInfo connection,
         ITuyaProtocolClient protocolClient,
         CancellationToken cancellationToken
@@ -414,14 +488,23 @@ public sealed class TuyaLocalControlService(
             if (ipAddress is null)
             {
                 return Result.Failure<(string, string?, IReadOnlyDictionary<int, object?>)>(
-                    new Error("Device.Offline", "Não foi possível localizar o dispositivo Tuya na rede local.")
+                    new Error(
+                        "Device.Offline",
+                        "Não foi possível localizar o dispositivo Tuya na rede local."
+                    )
                 );
             }
             resolvedIp = ipAddress;
         }
 
         var statusResult = await TryWithTimeoutAsync(
-            ct => protocolClient.QueryStatusAsync(ipAddress, connection.TuyaDeviceId, connection.LocalKey, ct),
+            ct =>
+                protocolClient.QueryStatusAsync(
+                    ipAddress,
+                    connection.TuyaDeviceId,
+                    connection.LocalKey,
+                    ct
+                ),
             connection.TuyaDeviceId,
             ipAddress,
             cancellationToken
@@ -431,20 +514,33 @@ public sealed class TuyaLocalControlService(
         {
             if (statusResult.Error.Code != "Device.Offline")
             {
-                return Result.Failure<(string, string?, IReadOnlyDictionary<int, object?>)>(statusResult.Error);
+                return Result.Failure<(string, string?, IReadOnlyDictionary<int, object?>)>(
+                    statusResult.Error
+                );
             }
 
-            var rediscoveredIp = await TryResolveIpAsync(connection.TuyaDeviceId, cancellationToken);
+            var rediscoveredIp = await TryResolveIpAsync(
+                connection.TuyaDeviceId,
+                cancellationToken
+            );
             if (rediscoveredIp is null || rediscoveredIp == ipAddress)
             {
-                return Result.Failure<(string, string?, IReadOnlyDictionary<int, object?>)>(statusResult.Error);
+                return Result.Failure<(string, string?, IReadOnlyDictionary<int, object?>)>(
+                    statusResult.Error
+                );
             }
 
             ipAddress = rediscoveredIp;
             resolvedIp = rediscoveredIp;
 
             statusResult = await TryWithTimeoutAsync(
-                ct => protocolClient.QueryStatusAsync(ipAddress, connection.TuyaDeviceId, connection.LocalKey, ct),
+                ct =>
+                    protocolClient.QueryStatusAsync(
+                        ipAddress,
+                        connection.TuyaDeviceId,
+                        connection.LocalKey,
+                        ct
+                    ),
                 connection.TuyaDeviceId,
                 ipAddress,
                 cancellationToken
@@ -452,7 +548,9 @@ public sealed class TuyaLocalControlService(
 
             if (statusResult.IsFailure)
             {
-                return Result.Failure<(string, string?, IReadOnlyDictionary<int, object?>)>(statusResult.Error);
+                return Result.Failure<(string, string?, IReadOnlyDictionary<int, object?>)>(
+                    statusResult.Error
+                );
             }
         }
 
@@ -470,10 +568,17 @@ public sealed class TuyaLocalControlService(
     private const int DefaultBrightnessDp = 22;
     private const int DefaultColorTempDp = 23;
 
-    private static int? ResolveNumericDp(string? configuredDp, IReadOnlyDictionary<int, object?> status, int defaultDp)
+    private static int? ResolveNumericDp(
+        string? configuredDp,
+        IReadOnlyDictionary<int, object?> status,
+        int defaultDp
+    )
     {
-        if (int.TryParse(configuredDp, out var configured) && status.TryGetValue(configured, out var configuredValue)
-            && configuredValue is double)
+        if (
+            int.TryParse(configuredDp, out var configured)
+            && status.TryGetValue(configured, out var configuredValue)
+            && configuredValue is double
+        )
         {
             return configured;
         }
@@ -486,15 +591,23 @@ public sealed class TuyaLocalControlService(
         return null;
     }
 
-    private static int? ResolveColorDp(string? configuredDp, IReadOnlyDictionary<int, object?> status)
+    private static int? ResolveColorDp(
+        string? configuredDp,
+        IReadOnlyDictionary<int, object?> status
+    )
     {
-        if (int.TryParse(configuredDp, out var configured) && status.TryGetValue(configured, out var configuredValue)
-            && TuyaColorConverter.LooksLikeColorDpValue(configuredValue))
+        if (
+            int.TryParse(configuredDp, out var configured)
+            && status.TryGetValue(configured, out var configuredValue)
+            && TuyaColorConverter.LooksLikeColorDpValue(configuredValue)
+        )
         {
             return configured;
         }
 
-        var candidate = status.FirstOrDefault(kv => TuyaColorConverter.LooksLikeColorDpValue(kv.Value));
+        var candidate = status.FirstOrDefault(kv =>
+            TuyaColorConverter.LooksLikeColorDpValue(kv.Value)
+        );
         return candidate.Value is not null ? candidate.Key : null;
     }
 
@@ -509,7 +622,9 @@ public sealed class TuyaLocalControlService(
 
     private static int? ResolveWorkModeDp(IReadOnlyDictionary<int, object?> status)
     {
-        var candidate = status.FirstOrDefault(kv => kv.Value is string text && WorkModeValues.Contains(text));
+        var candidate = status.FirstOrDefault(kv =>
+            kv.Value is string text && WorkModeValues.Contains(text)
+        );
         return candidate.Value is not null ? candidate.Key : null;
     }
 
@@ -521,7 +636,10 @@ public sealed class TuyaLocalControlService(
     )
     {
         using var timeoutCts = new CancellationTokenSource(OperationTimeout);
-        using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeoutCts.Token);
+        using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(
+            cancellationToken,
+            timeoutCts.Token
+        );
 
         try
         {
@@ -535,7 +653,9 @@ public sealed class TuyaLocalControlService(
                 tuyaDeviceId,
                 ipAddress
             );
-            return Result.Failure<T>(new Error("Device.Offline", "Dispositivo Tuya não respondeu (timeout)."));
+            return Result.Failure<T>(
+                new Error("Device.Offline", "Dispositivo Tuya não respondeu (timeout).")
+            );
         }
         catch (SocketException ex)
         {
@@ -545,7 +665,9 @@ public sealed class TuyaLocalControlService(
                 tuyaDeviceId,
                 ipAddress
             );
-            return Result.Failure<T>(new Error("Device.Offline", "Não foi possível conectar ao dispositivo Tuya."));
+            return Result.Failure<T>(
+                new Error("Device.Offline", "Não foi possível conectar ao dispositivo Tuya.")
+            );
         }
         catch (CryptographicException ex)
         {
@@ -563,15 +685,27 @@ public sealed class TuyaLocalControlService(
         }
         catch (Exception ex)
         {
-            logger.LogWarning(ex, "Falha inesperada ao comunicar com dispositivo Tuya {DeviceId}", tuyaDeviceId);
-            return Result.Failure<T>(new Error("Device.CommunicationError", "Falha ao comunicar com o dispositivo Tuya."));
+            logger.LogWarning(
+                ex,
+                "Falha inesperada ao comunicar com dispositivo Tuya {DeviceId}",
+                tuyaDeviceId
+            );
+            return Result.Failure<T>(
+                new Error("Device.CommunicationError", "Falha ao comunicar com o dispositivo Tuya.")
+            );
         }
     }
 
-    private async Task<string?> TryResolveIpAsync(string tuyaDeviceId, CancellationToken cancellationToken)
+    private async Task<string?> TryResolveIpAsync(
+        string tuyaDeviceId,
+        CancellationToken cancellationToken
+    )
     {
         using var timeoutCts = new CancellationTokenSource(IpResolutionTimeout);
-        using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeoutCts.Token);
+        using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(
+            cancellationToken,
+            timeoutCts.Token
+        );
 
         try
         {

@@ -23,7 +23,8 @@ public static partial class TuyaColorConverter
     {
         var clampedPercent = Math.Clamp(percent, 0, 100);
         return DeviceBrightnessMin
-            + (int)Math.Round((DeviceBrightnessMax - DeviceBrightnessMin) * (clampedPercent / 100.0));
+            + (int)
+                Math.Round((DeviceBrightnessMax - DeviceBrightnessMin) * (clampedPercent / 100.0));
     }
 
     /// <summary>

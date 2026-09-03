@@ -16,7 +16,9 @@ public class GetDeviceMediaStateQueryValidator : AbstractValidator<GetDeviceMedi
 {
     public GetDeviceMediaStateQueryValidator()
     {
-        RuleFor(query => query.DeviceId).NotEmpty().WithMessage("O ID do dispositivo é obrigatório.");
+        RuleFor(query => query.DeviceId)
+            .NotEmpty()
+            .WithMessage("O ID do dispositivo é obrigatório.");
 
         RuleFor(query => query.FirebaseUid)
             .NotEmpty()
@@ -87,7 +89,12 @@ public class GetDeviceMediaStateQueryHandler(
         var media = mediaTask.Result;
 
         return Result.Success(
-            new DeviceMediaStateDto(volumeTask.Result, media?.IsPlaying ?? false, media?.Title, media?.Artist)
+            new DeviceMediaStateDto(
+                volumeTask.Result,
+                media?.IsPlaying ?? false,
+                media?.Title,
+                media?.Artist
+            )
         );
     }
 }

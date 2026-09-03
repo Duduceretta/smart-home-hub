@@ -31,7 +31,10 @@ public class SsdpResponseParserTests
     [Fact]
     public void TryParseAnnouncement_WithLowercaseHeaders_ShouldParseCaseInsensitively()
     {
-        var raw = "HTTP/1.1 200 OK\r\n" + "st: ssdp:all\r\n" + "usn: uuid:aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee\r\n\r\n";
+        var raw =
+            "HTTP/1.1 200 OK\r\n"
+            + "st: ssdp:all\r\n"
+            + "usn: uuid:aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee\r\n\r\n";
 
         var result = SsdpResponseParser.TryParseAnnouncement(raw, RemoteEndPoint);
 
@@ -42,7 +45,10 @@ public class SsdpResponseParserTests
     [Fact]
     public void TryParseAnnouncement_WithMalformedResponse_ShouldReturnNull()
     {
-        SsdpResponseParser.TryParseAnnouncement("NOT A VALID SSDP RESPONSE", RemoteEndPoint).Should().BeNull();
+        SsdpResponseParser
+            .TryParseAnnouncement("NOT A VALID SSDP RESPONSE", RemoteEndPoint)
+            .Should()
+            .BeNull();
     }
 
     [Fact]
@@ -56,7 +62,14 @@ public class SsdpResponseParserTests
     {
         var group = new[]
         {
-            new SsdpAnnouncement(RemoteEndPoint.Address, "uuid:a::upnp:rootdevice", "upnp:rootdevice", null, null, null),
+            new SsdpAnnouncement(
+                RemoteEndPoint.Address,
+                "uuid:a::upnp:rootdevice",
+                "upnp:rootdevice",
+                null,
+                null,
+                null
+            ),
             new SsdpAnnouncement(
                 RemoteEndPoint.Address,
                 "uuid:a::urn:dial-multiscreen-org:service:dial:1",
@@ -75,7 +88,14 @@ public class SsdpResponseParserTests
     {
         var group = new[]
         {
-            new SsdpAnnouncement(RemoteEndPoint.Address, "uuid:a::upnp:rootdevice", "upnp:rootdevice", null, null, null),
+            new SsdpAnnouncement(
+                RemoteEndPoint.Address,
+                "uuid:a::upnp:rootdevice",
+                "upnp:rootdevice",
+                null,
+                null,
+                null
+            ),
         };
 
         SsdpResponseParser.IsControllable(group).Should().BeFalse();
@@ -122,10 +142,20 @@ public class SsdpResponseParserTests
     {
         var group = new[]
         {
-            new SsdpAnnouncement(RemoteEndPoint.Address, null, null, null, "WebOS/4.1.0 UPnP/1.0", "Generic DLNA Name"),
+            new SsdpAnnouncement(
+                RemoteEndPoint.Address,
+                null,
+                null,
+                null,
+                "WebOS/4.1.0 UPnP/1.0",
+                "Generic DLNA Name"
+            ),
         };
 
-        SsdpResponseParser.ResolveDisplayName(group, "[LG] webOS TV LJ5500").Should().Be("[LG] webOS TV LJ5500");
+        SsdpResponseParser
+            .ResolveDisplayName(group, "[LG] webOS TV LJ5500")
+            .Should()
+            .Be("[LG] webOS TV LJ5500");
     }
 
     [Fact]
@@ -133,7 +163,14 @@ public class SsdpResponseParserTests
     {
         var group = new[]
         {
-            new SsdpAnnouncement(RemoteEndPoint.Address, null, null, null, "WebOS/4.1.0 UPnP/1.0", null),
+            new SsdpAnnouncement(
+                RemoteEndPoint.Address,
+                null,
+                null,
+                null,
+                "WebOS/4.1.0 UPnP/1.0",
+                null
+            ),
             new SsdpAnnouncement(
                 RemoteEndPoint.Address,
                 null,
@@ -144,7 +181,10 @@ public class SsdpResponseParserTests
             ),
         };
 
-        SsdpResponseParser.ResolveDisplayName(group, friendlyNameFromXml: null).Should().Be("[LG] webOS TV LJ5500");
+        SsdpResponseParser
+            .ResolveDisplayName(group, friendlyNameFromXml: null)
+            .Should()
+            .Be("[LG] webOS TV LJ5500");
     }
 
     [Fact]
@@ -154,10 +194,20 @@ public class SsdpResponseParserTests
         // pré-existente, preservado) — não necessariamente o nome comercial.
         var group = new[]
         {
-            new SsdpAnnouncement(RemoteEndPoint.Address, null, null, null, "Linux/3.14 MyBrand/2.0 UPnP/1.0", null),
+            new SsdpAnnouncement(
+                RemoteEndPoint.Address,
+                null,
+                null,
+                null,
+                "Linux/3.14 MyBrand/2.0 UPnP/1.0",
+                null
+            ),
         };
 
-        SsdpResponseParser.ResolveDisplayName(group, friendlyNameFromXml: null).Should().Be("Dispositivo UPnP (MyBrand)");
+        SsdpResponseParser
+            .ResolveDisplayName(group, friendlyNameFromXml: null)
+            .Should()
+            .Be("Dispositivo UPnP (MyBrand)");
     }
 
     [Fact]
@@ -165,7 +215,14 @@ public class SsdpResponseParserTests
     {
         var group = new[]
         {
-            new SsdpAnnouncement(RemoteEndPoint.Address, "uuid:a::upnp:rootdevice", "upnp:rootdevice", "http://192.168.1.50:1800/", null, null),
+            new SsdpAnnouncement(
+                RemoteEndPoint.Address,
+                "uuid:a::upnp:rootdevice",
+                "upnp:rootdevice",
+                "http://192.168.1.50:1800/",
+                null,
+                null
+            ),
             new SsdpAnnouncement(
                 RemoteEndPoint.Address,
                 "uuid:b::urn:dial-multiscreen-org:service:dial:1",
@@ -181,6 +238,7 @@ public class SsdpResponseParserTests
         dto.ExternalId.Should().Be("ssdp:192.168.1.50");
         dto.IntegrationType.Should().Be(IntegrationType.SsdpUpnp);
         dto.UpnpServices.Should().HaveCount(2);
-        dto.UpnpServices.Should().Contain(s => s.SearchTarget == "urn:dial-multiscreen-org:service:dial:1");
+        dto.UpnpServices.Should()
+            .Contain(s => s.SearchTarget == "urn:dial-multiscreen-org:service:dial:1");
     }
 }

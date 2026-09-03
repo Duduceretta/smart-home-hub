@@ -17,10 +17,17 @@ public record TuyaDeviceConnectionInfo(
 // ResolvedIpAddress/ResolvedDpsPowerKey só vêm preenchidos quando o serviço precisou
 // redescobrir/deduzir esses valores durante a operação — o handler deve persistí-los
 // de volta em DeviceConfiguration para as próximas chamadas não repetirem o trabalho.
-public record TuyaCommandOutcome(bool ConfirmedIsOn, string? ResolvedIpAddress, string? ResolvedDpsPowerKey);
+public record TuyaCommandOutcome(
+    bool ConfirmedIsOn,
+    string? ResolvedIpAddress,
+    string? ResolvedDpsPowerKey
+);
 
 // Mesmo racional de resolução/persistência do TuyaCommandOutcome, para brilho.
-public record TuyaBrightnessCommandOutcome(string? ResolvedIpAddress, string? ResolvedDpsBrightnessKey);
+public record TuyaBrightnessCommandOutcome(
+    string? ResolvedIpAddress,
+    string? ResolvedDpsBrightnessKey
+);
 
 // ResolvedSupportsColor só vem preenchido (true) quando o serviço confirmou o DP de
 // cor respondendo com sucesso — sinal de detecção automática pra persistir em
@@ -31,7 +38,10 @@ public record TuyaColorCommandOutcome(
     bool? ResolvedSupportsColor
 );
 
-public record TuyaColorTempCommandOutcome(string? ResolvedIpAddress, string? ResolvedDpsColorTempKey);
+public record TuyaColorTempCommandOutcome(
+    string? ResolvedIpAddress,
+    string? ResolvedDpsColorTempKey
+);
 
 public record TuyaWorkModeCommandOutcome(string? ResolvedIpAddress);
 

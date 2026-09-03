@@ -87,9 +87,7 @@ public class DeleteAutomationTests(IntegrationTestWebAppFactory factory)
         DbContext.Automations.Add(automation);
         await DbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
-        RecurringJob.AddOrUpdate<
-            SmartHomeHub.Application.Common.Interfaces.IAutomationTimeTriggerJob
-        >(
+        RecurringJob.AddOrUpdate<SmartHomeHub.Application.Common.Interfaces.IAutomationTimeTriggerJob>(
             $"automation_time_{automation.Id}",
             job => job.ExecuteAsync(automation.Id),
             "0 22 * * *"
@@ -142,11 +140,10 @@ public class DeleteAutomationTests(IntegrationTestWebAppFactory factory)
 
         var physicalAutomation = await DbContext
             .Automations.AsNoTracking()
-            .FirstAsync(
-                a => a.Id == victimAutomation.Id,
-                TestContext.Current.CancellationToken
-            );
-        physicalAutomation.IsDeleted.Should().BeFalse("outro usuário não pode excluir a automação.");
+            .FirstAsync(a => a.Id == victimAutomation.Id, TestContext.Current.CancellationToken);
+        physicalAutomation
+            .IsDeleted.Should()
+            .BeFalse("outro usuário não pode excluir a automação.");
     }
 
     [Fact]

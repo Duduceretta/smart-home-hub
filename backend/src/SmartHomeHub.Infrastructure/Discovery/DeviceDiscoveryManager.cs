@@ -13,7 +13,10 @@ public sealed class DeviceDiscoveryManager(
     ILogger<DeviceDiscoveryManager> logger
 ) : IDeviceDiscoveryManager
 {
-    private sealed record DiscoverySession(CancellationTokenSource Cts, ConcurrentDictionary<string, byte> SeenExternalIds);
+    private sealed record DiscoverySession(
+        CancellationTokenSource Cts,
+        ConcurrentDictionary<string, byte> SeenExternalIds
+    );
 
     private readonly ConcurrentDictionary<string, DiscoverySession> _sessions = new();
 
@@ -29,7 +32,10 @@ public sealed class DeviceDiscoveryManager(
 
         var clampedTimeout = Math.Clamp(timeoutSeconds, 5, 120);
         var timeoutCts = new CancellationTokenSource(TimeSpan.FromSeconds(clampedTimeout));
-        var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(timeoutCts.Token, hubConnectionToken);
+        var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(
+            timeoutCts.Token,
+            hubConnectionToken
+        );
 
         var session = new DiscoverySession(linkedCts, new ConcurrentDictionary<string, byte>());
 
@@ -57,7 +63,10 @@ public sealed class DeviceDiscoveryManager(
                     _sessions.TryRemove(firebaseUid, out _);
                     timeoutCts.Dispose();
                     linkedCts.Dispose();
-                    logger.LogInformation("Descoberta de dispositivos encerrada para {FirebaseUid}", firebaseUid);
+                    logger.LogInformation(
+                        "Descoberta de dispositivos encerrada para {FirebaseUid}",
+                        firebaseUid
+                    );
                 },
                 TaskScheduler.Default
             );
@@ -128,7 +137,8 @@ public sealed class DeviceDiscoveryManager(
 
         using var scope = scopeFactory.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<IAppDbContext>();
-        var notificationService = scope.ServiceProvider.GetRequiredService<IRealtimeNotificationService>();
+        var notificationService =
+            scope.ServiceProvider.GetRequiredService<IRealtimeNotificationService>();
 
         var user = await dbContext
             .Users.AsNoTracking()
@@ -141,7 +151,10 @@ public sealed class DeviceDiscoveryManager(
 
         var alreadyOwned = await dbContext
             .Devices.AsNoTracking()
-            .AnyAsync(d => d.UserId == user.Id && d.ExternalId == discovered.ExternalId, cancellationToken);
+            .AnyAsync(
+                d => d.UserId == user.Id && d.ExternalId == discovered.ExternalId,
+                cancellationToken
+            );
 
         if (alreadyOwned)
         {
@@ -155,6 +168,10 @@ public sealed class DeviceDiscoveryManager(
             firebaseUid
         );
 
-        await notificationService.NotifyDeviceDiscoveredAsync(firebaseUid, discovered, cancellationToken);
+        await notificationService.NotifyDeviceDiscoveredAsync(
+            firebaseUid,
+            discovered,
+            cancellationToken
+        );
     }
 }

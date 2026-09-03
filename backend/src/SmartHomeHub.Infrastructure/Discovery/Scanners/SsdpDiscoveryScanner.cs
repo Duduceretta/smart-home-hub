@@ -12,9 +12,13 @@ using SmartHomeHub.Infrastructure.Discovery.Parsing;
 
 namespace SmartHomeHub.Infrastructure.Discovery.Scanners;
 
-public sealed class SsdpDiscoveryScanner(ILogger<SsdpDiscoveryScanner> logger) : IDeviceDiscoveryScanner
+public sealed class SsdpDiscoveryScanner(ILogger<SsdpDiscoveryScanner> logger)
+    : IDeviceDiscoveryScanner
 {
-    private static readonly IPEndPoint MulticastEndPoint = new(IPAddress.Parse("239.255.255.250"), 1900);
+    private static readonly IPEndPoint MulticastEndPoint = new(
+        IPAddress.Parse("239.255.255.250"),
+        1900
+    );
 
     // Um aparelho físico manda vários anúncios (um por root device/serviço UPnP)
     // em rajada — na captura real todos chegaram em menos de 1s. Espera essa
@@ -63,7 +67,12 @@ public sealed class SsdpDiscoveryScanner(ILogger<SsdpDiscoveryScanner> logger) :
             .Select(address => ReceiveOnInterfaceAsync(address, pendingByIp, cancellationToken))
             .ToArray();
 
-        var sweepTask = SweepAndEmitAsync(pendingByIp, channel.Writer, descriptionFetcher, cancellationToken);
+        var sweepTask = SweepAndEmitAsync(
+            pendingByIp,
+            channel.Writer,
+            descriptionFetcher,
+            cancellationToken
+        );
 
         _ = Task.WhenAll([.. receiveTasks, sweepTask])
             .ContinueWith(_ => channel.Writer.TryComplete(), TaskScheduler.Default);
@@ -81,7 +90,11 @@ public sealed class SsdpDiscoveryScanner(ILogger<SsdpDiscoveryScanner> logger) :
     )
     {
         using var udpClient = new UdpClient(new IPEndPoint(localAddress, 0));
-        udpClient.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
+        udpClient.Client.SetSocketOption(
+            SocketOptionLevel.Socket,
+            SocketOptionName.ReuseAddress,
+            true
+        );
 
         var requestBytes = Encoding.UTF8.GetBytes(MSearchRequest);
 
@@ -91,7 +104,11 @@ public sealed class SsdpDiscoveryScanner(ILogger<SsdpDiscoveryScanner> logger) :
         }
         catch (SocketException ex)
         {
-            logger.LogWarning(ex, "Falha ao enviar M-SEARCH SSDP via {LocalAddress}.", localAddress);
+            logger.LogWarning(
+                ex,
+                "Falha ao enviar M-SEARCH SSDP via {LocalAddress}.",
+                localAddress
+            );
             return;
         }
 
@@ -109,7 +126,11 @@ public sealed class SsdpDiscoveryScanner(ILogger<SsdpDiscoveryScanner> logger) :
             }
             catch (SocketException ex)
             {
-                logger.LogWarning(ex, "Falha ao receber resposta SSDP via {LocalAddress}.", localAddress);
+                logger.LogWarning(
+                    ex,
+                    "Falha ao receber resposta SSDP via {LocalAddress}.",
+                    localAddress
+                );
                 continue;
             }
 
@@ -126,7 +147,10 @@ public sealed class SsdpDiscoveryScanner(ILogger<SsdpDiscoveryScanner> logger) :
             );
 
             var rawResponse = Encoding.UTF8.GetString(result.Buffer);
-            var announcement = SsdpResponseParser.TryParseAnnouncement(rawResponse, result.RemoteEndPoint);
+            var announcement = SsdpResponseParser.TryParseAnnouncement(
+                rawResponse,
+                result.RemoteEndPoint
+            );
 
             if (announcement is null)
             {
@@ -159,7 +183,13 @@ public sealed class SsdpDiscoveryScanner(ILogger<SsdpDiscoveryScanner> logger) :
             while (!cancellationToken.IsCancellationRequested)
             {
                 await Task.Delay(SweepInterval, cancellationToken);
-                await EmitIdleGroupsAsync(pendingByIp, writer, descriptionFetcher, idleOnly: true, cancellationToken);
+                await EmitIdleGroupsAsync(
+                    pendingByIp,
+                    writer,
+                    descriptionFetcher,
+                    idleOnly: true,
+                    cancellationToken
+                );
             }
         }
         catch (OperationCanceledException)
@@ -167,7 +197,13 @@ public sealed class SsdpDiscoveryScanner(ILogger<SsdpDiscoveryScanner> logger) :
             // Esperado no fim da sessão — cai na varredura final abaixo mesmo assim.
         }
 
-        await EmitIdleGroupsAsync(pendingByIp, writer, descriptionFetcher, idleOnly: false, CancellationToken.None);
+        await EmitIdleGroupsAsync(
+            pendingByIp,
+            writer,
+            descriptionFetcher,
+            idleOnly: false,
+            CancellationToken.None
+        );
     }
 
     private async Task EmitIdleGroupsAsync(
@@ -203,7 +239,10 @@ public sealed class SsdpDiscoveryScanner(ILogger<SsdpDiscoveryScanner> logger) :
                 continue;
             }
 
-            if (SsdpResponseParser.IsGateway(snapshot) || !SsdpResponseParser.IsControllable(snapshot))
+            if (
+                SsdpResponseParser.IsGateway(snapshot)
+                || !SsdpResponseParser.IsControllable(snapshot)
+            )
             {
                 logger.LogDebug(
                     "Dispositivo SSDP de {Ip} descartado (gateway ou sem serviço controlável conhecido).",
@@ -213,7 +252,10 @@ public sealed class SsdpDiscoveryScanner(ILogger<SsdpDiscoveryScanner> logger) :
             }
 
             var location = snapshot.Select(a => a.Location).FirstOrDefault(l => l is not null);
-            var friendlyName = await descriptionFetcher.TryFetchFriendlyNameAsync(location, cancellationToken);
+            var friendlyName = await descriptionFetcher.TryFetchFriendlyNameAsync(
+                location,
+                cancellationToken
+            );
 
             var displayName = SsdpResponseParser.ResolveDisplayName(snapshot, friendlyName);
             var brand = SsdpResponseParser.ResolveBrand(snapshot);

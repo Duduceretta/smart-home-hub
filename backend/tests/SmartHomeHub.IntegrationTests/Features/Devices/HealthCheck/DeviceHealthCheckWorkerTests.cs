@@ -36,7 +36,11 @@ public class DeviceHealthCheckWorkerTests(IntegrationTestWebAppFactory factory)
 
     private async Task<User> SeedUserAsync()
     {
-        var user = new User { Name = "Health Check User", ExternalAuthUid = $"uid-{Guid.NewGuid()}" };
+        var user = new User
+        {
+            Name = "Health Check User",
+            ExternalAuthUid = $"uid-{Guid.NewGuid()}",
+        };
         DbContext.Users.Add(user);
         await DbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
         return user;

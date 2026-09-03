@@ -19,7 +19,10 @@ public class MqttDiscoveryPayloadParserTests
             }
             """;
 
-        var result = MqttDiscoveryPayloadParser.TryParse("homeassistant/switch/livingroom/config", payload);
+        var result = MqttDiscoveryPayloadParser.TryParse(
+            "homeassistant/switch/livingroom/config",
+            payload
+        );
 
         result.Should().NotBeNull();
         result!.Type.Should().Be(DeviceType.Switch);
@@ -39,7 +42,10 @@ public class MqttDiscoveryPayloadParserTests
             }
             """;
 
-        var result = MqttDiscoveryPayloadParser.TryParse("homeassistant/sensor/quarto/temp/config", payload);
+        var result = MqttDiscoveryPayloadParser.TryParse(
+            "homeassistant/sensor/quarto/temp/config",
+            payload
+        );
 
         result.Should().NotBeNull();
         result!.ExternalId.Should().Be("esp32-ddeeff");
@@ -51,7 +57,10 @@ public class MqttDiscoveryPayloadParserTests
     {
         var payload = """{"unique_id": "generic-01"}""";
 
-        var result = MqttDiscoveryPayloadParser.TryParse("homeassistant/vacuum/robot/config", payload);
+        var result = MqttDiscoveryPayloadParser.TryParse(
+            "homeassistant/vacuum/robot/config",
+            payload
+        );
 
         result.Should().NotBeNull();
         result!.Type.Should().Be(DeviceType.Sensor);
@@ -71,7 +80,10 @@ public class MqttDiscoveryPayloadParserTests
     [Fact]
     public void TryParse_WithEmptyPayload_ShouldReturnNull()
     {
-        var result = MqttDiscoveryPayloadParser.TryParse("homeassistant/switch/x/config", string.Empty);
+        var result = MqttDiscoveryPayloadParser.TryParse(
+            "homeassistant/switch/x/config",
+            string.Empty
+        );
 
         result.Should().BeNull();
     }

@@ -41,7 +41,9 @@ public class GetEventHistoryQueryValidatorTests
         var result = _validator.Validate(ValidQuery(start: now, end: now.AddDays(-1)));
 
         result.IsValid.Should().BeFalse();
-        result.Errors.Should().Contain(e => e.PropertyName == nameof(GetEventHistoryQuery.EndDateUtc));
+        result
+            .Errors.Should()
+            .Contain(e => e.PropertyName == nameof(GetEventHistoryQuery.EndDateUtc));
     }
 
     [Fact]
@@ -73,7 +75,9 @@ public class GetEventHistoryQueryValidatorTests
         var result = _validator.Validate(ValidQuery(pageSize: pageSize));
 
         result.IsValid.Should().BeFalse();
-        result.Errors.Should().Contain(e => e.PropertyName == nameof(GetEventHistoryQuery.PageSize));
+        result
+            .Errors.Should()
+            .Contain(e => e.PropertyName == nameof(GetEventHistoryQuery.PageSize));
     }
 
     [Fact]
@@ -85,6 +89,8 @@ public class GetEventHistoryQueryValidatorTests
         var result = _validator.Validate(query);
 
         result.IsValid.Should().BeFalse();
-        result.Errors.Should().Contain(e => e.PropertyName == nameof(GetEventHistoryQuery.FirebaseUid));
+        result
+            .Errors.Should()
+            .Contain(e => e.PropertyName == nameof(GetEventHistoryQuery.FirebaseUid));
     }
 }

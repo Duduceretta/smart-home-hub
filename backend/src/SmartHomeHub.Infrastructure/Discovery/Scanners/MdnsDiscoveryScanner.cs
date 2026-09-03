@@ -11,7 +11,8 @@ using SmartHomeHub.Infrastructure.Discovery.Parsing;
 
 namespace SmartHomeHub.Infrastructure.Discovery.Scanners;
 
-public sealed class MdnsDiscoveryScanner(ILogger<MdnsDiscoveryScanner> logger) : IDeviceDiscoveryScanner
+public sealed class MdnsDiscoveryScanner(ILogger<MdnsDiscoveryScanner> logger)
+    : IDeviceDiscoveryScanner
 {
     private static readonly IPAddress MulticastAddress = IPAddress.Parse("224.0.0.251");
     private const int MdnsPort = 5353;
@@ -49,10 +50,13 @@ public sealed class MdnsDiscoveryScanner(ILogger<MdnsDiscoveryScanner> logger) :
         var seenExternalIds = new ConcurrentDictionary<string, byte>();
 
         var scanTasks = localAddresses
-            .Select(address => ScanOnInterfaceAsync(address, channel.Writer, seenExternalIds, cancellationToken))
+            .Select(address =>
+                ScanOnInterfaceAsync(address, channel.Writer, seenExternalIds, cancellationToken)
+            )
             .ToArray();
 
-        _ = Task.WhenAll(scanTasks).ContinueWith(_ => channel.Writer.TryComplete(), TaskScheduler.Default);
+        _ = Task.WhenAll(scanTasks)
+            .ContinueWith(_ => channel.Writer.TryComplete(), TaskScheduler.Default);
 
         await foreach (var discovered in channel.Reader.ReadAllAsync(cancellationToken))
         {
@@ -77,13 +81,21 @@ public sealed class MdnsDiscoveryScanner(ILogger<MdnsDiscoveryScanner> logger) :
 
         try
         {
-            udpClient.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
+            udpClient.Client.SetSocketOption(
+                SocketOptionLevel.Socket,
+                SocketOptionName.ReuseAddress,
+                true
+            );
             udpClient.Client.Bind(new IPEndPoint(localAddress, MdnsPort));
             udpClient.JoinMulticastGroup(MulticastAddress, localAddress);
         }
         catch (SocketException ex)
         {
-            logger.LogWarning(ex, "Falha ao preparar socket mDNS via {LocalAddress}.", localAddress);
+            logger.LogWarning(
+                ex,
+                "Falha ao preparar socket mDNS via {LocalAddress}.",
+                localAddress
+            );
             return;
         }
 
@@ -98,7 +110,12 @@ public sealed class MdnsDiscoveryScanner(ILogger<MdnsDiscoveryScanner> logger) :
             }
             catch (SocketException ex)
             {
-                logger.LogWarning(ex, "Falha ao enviar query mDNS para {ServiceType} via {LocalAddress}", serviceType, localAddress);
+                logger.LogWarning(
+                    ex,
+                    "Falha ao enviar query mDNS para {ServiceType} via {LocalAddress}",
+                    serviceType,
+                    localAddress
+                );
             }
         }
 
@@ -116,7 +133,11 @@ public sealed class MdnsDiscoveryScanner(ILogger<MdnsDiscoveryScanner> logger) :
             }
             catch (SocketException ex)
             {
-                logger.LogWarning(ex, "Falha ao receber pacote mDNS via {LocalAddress}.", localAddress);
+                logger.LogWarning(
+                    ex,
+                    "Falha ao receber pacote mDNS via {LocalAddress}.",
+                    localAddress
+                );
                 continue;
             }
 

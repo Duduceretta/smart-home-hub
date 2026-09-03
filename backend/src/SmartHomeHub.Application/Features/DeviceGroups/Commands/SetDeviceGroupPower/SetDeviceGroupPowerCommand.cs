@@ -69,7 +69,10 @@ public class SetDeviceGroupPowerCommandHandler(IAppDbContext dbContext, ISender 
 
         if (group == null)
             return Result.Failure<DeviceGroupBulkPowerResultDto>(
-                new Error("DeviceGroup.NotFound", "Grupo de dispositivos não encontrado ou sem permissão de acesso.")
+                new Error(
+                    "DeviceGroup.NotFound",
+                    "Grupo de dispositivos não encontrado ou sem permissão de acesso."
+                )
             );
 
         var eligibleDeviceIds = await dbContext

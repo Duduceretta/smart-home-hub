@@ -8,7 +8,8 @@ namespace SmartHomeHub.Application.Features.Integrations.Commands.SkipToNextSpot
 
 public record SkipToNextSpotifyTrackCommand(string FirebaseUid) : ICommand<Result>;
 
-public class SkipToNextSpotifyTrackCommandValidator : AbstractValidator<SkipToNextSpotifyTrackCommand>
+public class SkipToNextSpotifyTrackCommandValidator
+    : AbstractValidator<SkipToNextSpotifyTrackCommand>
 {
     public SkipToNextSpotifyTrackCommandValidator()
     {

@@ -32,7 +32,12 @@ public class GetRoomsQueryHandler(IAppDbContext dbContext)
             .Rooms.AsNoTracking()
             .Where(room => room.User.ExternalAuthUid == request.FirebaseUid)
             .OrderBy(room => room.Name)
-            .Select(room => new { room.Id, room.Name, room.Icon })
+            .Select(room => new
+            {
+                room.Id,
+                room.Name,
+                room.Icon,
+            })
             .ToPagedResultAsync(request.Page, request.PageSize, cancellationToken);
 
         if (pagedRooms.Items.Count == 0)

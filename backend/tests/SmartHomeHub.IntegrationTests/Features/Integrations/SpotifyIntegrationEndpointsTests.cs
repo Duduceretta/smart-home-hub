@@ -48,7 +48,9 @@ public partial class SpotifyIntegrationEndpointsTests(IntegrationTestWebAppFacto
 
         _spotifyMediaService
             .BuildAuthorizeUrl(Arg.Any<string>())
-            .Returns(callInfo => $"https://accounts.spotify.com/authorize?state={callInfo.Arg<string>()}");
+            .Returns(callInfo =>
+                $"https://accounts.spotify.com/authorize?state={callInfo.Arg<string>()}"
+            );
 
         var response = await Client.GetAsync(
             "/api/integrations/spotify/login",
@@ -74,7 +76,9 @@ public partial class SpotifyIntegrationEndpointsTests(IntegrationTestWebAppFacto
 
         _spotifyMediaService
             .BuildAuthorizeUrl(Arg.Any<string>())
-            .Returns(callInfo => $"https://accounts.spotify.com/authorize?state={callInfo.Arg<string>()}");
+            .Returns(callInfo =>
+                $"https://accounts.spotify.com/authorize?state={callInfo.Arg<string>()}"
+            );
 
         var loginResponse = await Client.GetAsync(
             "/api/integrations/spotify/login",
@@ -83,7 +87,10 @@ public partial class SpotifyIntegrationEndpointsTests(IntegrationTestWebAppFacto
         var loginBody = await loginResponse.Content.ReadFromJsonAsync<JsonElement>(
             cancellationToken: TestContext.Current.CancellationToken
         );
-        var state = StateParamRegex().Match(loginBody.GetProperty("authorizeUrl").GetString()!).Groups[1].Value;
+        var state = StateParamRegex()
+            .Match(loginBody.GetProperty("authorizeUrl").GetString()!)
+            .Groups[1]
+            .Value;
 
         var response = await Client.GetAsync(
             $"/api/integrations/spotify/callback?code=fake-code&state={state}",

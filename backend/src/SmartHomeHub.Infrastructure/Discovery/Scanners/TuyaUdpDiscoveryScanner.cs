@@ -28,7 +28,8 @@ public sealed class TuyaUdpDiscoveryScanner(ILogger<TuyaUdpDiscoveryScanner> log
             .Select(port => ListenOnPortAsync(port, channel.Writer, cancellationToken))
             .ToArray();
 
-        _ = Task.WhenAll(listenTasks).ContinueWith(_ => channel.Writer.TryComplete(), TaskScheduler.Default);
+        _ = Task.WhenAll(listenTasks)
+            .ContinueWith(_ => channel.Writer.TryComplete(), TaskScheduler.Default);
 
         await foreach (var discovered in channel.Reader.ReadAllAsync(cancellationToken))
         {
@@ -43,7 +44,11 @@ public sealed class TuyaUdpDiscoveryScanner(ILogger<TuyaUdpDiscoveryScanner> log
     )
     {
         using var udpClient = new UdpClient();
-        udpClient.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
+        udpClient.Client.SetSocketOption(
+            SocketOptionLevel.Socket,
+            SocketOptionName.ReuseAddress,
+            true
+        );
         udpClient.Client.Bind(new IPEndPoint(IPAddress.Any, port));
 
         while (!cancellationToken.IsCancellationRequested)

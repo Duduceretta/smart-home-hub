@@ -87,7 +87,9 @@ public class SetDeviceGroupPowerTests(IntegrationTestWebAppFactory factory)
         );
 
         result.Should().NotBeNull();
-        result!.TotalCount.Should().Be(1, "apenas a luz online que estava desligada deve ser acionada");
+        result!
+            .TotalCount.Should()
+            .Be(1, "apenas a luz online que estava desligada deve ser acionada");
     }
 
     [Fact]

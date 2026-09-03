@@ -9,7 +9,8 @@ using SmartHomeHub.Infrastructure.Discovery.Parsing;
 
 namespace SmartHomeHub.Infrastructure.Discovery.Scanners;
 
-public sealed class MqttDiscoveryScanner(ILogger<MqttDiscoveryScanner> logger) : IDeviceDiscoveryScanner
+public sealed class MqttDiscoveryScanner(ILogger<MqttDiscoveryScanner> logger)
+    : IDeviceDiscoveryScanner
 {
     private static readonly string[] DiscoveryTopicFilters =
     [

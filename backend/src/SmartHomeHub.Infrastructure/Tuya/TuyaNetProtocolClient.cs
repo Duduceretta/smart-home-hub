@@ -34,7 +34,15 @@ public sealed class TuyaNetProtocolClient : ITuyaProtocolClient
     )
     {
         using var device = CreateDevice(ipAddress, tuyaDeviceId, localKey);
-        var result = await device.SetDpAsync(dp, value, 1, 0, ReceiveTimeoutMs, true, cancellationToken);
+        var result = await device.SetDpAsync(
+            dp,
+            value,
+            1,
+            0,
+            ReceiveTimeoutMs,
+            true,
+            cancellationToken
+        );
 
         return result.ToDictionary(kv => kv.Key, object? (kv) => kv.Value);
     }
@@ -60,6 +68,17 @@ public sealed class TuyaNetProtocolClient : ITuyaProtocolClient
         return result.ToDictionary(kv => kv.Key, object? (kv) => kv.Value);
     }
 
-    private static TuyaDevice CreateDevice(string ipAddress, string tuyaDeviceId, string localKey) =>
-        new(ipAddress, localKey, tuyaDeviceId, TuyaProtocolVersion.V33, LocalPort, ReceiveTimeoutMs);
+    private static TuyaDevice CreateDevice(
+        string ipAddress,
+        string tuyaDeviceId,
+        string localKey
+    ) =>
+        new(
+            ipAddress,
+            localKey,
+            tuyaDeviceId,
+            TuyaProtocolVersion.V33,
+            LocalPort,
+            ReceiveTimeoutMs
+        );
 }

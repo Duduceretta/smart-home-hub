@@ -7,8 +7,10 @@ public sealed class SpotifyOAuthStateStore : ISpotifyOAuthStateStore
 {
     private static readonly TimeSpan StateTtl = TimeSpan.FromMinutes(10);
 
-    private readonly ConcurrentDictionary<string, (string FirebaseUid, DateTimeOffset ExpiresAt)> _pendingStates =
-        new();
+    private readonly ConcurrentDictionary<
+        string,
+        (string FirebaseUid, DateTimeOffset ExpiresAt)
+    > _pendingStates = new();
 
     public string CreateState(string firebaseUid)
     {

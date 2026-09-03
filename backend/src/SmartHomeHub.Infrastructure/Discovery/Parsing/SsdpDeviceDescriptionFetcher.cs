@@ -14,16 +14,24 @@ public sealed class SsdpDeviceDescriptionFetcher(ILogger logger)
     private static readonly HttpClient HttpClient = new() { Timeout = TimeSpan.FromSeconds(2) };
     private static readonly XNamespace DeviceNs = "urn:schemas-upnp-org:device-1-0";
 
-    public async Task<string?> TryFetchFriendlyNameAsync(string? location, CancellationToken cancellationToken)
+    public async Task<string?> TryFetchFriendlyNameAsync(
+        string? location,
+        CancellationToken cancellationToken
+    )
     {
-        if (string.IsNullOrWhiteSpace(location) || !Uri.TryCreate(location, UriKind.Absolute, out var uri))
+        if (
+            string.IsNullOrWhiteSpace(location)
+            || !Uri.TryCreate(location, UriKind.Absolute, out var uri)
+        )
         {
             return null;
         }
 
         try
         {
-            using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(
+                cancellationToken
+            );
             timeoutCts.CancelAfter(TimeSpan.FromSeconds(2));
 
             var xml = await HttpClient.GetStringAsync(uri, timeoutCts.Token);
@@ -36,7 +44,9 @@ public sealed class SsdpDeviceDescriptionFetcher(ILogger logger)
 
             return friendlyName;
         }
-        catch (Exception ex) when (ex is not OperationCanceledException || !cancellationToken.IsCancellationRequested)
+        catch (Exception ex)
+            when (ex is not OperationCanceledException || !cancellationToken.IsCancellationRequested
+            )
         {
             logger.LogDebug(
                 ex,

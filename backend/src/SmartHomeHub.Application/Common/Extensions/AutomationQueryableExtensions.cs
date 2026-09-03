@@ -32,10 +32,14 @@ public static class AutomationQueryableExtensions
             return query;
 
         if (triggerKind.Equals("schedule", StringComparison.OrdinalIgnoreCase))
-            return query.Where(automation => automation.TriggerKind == AutomationTriggerKind.Schedule);
+            return query.Where(automation =>
+                automation.TriggerKind == AutomationTriggerKind.Schedule
+            );
 
         if (triggerKind.Equals("sensor", StringComparison.OrdinalIgnoreCase))
-            return query.Where(automation => automation.TriggerKind == AutomationTriggerKind.Sensor);
+            return query.Where(automation =>
+                automation.TriggerKind == AutomationTriggerKind.Sensor
+            );
 
         return query;
     }

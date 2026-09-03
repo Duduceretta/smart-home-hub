@@ -37,7 +37,10 @@ public class GetAutomationFilterCountsQueryHandler(IAppDbContext dbContext)
             .Where(automation => automation.User.ExternalAuthUid == request.FirebaseUid);
 
         var total = await automations.CountAsync(cancellationToken);
-        var active = await automations.CountAsync(automation => automation.IsActive, cancellationToken);
+        var active = await automations.CountAsync(
+            automation => automation.IsActive,
+            cancellationToken
+        );
         var schedule = await automations.CountAsync(
             automation => automation.TriggerKind == AutomationTriggerKind.Schedule,
             cancellationToken
@@ -46,7 +49,10 @@ public class GetAutomationFilterCountsQueryHandler(IAppDbContext dbContext)
             automation => automation.TriggerKind == AutomationTriggerKind.Sensor,
             cancellationToken
         );
-        var draft = await automations.CountAsync(automation => automation.IsDraft, cancellationToken);
+        var draft = await automations.CountAsync(
+            automation => automation.IsDraft,
+            cancellationToken
+        );
 
         return new AutomationFilterCountsDto(
             total,

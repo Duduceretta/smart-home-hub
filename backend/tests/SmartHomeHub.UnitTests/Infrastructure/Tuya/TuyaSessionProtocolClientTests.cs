@@ -35,7 +35,13 @@ public class TuyaSessionProtocolClientTests
 
     private static GoldenVectors LoadVectors()
     {
-        var path = Path.Combine(AppContext.BaseDirectory, "Infrastructure", "Tuya", "TestData", "tuya-session-golden-vectors.json");
+        var path = Path.Combine(
+            AppContext.BaseDirectory,
+            "Infrastructure",
+            "Tuya",
+            "TestData",
+            "tuya-session-golden-vectors.json"
+        );
         var json = File.ReadAllText(path);
 
         using var document = JsonDocument.Parse(json);
@@ -67,7 +73,9 @@ public class TuyaSessionProtocolClientTests
     [Theory]
     [InlineData(false)] // v3.4
     [InlineData(true)] // v3.5
-    public void HandshakeAndControlCommand_AgainstTinytuyaGoldenVectors_ShouldMatchByteForByte(bool useGcm)
+    public void HandshakeAndControlCommand_AgainstTinytuyaGoldenVectors_ShouldMatchByteForByte(
+        bool useGcm
+    )
     {
         var vectors = useGcm ? Vectors.V35 : Vectors.V34;
 
@@ -76,20 +84,44 @@ public class TuyaSessionProtocolClientTests
         var gcmIv = Convert.FromHexString(Vectors.FixedGcmMessageIvHex);
 
         // Passo 1: SESS_KEY_NEG_START
-        var step1 = TuyaSessionProtocolClient.BuildHandshakeStartFrame(useGcm, localKey, localNonce, gcmIv);
+        var step1 = TuyaSessionProtocolClient.BuildHandshakeStartFrame(
+            useGcm,
+            localKey,
+            localNonce,
+            gcmIv
+        );
         Convert.ToHexString(step1).ToLowerInvariant().Should().Be(vectors.Step1SessKeyNegStart);
 
         // Passo 2: decodifica a resposta simulada (prova que o parser + validação de HMAC batem)
         var step2Bytes = Convert.FromHexString(vectors.Step2SessKeyNegRespSimulated);
-        var (remoteNonce, _) = TuyaSessionProtocolClient.ProcessHandshakeResponse(useGcm, localKey, localNonce, step2Bytes);
-        Convert.ToHexString(remoteNonce).ToLowerInvariant().Should().Be(Vectors.FixedRemoteNonceHex);
+        var (remoteNonce, _) = TuyaSessionProtocolClient.ProcessHandshakeResponse(
+            useGcm,
+            localKey,
+            localNonce,
+            step2Bytes
+        );
+        Convert
+            .ToHexString(remoteNonce)
+            .ToLowerInvariant()
+            .Should()
+            .Be(Vectors.FixedRemoteNonceHex);
 
         // Passo 3: SESS_KEY_NEG_FINISH
-        var step3 = TuyaSessionProtocolClient.BuildHandshakeFinishFrame(useGcm, localKey, remoteNonce, gcmIv);
+        var step3 = TuyaSessionProtocolClient.BuildHandshakeFinishFrame(
+            useGcm,
+            localKey,
+            remoteNonce,
+            gcmIv
+        );
         Convert.ToHexString(step3).ToLowerInvariant().Should().Be(vectors.Step3SessKeyNegFinish);
 
         // Derivação da session key
-        var sessionKey = TuyaSessionProtocolClient.DeriveSessionKey(useGcm, localKey, localNonce, remoteNonce);
+        var sessionKey = TuyaSessionProtocolClient.DeriveSessionKey(
+            useGcm,
+            localKey,
+            localNonce,
+            remoteNonce
+        );
         Convert.ToHexString(sessionKey).ToLowerInvariant().Should().Be(vectors.SessionKey);
 
         // Comando de controle (ligar)
@@ -102,7 +134,11 @@ public class TuyaSessionProtocolClientTests
             seqno: 3,
             gcmIv
         );
-        Convert.ToHexString(controlFrame).ToLowerInvariant().Should().Be(vectors.ControlCommandBytes);
+        Convert
+            .ToHexString(controlFrame)
+            .ToLowerInvariant()
+            .Should()
+            .Be(vectors.ControlCommandBytes);
     }
 
     [Fact]
@@ -112,7 +148,13 @@ public class TuyaSessionProtocolClientTests
         var localNonce = Convert.FromHexString(Vectors.FixedLocalNonceHex);
         var step2Bytes = Convert.FromHexString(Vectors.V34.Step2SessKeyNegRespSimulated);
 
-        var act = () => TuyaSessionProtocolClient.ProcessHandshakeResponse(false, wrongKey, localNonce, step2Bytes);
+        var act = () =>
+            TuyaSessionProtocolClient.ProcessHandshakeResponse(
+                false,
+                wrongKey,
+                localNonce,
+                step2Bytes
+            );
 
         act.Should().Throw<System.Security.Cryptography.CryptographicException>();
     }

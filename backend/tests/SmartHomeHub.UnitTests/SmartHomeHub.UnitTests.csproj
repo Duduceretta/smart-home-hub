@@ -1,5 +1,4 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
@@ -11,7 +10,10 @@
 
   <ItemGroup>
     <Content Include="xunit.runner.json" CopyToOutputDirectory="PreserveNewest" />
-    <Content Include="Infrastructure\Tuya\TestData\**\*.json" CopyToOutputDirectory="PreserveNewest" />
+    <Content
+      Include="Infrastructure\Tuya\TestData\**\*.json"
+      CopyToOutputDirectory="PreserveNewest"
+    />
   </ItemGroup>
 
   <ItemGroup>
@@ -31,5 +33,4 @@
     <ProjectReference Include="..\..\src\SmartHomeHub.Application\SmartHomeHub.Application.csproj" />
     <ProjectReference Include="..\..\src\SmartHomeHub.Infrastructure\SmartHomeHub.Infrastructure.csproj" />
   </ItemGroup>
-
 </Project>

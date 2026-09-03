@@ -16,7 +16,8 @@ using Xunit;
 
 namespace SmartHomeHub.IntegrationTests.Features.Devices.Commands.SetDeviceVolume;
 
-public class SetDeviceVolumeTests(IntegrationTestWebAppFactory factory) : BaseIntegrationTest(factory)
+public class SetDeviceVolumeTests(IntegrationTestWebAppFactory factory)
+    : BaseIntegrationTest(factory)
 {
     private readonly IGoogleTvService _googleTvService =
         factory.Services.GetRequiredService<IGoogleTvService>();
@@ -86,11 +87,7 @@ public class SetDeviceVolumeTests(IntegrationTestWebAppFactory factory) : BaseIn
 
         await _googleTvService
             .DidNotReceive()
-            .SetVolumePercentAsync(
-                Arg.Any<string>(),
-                Arg.Any<int>(),
-                Arg.Any<CancellationToken>()
-            );
+            .SetVolumePercentAsync(Arg.Any<string>(), Arg.Any<int>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]

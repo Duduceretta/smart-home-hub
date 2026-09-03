@@ -16,7 +16,8 @@ public class DeviceDiscoveryManagerTests(IntegrationTestWebAppFactory factory)
 {
     private readonly IDeviceDiscoveryManager _manager =
         factory.Services.GetRequiredService<IDeviceDiscoveryManager>();
-    private readonly TestDiscoveryScanner _scanner = factory.Services.GetRequiredService<TestDiscoveryScanner>();
+    private readonly TestDiscoveryScanner _scanner =
+        factory.Services.GetRequiredService<TestDiscoveryScanner>();
     private readonly IRealtimeNotificationService _notificationService =
         factory.Services.GetRequiredService<IRealtimeNotificationService>();
 
@@ -172,6 +173,10 @@ public class DeviceDiscoveryManagerTests(IntegrationTestWebAppFactory factory)
 
         var result = await mediator.Send(command, TestContext.Current.CancellationToken);
 
-        result.IsSuccess.Should().BeTrue("o payload de descoberta deve sempre servir de entrada para o fluxo de criação existente.");
+        result
+            .IsSuccess.Should()
+            .BeTrue(
+                "o payload de descoberta deve sempre servir de entrada para o fluxo de criação existente."
+            );
     }
 }
