@@ -27,7 +27,10 @@ public record DeviceDto(
     // correto (Auto/Sim/Não) — diferente de SupportsColor acima, que já vem
     // "achatado" (override ?? detecção automática) pra uso direto na UI de
     // controles (mostrar ou não o seletor de cor).
-    bool? SupportsColorOverride
+    bool? SupportsColorOverride,
+    // Último valor de brilho confirmado com sucesso no hardware (0-100) —
+    // null se o dispositivo nunca teve brilho definido via SetDeviceBrightnessCommand.
+    int? Brightness
 );
 
 public record GetDevicesQuery(

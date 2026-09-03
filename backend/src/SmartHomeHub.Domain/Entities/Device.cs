@@ -24,6 +24,11 @@ public class Device : IAuditableEntity, ISoftDeletable
     public bool IsOnline { get; set; } = false;
     public DateTimeOffset? LastSeenAt { get; set; }
 
+    // Só preenchido depois do primeiro SetDeviceBrightnessCommand bem-sucedido
+    // contra o hardware — null pra dispositivos que nunca tiveram brilho
+    // definido (não-luzes, ou luzes ainda não ajustadas via este comando).
+    public int? Brightness { get; set; }
+
     public DeviceConfiguration Configuration { get; set; } = new();
 
     public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;

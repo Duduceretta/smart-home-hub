@@ -26,6 +26,8 @@ public class DeviceConfiguration : IEntityTypeConfiguration<Device>
 
         builder.Property(device => device.LastSeenAt).IsRequired(false);
 
+        builder.Property(device => device.Brightness).IsRequired(false);
+
         builder.Property(device => device.CreatedAt).IsRequired();
 
         builder.Property(device => device.UpdatedAt).IsRequired(false);
