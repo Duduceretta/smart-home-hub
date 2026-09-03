@@ -95,6 +95,10 @@ export interface Device {
 	supportsColorOverride: boolean | null;
 	/** Último brilho (0-100) confirmado com sucesso no hardware — null se o dispositivo nunca teve brilho definido via PUT .../brightness. */
 	brightness: number | null;
+	/** Última cor ("#RRGGBB") confirmada com sucesso no hardware — null se o dispositivo nunca teve cor definida via PUT .../color. */
+	colorHex: string | null;
+	/** Última temperatura de cor (0-100) confirmada com sucesso no hardware — null se o dispositivo nunca teve temperatura definida via PUT .../color-temp. */
+	colorTempPercent: number | null;
 }
 
 /**

@@ -22,6 +22,8 @@ export function createDeviceMock(overrides?: Partial<Device>): Device {
 		supportsColor: false,
 		supportsColorOverride: null,
 		brightness: null,
+		colorHex: null,
+		colorTempPercent: null,
 	};
 
 	return {

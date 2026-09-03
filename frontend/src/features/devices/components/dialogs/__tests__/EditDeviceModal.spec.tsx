@@ -40,6 +40,8 @@ const mockDevice: Device = {
 	supportsColor: false,
 	supportsColorOverride: null,
 	brightness: null,
+	colorHex: null,
+	colorTempPercent: null,
 };
 
 beforeEach(() => {

@@ -1,9 +1,11 @@
-import { useRef, useState } from "react";
-import { hsvToHex } from "../../../lib/hsv-to-hex";
+import { useEffect, useRef, useState } from "react";
+import { hexToHsv, hsvToHex } from "../../../lib/hsv-to-hex";
 
 interface ColorWheelProps {
 	size?: number;
 	disabled?: boolean;
+	/** Cor real persistida (`device.colorHex`) pra posicionar o thumb — null/undefined nasce em branco neutro (thumb no centro). */
+	value?: string | null;
 	onCommit: (hex: string) => void;
 }
 
@@ -21,16 +23,39 @@ const DEFAULT_SIZE = 168;
  *
  * Commit-on-release: arrastar só atualiza a posição visual do thumb local;
  * a chamada de rede (`onCommit`) dispara uma vez no `onPointerUp`.
+ *
+ * `value` reposiciona o thumb quando muda de verdade (GET inicial, refetch),
+ * mesmo padrão de sincronização protegida usado pro Brilho em
+ * `LightControlPanel.tsx` — o efeito abaixo só depende de `value`, não de
+ * `isDragging` (lido via ref), pra não "puxar" o thumb de volta pro valor
+ * antigo no instante em que o usuário solta o arraste (ver
+ * `useSyncedDeviceControl` pro mesmo racional aplicado ao Brilho/Temperatura).
  */
 export function ColorWheel({
 	size = DEFAULT_SIZE,
 	disabled,
+	value,
 	onCommit,
 }: ColorWheelProps) {
 	const wheelRef = useRef<HTMLDivElement>(null);
-	const [hue, setHue] = useState(0);
-	const [saturation, setSaturation] = useState(1);
+	// design-token-lint-ignore: cor real da lâmpada (dado de domínio), não decisão de estilo
+	const initialHsv = hexToHsv(value ?? "#FFFFFF");
+	const [hue, setHue] = useState(initialHsv.h);
+	const [saturation, setSaturation] = useState(initialHsv.s);
 	const [isDragging, setIsDragging] = useState(false);
+
+	const isDraggingRef = useRef(isDragging);
+	useEffect(() => {
+		isDraggingRef.current = isDragging;
+	}, [isDragging]);
+
+	useEffect(() => {
+		if (isDraggingRef.current) return;
+		// design-token-lint-ignore: cor real da lâmpada (dado de domínio), não decisão de estilo
+		const { h, s } = hexToHsv(value ?? "#FFFFFF");
+		setHue(h);
+		setSaturation(s);
+	}, [value]);
 
 	const radius = size / 2;
 

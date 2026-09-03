@@ -26,3 +26,32 @@ export function hsvToHex(h: number, s: number, v: number): string {
 
 	return `#${toHex(r)}${toHex(g)}${toHex(b)}`.toUpperCase();
 }
+
+/**
+ * Converte hex "#RRGGBB" pra HSV (H 0-360, S/V 0-1) — inverso de `hsvToHex`,
+ * usado pela `ColorWheel` pra reposicionar o thumb a partir da cor real
+ * persistida (`device.colorHex`) em vez de sempre nascer no vermelho (H=0).
+ */
+export function hexToHsv(hex: string): { h: number; s: number; v: number } {
+	const normalized = hex.replace("#", "");
+	const r = Number.parseInt(normalized.slice(0, 2), 16) / 255;
+	const g = Number.parseInt(normalized.slice(2, 4), 16) / 255;
+	const b = Number.parseInt(normalized.slice(4, 6), 16) / 255;
+
+	const max = Math.max(r, g, b);
+	const min = Math.min(r, g, b);
+	const delta = max - min;
+
+	let h = 0;
+	if (delta !== 0) {
+		if (max === r) h = 60 * (((g - b) / delta) % 6);
+		else if (max === g) h = 60 * ((b - r) / delta + 2);
+		else h = 60 * ((r - g) / delta + 4);
+	}
+	if (h < 0) h += 360;
+
+	const v = max;
+	const s = max === 0 ? 0 : delta / max;
+
+	return { h, s, v };
+}

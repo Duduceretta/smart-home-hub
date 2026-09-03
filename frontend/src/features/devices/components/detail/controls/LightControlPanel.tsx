@@ -6,6 +6,7 @@ import { useSetDeviceBrightness } from "../../../hooks/useSetDeviceBrightness";
 import { useSetDeviceColor } from "../../../hooks/useSetDeviceColor";
 import { useSetDeviceColorTemp } from "../../../hooks/useSetDeviceColorTemp";
 import { useSetDeviceWorkMode } from "../../../hooks/useSetDeviceWorkMode";
+import { useSyncedDeviceControl } from "../../../hooks/useSyncedDeviceControl";
 import { useToggleDevice } from "../../../hooks/useToggleDevice";
 import { ColorWheel } from "./ColorWheel";
 import type { DeviceControlPanelProps } from "./device-control-panel.types";
@@ -33,12 +34,12 @@ const PRESET_COLORS = [
  * liga/desliga migrado pra esquerda do card (era só o ícone no canto
  * superior direito).
  *
- * Brilho já é lido de verdade do GET (`device.brightness`, persistido no
- * banco após confirmação do hardware Tuya) e sincronizado a cada
- * atualização de `device` — mesmo padrão do volume de TV em
- * `DeviceCard.tsx`. Cor e temperatura de cor continuam write-only (sem DP
- * de leitura exposto pela API ainda) — controles começam num valor local e
- * refletem só a última intenção enviada nesta sessão.
+ * Brilho, temperatura de cor e cor já são lidos de verdade do GET
+ * (`device.brightness`/`colorTempPercent`/`colorHex`, persistidos no banco
+ * após confirmação do hardware Tuya) e sincronizados a cada atualização de
+ * `device` via `useSyncedDeviceControl` — mesmo padrão do volume de TV em
+ * `DeviceCard.tsx`, extraído num hook compartilhado depois de repetir o
+ * mesmo useEffect+ref três vezes (ver `useSyncedDeviceControl.ts`).
  */
 export function LightControlPanel({ device }: DeviceControlPanelProps) {
 	const { t } = useTranslation("devices");
@@ -73,34 +74,15 @@ export function LightControlPanel({ device }: DeviceControlPanelProps) {
 	};
 
 	// --- Brilho (DP22) ---
-	// Fallback 50 só pra dispositivo que nunca teve brilho definido
-	// (device.brightness null) — não é mais um valor fixo de sessão.
-	const [brightness, setBrightness] = useState(device.brightness ?? 50);
-	const [isDraggingBrightness, setIsDraggingBrightness] = useState(false);
-	const lastCommittedBrightnessRef = useRef(device.brightness ?? 50);
+	const {
+		value: brightness,
+		setValue: setBrightness,
+		isInteracting: isDraggingBrightness,
+		setIsInteracting: setIsDraggingBrightness,
+		lastCommittedRef: lastCommittedBrightnessRef,
+	} = useSyncedDeviceControl(device.brightness, 50);
 	const { mutate: commitBrightness_, isPending: isSettingBrightness } =
 		useSetDeviceBrightness();
-
-	// Espelha isDraggingBrightness num ref só pra ler dentro do efeito abaixo
-	// sem listar isDraggingBrightness nas deps — ver comentário do efeito.
-	const isDraggingBrightnessRef = useRef(isDraggingBrightness);
-	useEffect(() => {
-		isDraggingBrightnessRef.current = isDraggingBrightness;
-	}, [isDraggingBrightness]);
-
-	// Sincroniza com o valor real vindo da API (GET inicial, refetch, ou
-	// evento SignalR de outra origem — ex: automação) — mesmo padrão já
-	// usado pro volume de TV em DeviceCard.tsx. Só dispara quando
-	// device.brightness muda de verdade (não quando o arraste termina) —
-	// se isDraggingBrightness estivesse nas deps, soltar o dedo re-rodaria
-	// o efeito com o `device` ainda desatualizado (o refetch é assíncrono) e
-	// "puxaria" o valor recém-arrastado de volta pro antigo por um instante.
-	useEffect(() => {
-		if (isDraggingBrightnessRef.current) return;
-		const remoteBrightness = device.brightness ?? 50;
-		setBrightness(remoteBrightness);
-		lastCommittedBrightnessRef.current = remoteBrightness;
-	}, [device.brightness]);
 
 	const commitBrightness = (value: number) => {
 		commitBrightness_(
@@ -115,9 +97,14 @@ export function LightControlPanel({ device }: DeviceControlPanelProps) {
 	};
 
 	// --- Temperatura de cor (DP23, só aba Branco) ---
-	const [colorTemp, setColorTemp] = useState(50);
-	const [isDraggingColorTemp, setIsDraggingColorTemp] = useState(false);
-	const lastCommittedColorTempRef = useRef(50);
+	// Fallback 50 = ponto médio da escala quente↔frio.
+	const {
+		value: colorTemp,
+		setValue: setColorTemp,
+		isInteracting: isDraggingColorTemp,
+		setIsInteracting: setIsDraggingColorTemp,
+		lastCommittedRef: lastCommittedColorTempRef,
+	} = useSyncedDeviceControl(device.colorTempPercent, 50);
 	const { mutate: commitColorTemp_, isPending: isSettingColorTemp } =
 		useSetDeviceColorTemp();
 
@@ -134,7 +121,32 @@ export function LightControlPanel({ device }: DeviceControlPanelProps) {
 	};
 
 	// --- Cor RGB (DP24, só aba Cor) ---
-	const { mutate: setColor, isPending: isSettingColor } = useSetDeviceColor();
+	// Fallback branco neutro — sem "intenção de cor" nenhuma ainda.
+	// Sem estado de arraste próprio aqui: a interação contínua de arrastar a
+	// roda de cores é 100% interna à ColorWheel (guarda sua própria
+	// sincronização protegida via `value`), então este nível só precisa do
+	// valor sincronizado pra destacar o swatch selecionado e alimentar a roda.
+	const {
+		value: colorHex,
+		setValue: setColorHex,
+		lastCommittedRef: lastCommittedColorRef,
+		// design-token-lint-ignore: cor real da lâmpada (dado de domínio), não decisão de estilo
+	} = useSyncedDeviceControl(device.colorHex, "#FFFFFF");
+	const { mutate: commitColor_, isPending: isSettingColor } =
+		useSetDeviceColor();
+
+	const commitColor = (hex: string) => {
+		setColorHex(hex);
+		commitColor_(
+			{ deviceId: device.id, colorHex: hex },
+			{
+				onSuccess: () => {
+					lastCommittedColorRef.current = hex;
+				},
+				onError: () => setColorHex(lastCommittedColorRef.current),
+			},
+		);
+	};
 
 	return (
 		<div className="flex flex-col gap-4 rounded-lg border border-border-subtle bg-surface-container p-4">
@@ -340,29 +352,31 @@ export function LightControlPanel({ device }: DeviceControlPanelProps) {
 
 						<ColorWheel
 							disabled={!isOnline || isSettingColor}
-							onCommit={(hex) =>
-								setColor({ deviceId: device.id, colorHex: hex })
-							}
+							value={colorHex}
+							onCommit={commitColor}
 						/>
 
 						<div className="flex flex-wrap items-center gap-1">
 							{PRESET_COLORS.map((preset) => {
 								const isSwatchDisabled = !isOnline || isSettingColor;
+								const isSelected =
+									colorHex.toUpperCase() === preset.toUpperCase();
 								return (
 									<button
 										key={preset}
 										type="button"
 										disabled={isSwatchDisabled}
 										aria-label={preset}
-										onClick={() =>
-											setColor({ deviceId: device.id, colorHex: preset })
-										}
+										aria-pressed={isSelected}
+										onClick={() => commitColor(preset)}
 										className="group/swatch flex h-11 w-11 shrink-0 items-center justify-center disabled:cursor-not-allowed"
 									>
 										<span
-											className={`h-5 w-5 rounded-full border border-border-subtle shadow-xs transition-transform ${
-												isSwatchDisabled ? "" : "group-hover/swatch:scale-110"
-											}`}
+											className={`h-5 w-5 rounded-full border shadow-xs transition-transform ${
+												isSelected
+													? "border-2 border-foreground scale-110"
+													: "border-border-subtle"
+											} ${isSwatchDisabled ? "" : "group-hover/swatch:scale-110"}`}
 											style={{ backgroundColor: preset }}
 										/>
 									</button>
