@@ -4,6 +4,15 @@ using SmartHomeHub.Domain.ValueObjects;
 
 namespace SmartHomeHub.Domain.Entities;
 
+/// <summary>
+/// NUNCA execute DELETE físico direto nesta entidade fora do fluxo de
+/// soft-delete da aplicação — isso cascateia (<see cref="DeviceTelemetryLog"/>
+/// → Device é <c>DeleteBehavior.Cascade</c> de propósito) e apaga
+/// permanentemente todo o histórico de telemetria associado, incluindo dados
+/// preservados deliberadamente para treinamento de ML futuro (ver
+/// <c>backend/docs/database-iot.md</c>, seção "Invariante: hard-delete de
+/// Device apaga telemetria de ML permanentemente").
+/// </summary>
 public class Device : IAuditableEntity, ISoftDeletable
 {
     public Guid Id { get; set; } = Guid.NewGuid();

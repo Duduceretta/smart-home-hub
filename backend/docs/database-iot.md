@@ -49,3 +49,17 @@ Diferente do que uma versão anterior deste documento afirmava, o projeto **usa 
 Como a aplicação nunca dispara `DELETE` físico de fato (o interceptor do `AppDbContext` converte tudo em soft delete antes de chegar ao banco), essas configurações de `DeleteBehavior` funcionam como uma segunda camada de proteção — útil em migrações, scripts administrativos ou qualquer caminho que acesse o banco fora do `AppDbContext` interceptado — mais do que como o mecanismo do dia a dia da aplicação.
 
 Se a intenção original era mesmo proibir cascade físico e mover toda a lógica de desvinculação para os Handlers (DDD "puro"), isso ainda não é o que o schema reflete hoje — vale uma decisão consciente do time sobre qual dos dois caminhos seguir daqui pra frente, em vez de manter a documentação descrevendo uma regra que o código já não segue.
+
+### Invariante: hard-delete de Device apaga telemetria de ML permanentemente
+
+`DeviceTelemetryLog.DeviceId → Device` usa `DeleteBehavior.Cascade` de propósito (seção acima) — telemetria sem device não tem sentido, isso está correto. Mas isso tem uma consequência séria fora do fluxo normal da aplicação:
+
+> **Um `DELETE` físico direto em `Device` — script de decomissionamento manual, migration de limpeza, qualquer acesso ao banco fora do `AppDbContext` interceptado — apaga em cascata TODO o histórico de telemetria daquele dispositivo, de forma permanente e irreversível.**
+
+Isso conflita com a decisão consciente (seção 2 deste documento) de manter `DeviceTelemetryLogs` **sem retention policy**, justamente para preservar o histórico bruto completo pra treinar modelos de ML no futuro. Um hard-delete de `Device` destrói exatamente o dado que essa decisão pretendia guardar.
+
+**Regra operacional, antes de rodar qualquer `DELETE` em `Device`:**
+
+- Nunca use `DELETE` físico em `Device` fora do soft-delete (`IsDeleted`/`DeletedAt`) da aplicação.
+- Scripts administrativos de limpeza e migrations de dados devem soft-deletar (`UPDATE ... SET "IsDeleted" = true, "DeletedAt" = now()`), nunca `DELETE FROM "Devices"`.
+- Se um hard-delete real for genuinamente necessário (ex: GDPR, expurgo de dado de teste), **exporte/arquive `DeviceTelemetryLogs` daquele `DeviceId` antes** — depois do `DELETE`, o dado não existe mais em lugar nenhum.
