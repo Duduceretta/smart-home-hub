@@ -20,6 +20,9 @@ export function useCreateAutomation() {
 			queryClient.invalidateQueries({
 				queryKey: automationsKeys.filterCounts(),
 			});
+			queryClient.invalidateQueries({
+				queryKey: ["dashboard", "automations-summary"],
+			});
 			toast.success(data.message || "Automação criada com sucesso!");
 		},
 		onError: (error: Error) => {
