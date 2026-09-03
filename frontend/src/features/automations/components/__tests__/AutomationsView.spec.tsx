@@ -191,4 +191,99 @@ describe("AutomationsView Integration Tests", () => {
 		const backButton = screen.getByRole("button", { name: "Voltar" });
 		await user.click(backButton);
 	});
+
+	it("AutomationsView_WithReturnToInState_ShouldRenderReturnButtonEvenAfterAutoSelect", async () => {
+		// Arrange
+		const auto1 = createAutomationMock({
+			id: "auto-1",
+			name: "Ligar luz da Sala",
+		});
+		mockAutomationsBackend([auto1]);
+
+		// Act
+		renderWithProviders(
+			<MemoryRouter
+				initialEntries={[
+					{
+						pathname: "/automations",
+						state: { returnTo: "/dashboard", returnLabel: "Início" },
+					},
+				]}
+			>
+				<AutomationsView />
+			</MemoryRouter>,
+		);
+
+		// Assert
+		expect(
+			await screen.findByRole("button", { name: /Voltar para Início/i }),
+		).toBeInTheDocument();
+	});
+
+	it("AutomationsView_WithOpenCreateInState_ShouldOpenCreateWizard", async () => {
+		// Arrange
+		mockAutomationsBackend([]);
+
+		// Act
+		renderWithProviders(
+			<MemoryRouter
+				initialEntries={[
+					{
+						pathname: "/automations",
+						state: {
+							returnTo: "/dashboard",
+							returnLabel: "Início",
+							openCreate: true,
+						},
+					},
+				]}
+			>
+				<AutomationsView />
+			</MemoryRouter>,
+		);
+
+		// Assert
+		expect(
+			await screen.findByRole("heading", { name: "Nova Automação" }),
+		).toBeInTheDocument();
+	});
+
+	it("AutomationsView_WithSelectedAutomationIdInState_ShouldSelectAutomationAndShowReturnButton", async () => {
+		// Arrange
+		const auto1 = createAutomationMock({
+			id: "auto-1",
+			name: "Ligar luz da Sala",
+		});
+		const auto2 = createAutomationMock({
+			id: "auto-2",
+			name: "Desligar Cafeteira",
+		});
+		mockAutomationsBackend([auto1, auto2]);
+
+		// Act
+		renderWithProviders(
+			<MemoryRouter
+				initialEntries={[
+					{
+						pathname: "/automations",
+						state: {
+							returnTo: "/dashboard",
+							returnLabel: "Início",
+							selectedAutomationId: "auto-2",
+						},
+					},
+				]}
+			>
+				<AutomationsView />
+			</MemoryRouter>,
+		);
+
+		// Assert
+		expect(
+			await screen.findByRole("button", { name: /Voltar para Início/i }),
+		).toBeInTheDocument();
+		expect(
+			await screen.findByRole("heading", { name: "Desligar Cafeteira" }),
+		).toBeInTheDocument();
+	});
 });

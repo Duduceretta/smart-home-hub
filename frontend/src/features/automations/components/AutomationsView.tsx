@@ -1,5 +1,5 @@
 import { AlertTriangle, ArrowLeft, Loader2 } from "lucide-react";
-import { useCallback, useEffect, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { useDebouncedValue } from "@/core/hooks/useDebouncedValue";
@@ -51,8 +51,18 @@ export function AutomationsView() {
 
 	const isDesktopMasterDetail = useMediaQuery("(min-width: 1024px)");
 
-	const returnTo = (location.state as { returnTo?: string })?.returnTo;
-	const returnLabel = (location.state as { returnLabel?: string })?.returnLabel;
+	const [returnNav] = useState(() => ({
+		returnTo: (location.state as { returnTo?: string })?.returnTo,
+		returnLabel: (location.state as { returnLabel?: string })?.returnLabel,
+	}));
+	const returnTo =
+		(location.state as { returnTo?: string })?.returnTo ?? returnNav.returnTo;
+	const returnLabel =
+		(location.state as { returnLabel?: string })?.returnLabel ??
+		returnNav.returnLabel;
+
+	const stateOpenCreate = (location.state as { openCreate?: boolean })
+		?.openCreate;
 	const stateAutomationId = (
 		location.state as { selectedAutomationId?: string }
 	)?.selectedAutomationId;
@@ -83,10 +93,13 @@ export function AutomationsView() {
 					next.set("automation", id);
 					return next;
 				},
-				{ replace: isDesktopMasterDetail },
+				{
+					replace: isDesktopMasterDetail,
+					state: location.state ?? (returnNav.returnTo ? returnNav : undefined),
+				},
 			);
 		},
-		[setSearchParams, isDesktopMasterDetail],
+		[setSearchParams, isDesktopMasterDetail, location.state, returnNav],
 	);
 
 	/** Seleção programática (default inicial / correção de filtro) — nunca
@@ -100,22 +113,30 @@ export function AutomationsView() {
 					else next.delete("automation");
 					return next;
 				},
-				{ replace: true },
+				{
+					replace: true,
+					state: location.state ?? (returnNav.returnTo ? returnNav : undefined),
+				},
 			);
 		},
-		[setSearchParams],
+		[setSearchParams, location.state, returnNav],
 	);
 
 	/** Botão "voltar" do painel de detalhe (só existe <lg) — sempre empilha,
 	 * pra o botão físico de voltar do navegador desfazer exatamente essa ação
 	 * (volta pro detalhe), e não sair da tela de Automações. */
 	const clearSelection = useCallback(() => {
-		setSearchParams((prev) => {
-			const next = new URLSearchParams(prev);
-			next.delete("automation");
-			return next;
-		});
-	}, [setSearchParams]);
+		setSearchParams(
+			(prev) => {
+				const next = new URLSearchParams(prev);
+				next.delete("automation");
+				return next;
+			},
+			{
+				state: location.state ?? (returnNav.returnTo ? returnNav : undefined),
+			},
+		);
+	}, [setSearchParams, location.state, returnNav]);
 
 	const debouncedQuery = useDebouncedValue(query, 300);
 
@@ -163,9 +184,18 @@ export function AutomationsView() {
 	// biome-ignore lint/correctness/useExhaustiveDependencies: dispara só na chegada com stateAutomationId
 	useEffect(() => {
 		if (stateAutomationId) {
+			setFilter("all");
+			setQuery("");
 			setDefaultAutomation(stateAutomationId);
 		}
 	}, [stateAutomationId]);
+
+	// Chegada via `location.state` com openCreate (ex: Dashboard "criar automação" ou slot vazio)
+	useEffect(() => {
+		if (stateOpenCreate) {
+			openCreateWizard();
+		}
+	}, [stateOpenCreate, openCreateWizard]);
 
 	// Auto-seleção do primeiro item só acontece em telas desktop master-detail (lg+)
 	useEffect(() => {
@@ -269,7 +299,7 @@ export function AutomationsView() {
 							})}
 						</button>
 					)}
-					<h1 className="text-3xl font-bold tracking-tight text-foreground">
+					<h1 className="text-3xl font-semibold tracking-tight text-foreground">
 						{t("title", "Automações")}
 					</h1>
 					<p className="text-sm text-muted-foreground">

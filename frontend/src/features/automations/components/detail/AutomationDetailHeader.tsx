@@ -1,5 +1,6 @@
 import { AlertTriangle, ArrowLeft, Copy, Pencil, Trash2 } from "lucide-react";
 import type { ComponentType } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/core/components/ui/button";
 import { Switch } from "@/core/components/ui/switch";
 import { cn } from "@/core/utils";
@@ -28,16 +29,43 @@ export function AutomationDetailHeader({
 	onDuplicate,
 	onDelete,
 }: AutomationDetailHeaderProps) {
+	const location = useLocation();
+	const navigate = useNavigate();
+	const returnTo = (location.state as { returnTo?: string })?.returnTo;
+	const returnLabel = (location.state as { returnLabel?: string })?.returnLabel;
+
 	return (
 		<div className="flex shrink-0 flex-col gap-4 border-b border-border-subtle/50 pb-4 lg:bg-surface-container/50 lg:p-6">
-			<button
-				type="button"
-				onClick={onBack}
-				className="inline-flex h-11 w-fit items-center gap-1.5 -ml-2 px-2 rounded-lg text-xs font-medium text-muted-foreground transition-colors hover:bg-surface-high hover:text-foreground cursor-pointer lg:hidden"
-			>
-				<ArrowLeft className="h-4 w-4" />
-				Voltar
-			</button>
+			<div className="flex items-center gap-2 lg:hidden">
+				{returnTo ? (
+					<>
+						<button
+							type="button"
+							onClick={() => navigate(returnTo)}
+							className="inline-flex h-9 w-fit items-center gap-1.5 -ml-2 px-2 rounded-lg text-xs font-medium text-muted-foreground transition-colors hover:bg-surface-high hover:text-foreground cursor-pointer"
+						>
+							<ArrowLeft className="h-4 w-4" />
+							Voltar para {returnLabel ?? "Início"}
+						</button>
+						<button
+							type="button"
+							onClick={onBack}
+							className="inline-flex h-9 w-fit items-center gap-1 px-2 rounded-lg text-xs font-medium text-muted-foreground transition-colors hover:bg-surface-high hover:text-foreground cursor-pointer"
+						>
+							Ver lista
+						</button>
+					</>
+				) : (
+					<button
+						type="button"
+						onClick={onBack}
+						className="inline-flex h-11 w-fit items-center gap-1.5 -ml-2 px-2 rounded-lg text-xs font-medium text-muted-foreground transition-colors hover:bg-surface-high hover:text-foreground cursor-pointer"
+					>
+						<ArrowLeft className="h-4 w-4" />
+						Voltar
+					</button>
+				)}
+			</div>
 
 			<div className="flex items-start justify-between gap-4">
 				<div className="flex min-w-0 items-center gap-3.5">
