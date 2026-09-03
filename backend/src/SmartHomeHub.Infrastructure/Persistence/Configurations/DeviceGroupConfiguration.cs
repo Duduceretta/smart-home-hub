@@ -16,10 +16,14 @@ public class DeviceGroupConfiguration : IEntityTypeConfiguration<DeviceGroup>
         builder.Property(group => group.CreatedAt).IsRequired();
         builder.Property(group => group.UpdatedAt).IsRequired(false);
 
+        // Restrict por simetria com Room/Device (RestrictUserCascades) — mesma
+        // classe de metadado, mesma política. Não é risco de perda física de
+        // dado (a FK só vincula agrupamento, não cascateia pra Devices reais).
         builder
             .HasOne(group => group.User)
             .WithMany(user => user.DeviceGroups)
-            .HasForeignKey(group => group.UserId);
+            .HasForeignKey(group => group.UserId)
+            .OnDelete(DeleteBehavior.Restrict);
 
         // Um Grupo tem Muitos Dispositivos <-> Um Dispositivo tem Muitos Grupos
         builder
