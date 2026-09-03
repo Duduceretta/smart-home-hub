@@ -29,6 +29,11 @@ public class Device : IAuditableEntity, ISoftDeletable
     // definido (não-luzes, ou luzes ainda não ajustadas via este comando).
     public int? Brightness { get; set; }
 
+    // Mesmo padrão de Brightness: só preenchido após SetDeviceColorCommand/
+    // SetDeviceColorTempCommand confirmarem sucesso no hardware.
+    public string? ColorHex { get; set; }
+    public int? ColorTempPercent { get; set; }
+
     public DeviceConfiguration Configuration { get; set; } = new();
 
     public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;

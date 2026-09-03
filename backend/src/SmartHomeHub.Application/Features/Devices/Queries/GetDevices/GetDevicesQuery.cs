@@ -30,7 +30,11 @@ public record DeviceDto(
     bool? SupportsColorOverride,
     // Último valor de brilho confirmado com sucesso no hardware (0-100) —
     // null se o dispositivo nunca teve brilho definido via SetDeviceBrightnessCommand.
-    int? Brightness
+    int? Brightness,
+    // Mesmo padrão de Brightness: null até o primeiro SetDeviceColorCommand/
+    // SetDeviceColorTempCommand bem-sucedido.
+    string? ColorHex,
+    int? ColorTempPercent
 );
 
 public record GetDevicesQuery(

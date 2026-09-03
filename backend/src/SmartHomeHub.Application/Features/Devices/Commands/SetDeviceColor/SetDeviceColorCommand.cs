@@ -7,13 +7,16 @@ using SmartHomeHub.Domain.Enums;
 
 namespace SmartHomeHub.Application.Features.Devices.Commands.SetDeviceColor;
 
-public record SetDeviceColorCommand(Guid DeviceId, string FirebaseUid, string ColorHex) : ICommand<Result>;
+public record SetDeviceColorCommand(Guid DeviceId, string FirebaseUid, string ColorHex)
+    : ICommand<Result>;
 
 public class SetDeviceColorCommandValidator : AbstractValidator<SetDeviceColorCommand>
 {
     public SetDeviceColorCommandValidator()
     {
-        RuleFor(command => command.DeviceId).NotEmpty().WithMessage("O ID do dispositivo é obrigatório.");
+        RuleFor(command => command.DeviceId)
+            .NotEmpty()
+            .WithMessage("O ID do dispositivo é obrigatório.");
 
         RuleFor(command => command.FirebaseUid)
             .NotEmpty()
@@ -31,7 +34,10 @@ public class SetDeviceColorCommandHandler(
     ITuyaLocalControlService tuyaLocalControlService
 ) : ICommandHandler<SetDeviceColorCommand, Result>
 {
-    public async ValueTask<Result> Handle(SetDeviceColorCommand request, CancellationToken cancellationToken)
+    public async ValueTask<Result> Handle(
+        SetDeviceColorCommand request,
+        CancellationToken cancellationToken
+    )
     {
         var device = await dbContext.Devices.FirstOrDefaultAsync(
             d => d.Id == request.DeviceId && d.User.ExternalAuthUid == request.FirebaseUid,
@@ -43,12 +49,18 @@ public class SetDeviceColorCommandHandler(
 
         if (device.Type != DeviceType.Light || device.IntegrationType != IntegrationType.TuyaLocal)
             return Result.Failure(
-                new Error("Device.ColorUnsupported", "Este dispositivo não suporta controle de cor.")
+                new Error(
+                    "Device.ColorUnsupported",
+                    "Este dispositivo não suporta controle de cor."
+                )
             );
 
         if (string.IsNullOrWhiteSpace(device.Configuration.LocalKey))
             return Result.Failure(
-                new Error("Device.MissingConfiguration", "O dispositivo Tuya não tem local_key configurada.")
+                new Error(
+                    "Device.MissingConfiguration",
+                    "O dispositivo Tuya não tem local_key configurada."
+                )
             );
 
         var connection = new TuyaDeviceConnectionInfo(
@@ -84,6 +96,7 @@ public class SetDeviceColorCommandHandler(
 
         device.IsOnline = true;
         device.LastSeenAt = DateTimeOffset.UtcNow;
+        device.ColorHex = request.ColorHex;
 
         await dbContext.SaveChangesAsync(cancellationToken);
 

@@ -28,6 +28,10 @@ public class DeviceConfiguration : IEntityTypeConfiguration<Device>
 
         builder.Property(device => device.Brightness).IsRequired(false);
 
+        builder.Property(device => device.ColorHex).IsRequired(false).HasMaxLength(7);
+
+        builder.Property(device => device.ColorTempPercent).IsRequired(false);
+
         builder.Property(device => device.CreatedAt).IsRequired();
 
         builder.Property(device => device.UpdatedAt).IsRequired(false);

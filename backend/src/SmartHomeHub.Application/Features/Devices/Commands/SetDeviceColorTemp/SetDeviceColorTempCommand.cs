@@ -14,7 +14,9 @@ public class SetDeviceColorTempCommandValidator : AbstractValidator<SetDeviceCol
 {
     public SetDeviceColorTempCommandValidator()
     {
-        RuleFor(command => command.DeviceId).NotEmpty().WithMessage("O ID do dispositivo é obrigatório.");
+        RuleFor(command => command.DeviceId)
+            .NotEmpty()
+            .WithMessage("O ID do dispositivo é obrigatório.");
 
         RuleFor(command => command.FirebaseUid)
             .NotEmpty()
@@ -31,7 +33,10 @@ public class SetDeviceColorTempCommandHandler(
     ITuyaLocalControlService tuyaLocalControlService
 ) : ICommandHandler<SetDeviceColorTempCommand, Result>
 {
-    public async ValueTask<Result> Handle(SetDeviceColorTempCommand request, CancellationToken cancellationToken)
+    public async ValueTask<Result> Handle(
+        SetDeviceColorTempCommand request,
+        CancellationToken cancellationToken
+    )
     {
         var device = await dbContext.Devices.FirstOrDefaultAsync(
             d => d.Id == request.DeviceId && d.User.ExternalAuthUid == request.FirebaseUid,
@@ -51,7 +56,10 @@ public class SetDeviceColorTempCommandHandler(
 
         if (string.IsNullOrWhiteSpace(device.Configuration.LocalKey))
             return Result.Failure(
-                new Error("Device.MissingConfiguration", "O dispositivo Tuya não tem local_key configurada.")
+                new Error(
+                    "Device.MissingConfiguration",
+                    "O dispositivo Tuya não tem local_key configurada."
+                )
             );
 
         var connection = new TuyaDeviceConnectionInfo(
@@ -82,6 +90,7 @@ public class SetDeviceColorTempCommandHandler(
 
         device.IsOnline = true;
         device.LastSeenAt = DateTimeOffset.UtcNow;
+        device.ColorTempPercent = request.ColorTempPercent;
 
         await dbContext.SaveChangesAsync(cancellationToken);
 
