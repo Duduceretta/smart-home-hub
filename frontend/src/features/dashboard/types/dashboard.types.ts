@@ -85,6 +85,7 @@ export interface DashboardAutomationSummary {
 	id: string;
 	name: string;
 	isActive: boolean;
+	rulePayload?: string;
 	updatedAt: string | null;
 	createdAt: string;
 	lastExecutedAt: string | null;

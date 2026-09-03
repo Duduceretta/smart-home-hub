@@ -59,6 +59,34 @@ export async function fetchAutomationsSummary(): Promise<
 }
 
 /**
+ * Updates the active status of an automation from the dashboard card.
+ */
+export async function updateDashboardAutomationStatus(
+	id: string,
+	name: string,
+	rulePayload: string,
+	isActive: boolean,
+): Promise<{ id: string; name: string; isActive: boolean }> {
+	try {
+		const { data } = await apiClient.put<{
+			id: string;
+			name: string;
+			isActive: boolean;
+		}>(`/automations/${id}`, {
+			name,
+			rulePayload,
+			isActive,
+		});
+		return data;
+	} catch (error: unknown) {
+		throw handleApplicationError(
+			error,
+			"Não foi possível alterar o estado da automação.",
+		);
+	}
+}
+
+/**
  * Fetches a page of the persisted activity log (SystemEvent).
  */
 export async function fetchActivityLog(

@@ -38,7 +38,7 @@ describe("ActiveAutomationsCard Integration Tests", () => {
 		).toBeInTheDocument();
 	});
 
-	it("ActiveAutomationsCard_NoActiveAutomations_ShouldShowNoneActiveMessage", async () => {
+	it("ActiveAutomationsCard_NoActiveAutomations_ShouldShowInactiveAutomationWithSwitchAndEmptySlots", async () => {
 		// Arrange
 		mockAutomations([
 			{
@@ -55,8 +55,18 @@ describe("ActiveAutomationsCard Integration Tests", () => {
 
 		// Assert
 		expect(
-			await screen.findByText("Nenhuma automação ativa no momento"),
+			await screen.findByText("Desligar tudo à noite"),
 		).toBeInTheDocument();
+		expect(screen.getByText("Desativada")).toBeInTheDocument();
+
+		const switchElement = screen.getByRole("switch", {
+			name: /Ativar automação Desligar tudo à noite/,
+		});
+		expect(switchElement).toBeInTheDocument();
+		expect(switchElement).not.toBeChecked();
+
+		// 1 automação desativada + 2 slots vazios = 3 visíveis no card
+		expect(screen.getAllByText("Adicionar automação")).toHaveLength(2);
 		expect(
 			screen.getByRole("button", { name: /Ver todas as automações/ }),
 		).toBeInTheDocument();
@@ -167,6 +177,264 @@ describe("ActiveAutomationsCard Integration Tests", () => {
 		// declaradas; o clique não deve lançar erro e o botão continua no DOM.
 		expect(
 			screen.getByRole("button", { name: /Ver todas as automações/ }),
+		).toBeInTheDocument();
+	});
+
+	it("ActiveAutomationsCard_SwitchToggled_ShouldCallUpdateAndToggleState", async () => {
+		// Arrange
+		let putCalledWith: { isActive: boolean } | null = null;
+		server.use(
+			http.get("*/api/automations", () =>
+				HttpResponse.json(
+					{
+						items: [
+							{
+								id: "a1",
+								name: "Ligar luzes no pôr do sol",
+								isActive: false,
+								rulePayload: '{"trigger":{"type":"time"}}',
+								createdAt: "2026-01-01T00:00:00Z",
+								updatedAt: "2026-01-01T00:00:00Z",
+							},
+						],
+						totalPages: 1,
+					},
+					{ status: 200 },
+				),
+			),
+			http.put("*/api/automations/a1", async ({ request }) => {
+				const body = (await request.json()) as { isActive: boolean };
+				putCalledWith = body;
+				return HttpResponse.json(
+					{
+						id: "a1",
+						name: "Ligar luzes no pôr do sol",
+						isActive: body.isActive,
+					},
+					{ status: 200 },
+				);
+			}),
+		);
+		const user = userEvent.setup();
+
+		// Act
+		renderCard();
+		await screen.findByText("Ligar luzes no pôr do sol");
+		const switchElement = screen.getByRole("switch", {
+			name: /Ativar automação Ligar luzes no pôr do sol/,
+		});
+		await user.click(switchElement);
+
+		// Assert
+		expect(putCalledWith).toEqual(expect.objectContaining({ isActive: true }));
+	});
+
+	it("ActiveAutomationsCard_ClickAutomationRow_ShouldBeInteractive", async () => {
+		// Arrange
+		mockAutomations([
+			{
+				id: "a1",
+				name: "Ligar luzes no pôr do sol",
+				isActive: true,
+				createdAt: "2026-01-01T00:00:00Z",
+				updatedAt: "2026-01-01T00:00:00Z",
+			},
+		]);
+		const user = userEvent.setup();
+
+		// Act
+		renderCard();
+		const row = await screen.findByRole("button", {
+			name: /Ligar luzes no pôr do sol/i,
+		});
+		await user.click(row);
+
+		// Assert
+		expect(row).toBeInTheDocument();
+	});
+
+	it("ActiveAutomationsCard_TwoAutomationsOneDeactivated_BothShouldRemainVisible", async () => {
+		// Arrange
+		mockAutomations([
+			{
+				id: "a1",
+				name: "Ligar luz da Sala",
+				isActive: true,
+				createdAt: "2026-01-01T00:00:00Z",
+				updatedAt: "2026-01-01T00:00:00Z",
+			},
+			{
+				id: "a2",
+				name: "Desligar Ar Condicionado",
+				isActive: false,
+				createdAt: "2026-01-01T00:00:00Z",
+				updatedAt: "2026-01-02T00:00:00Z",
+			},
+		]);
+
+		// Act
+		renderCard();
+
+		// Assert: ambas as automações continuam visíveis no painel + 1 slot vazio
+		expect(await screen.findByText("Ligar luz da Sala")).toBeInTheDocument();
+		expect(screen.getByText("Desligar Ar Condicionado")).toBeInTheDocument();
+		expect(screen.getByText("Desativada")).toBeInTheDocument();
+		expect(screen.getAllByText("Adicionar automação")).toHaveLength(1);
+	});
+
+	it("ActiveAutomationsCard_DeactivatingOneOfTwoAutomations_KeepsBothVisible", async () => {
+		// Arrange
+		let currentAutomations = [
+			{
+				id: "a1",
+				name: "Ligar luz da Sala",
+				isActive: true,
+				rulePayload: "{}",
+				createdAt: "2026-01-01T00:00:00Z",
+				updatedAt: "2026-01-01T00:00:00Z",
+			},
+			{
+				id: "a2",
+				name: "Desligar Ar Condicionado",
+				isActive: true,
+				rulePayload: "{}",
+				createdAt: "2026-01-01T00:00:00Z",
+				updatedAt: "2026-01-01T00:00:00Z",
+			},
+		];
+		server.use(
+			http.get("*/api/automations", () =>
+				HttpResponse.json({
+					items: currentAutomations,
+					totalPages: 1,
+				}),
+			),
+			http.put("*/api/automations/a2", async ({ request }) => {
+				const body = (await request.json()) as { isActive: boolean };
+				currentAutomations = currentAutomations.map((a) =>
+					a.id === "a2" ? { ...a, isActive: body.isActive } : a,
+				);
+				return HttpResponse.json(
+					{
+						id: "a2",
+						name: "Desligar Ar Condicionado",
+						isActive: body.isActive,
+					},
+					{ status: 200 },
+				);
+			}),
+		);
+		const user = userEvent.setup();
+
+		// Act
+		renderCard();
+		expect(await screen.findByText("Ligar luz da Sala")).toBeInTheDocument();
+		expect(screen.getByText("Desligar Ar Condicionado")).toBeInTheDocument();
+
+		const switchElement = screen.getByRole("switch", {
+			name: /Desativar automação Desligar Ar Condicionado/,
+		});
+		await user.click(switchElement);
+
+		// Assert: Desligar Ar Condicionado NÃO deve sumir!
+		expect(screen.getByText("Ligar luz da Sala")).toBeInTheDocument();
+		expect(screen.getByText("Desligar Ar Condicionado")).toBeInTheDocument();
+		expect(screen.getByText("Desativada")).toBeInTheDocument();
+		expect(screen.getAllByText("Adicionar automação")).toHaveLength(1);
+	});
+
+	it("ActiveAutomationsCard_DeactivatingFirstAutomation_PreservesItemPositions", async () => {
+		// Arrange
+		let currentAutomations = [
+			{
+				id: "a1",
+				name: "Primeira Automação",
+				isActive: true,
+				rulePayload: "{}",
+				createdAt: "2026-01-02T00:00:00Z",
+				updatedAt: "2026-01-02T00:00:00Z",
+			},
+			{
+				id: "a2",
+				name: "Segunda Automação",
+				isActive: true,
+				rulePayload: "{}",
+				createdAt: "2026-01-01T00:00:00Z",
+				updatedAt: "2026-01-01T00:00:00Z",
+			},
+		];
+		server.use(
+			http.get("*/api/automations", () =>
+				HttpResponse.json({
+					items: currentAutomations,
+					totalPages: 1,
+				}),
+			),
+			http.put("*/api/automations/a1", async ({ request }) => {
+				const body = (await request.json()) as { isActive: boolean };
+				currentAutomations = currentAutomations.map((a) =>
+					a.id === "a1" ? { ...a, isActive: body.isActive } : a,
+				);
+				return HttpResponse.json(
+					{
+						id: "a1",
+						name: "Primeira Automação",
+						isActive: body.isActive,
+					},
+					{ status: 200 },
+				);
+			}),
+		);
+		const user = userEvent.setup();
+
+		// Act
+		renderCard();
+		expect(await screen.findByText("Primeira Automação")).toBeInTheDocument();
+		expect(screen.getByText("Segunda Automação")).toBeInTheDocument();
+
+		// Desativa a primeira automação
+		const switchElement = screen.getByRole("switch", {
+			name: /Desativar automação Primeira Automação/,
+		});
+		await user.click(switchElement);
+
+		// Assert: a Primeira Automação continua como o primeiro elemento e Segunda Automação como o segundo
+		const rows = screen.getAllByRole("button", {
+			name: /Automação/i,
+		});
+		expect(rows[0]).toHaveTextContent("Primeira Automação");
+		expect(rows[0]).toHaveTextContent("Desativada");
+		expect(rows[1]).toHaveTextContent("Segunda Automação");
+	});
+
+	it("ActiveAutomationsCard_ClickEditButton_OpensEditAutomationsPreviewModal", async () => {
+		// Arrange
+		mockAutomations([
+			{
+				id: "a1",
+				name: "Automação 1",
+				isActive: true,
+				createdAt: "2026-01-01T00:00:00Z",
+				updatedAt: "2026-01-01T00:00:00Z",
+			},
+		]);
+		const user = userEvent.setup();
+
+		// Act
+		renderCard();
+		const editButton = await screen.findByRole("button", {
+			name: /Escolher automações exibidas/i,
+		});
+		await user.click(editButton);
+
+		// Assert: modal abre com título e opções
+		expect(
+			screen.getByText("Escolher automações exibidas"),
+		).toBeInTheDocument();
+		expect(
+			screen.getByText(
+				"Escolha até 3 automações para exibir no painel e ajuste a ordem desejada.",
+			),
 		).toBeInTheDocument();
 	});
 });

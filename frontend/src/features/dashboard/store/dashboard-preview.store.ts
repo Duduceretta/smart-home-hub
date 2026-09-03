@@ -11,6 +11,11 @@ interface DashboardPreviewState {
 	expandedByRoom: Record<string, boolean>;
 	setRoomExpanded: (roomKey: string, expanded: boolean) => void;
 	setAllRoomsExpanded: (roomKeys: string[], expanded: boolean) => void;
+
+	/** IDs das automações escolhidas manualmente para a dashboard, na ordem definida pelo usuário. */
+	automationOverrides: string[] | null;
+	setAutomationPreview: (automationIds: string[]) => void;
+	clearAutomationPreview: () => void;
 }
 
 export const useDashboardPreviewStore = create<DashboardPreviewState>()(
@@ -40,6 +45,11 @@ export const useDashboardPreviewStore = create<DashboardPreviewState>()(
 						...Object.fromEntries(roomKeys.map((key) => [key, expanded])),
 					},
 				})),
+
+			automationOverrides: null,
+			setAutomationPreview: (automationIds) =>
+				set({ automationOverrides: automationIds }),
+			clearAutomationPreview: () => set({ automationOverrides: null }),
 		}),
 		{ name: "dashboard-room-preview" },
 	),
