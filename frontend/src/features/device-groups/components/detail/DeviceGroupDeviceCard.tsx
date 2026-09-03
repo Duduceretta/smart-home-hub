@@ -146,6 +146,7 @@ export function DeviceGroupDeviceCard({
 					<Button
 						variant="outline"
 						size="sm"
+						onClick={handleNavigateToDevice}
 						className="shrink-0 border-border-subtle bg-surface-high hover:bg-surface-highest"
 					>
 						{t("deviceCard.control", "Controle")}

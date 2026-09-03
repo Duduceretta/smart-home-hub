@@ -1,4 +1,6 @@
 import { HttpResponse, http } from "msw";
+import type { ReactElement } from "react";
+import { MemoryRouter } from "react-router-dom";
 import { beforeEach, describe, expect, it } from "vitest";
 import { useRoomsUIStore } from "@/features/rooms/store/rooms-ui.store";
 import {
@@ -14,6 +16,10 @@ import {
 } from "@/testing/test-utils";
 import { RoomDeviceGrid } from "../RoomDeviceGrid";
 
+function renderRoomDeviceGrid(ui: ReactElement) {
+	return renderWithProviders(<MemoryRouter>{ui}</MemoryRouter>);
+}
+
 describe("RoomDeviceGrid Integration Tests", () => {
 	beforeEach(() => {
 		useRoomsUIStore.setState({
@@ -25,7 +31,7 @@ describe("RoomDeviceGrid Integration Tests", () => {
 
 	it("RoomDeviceGrid_NoDevices_ShouldRenderEmptyState", () => {
 		// Act
-		renderWithProviders(
+		renderRoomDeviceGrid(
 			<RoomDeviceGrid room={createRoomMock()} devices={[]} />,
 		);
 
@@ -43,7 +49,7 @@ describe("RoomDeviceGrid Integration Tests", () => {
 		];
 
 		// Act
-		renderWithProviders(
+		renderRoomDeviceGrid(
 			<RoomDeviceGrid room={createRoomMock()} devices={devices} />,
 		);
 
@@ -58,7 +64,7 @@ describe("RoomDeviceGrid Integration Tests", () => {
 		const room = createRoomMock();
 
 		// Act
-		renderWithProviders(<RoomDeviceGrid room={room} devices={[]} />);
+		renderRoomDeviceGrid(<RoomDeviceGrid room={room} devices={[]} />);
 		await user.click(
 			screen.getByRole("button", {
 				name: "Adicionar Dispositivo a este Ambiente",
@@ -86,7 +92,7 @@ describe("RoomDeviceGrid Integration Tests", () => {
 		];
 
 		// Act
-		renderWithProviders(
+		renderRoomDeviceGrid(
 			<RoomDeviceGrid room={createRoomMock()} devices={devices} />,
 		);
 		await user.click(screen.getByRole("switch"));

@@ -1,5 +1,6 @@
 import { AlertTriangle, Loader2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/core/components/ui/button";
 import { Switch } from "@/core/components/ui/switch";
 import { cn } from "@/core/utils";
@@ -12,6 +13,7 @@ import type { RoomPickerDevice } from "../../types/rooms.types";
 
 interface RoomDeviceCardProps {
 	device: RoomPickerDevice;
+	roomName?: string;
 	/** Este card específico tem um toggle em voo — evita clique duplo
 	 * enquanto o servidor não confirma o novo estado (sem isso o usuário
 	 * podia clicar de novo antes do POST /toggle voltar e inverter o estado
@@ -21,20 +23,34 @@ interface RoomDeviceCardProps {
 }
 
 /**
- * TV usa botão "Controle" (sem estado binário simples); atuadores (luz,
- * tomada, ar, fechadura...) usam toggle inline via `POST /devices/{id}/toggle`
- * (o servidor inverte o estado — não precisamos enviar o próximo valor);
- * sensores/câmeras só exibem status.
+ * TV usa botão "Controle" (sem estado binário simples — navega pro painel de
+ * detalhe do dispositivo em `/devices`, mesmo mecanismo de
+ * `DeviceGroupDeviceCard`); atuadores (luz, tomada, ar, fechadura...) usam
+ * toggle inline via `POST /devices/{id}/toggle` (o servidor inverte o
+ * estado — não precisamos enviar o próximo valor); sensores/câmeras só
+ * exibem status.
  */
 export function RoomDeviceCard({
 	device,
+	roomName,
 	isToggling = false,
 	onToggle,
 }: RoomDeviceCardProps) {
 	const { t } = useTranslation("rooms");
+	const navigate = useNavigate();
 	const Icon = ROOM_DEVICE_TYPE_ICON[device.type] ?? ROOM_DEVICE_TYPE_ICON[1];
 	const isTv = device.type === ROOM_DEVICE_TELEVISION_TYPE;
 	const isToggleable = !isTv && ROOM_DEVICE_ACTUATOR_TYPES.has(device.type);
+
+	const handleNavigateToDevice = () => {
+		navigate("/devices", {
+			state: {
+				selectedDeviceId: device.id,
+				returnTo: "/rooms",
+				returnLabel: roomName || t("title", "Ambientes"),
+			},
+		});
+	};
 
 	if (!device.isOnline) {
 		return (
@@ -99,6 +115,7 @@ export function RoomDeviceCard({
 				<Button
 					variant="outline"
 					size="sm"
+					onClick={handleNavigateToDevice}
 					className="shrink-0 border-border-subtle bg-surface-high hover:bg-surface-highest"
 				>
 					{t("deviceCard.control", "Controle")}

@@ -33,6 +33,7 @@ export function RoomDeviceGrid({ room, devices }: RoomDeviceGridProps) {
 						<RoomDeviceCard
 							key={device.id}
 							device={device}
+							roomName={room.name}
 							isToggling={
 								toggleDevice.isPending && toggleDevice.variables === device.id
 							}
