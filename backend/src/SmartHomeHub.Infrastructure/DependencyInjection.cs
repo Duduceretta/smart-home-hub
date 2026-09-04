@@ -57,7 +57,14 @@ public static class DependencyInjection
 
         services.AddTransient<TuyaNetProtocolClient>();
         services.AddTransient<ITuyaProtocolClientFactory, TuyaProtocolClientFactory>();
-        services.AddTransient<ITuyaLocalControlService, TuyaLocalControlService>();
+        // Singleton, não Transient: o semáforo por dispositivo e a coalescência
+        // de comandos vivem em campos de instância (_deviceLocks, _pendingBatches)
+        // — como Transient cria uma instância nova por resolução do DI (uma por
+        // requisição HTTP), esses dois mecanismos nunca compartilhariam estado
+        // entre requisições concorrentes, ficando sem efeito nenhum em produção.
+        // Dependências (ITuyaProtocolClientFactory, ITuyaUdpDiscoveryScanner,
+        // ILogger) não guardam estado scoped — seguro capturar como singleton.
+        services.AddSingleton<ITuyaLocalControlService, TuyaLocalControlService>();
 
         services.AddSignalR();
         services.AddScoped<IRealtimeNotificationService, RealtimeNotificationService>();

@@ -639,20 +639,15 @@ public class TuyaLocalControlServiceTests
     // ---- Exclusão mútua por dispositivo (achado central da auditoria de drivers IoT) ----
 
     [Fact]
-    public async Task ConcurrentOperations_OnSameDevice_ShouldSerializeQueryDecideSetAsAtomicUnit()
+    public async Task ConcurrentOperations_OnSameDevice_ShouldCoalesceIntoSingleQueryDecideSetInsteadOfSerializing()
     {
         // Arrange — cenário concreto da auditoria: brilho e cor disparados quase
-        // ao mesmo tempo no MESMO dispositivo. Sem o lock, SetColorAsync poderia
-        // ler o status ANTES do SetDpsAsync do brilho terminar.
-        var timeline = new List<string>();
-        var timelineLock = new object();
-        void Record(string ev)
-        {
-            lock (timelineLock)
-            {
-                timeline.Add(ev);
-            }
-        }
+        // ao mesmo tempo no MESMO dispositivo, dentro da janela de coalescência.
+        // Antes da coalescência isso gerava 2 ciclos completos serializados pelo
+        // semáforo (sem race, mas 2 handshakes TCP); agora deve virar 1 ciclo só,
+        // com os dois DPs mesclados no mesmo SetDpsAsync — sem race porque os
+        // dois efeitos são resolvidos contra o MESMO status antes de escrever.
+        var queryCallCount = 0;
 
         _protocolClient
             .QueryStatusAsync(
@@ -663,7 +658,7 @@ public class TuyaLocalControlServiceTests
             )
             .Returns(_ =>
             {
-                Record("query");
+                Interlocked.Increment(ref queryCallCount);
                 return Task.FromResult<IReadOnlyDictionary<int, object?>>(
                     new Dictionary<int, object?>
                     {
@@ -675,39 +670,16 @@ public class TuyaLocalControlServiceTests
                 );
             });
 
+        IReadOnlyDictionary<int, object>? capturedDps = null;
         _protocolClient
             .SetDpsAsync(
                 Arg.Any<string>(),
                 Arg.Any<string>(),
                 Arg.Any<string>(),
-                Arg.Is<IReadOnlyDictionary<int, object>>(dps => dps.ContainsKey(22)),
+                Arg.Do<IReadOnlyDictionary<int, object>>(dps => capturedDps = dps),
                 Arg.Any<CancellationToken>()
             )
-            .Returns(_ => DelayedBrightnessSetAsync());
-
-        async Task<IReadOnlyDictionary<int, object?>> DelayedBrightnessSetAsync()
-        {
-            Record("brightness-set-start");
-            await Task.Delay(200);
-            Record("brightness-set-end");
-            return new Dictionary<int, object?> { [22] = 505.0 };
-        }
-
-        _protocolClient
-            .SetDpsAsync(
-                Arg.Any<string>(),
-                Arg.Any<string>(),
-                Arg.Any<string>(),
-                Arg.Is<IReadOnlyDictionary<int, object>>(dps => dps.ContainsKey(24)),
-                Arg.Any<CancellationToken>()
-            )
-            .Returns(_ =>
-            {
-                Record("color-set");
-                return Task.FromResult<IReadOnlyDictionary<int, object?>>(
-                    new Dictionary<int, object?> { [24] = "000003e803e8", [21] = "colour" }
-                );
-            });
+            .Returns(new Dictionary<int, object?> { [22] = 505.0, [24] = "000003e800d0" });
 
         // Act
         var brightnessTask = _sut.SetBrightnessAsync(
@@ -718,7 +690,6 @@ public class TuyaLocalControlServiceTests
             brightnessPercent: 50,
             CancellationToken.None
         );
-        await Task.Delay(20); // garante que o brilho já pegou o lock antes do disparo da cor
         var colorTask = _sut.SetColorAsync(
             Connection() with
             {
@@ -736,22 +707,30 @@ public class TuyaLocalControlServiceTests
         brightnessResult.IsSuccess.Should().BeTrue();
         colorResult.IsSuccess.Should().BeTrue();
 
-        var brightnessSetEndIndex = timeline.IndexOf("brightness-set-end");
-        var queryIndexes = timeline
-            .Select((ev, i) => (ev, i))
-            .Where(x => x.ev == "query")
-            .Select(x => x.i)
-            .ToList();
-
-        queryIndexes.Should().HaveCount(2);
-        queryIndexes[1]
+        queryCallCount
             .Should()
-            .BeGreaterThan(
-                brightnessSetEndIndex,
-                "a segunda operação (cor) só deve iniciar sua leitura de status depois que a "
-                    + "primeira (brilho) completou query+set inteiramente — sem isso, a cor "
-                    + "poderia ler um status obsoleto e decidir com base em informação errada."
+            .Be(
+                1,
+                "brilho e cor na mesma janela de coalescência devem compartilhar 1 único QueryStatusAsync, não 1 por comando."
             );
+
+        await _protocolClient
+            .Received(1)
+            .SetDpsAsync(
+                Arg.Any<string>(),
+                Arg.Any<string>(),
+                Arg.Any<string>(),
+                Arg.Any<IReadOnlyDictionary<int, object>>(),
+                Arg.Any<CancellationToken>()
+            );
+
+        capturedDps.Should().NotBeNull();
+        capturedDps!
+            .Should()
+            .ContainKey(22, "o DP de brilho deve estar no payload combinado")
+            .WhoseValue.Should()
+            .Be(505);
+        capturedDps.Should().ContainKey(24, "o DP de cor deve estar no mesmo payload combinado");
     }
 
     [Fact]

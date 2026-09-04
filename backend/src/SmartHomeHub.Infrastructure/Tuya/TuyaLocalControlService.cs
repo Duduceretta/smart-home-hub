@@ -13,7 +13,10 @@ public sealed class TuyaLocalControlService(
     ILogger<TuyaLocalControlService> logger,
     // Seam de teste: timeout de aquisição do semáforo menor, pra não deixar o
     // teste de "Device.Busy" esperando 10s de verdade. Produção usa o default.
-    TimeSpan? semaphoreAcquireTimeoutForTests = null
+    TimeSpan? semaphoreAcquireTimeoutForTests = null,
+    // Seam de teste: janela de coalescência menor, pra não deixar os testes de
+    // rajada esperando dezenas de ms de verdade a mais que o necessário.
+    TimeSpan? coalescingWindowForTests = null
 ) : ITuyaLocalControlService
 {
     // Chamada síncrona dentro do handler HTTP — sem limite próprio, uma lâmpada
@@ -33,6 +36,51 @@ public sealed class TuyaLocalControlService(
     private readonly TimeSpan _semaphoreAcquireTimeout =
         semaphoreAcquireTimeoutForTests ?? TimeSpan.FromSeconds(10);
     private readonly ConcurrentDictionary<string, SemaphoreSlim> _deviceLocks = new();
+
+    // Coalescência de comandos de ajuste de luz (brilho/cor/temperatura) por
+    // dispositivo: o semáforo acima já resolve a corrida de dados (leitura
+    // obsoleta), mas sozinho ainda serializa — uma rajada de N comandos pro
+    // mesmo device continua pagando N handshakes TCP completos sequenciais
+    // contra um microcontrolador que só aguenta 1-2 conexões concorrentes e
+    // precisa de tempo de recuperação entre elas. A coalescência funde
+    // comandos que chegam dentro da mesma janela curta num único ciclo de
+    // Query+Set — acontece ANTES de adquirir o semáforo (agrupando o que será
+    // enviado), nunca compete com ele. Ver database-iot.md, seção "Driver
+    // Local Tuya (TCP)", pro racional completo da janela escolhida.
+    private readonly TimeSpan _coalescingWindow =
+        coalescingWindowForTests ?? TimeSpan.FromMilliseconds(75);
+    private readonly object _batchLock = new();
+    private readonly Dictionary<string, PendingLightAdjustment> _pendingBatches = new();
+    private long _batchSequence;
+
+    // Lote pendente de ajustes de luz por dispositivo. Cada campo (brilho/cor/
+    // temperatura) guarda só o valor MAIS RECENTE recebido na janela atual
+    // (last-value-wins) + a lista de callers esperando o resultado desse
+    // campo especificamente — vários callers do mesmo campo na mesma janela
+    // recebem o MESMO resultado final (só o último valor foi de fato escrito).
+    // O número de sequência por campo resolve o "último vence" também pro DP
+    // de work_mode derivado, quando cor e temperatura de cor chegam juntas.
+    private sealed class PendingLightAdjustment
+    {
+        public TuyaDeviceConnectionInfo Connection = null!;
+
+        public int? BrightnessPercent;
+        public long BrightnessSeq;
+        public readonly List<
+            TaskCompletionSource<Result<TuyaBrightnessCommandOutcome>>
+        > BrightnessWaiters = [];
+
+        public string? ColorHex;
+        public long ColorSeq;
+        public readonly List<TaskCompletionSource<Result<TuyaColorCommandOutcome>>> ColorWaiters =
+        [];
+
+        public int? ColorTempPercent;
+        public long ColorTempSeq;
+        public readonly List<
+            TaskCompletionSource<Result<TuyaColorTempCommandOutcome>>
+        > ColorTempWaiters = [];
+    }
 
     // Serializa toda a sequência query+decide+set de uma operação contra o
     // mesmo TuyaDeviceId, tornando-a atômica do ponto de vista de qualquer
@@ -243,252 +291,424 @@ public sealed class TuyaLocalControlService(
         TuyaDeviceConnectionInfo connection,
         int brightnessPercent,
         CancellationToken cancellationToken
-    ) =>
-        WithDeviceLockAsync(
-            connection.TuyaDeviceId,
-            () => SetBrightnessCoreAsync(connection, brightnessPercent, cancellationToken),
-            cancellationToken
-        );
-
-    private async Task<Result<TuyaBrightnessCommandOutcome>> SetBrightnessCoreAsync(
-        TuyaDeviceConnectionInfo connection,
-        int brightnessPercent,
-        CancellationToken cancellationToken
     )
     {
-        var protocolClient = protocolClientFactory.Resolve(connection.ProtocolVersion);
+        var tcs = new TaskCompletionSource<Result<TuyaBrightnessCommandOutcome>>(
+            TaskCreationOptions.RunContinuationsAsynchronously
+        );
 
-        var resolved = await ResolveIpAndStatusAsync(connection, protocolClient, cancellationToken);
-        if (resolved.IsFailure)
-            return Result.Failure<TuyaBrightnessCommandOutcome>(resolved.Error);
-
-        var (ipAddress, resolvedIp, status) = resolved.Value;
-
-        // Escrever o DP de brilho "branco" faz o hardware trocar sozinho pro
-        // modo branco (confirmado por diagnóstico manual: DP21 mudou de
-        // "colour" pra "white" só por causa do DP22 ser escrito, mesmo sem
-        // pedir explicitamente). Em modo colorido, o brilho precisa virar o
-        // componente V do DP de cor em vez disso, senão o brilho "vaza" e
-        // troca a lâmpada de volta pro branco toda vez que o usuário arrasta
-        // o slider na aba Cor.
-        var workModeDp = ResolveWorkModeDp(status);
-        var isColourMode = workModeDp is not null && status[workModeDp.Value] as string == "colour";
-
-        if (isColourMode)
-        {
-            var colorDpInColourMode = ResolveColorDp(connection.DpsColorKey, status);
-            if (colorDpInColourMode is null)
+        EnqueueLightAdjustment(
+            connection,
+            batch =>
             {
-                return Result.Failure<TuyaBrightnessCommandOutcome>(
-                    new Error(
-                        "Device.NoColorDp",
-                        "Não foi possível identificar o Data Point de cor deste dispositivo Tuya."
-                    )
-                );
+                batch.BrightnessPercent = brightnessPercent;
+                batch.BrightnessSeq = Interlocked.Increment(ref _batchSequence);
+                batch.BrightnessWaiters.Add(tcs);
             }
-
-            var existingColorValue = status[colorDpInColourMode.Value] as string;
-            var newColorValue = TuyaColorConverter.ReplaceHsvValueComponent(
-                existingColorValue,
-                brightnessPercent
-            );
-
-            var colourSetResult = await TryWithTimeoutAsync(
-                ct =>
-                    protocolClient.SetDpsAsync(
-                        ipAddress,
-                        connection.TuyaDeviceId,
-                        connection.LocalKey,
-                        new Dictionary<int, object> { [colorDpInColourMode.Value] = newColorValue },
-                        ct
-                    ),
-                connection.TuyaDeviceId,
-                ipAddress,
-                cancellationToken
-            );
-
-            if (colourSetResult.IsFailure)
-                return Result.Failure<TuyaBrightnessCommandOutcome>(colourSetResult.Error);
-
-            return Result.Success(
-                new TuyaBrightnessCommandOutcome(resolvedIp, ResolvedDpsBrightnessKey: null)
-            );
-        }
-
-        var brightnessDp = ResolveNumericDp(
-            connection.DpsBrightnessKey,
-            status,
-            DefaultBrightnessDp
-        );
-        if (brightnessDp is null)
-        {
-            return Result.Failure<TuyaBrightnessCommandOutcome>(
-                new Error(
-                    "Device.NoBrightnessDp",
-                    "Não foi possível identificar o Data Point de brilho deste dispositivo Tuya."
-                )
-            );
-        }
-
-        var deviceValue = TuyaColorConverter.PercentToDeviceBrightness(brightnessPercent);
-
-        var setResult = await TryWithTimeoutAsync(
-            ct =>
-                protocolClient.SetDpsAsync(
-                    ipAddress,
-                    connection.TuyaDeviceId,
-                    connection.LocalKey,
-                    new Dictionary<int, object> { [brightnessDp.Value] = deviceValue },
-                    ct
-                ),
-            connection.TuyaDeviceId,
-            ipAddress,
-            cancellationToken
         );
 
-        if (setResult.IsFailure)
-            return Result.Failure<TuyaBrightnessCommandOutcome>(setResult.Error);
-
-        var resolvedDpString =
-            connection.DpsBrightnessKey == brightnessDp.Value.ToString()
-                ? null
-                : brightnessDp.Value.ToString();
-
-        return Result.Success(new TuyaBrightnessCommandOutcome(resolvedIp, resolvedDpString));
+        return AwaitWithCancellation(tcs, cancellationToken);
     }
 
     public Task<Result<TuyaColorCommandOutcome>> SetColorAsync(
         TuyaDeviceConnectionInfo connection,
         string colorHex,
         CancellationToken cancellationToken
-    ) =>
-        WithDeviceLockAsync(
-            connection.TuyaDeviceId,
-            () => SetColorCoreAsync(connection, colorHex, cancellationToken),
-            cancellationToken
-        );
-
-    private async Task<Result<TuyaColorCommandOutcome>> SetColorCoreAsync(
-        TuyaDeviceConnectionInfo connection,
-        string colorHex,
-        CancellationToken cancellationToken
     )
     {
-        var protocolClient = protocolClientFactory.Resolve(connection.ProtocolVersion);
-
-        var resolved = await ResolveIpAndStatusAsync(connection, protocolClient, cancellationToken);
-        if (resolved.IsFailure)
-            return Result.Failure<TuyaColorCommandOutcome>(resolved.Error);
-
-        var (ipAddress, resolvedIp, status) = resolved.Value;
-
-        var colorDp = ResolveColorDp(connection.DpsColorKey, status);
-        if (colorDp is null)
-        {
-            return Result.Failure<TuyaColorCommandOutcome>(
-                new Error(
-                    "Device.NoColorDp",
-                    "Não foi possível identificar o Data Point de cor deste dispositivo Tuya."
-                )
-            );
-        }
-
-        string dpValue;
-        try
-        {
-            dpValue = TuyaColorConverter.HexColorToDpValue(colorHex);
-        }
-        catch (ArgumentException ex)
-        {
-            return Result.Failure<TuyaColorCommandOutcome>(
-                new Error("Device.InvalidColor", ex.Message)
-            );
-        }
-
-        var dps = new Dictionary<int, object> { [colorDp.Value] = dpValue };
-
-        // Best-effort: se existir um DP de work_mode (string "white"/"colour"/...)
-        // na resposta, seta junto pra "colour" — em bulbos reais, mudar só o DP de
-        // colour_data sem trocar o modo pode não refletir visualmente (confirmado
-        // por captura real: DP21 mudou de "white" pra "colour" junto com DP24
-        // quando a cor foi trocada pelo app).
-        var workModeDp = ResolveWorkModeDp(status);
-        if (workModeDp is not null)
-        {
-            dps[workModeDp.Value] = "colour";
-        }
-
-        var setResult = await TryWithTimeoutAsync(
-            ct =>
-                protocolClient.SetDpsAsync(
-                    ipAddress,
-                    connection.TuyaDeviceId,
-                    connection.LocalKey,
-                    dps,
-                    ct
-                ),
-            connection.TuyaDeviceId,
-            ipAddress,
-            cancellationToken
+        var tcs = new TaskCompletionSource<Result<TuyaColorCommandOutcome>>(
+            TaskCreationOptions.RunContinuationsAsynchronously
         );
 
-        if (setResult.IsFailure)
-            return Result.Failure<TuyaColorCommandOutcome>(setResult.Error);
-
-        var resolvedDpString =
-            connection.DpsColorKey == colorDp.Value.ToString() ? null : colorDp.Value.ToString();
-
-        return Result.Success(
-            new TuyaColorCommandOutcome(resolvedIp, resolvedDpString, ResolvedSupportsColor: true)
+        EnqueueLightAdjustment(
+            connection,
+            batch =>
+            {
+                batch.ColorHex = colorHex;
+                batch.ColorSeq = Interlocked.Increment(ref _batchSequence);
+                batch.ColorWaiters.Add(tcs);
+            }
         );
+
+        return AwaitWithCancellation(tcs, cancellationToken);
     }
 
     public Task<Result<TuyaColorTempCommandOutcome>> SetColorTempAsync(
         TuyaDeviceConnectionInfo connection,
         int colorTempPercent,
         CancellationToken cancellationToken
-    ) =>
-        WithDeviceLockAsync(
-            connection.TuyaDeviceId,
-            () => SetColorTempCoreAsync(connection, colorTempPercent, cancellationToken),
-            cancellationToken
+    )
+    {
+        var tcs = new TaskCompletionSource<Result<TuyaColorTempCommandOutcome>>(
+            TaskCreationOptions.RunContinuationsAsynchronously
         );
 
-    private async Task<Result<TuyaColorTempCommandOutcome>> SetColorTempCoreAsync(
+        EnqueueLightAdjustment(
+            connection,
+            batch =>
+            {
+                batch.ColorTempPercent = colorTempPercent;
+                batch.ColorTempSeq = Interlocked.Increment(ref _batchSequence);
+                batch.ColorTempWaiters.Add(tcs);
+            }
+        );
+
+        return AwaitWithCancellation(tcs, cancellationToken);
+    }
+
+    // Funde o campo desta chamada no lote pendente do dispositivo (criando um
+    // lote novo se não houver um em andamento) e agenda o flush só na criação
+    // — chamadas subsequentes na mesma janela só atualizam o lote já agendado.
+    private void EnqueueLightAdjustment(
         TuyaDeviceConnectionInfo connection,
-        int colorTempPercent,
+        Action<PendingLightAdjustment> mergeField
+    )
+    {
+        bool isNewBatch;
+
+        lock (_batchLock)
+        {
+            if (!_pendingBatches.TryGetValue(connection.TuyaDeviceId, out var batch))
+            {
+                batch = new PendingLightAdjustment();
+                _pendingBatches[connection.TuyaDeviceId] = batch;
+                isNewBatch = true;
+            }
+            else
+            {
+                isNewBatch = false;
+            }
+
+            batch.Connection = connection;
+            mergeField(batch);
+        }
+
+        if (isNewBatch)
+        {
+            _ = Task.Run(async () =>
+            {
+                await Task.Delay(_coalescingWindow);
+                await FlushBatchAsync(connection.TuyaDeviceId);
+            });
+        }
+    }
+
+    // O caller individual pode desistir de esperar (ex: HTTP request abortado)
+    // sem afetar os outros waiters do mesmo lote — o flush continua e completa
+    // normalmente pra quem ainda está esperando; só este `tcs` específico é
+    // cancelado do lado de quem chamou.
+    private static Task<Result<TOutcome>> AwaitWithCancellation<TOutcome>(
+        TaskCompletionSource<Result<TOutcome>> tcs,
         CancellationToken cancellationToken
     )
     {
+        if (cancellationToken.CanBeCanceled)
+        {
+            var registration = cancellationToken.Register(() =>
+                tcs.TrySetCanceled(cancellationToken)
+            );
+            _ = tcs.Task.ContinueWith(
+                _ => registration.Dispose(),
+                CancellationToken.None,
+                TaskContinuationOptions.ExecuteSynchronously,
+                TaskScheduler.Default
+            );
+        }
+
+        return tcs.Task;
+    }
+
+    private async Task FlushBatchAsync(string tuyaDeviceId)
+    {
+        PendingLightAdjustment? batch;
+        lock (_batchLock)
+        {
+            if (!_pendingBatches.Remove(tuyaDeviceId, out batch))
+            {
+                return; // defensivo — não deveria acontecer (um flush por lote criado).
+            }
+        }
+
+        try
+        {
+            // Reutiliza o mesmo semáforo por dispositivo — a coalescência junta
+            // o que será enviado ANTES de chegar aqui; a execução em si continua
+            // atômica em relação a SetPowerStateAsync/SetWorkModeAsync/
+            // GetWorkModeAsync no mesmo device, exatamente como antes.
+            var lockResult = await WithDeviceLockAsync(
+                tuyaDeviceId,
+                () => ExecuteLightAdjustmentBatchAsync(batch),
+                CancellationToken.None
+            );
+
+            if (lockResult.IsFailure)
+            {
+                // Só acontece se nem conseguiu adquirir o semáforo (Device.Busy)
+                // — ExecuteLightAdjustmentBatchAsync sempre completa os waiters
+                // internamente e nunca propaga falha pra fora dele mesmo.
+                CompleteAllWaiters(batch, lockResult.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            // Nenhum waiter seria completado sem isso, travando os callers pra
+            // sempre — mesmo racional do supervisor do MqttService.
+            logger.LogCritical(
+                ex,
+                "Falha inesperada ao processar lote de comandos coalescidos do dispositivo Tuya {DeviceId}",
+                tuyaDeviceId
+            );
+            CompleteAllWaiters(
+                batch,
+                new Error("Device.CommunicationError", "Falha ao comunicar com o dispositivo Tuya.")
+            );
+        }
+    }
+
+    // Executa 1 QueryStatusAsync + no máximo 1 SetDpsAsync pro lote inteiro —
+    // o ganho central da coalescência. Processa os campos presentes em ordem
+    // de CHEGADA (não em ordem fixa de tipo), cada um vendo o efeito dos
+    // anteriores no mesmo lote (via `effectiveStatus` mutável), igual
+    // aconteceria se cada comando tivesse executado sozinho em sequência —
+    // isso resolve corretamente o "último vence" também pro DP de work_mode
+    // derivado quando cor e temperatura de cor chegam juntas. Falha de
+    // resolução de DP (NoColorDp, cor inválida) é isolada por campo — não
+    // aborta os outros campos do mesmo lote; só falha de rede no
+    // QueryStatusAsync ou no SetDpsAsync combinado afeta o lote inteiro,
+    // porque aí sim é uma única operação física compartilhada.
+    private async Task<Result<bool>> ExecuteLightAdjustmentBatchAsync(PendingLightAdjustment batch)
+    {
+        var connection = batch.Connection;
         var protocolClient = protocolClientFactory.Resolve(connection.ProtocolVersion);
 
-        var resolved = await ResolveIpAndStatusAsync(connection, protocolClient, cancellationToken);
+        var resolved = await ResolveIpAndStatusAsync(
+            connection,
+            protocolClient,
+            CancellationToken.None
+        );
         if (resolved.IsFailure)
-            return Result.Failure<TuyaColorTempCommandOutcome>(resolved.Error);
+        {
+            CompleteAllWaiters(batch, resolved.Error);
+            return Result.Success(true);
+        }
 
         var (ipAddress, resolvedIp, status) = resolved.Value;
+        var effectiveStatus = new Dictionary<int, object?>(status);
+        var dps = new Dictionary<int, object>();
 
-        var colorTempDp = ResolveNumericDp(connection.DpsColorTempKey, status, DefaultColorTempDp);
-        if (colorTempDp is null)
+        TuyaBrightnessCommandOutcome? brightnessOutcome = null;
+        Error? brightnessError = null;
+        TuyaColorCommandOutcome? colorOutcome = null;
+        Error? colorError = null;
+        TuyaColorTempCommandOutcome? colorTempOutcome = null;
+        Error? colorTempError = null;
+
+        var steps = new List<(long Seq, Action Apply)>();
+
+        if (batch.BrightnessPercent is int brightnessPercent)
         {
-            return Result.Failure<TuyaColorTempCommandOutcome>(
-                new Error(
-                    "Device.NoColorTempDp",
-                    "Não foi possível identificar o Data Point de temperatura de cor deste dispositivo Tuya."
+            steps.Add(
+                (
+                    batch.BrightnessSeq,
+                    () =>
+                    {
+                        var workModeDp = ResolveWorkModeDp(effectiveStatus);
+                        var isColourMode =
+                            workModeDp is not null
+                            && effectiveStatus[workModeDp.Value] as string == "colour";
+
+                        if (isColourMode)
+                        {
+                            var colorDp = ResolveColorDp(connection.DpsColorKey, effectiveStatus);
+                            if (colorDp is null)
+                            {
+                                brightnessError = new Error(
+                                    "Device.NoColorDp",
+                                    "Não foi possível identificar o Data Point de cor deste dispositivo Tuya."
+                                );
+                                return;
+                            }
+
+                            var existingColorValue = effectiveStatus[colorDp.Value] as string;
+                            var newColorValue = TuyaColorConverter.ReplaceHsvValueComponent(
+                                existingColorValue,
+                                brightnessPercent
+                            );
+                            dps[colorDp.Value] = newColorValue;
+                            effectiveStatus[colorDp.Value] = newColorValue;
+                            brightnessOutcome = new TuyaBrightnessCommandOutcome(
+                                resolvedIp,
+                                ResolvedDpsBrightnessKey: null
+                            );
+                        }
+                        else
+                        {
+                            var brightnessDp = ResolveNumericDp(
+                                connection.DpsBrightnessKey,
+                                effectiveStatus,
+                                DefaultBrightnessDp
+                            );
+                            if (brightnessDp is null)
+                            {
+                                brightnessError = new Error(
+                                    "Device.NoBrightnessDp",
+                                    "Não foi possível identificar o Data Point de brilho deste dispositivo Tuya."
+                                );
+                                return;
+                            }
+
+                            var deviceValue = TuyaColorConverter.PercentToDeviceBrightness(
+                                brightnessPercent
+                            );
+                            dps[brightnessDp.Value] = deviceValue;
+                            effectiveStatus[brightnessDp.Value] = (double)deviceValue;
+
+                            var resolvedDpString =
+                                connection.DpsBrightnessKey == brightnessDp.Value.ToString()
+                                    ? null
+                                    : brightnessDp.Value.ToString();
+                            brightnessOutcome = new TuyaBrightnessCommandOutcome(
+                                resolvedIp,
+                                resolvedDpString
+                            );
+                        }
+                    }
                 )
             );
         }
 
-        var deviceValue = TuyaColorConverter.PercentToDeviceColorTemp(colorTempPercent);
-
-        var dps = new Dictionary<int, object> { [colorTempDp.Value] = deviceValue };
-
-        // Temperatura de cor só se aplica no modo branco — força o work_mode
-        // junto, mesmo racional de SetColorAsync forçar "colour".
-        var workModeDp = ResolveWorkModeDp(status);
-        if (workModeDp is not null)
+        if (batch.ColorHex is string colorHex)
         {
-            dps[workModeDp.Value] = "white";
+            steps.Add(
+                (
+                    batch.ColorSeq,
+                    () =>
+                    {
+                        var colorDp = ResolveColorDp(connection.DpsColorKey, effectiveStatus);
+                        if (colorDp is null)
+                        {
+                            colorError = new Error(
+                                "Device.NoColorDp",
+                                "Não foi possível identificar o Data Point de cor deste dispositivo Tuya."
+                            );
+                            return;
+                        }
+
+                        string dpValue;
+                        try
+                        {
+                            dpValue = TuyaColorConverter.HexColorToDpValue(colorHex);
+                        }
+                        catch (ArgumentException ex)
+                        {
+                            colorError = new Error("Device.InvalidColor", ex.Message);
+                            return;
+                        }
+
+                        dps[colorDp.Value] = dpValue;
+                        effectiveStatus[colorDp.Value] = dpValue;
+
+                        var workModeDp = ResolveWorkModeDp(effectiveStatus);
+                        if (workModeDp is not null)
+                        {
+                            dps[workModeDp.Value] = "colour";
+                            effectiveStatus[workModeDp.Value] = "colour";
+                        }
+
+                        var resolvedDpString =
+                            connection.DpsColorKey == colorDp.Value.ToString()
+                                ? null
+                                : colorDp.Value.ToString();
+                        colorOutcome = new TuyaColorCommandOutcome(
+                            resolvedIp,
+                            resolvedDpString,
+                            ResolvedSupportsColor: true
+                        );
+                    }
+                )
+            );
+        }
+
+        if (batch.ColorTempPercent is int colorTempPercent)
+        {
+            steps.Add(
+                (
+                    batch.ColorTempSeq,
+                    () =>
+                    {
+                        var colorTempDp = ResolveNumericDp(
+                            connection.DpsColorTempKey,
+                            effectiveStatus,
+                            DefaultColorTempDp
+                        );
+                        if (colorTempDp is null)
+                        {
+                            colorTempError = new Error(
+                                "Device.NoColorTempDp",
+                                "Não foi possível identificar o Data Point de temperatura de cor deste dispositivo Tuya."
+                            );
+                            return;
+                        }
+
+                        var deviceValue = TuyaColorConverter.PercentToDeviceColorTemp(
+                            colorTempPercent
+                        );
+                        dps[colorTempDp.Value] = deviceValue;
+                        effectiveStatus[colorTempDp.Value] = (double)deviceValue;
+
+                        var workModeDp = ResolveWorkModeDp(effectiveStatus);
+                        if (workModeDp is not null)
+                        {
+                            dps[workModeDp.Value] = "white";
+                            effectiveStatus[workModeDp.Value] = "white";
+                        }
+
+                        var resolvedDpString =
+                            connection.DpsColorTempKey == colorTempDp.Value.ToString()
+                                ? null
+                                : colorTempDp.Value.ToString();
+                        colorTempOutcome = new TuyaColorTempCommandOutcome(
+                            resolvedIp,
+                            resolvedDpString
+                        );
+                    }
+                )
+            );
+        }
+
+        foreach (var (_, apply) in steps.OrderBy(step => step.Seq))
+        {
+            apply();
+        }
+
+        if (brightnessError is not null)
+        {
+            CompleteWaiters(
+                batch.BrightnessWaiters,
+                Result.Failure<TuyaBrightnessCommandOutcome>(brightnessError)
+            );
+        }
+
+        if (colorError is not null)
+        {
+            CompleteWaiters(
+                batch.ColorWaiters,
+                Result.Failure<TuyaColorCommandOutcome>(colorError)
+            );
+        }
+
+        if (colorTempError is not null)
+        {
+            CompleteWaiters(
+                batch.ColorTempWaiters,
+                Result.Failure<TuyaColorTempCommandOutcome>(colorTempError)
+            );
+        }
+
+        if (dps.Count == 0)
+        {
+            // Todos os campos falharam na resolução de DP — nada pra escrever.
+            return Result.Success(true);
         }
 
         var setResult = await TryWithTimeoutAsync(
@@ -502,18 +722,77 @@ public sealed class TuyaLocalControlService(
                 ),
             connection.TuyaDeviceId,
             ipAddress,
-            cancellationToken
+            CancellationToken.None
         );
 
         if (setResult.IsFailure)
-            return Result.Failure<TuyaColorTempCommandOutcome>(setResult.Error);
+        {
+            // Falha de rede no write combinado atinge todo campo que já tinha
+            // resolvido DP com sucesso — a escrita física é uma só.
+            if (brightnessOutcome is not null)
+            {
+                CompleteWaiters(
+                    batch.BrightnessWaiters,
+                    Result.Failure<TuyaBrightnessCommandOutcome>(setResult.Error)
+                );
+            }
 
-        var resolvedDpString =
-            connection.DpsColorTempKey == colorTempDp.Value.ToString()
-                ? null
-                : colorTempDp.Value.ToString();
+            if (colorOutcome is not null)
+            {
+                CompleteWaiters(
+                    batch.ColorWaiters,
+                    Result.Failure<TuyaColorCommandOutcome>(setResult.Error)
+                );
+            }
 
-        return Result.Success(new TuyaColorTempCommandOutcome(resolvedIp, resolvedDpString));
+            if (colorTempOutcome is not null)
+            {
+                CompleteWaiters(
+                    batch.ColorTempWaiters,
+                    Result.Failure<TuyaColorTempCommandOutcome>(setResult.Error)
+                );
+            }
+
+            return Result.Success(true);
+        }
+
+        if (brightnessOutcome is not null)
+        {
+            CompleteWaiters(batch.BrightnessWaiters, Result.Success(brightnessOutcome));
+        }
+
+        if (colorOutcome is not null)
+        {
+            CompleteWaiters(batch.ColorWaiters, Result.Success(colorOutcome));
+        }
+
+        if (colorTempOutcome is not null)
+        {
+            CompleteWaiters(batch.ColorTempWaiters, Result.Success(colorTempOutcome));
+        }
+
+        return Result.Success(true);
+    }
+
+    private static void CompleteWaiters<TOutcome>(
+        List<TaskCompletionSource<Result<TOutcome>>> waiters,
+        Result<TOutcome> result
+    )
+    {
+        foreach (var waiter in waiters)
+        {
+            waiter.TrySetResult(result);
+        }
+    }
+
+    private static void CompleteAllWaiters(PendingLightAdjustment batch, Error error)
+    {
+        CompleteWaiters(
+            batch.BrightnessWaiters,
+            Result.Failure<TuyaBrightnessCommandOutcome>(error)
+        );
+        CompleteWaiters(batch.ColorWaiters, Result.Failure<TuyaColorCommandOutcome>(error));
+        CompleteWaiters(batch.ColorTempWaiters, Result.Failure<TuyaColorTempCommandOutcome>(error));
     }
 
     public Task<Result<TuyaWorkModeCommandOutcome>> SetWorkModeAsync(
