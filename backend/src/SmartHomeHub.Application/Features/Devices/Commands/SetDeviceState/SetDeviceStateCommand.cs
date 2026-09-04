@@ -224,7 +224,7 @@ public partial class SetDeviceStateCommandHandler(
                 new { action = request.DesiredState ? "turn_on" : "turn_off" }
             );
             var topic = $"home/commands/{device.ExternalId}";
-            await mqttService.PublishAsync(topic, commandPayload);
+            await mqttService.PublishAsync(topic, commandPayload, cancellationToken);
         }
 
         // Atualiza estado e salva evento com snapshot completo
