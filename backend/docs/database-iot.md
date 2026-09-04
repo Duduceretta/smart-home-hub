@@ -63,3 +63,42 @@ Isso conflita com a decisão consciente (seção 2 deste documento) de manter `D
 - Nunca use `DELETE` físico em `Device` fora do soft-delete (`IsDeleted`/`DeletedAt`) da aplicação.
 - Scripts administrativos de limpeza e migrations de dados devem soft-deletar (`UPDATE ... SET "IsDeleted" = true, "DeletedAt" = now()`), nunca `DELETE FROM "Devices"`.
 - Se um hard-delete real for genuinamente necessário (ex: GDPR, expurgo de dado de teste), **exporte/arquive `DeviceTelemetryLogs` daquele `DeviceId` antes** — depois do `DELETE`, o dado não existe mais em lugar nenhum.
+
+---
+
+## 4. Processo Futuro: Revisão dos Índices de `SystemEvents`
+
+`SystemEvents` tem 6 índices compostos hoje, todos liderados por `UserId`: `(UserId, Timestamp DESC)`, `(UserId, DeviceId)`, `(UserId, RoomId)`, `(UserId, DeviceGroupId)`, `(UserId, Severity)`, `(UserId, Source)`. A auditoria de banco levantou uma hipótese de consolidação, mas **não deve ser aplicada às cegas** — precisa de dado real de uso primeiro. Esta seção documenta o processo, não uma ação a executar agora.
+
+### 4.1. Quando revisar
+
+Rodar essa análise só depois de um período mínimo de **30 dias de uso contínuo em produção** — período curto demais não deixa o padrão de acesso real emergir (ex: um índice pode parecer "não usado" só porque ninguém abriu aquele filtro específico do dashboard na semana em que foi medido).
+
+### 4.2. Query de diagnóstico
+
+Rodar contra o banco de produção (não contra dev/staging, que não reflete tráfego real):
+
+```sql
+SELECT
+    indexrelname AS index_name,
+    idx_scan AS times_used,
+    idx_tup_read AS rows_read,
+    idx_tup_fetch AS rows_fetched,
+    pg_size_pretty(pg_relation_size(indexrelid)) AS index_size
+FROM pg_stat_user_indexes
+WHERE relname = 'SystemEvents'
+ORDER BY idx_scan ASC;
+```
+
+- `idx_scan` baixo ou zero após 30+ dias de tráfego real = candidato a remoção — o índice está custando escrita (todo `INSERT` em `SystemEvents`, tabela append-only de alto volume, atualiza os 6 índices) sem retorno de leitura proporcional.
+- Cruzar com `pg_stat_user_indexes.relname` pra garantir que está olhando os índices da tabela certa, não de alguma hypertable-chunk interna com nome parecido.
+
+### 4.3. Plano condicional (só depois da medição acima)
+
+Se a medição confirmar a hipótese da auditoria (índices por `RoomId`/`DeviceGroupId`/`Source`, por exemplo, raramente usados), a consolidação proposta é:
+
+- Manter `(UserId, Timestamp DESC)` como índice composto principal — cobre o caminho de acesso mais comum (histórico ordenado por tempo, filtrado por usuário).
+- Trocar os índices de baixo uso por índices **parciais** nos filtros que a medição confirmar como efetivamente quentes — ex: `CREATE INDEX ... ON "SystemEvents" (UserId, Timestamp DESC) WHERE "Severity" = 'Alert'` pro dashboard de alertas, em vez de manter um índice composto genérico por `Severity` cobrindo todos os valores.
+- Objetivo: reduzir o custo de escrita (menos índices pra manter a cada `INSERT`) sem perder a velocidade de leitura nos filtros que o produto realmente usa.
+
+Esse plano só deve ser executado com os números da query acima em mãos — não como ação desta tarefa.
