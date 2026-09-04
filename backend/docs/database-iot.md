@@ -111,3 +111,21 @@ CREATE INDEX "IX_SystemEvents_Search_Gin" ON "SystemEvents" USING gin ("Descript
 ```
 
 **Deliberadamente adiado, não implementado.** Motivo: nenhuma feature hoje expõe busca de texto livre contra `SystemEvents.Description`/`DeviceName` no produto — criar o índice agora seria custo de escrita (mais um índice pra manter em tabela append-only de alto volume) sem uso real pra justificar. Reavaliar quando/se uma feature de busca textual no histórico de eventos for implementada — junto com essa feature, não antes, e usando o mesmo processo de medição da seção 4.1–4.2 pra confirmar que o padrão de busca realmente bate com `gin_trgm_ops` (correspondência parcial/fuzzy) antes de criar.
+
+---
+
+## 5. Driver Local Tuya (TCP)
+
+### 5.1. Resolução de versão de protocolo — v3.1/3.2/3.3 convergem sem branch dedicado
+
+`TuyaProtocolClientFactory.Resolve()` só tem branches explícitos para `"3.4"` e `"3.5"` (`TuyaSessionProtocolClient`, sessão própria com HMAC-SHA256+AES-ECB ou AES-GCM). Qualquer outra coisa — `null`, `"3.1"`, `"3.2"`, `"3.3"` — cai no mesmo `TuyaNetProtocolClient` (biblioteca terceira `com.clusterrr.TuyaNet`), que internamente sempre usa `TuyaProtocolVersion.V33` fixo, mesmo quando o dispositivo real fala v3.1.
+
+Isso é intencional, não uma lacuna: v3.1/v3.2/v3.3 compartilham o mesmo esquema de criptografia (AES-128-ECB, sem sessão/HMAC/GCM) e o mesmo formato de frame — não existe diferença de protocolo entre eles que justifique um branch próprio. Um dispositivo v3.1 real funciona corretamente sendo tratado como v3.3 porque, nesse range, a diferença de versão é só cosmética do lado do app oficial Tuya, não do wire protocol. Manutenção futura da factory não deve interpretar essa ausência de branch como bug a corrigir — só criar um branch dedicado se algum dispositivo real nesse range exigir tratamento distinto (o que não foi observado até hoje).
+
+### 5.2. Trade-off aceito: handshake TCP duplicado por comando
+
+O driver não mantém conexão persistente — cada operação pública (`SetBrightnessAsync`, `SetColorAsync`, `SetPowerStateAsync`, etc.) abre uma conexão TCP nova tanto para o `QueryStatusAsync` (lê o estado atual pra decidir o que escrever) quanto para o `SetDpsAsync` (escreve o comando) — **2 handshakes TCP completos por comando de usuário único**, sempre.
+
+É decisão arquitetural deliberada: "conexão nova por comando" é muito mais simples de raciocinar e testar do que gerenciar um pool de conexões persistentes por dispositivo (que exigiria lidar com timeout de sessão, invalidação de conexão, reconexão em background, etc.). O custo é real, mas hoje é imperceptível no volume típico (poucos comandos por minuto, poucos dispositivos Tuya por instalação).
+
+**Condição explícita para revisitar**: se o número de dispositivos Tuya por instalação crescer o suficiente para tornar o custo de handshake duplicado mensurável — especialmente se polling periódico de estado for implementado (ver auditoria de drivers IoT sobre prontidão para polling/push), o que multiplicaria o número de handshakes por unidade de tempo — avaliar pooling de conexão ou keep-alive **nesse momento**, não antes. Otimizar isso hoje seria resolver um problema de performance que não existe ainda, à custa de complexidade real de gerenciamento de conexão.
