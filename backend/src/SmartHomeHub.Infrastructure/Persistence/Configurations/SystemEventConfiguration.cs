@@ -78,5 +78,34 @@ public class SystemEventConfiguration : IEntityTypeConfiguration<SystemEvent>
         builder.HasIndex(events => new { events.UserId, events.DeviceGroupId });
         builder.HasIndex(events => new { events.UserId, events.Severity });
         builder.HasIndex(events => new { events.UserId, events.Source });
+
+        // Índices compostos com dimensão temporal para consultas de histórico (GetEventHistoryQuery,
+        // GetDeviceActivityLogQuery, etc.), evitando sort em memória após filtragem por entidade.
+        builder
+            .HasIndex(events => new
+            {
+                events.UserId,
+                events.DeviceId,
+                events.Timestamp,
+            })
+            .IsDescending(false, false, true);
+
+        builder
+            .HasIndex(events => new
+            {
+                events.UserId,
+                events.RoomId,
+                events.Timestamp,
+            })
+            .IsDescending(false, false, true);
+
+        builder
+            .HasIndex(events => new
+            {
+                events.UserId,
+                events.DeviceGroupId,
+                events.Timestamp,
+            })
+            .IsDescending(false, false, true);
     }
 }
