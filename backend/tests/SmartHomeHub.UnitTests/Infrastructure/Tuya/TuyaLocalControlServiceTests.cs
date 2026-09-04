@@ -207,6 +207,42 @@ public class TuyaLocalControlServiceTests
     }
 
     [Fact]
+    public async Task SetPowerStateAsync_QueryThrowsIOException_ShouldReturnConnectionClosedNotGenericCommunicationError()
+    {
+        // Arrange — IOException é o que ReceiveFrameAsync/ReadExactAsync lançam
+        // quando o dispositivo fecha a conexão TCP no meio da operação (ex:
+        // tomada desligada fisicamente durante a leitura). Antes desta correção
+        // caía no catch genérico e virava "Device.CommunicationError" — mesmo
+        // texto de qualquer erro inesperado, sem diferenciar o diagnóstico.
+        _protocolClient
+            .QueryStatusAsync(
+                Arg.Any<string>(),
+                Arg.Any<string>(),
+                Arg.Any<string>(),
+                Arg.Any<CancellationToken>()
+            )
+            .Returns<IReadOnlyDictionary<int, object?>>(_ =>
+                throw new IOException("Conexão Tuya encerrada antes de completar o frame.")
+            );
+
+        // Act
+        var result = await _sut.SetPowerStateAsync(
+            Connection(),
+            desiredState: true,
+            CancellationToken.None
+        );
+
+        // Assert
+        result.IsFailure.Should().BeTrue();
+        result
+            .Error.Code.Should()
+            .Be(
+                "Device.ConnectionClosed",
+                "IOException deve virar um código específico, diferente do genérico Device.CommunicationError."
+            );
+    }
+
+    [Fact]
     public async Task SetPowerStateAsync_QueryFailsThenRediscoversFreshIp_ShouldRetryAndSucceed()
     {
         // Arrange — IP configurado (192.168.1.50) falha; broadcast revela IP novo (192.168.1.77).

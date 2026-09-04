@@ -815,6 +815,25 @@ public sealed class TuyaLocalControlService(
                 )
             );
         }
+        catch (IOException ex)
+        {
+            // Lançada por ReceiveFrameAsync/ReadExactAsync quando a leitura do
+            // stream retorna <= 0 — o dispositivo fechou a conexão TCP no meio
+            // da operação (ex: tomada desligada fisicamente durante a escrita),
+            // não um timeout nem um erro de socket na camada de conexão.
+            logger.LogWarning(
+                ex,
+                "Conexão com dispositivo Tuya {DeviceId} em {IpAddress} foi encerrada pelo outro lado no meio da operação",
+                tuyaDeviceId,
+                ipAddress
+            );
+            return Result.Failure<T>(
+                new Error(
+                    "Device.ConnectionClosed",
+                    "A conexão com o dispositivo Tuya foi encerrada antes da operação terminar."
+                )
+            );
+        }
         catch (Exception ex)
         {
             logger.LogWarning(
