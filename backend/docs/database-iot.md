@@ -100,3 +100,14 @@ Se a medição confirmar a hipótese da auditoria (índices por `RoomId`/`Device
 - Objetivo: reduzir o custo de escrita (menos índices pra manter a cada `INSERT`) sem perder a velocidade de leitura nos filtros que o produto realmente usa.
 
 Esse plano só deve ser executado com os números da query acima em mãos — não como ação desta tarefa.
+
+### 4.4. Pendência explícita: índice GIN trigram para busca textual (adiado)
+
+A primeira rodada da auditoria de banco (`backend/docs/database-audit.md`, Fase 3) propôs um índice GIN via `pg_trgm` para acelerar busca de texto livre em `SystemEvents` (campos `Description`/`DeviceName`), evitando *Seq Scan* em buscas do histórico de eventos:
+
+```sql
+CREATE EXTENSION IF NOT EXISTS pg_trgm;
+CREATE INDEX "IX_SystemEvents_Search_Gin" ON "SystemEvents" USING gin ("Description" gin_trgm_ops, "DeviceName" gin_trgm_ops);
+```
+
+**Deliberadamente adiado, não implementado.** Motivo: nenhuma feature hoje expõe busca de texto livre contra `SystemEvents.Description`/`DeviceName` no produto — criar o índice agora seria custo de escrita (mais um índice pra manter em tabela append-only de alto volume) sem uso real pra justificar. Reavaliar quando/se uma feature de busca textual no histórico de eventos for implementada — junto com essa feature, não antes, e usando o mesmo processo de medição da seção 4.1–4.2 pra confirmar que o padrão de busca realmente bate com `gin_trgm_ops` (correspondência parcial/fuzzy) antes de criar.
