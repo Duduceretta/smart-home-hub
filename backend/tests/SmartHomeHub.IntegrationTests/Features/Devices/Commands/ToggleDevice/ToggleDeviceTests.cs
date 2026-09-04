@@ -46,7 +46,6 @@ public class ToggleDeviceTests(IntegrationTestWebAppFactory factory) : BaseInteg
             ExternalId = $"CAST-{Guid.NewGuid():N}",
             Type = DeviceType.Television,
             IntegrationType = IntegrationType.GoogleCast,
-            IsOn = isOn,
             Configuration = new DeviceConfiguration
             {
                 IpAddress = "192.168.1.150",
@@ -302,7 +301,6 @@ public class ToggleDeviceTests(IntegrationTestWebAppFactory factory) : BaseInteg
             Brand = "Sonoff",
             ExternalId = "MAC-TOGGLE-1",
             Type = DeviceType.Light,
-            IsOn = false,
         };
 
         var liveState = new DeviceLiveState
@@ -391,7 +389,7 @@ public class ToggleDeviceTests(IntegrationTestWebAppFactory factory) : BaseInteg
             Brand = "Intelbras",
             ExternalId = "MAC-ALARME",
             Type = DeviceType.Alarm,
-            IsOn = false,
+            LiveState = new DeviceLiveState { IsOn = false, IsOnline = true },
         };
 
         DbContext.Users.AddRange(loggedUser, victimUser);
@@ -408,13 +406,16 @@ public class ToggleDeviceTests(IntegrationTestWebAppFactory factory) : BaseInteg
 
         var physicalDevice = await DbContext
             .Devices.AsNoTracking()
+            .Include(d => d.LiveState)
             .FirstOrDefaultAsync(
                 device => device.Id == victimDeviceId,
                 TestContext.Current.CancellationToken
             );
 
         physicalDevice.Should().NotBeNull("O dispositivo do vizinho deve continuar existindo.");
-        physicalDevice.IsOn.Should().BeFalse("O estado não pode ser alterado por terceiros.");
+        physicalDevice!
+            .LiveState!.IsOn.Should()
+            .BeFalse("O estado não pode ser alterado por terceiros.");
     }
 
     [Fact]
@@ -439,7 +440,6 @@ public class ToggleDeviceTests(IntegrationTestWebAppFactory factory) : BaseInteg
             Brand = "Sonoff",
             ExternalId = "MAC-HOT-PATH-1",
             Type = DeviceType.Light,
-            IsOn = false,
             UpdatedAt = initialUpdatedAt,
         };
 
@@ -473,7 +473,7 @@ public class ToggleDeviceTests(IntegrationTestWebAppFactory factory) : BaseInteg
 
         updatedLiveState.IsOn.Should().BeTrue("O LiveState DEVE ser atualizado para true.");
 
-        // ASSERT: Devices NÃO foi modificado (UpdatedAt permanece idêntico e IsOn original inalterado)
+        // ASSERT: Devices NÃO foi modificado (UpdatedAt permanece idêntico)
         var unperturbedDevice = await DbContext
             .Devices.AsNoTracking()
             .FirstAsync(d => d.Id == deviceId, TestContext.Current.CancellationToken);
@@ -484,11 +484,6 @@ public class ToggleDeviceTests(IntegrationTestWebAppFactory factory) : BaseInteg
                 initialUpdatedAt,
                 TimeSpan.FromMilliseconds(1),
                 "a tabela Devices NÃO deve sofrer UPDATE na rota quente de toggle."
-            );
-        unperturbedDevice
-            .IsOn.Should()
-            .BeFalse(
-                "a tabela Devices mantém seu valor original e não sofre escrita na rota quente."
             );
     }
 }

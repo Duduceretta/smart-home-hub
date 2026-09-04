@@ -80,7 +80,10 @@ public class SetDeviceGroupBrightnessCommandHandler(IAppDbContext dbContext, ISe
             .Where(g => g.Id == request.GroupId && g.UserId == user.Id && !g.IsDeleted)
             .SelectMany(g => g.Devices)
             .Where(device =>
-                !device.IsDeleted && device.IsOnline && device.Type == DeviceType.Light
+                !device.IsDeleted
+                && device.LiveState != null
+                && device.LiveState.IsOnline
+                && device.Type == DeviceType.Light
             )
             .Select(device => device.Id)
             .ToListAsync(cancellationToken);

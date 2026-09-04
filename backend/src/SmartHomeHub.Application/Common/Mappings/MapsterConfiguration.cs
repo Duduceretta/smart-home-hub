@@ -17,39 +17,25 @@ public static class MapsterConfiguration
             .Map(dest => dest.SupportsColorOverride, src => src.Configuration.SupportsColor)
             .Map(dest => dest.Category, src => src.Type.ToString())
             .Map(dest => dest.Room, src => src.Room != null ? src.Room.Name : "Sem cômodo")
-            .Map(
-                dest => dest.IsOnline,
-                src => src.LiveState != null ? src.LiveState.IsOnline : src.IsOnline
-            )
-            .Map(dest => dest.IsOn, src => src.LiveState != null ? src.LiveState.IsOn : src.IsOn)
+            .Map(dest => dest.IsOnline, src => src.LiveState != null && src.LiveState.IsOnline)
+            .Map(dest => dest.IsOn, src => src.LiveState != null && src.LiveState.IsOn)
             .Map(
                 dest => dest.Brightness,
-                src => src.LiveState != null ? src.LiveState.Attributes.Brightness : src.Brightness
+                src => src.LiveState != null ? src.LiveState.Attributes.Brightness : null
             )
             .Map(
                 dest => dest.ColorHex,
-                src => src.LiveState != null ? src.LiveState.Attributes.ColorHex : src.ColorHex
+                src => src.LiveState != null ? src.LiveState.Attributes.ColorHex : null
             )
             .Map(
                 dest => dest.ColorTempPercent,
-                src =>
-                    src.LiveState != null
-                        ? src.LiveState.Attributes.ColorTempPercent
-                        : src.ColorTempPercent
+                src => src.LiveState != null ? src.LiveState.Attributes.ColorTempPercent : null
             )
             .Map(
                 dest => dest.LastActivityMinutes,
                 src =>
-                    (src.LiveState != null ? src.LiveState.LastSeenAt : src.LastSeenAt).HasValue
-                        ? (int)
-                            (
-                                DateTimeOffset.UtcNow
-                                - (
-                                    src.LiveState != null
-                                        ? src.LiveState.LastSeenAt
-                                        : src.LastSeenAt
-                                )!.Value
-                            ).TotalMinutes
+                    src.LiveState != null && src.LiveState.LastSeenAt.HasValue
+                        ? (int)(DateTimeOffset.UtcNow - src.LiveState.LastSeenAt.Value).TotalMinutes
                         : 0
             );
 

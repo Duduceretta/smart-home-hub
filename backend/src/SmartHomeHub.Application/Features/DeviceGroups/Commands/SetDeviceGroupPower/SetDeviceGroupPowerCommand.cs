@@ -81,9 +81,10 @@ public class SetDeviceGroupPowerCommandHandler(IAppDbContext dbContext, ISender 
             .SelectMany(g => g.Devices)
             .Where(device =>
                 !device.IsDeleted
-                && device.IsOnline
+                && device.LiveState != null
+                && device.LiveState.IsOnline
                 && ActuatorTypes.Contains(device.Type)
-                && device.IsOn != request.DesiredState
+                && device.LiveState.IsOn != request.DesiredState
             )
             .Select(device => device.Id)
             .ToListAsync(cancellationToken);

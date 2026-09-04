@@ -38,8 +38,7 @@ public class SetDeviceGroupPowerTests(IntegrationTestWebAppFactory factory)
             Brand = "Philips",
             ExternalId = "GRP-BULK-1",
             Type = DeviceType.Light,
-            IsOnline = false,
-            IsOn = false,
+            LiveState = new DeviceLiveState { IsOnline = false, IsOn = false },
         };
 
         var alreadyOnSwitch = new Device
@@ -50,8 +49,7 @@ public class SetDeviceGroupPowerTests(IntegrationTestWebAppFactory factory)
             Brand = "Sonoff",
             ExternalId = "GRP-BULK-2",
             Type = DeviceType.Switch,
-            IsOnline = true,
-            IsOn = true,
+            LiveState = new DeviceLiveState { IsOnline = true, IsOn = true },
         };
 
         var offLight = new Device
@@ -62,8 +60,7 @@ public class SetDeviceGroupPowerTests(IntegrationTestWebAppFactory factory)
             Brand = "Tuya",
             ExternalId = "GRP-BULK-3",
             Type = DeviceType.Light,
-            IsOnline = true,
-            IsOn = false,
+            LiveState = new DeviceLiveState { IsOnline = true, IsOn = false },
         };
 
         group.Devices.Add(offlineLight);
@@ -117,8 +114,7 @@ public class SetDeviceGroupPowerTests(IntegrationTestWebAppFactory factory)
             Brand = "Tuya",
             ExternalId = "GRP-OFF-1",
             Type = DeviceType.Light,
-            IsOnline = true,
-            IsOn = true,
+            LiveState = new DeviceLiveState { IsOnline = true, IsOn = true },
         };
 
         group.Devices.Add(onLight);

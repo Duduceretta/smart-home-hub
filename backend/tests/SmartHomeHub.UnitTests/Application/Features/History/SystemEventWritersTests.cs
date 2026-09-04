@@ -64,8 +64,6 @@ public class SystemEventWritersTests
             ExternalId = "coffee-maker-01",
             Type = DeviceType.Switch,
             IntegrationType = IntegrationType.NativeMqtt,
-            IsOn = false,
-            IsOnline = true,
         };
 
         _dbContext.Users.Add(user);
@@ -132,8 +130,7 @@ public class SystemEventWritersTests
             ExternalId = "sonoff-lamp-01",
             Type = DeviceType.Light,
             IntegrationType = IntegrationType.NativeMqtt,
-            IsOn = false,
-            IsOnline = true,
+            LiveState = new DeviceLiveState { IsOnline = true, IsOn = false },
         };
 
         _dbContext.Users.Add(user);
@@ -190,8 +187,8 @@ public class SystemEventWritersTests
             ExternalId = "cam-01",
             Type = DeviceType.Camera,
             IntegrationType = IntegrationType.GoogleCast,
-            IsOnline = true,
             Configuration = new DeviceConfiguration { IpAddress = "192.168.1.50" },
+            LiveState = new DeviceLiveState { IsOnline = true },
         };
 
         _dbContext.Users.Add(user);
@@ -332,8 +329,6 @@ public class SystemEventWritersTests
             ExternalId = "light-immutable-01",
             Type = DeviceType.Light,
             IntegrationType = IntegrationType.NativeMqtt,
-            IsOn = false,
-            IsOnline = true,
         };
 
         _dbContext.Users.Add(user);

@@ -66,8 +66,8 @@ public class DeviceStatePollingWorkerTests(IntegrationTestWebAppFactory factory)
             ExternalId = "ADB-POLL-001",
             Type = DeviceType.Television,
             IntegrationType = IntegrationType.AndroidTvAdb,
-            IsOn = false,
             Configuration = new DeviceConfiguration { IpAddress = ipAddress },
+            LiveState = new DeviceLiveState { IsOn = false, IsOnline = true },
         };
         DbContext.Devices.Add(device);
         await DbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
@@ -78,8 +78,9 @@ public class DeviceStatePollingWorkerTests(IntegrationTestWebAppFactory factory)
 
         var updated = await DbContext
             .Devices.AsNoTracking()
+            .Include(d => d.LiveState)
             .FirstAsync(d => d.Id == device.Id, TestContext.Current.CancellationToken);
-        updated.IsOn.Should().BeTrue();
+        updated.LiveState!.IsOn.Should().BeTrue();
 
         await _notificationService
             .Received(1)
@@ -107,8 +108,8 @@ public class DeviceStatePollingWorkerTests(IntegrationTestWebAppFactory factory)
             ExternalId = "ADB-POLL-002",
             Type = DeviceType.Television,
             IntegrationType = IntegrationType.AndroidTvAdb,
-            IsOn = true,
             Configuration = new DeviceConfiguration { IpAddress = ipAddress },
+            LiveState = new DeviceLiveState { IsOn = true, IsOnline = true },
         };
         DbContext.Devices.Add(device);
         await DbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
@@ -143,8 +144,8 @@ public class DeviceStatePollingWorkerTests(IntegrationTestWebAppFactory factory)
             ExternalId = "SENSOR-POLL-001",
             Type = DeviceType.Sensor,
             IntegrationType = IntegrationType.EspHomeMqtt,
-            IsOn = false,
             Configuration = new DeviceConfiguration { IpAddress = ipAddress },
+            LiveState = new DeviceLiveState { IsOn = false, IsOnline = true },
         };
         DbContext.Devices.Add(device);
         await DbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
@@ -173,8 +174,8 @@ public class DeviceStatePollingWorkerTests(IntegrationTestWebAppFactory factory)
             ExternalId = "ADB-MEDIA-001",
             Type = DeviceType.Television,
             IntegrationType = IntegrationType.AndroidTvAdb,
-            IsOn = true,
             Configuration = new DeviceConfiguration { IpAddress = ipAddress },
+            LiveState = new DeviceLiveState { IsOn = true, IsOnline = true },
         };
         DbContext.Devices.Add(device);
         await DbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
@@ -218,8 +219,8 @@ public class DeviceStatePollingWorkerTests(IntegrationTestWebAppFactory factory)
             ExternalId = "ADB-MEDIA-002",
             Type = DeviceType.Television,
             IntegrationType = IntegrationType.AndroidTvAdb,
-            IsOn = true,
             Configuration = new DeviceConfiguration { IpAddress = ipAddress },
+            LiveState = new DeviceLiveState { IsOn = true, IsOnline = true },
         };
         DbContext.Devices.Add(device);
         await DbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
@@ -262,8 +263,8 @@ public class DeviceStatePollingWorkerTests(IntegrationTestWebAppFactory factory)
             ExternalId = "ADB-MEDIA-003",
             Type = DeviceType.Television,
             IntegrationType = IntegrationType.AndroidTvAdb,
-            IsOn = true,
             Configuration = new DeviceConfiguration { IpAddress = ipAddress },
+            LiveState = new DeviceLiveState { IsOn = true, IsOnline = true },
         };
         DbContext.Devices.Add(device);
         await DbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
@@ -309,8 +310,8 @@ public class DeviceStatePollingWorkerTests(IntegrationTestWebAppFactory factory)
             ExternalId = "LG-MEDIA-001",
             Type = DeviceType.Television,
             IntegrationType = IntegrationType.LgWebOs,
-            IsOn = false,
             Configuration = new DeviceConfiguration { IpAddress = ipAddress },
+            LiveState = new DeviceLiveState { IsOn = false, IsOnline = true },
         };
         DbContext.Devices.Add(device);
         await DbContext.SaveChangesAsync(TestContext.Current.CancellationToken);

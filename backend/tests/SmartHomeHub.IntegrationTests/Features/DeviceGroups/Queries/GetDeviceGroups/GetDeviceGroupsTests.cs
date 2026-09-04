@@ -3,6 +3,7 @@ using System.Net.Http.Json;
 using FluentAssertions;
 using SmartHomeHub.Domain.Entities;
 using SmartHomeHub.Domain.Enums;
+using SmartHomeHub.Domain.ValueObjects;
 using SmartHomeHub.IntegrationTests.Setup;
 
 namespace SmartHomeHub.IntegrationTests.Features.DeviceGroups.Queries.GetDeviceGroups;
@@ -205,8 +206,11 @@ public class GetDeviceGroupsTests(IntegrationTestWebAppFactory factory)
             Brand = "A",
             ExternalId = "M1",
             Type = DeviceType.Light,
-            IsOnline = true,
-            Brightness = 40,
+            LiveState = new DeviceLiveState
+            {
+                IsOnline = true,
+                Attributes = new DeviceLiveStateAttributes { Brightness = 40 },
+            },
         };
         var light2 = new Device
         {
@@ -215,8 +219,11 @@ public class GetDeviceGroupsTests(IntegrationTestWebAppFactory factory)
             Brand = "A",
             ExternalId = "M2",
             Type = DeviceType.Light,
-            IsOnline = true,
-            Brightness = 81,
+            LiveState = new DeviceLiveState
+            {
+                IsOnline = true,
+                Attributes = new DeviceLiveStateAttributes { Brightness = 81 },
+            },
         };
 
         var group = new DeviceGroup
@@ -260,8 +267,11 @@ public class GetDeviceGroupsTests(IntegrationTestWebAppFactory factory)
             Brand = "A",
             ExternalId = "M1",
             Type = DeviceType.Light,
-            IsOnline = true,
-            Brightness = 50,
+            LiveState = new DeviceLiveState
+            {
+                IsOnline = true,
+                Attributes = new DeviceLiveStateAttributes { Brightness = 50 },
+            },
         };
         var offlineLightWithBrightness = new Device
         {
@@ -270,8 +280,11 @@ public class GetDeviceGroupsTests(IntegrationTestWebAppFactory factory)
             Brand = "A",
             ExternalId = "M2",
             Type = DeviceType.Light,
-            IsOnline = false,
-            Brightness = 90,
+            LiveState = new DeviceLiveState
+            {
+                IsOnline = false,
+                Attributes = new DeviceLiveStateAttributes { Brightness = 90 },
+            },
         };
         var onlineLightWithoutBrightness = new Device
         {
@@ -280,8 +293,11 @@ public class GetDeviceGroupsTests(IntegrationTestWebAppFactory factory)
             Brand = "A",
             ExternalId = "M3",
             Type = DeviceType.Light,
-            IsOnline = true,
-            Brightness = null,
+            LiveState = new DeviceLiveState
+            {
+                IsOnline = true,
+                Attributes = new DeviceLiveStateAttributes { Brightness = null },
+            },
         };
         var onlineSwitchWithBrightness = new Device
         {
@@ -290,8 +306,11 @@ public class GetDeviceGroupsTests(IntegrationTestWebAppFactory factory)
             Brand = "A",
             ExternalId = "M4",
             Type = DeviceType.Switch,
-            IsOnline = true,
-            Brightness = 100,
+            LiveState = new DeviceLiveState
+            {
+                IsOnline = true,
+                Attributes = new DeviceLiveStateAttributes { Brightness = 100 },
+            },
         };
 
         var group = new DeviceGroup
@@ -321,16 +340,22 @@ public class GetDeviceGroupsTests(IntegrationTestWebAppFactory factory)
             "/api/device-groups",
             TestContext.Current.CancellationToken
         );
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+
         var pagedResult = await response.Content.ReadFromJsonAsync<
             PagedResponse<DeviceGroupResponse>
         >(cancellationToken: TestContext.Current.CancellationToken);
 
-        // Só a "Luz Online" (50) conta — offline, sem brilho, e não-luz ficam de fora.
-        pagedResult!.Items.Single().AverageBrightness.Should().Be(50);
+        pagedResult.Should().NotBeNull();
+        pagedResult!.Items.Should().ContainSingle();
+
+        // 50 arredondado é 50
+        pagedResult.Items[0].AverageBrightness.Should().Be(50);
     }
 
     [Fact]
-    public async Task GetDeviceGroups_NoLightMeetsBothCriteria_ShouldReturnNullAverageBrightness()
+    public async Task GetDeviceGroups_WhenOnlyOfflineLightsInGroup_ShouldReturnNullAverageBrightness()
     {
         var loggedUser = new User
         {
@@ -346,8 +371,11 @@ public class GetDeviceGroupsTests(IntegrationTestWebAppFactory factory)
             Brand = "A",
             ExternalId = "M1",
             Type = DeviceType.Light,
-            IsOnline = false,
-            Brightness = 70,
+            LiveState = new DeviceLiveState
+            {
+                IsOnline = false,
+                Attributes = new DeviceLiveStateAttributes { Brightness = 70 },
+            },
         };
         var group = new DeviceGroup
         {

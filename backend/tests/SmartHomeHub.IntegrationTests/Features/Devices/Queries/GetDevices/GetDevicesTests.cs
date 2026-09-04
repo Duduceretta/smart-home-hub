@@ -219,7 +219,6 @@ public class GetDevicesTests(IntegrationTestWebAppFactory factory) : BaseIntegra
             ExternalId = "TUYA-CONTRACT-1",
             Type = DeviceType.Light,
             IntegrationType = IntegrationType.TuyaLocal,
-            IsOn = false, // valor legado na tabela Device
         };
 
         var liveState = new DeviceLiveState

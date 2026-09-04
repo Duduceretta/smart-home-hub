@@ -29,14 +29,10 @@ public static class DeviceQueryableExtensions
             return query;
 
         if (status.Equals("online", StringComparison.OrdinalIgnoreCase))
-            return query.Where(device =>
-                device.LiveState != null ? device.LiveState.IsOnline : device.IsOnline
-            );
+            return query.Where(device => device.LiveState != null && device.LiveState.IsOnline);
 
         if (status.Equals("offline", StringComparison.OrdinalIgnoreCase))
-            return query.Where(device =>
-                device.LiveState != null ? !device.LiveState.IsOnline : !device.IsOnline
-            );
+            return query.Where(device => device.LiveState == null || !device.LiveState.IsOnline);
 
         return query;
     }
@@ -49,7 +45,7 @@ public static class DeviceQueryableExtensions
     public static IQueryable<Device> FilterByOnlyOn(this IQueryable<Device> query, bool? onlyOn)
     {
         return onlyOn == true
-            ? query.Where(device => device.LiveState != null ? device.LiveState.IsOn : device.IsOn)
+            ? query.Where(device => device.LiveState != null && device.LiveState.IsOn)
             : query;
     }
 

@@ -80,9 +80,9 @@ public partial class SetDeviceStateCommandHandler(
                 liveState = new DeviceLiveState
                 {
                     DeviceId = device.Id,
-                    IsOn = device.IsOn,
-                    IsOnline = device.IsOnline,
-                    LastSeenAt = device.LastSeenAt,
+                    IsOn = false,
+                    IsOnline = false,
+                    LastSeenAt = null,
                 };
                 dbContext.DeviceLiveStates.Add(liveState);
             }
@@ -192,7 +192,6 @@ public partial class SetDeviceStateCommandHandler(
             {
                 if (tuyaResult.Error.Code == "Device.Offline")
                 {
-                    device.IsOnline = false;
                     liveState.IsOnline = false;
                     await dbContext.SaveChangesAsync(cancellationToken);
                     await notificationService.NotifyDeviceStatusChangedAsync(
@@ -216,10 +215,8 @@ public partial class SetDeviceStateCommandHandler(
             if (outcome.ResolvedDpsPowerKey is not null)
                 device.Configuration.DpsPowerKey = outcome.ResolvedDpsPowerKey;
 
-            device.IsOnline = true;
-            device.LastSeenAt = DateTimeOffset.UtcNow;
             liveState.IsOnline = true;
-            liveState.LastSeenAt = device.LastSeenAt;
+            liveState.LastSeenAt = DateTimeOffset.UtcNow;
         }
         else // Outros hardwares via MQTT
         {

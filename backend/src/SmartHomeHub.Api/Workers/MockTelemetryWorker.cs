@@ -68,7 +68,7 @@ public sealed class MockTelemetryWorker(
 
     private static TelemetryPayload BuildMockPayload(Device device)
     {
-        var isOn = device.LiveState != null ? device.LiveState.IsOn : device.IsOn;
+        var isOn = device.LiveState != null && device.LiveState.IsOn;
 
         return device.Type switch
         {

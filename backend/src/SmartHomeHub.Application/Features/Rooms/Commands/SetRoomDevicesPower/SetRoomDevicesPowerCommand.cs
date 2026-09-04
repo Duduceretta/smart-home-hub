@@ -90,10 +90,10 @@ public class SetRoomDevicesPowerCommandHandler(IAppDbContext dbContext, ISender 
                 device.RoomId == request.RoomId
                 && device.UserId == user.Id
                 && !device.IsDeleted
-                && (device.LiveState != null ? device.LiveState.IsOnline : device.IsOnline)
+                && device.LiveState != null
+                && device.LiveState.IsOnline
                 && ActuatorTypes.Contains(device.Type)
-                && (device.LiveState != null ? device.LiveState.IsOn : device.IsOn)
-                    != request.DesiredState
+                && device.LiveState.IsOn != request.DesiredState
             )
             .Select(device => device.Id)
             .ToListAsync(cancellationToken);

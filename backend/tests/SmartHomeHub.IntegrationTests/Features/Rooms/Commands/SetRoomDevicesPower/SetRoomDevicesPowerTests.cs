@@ -39,8 +39,7 @@ public class SetRoomDevicesPowerTests(IntegrationTestWebAppFactory factory)
             Brand = "Philips",
             ExternalId = "MAC-BULK-1",
             Type = DeviceType.Light,
-            IsOnline = false,
-            IsOn = false,
+            LiveState = new DeviceLiveState { IsOnline = false, IsOn = false },
         };
         var alreadyOnSwitch = new Device
         {
@@ -51,8 +50,7 @@ public class SetRoomDevicesPowerTests(IntegrationTestWebAppFactory factory)
             Brand = "Sonoff",
             ExternalId = "MAC-BULK-2",
             Type = DeviceType.Switch,
-            IsOnline = true,
-            IsOn = true,
+            LiveState = new DeviceLiveState { IsOnline = true, IsOn = true },
         };
         var offLock = new Device
         {
@@ -63,8 +61,7 @@ public class SetRoomDevicesPowerTests(IntegrationTestWebAppFactory factory)
             Brand = "Intelbras",
             ExternalId = "MAC-BULK-3",
             Type = DeviceType.Lock,
-            IsOnline = true,
-            IsOn = false,
+            LiveState = new DeviceLiveState { IsOnline = true, IsOn = false },
         };
         var sensor = new Device
         {
@@ -75,8 +72,7 @@ public class SetRoomDevicesPowerTests(IntegrationTestWebAppFactory factory)
             Brand = "Xiaomi",
             ExternalId = "MAC-BULK-4",
             Type = DeviceType.Sensor,
-            IsOnline = true,
-            IsOn = false,
+            LiveState = new DeviceLiveState { IsOnline = true, IsOn = false },
         };
 
         DbContext.Users.Add(user);
@@ -107,7 +103,7 @@ public class SetRoomDevicesPowerTests(IntegrationTestWebAppFactory factory)
             .Where(device => device.RoomId == room.Id)
             .ToDictionaryAsync(
                 device => device.Id,
-                device => device.LiveState != null ? device.LiveState.IsOn : device.IsOn,
+                device => device.LiveState!.IsOn,
                 TestContext.Current.CancellationToken
             );
 
@@ -150,8 +146,7 @@ public class SetRoomDevicesPowerTests(IntegrationTestWebAppFactory factory)
             Brand = "Philips",
             ExternalId = "MAC-BULK-5",
             Type = DeviceType.Light,
-            IsOnline = true,
-            IsOn = true,
+            LiveState = new DeviceLiveState { IsOnline = true, IsOn = true },
         };
         var onSwitch = new Device
         {
@@ -162,8 +157,7 @@ public class SetRoomDevicesPowerTests(IntegrationTestWebAppFactory factory)
             Brand = "Sonoff",
             ExternalId = "MAC-BULK-7",
             Type = DeviceType.Switch,
-            IsOnline = true,
-            IsOn = true,
+            LiveState = new DeviceLiveState { IsOnline = true, IsOn = true },
         };
         var alreadyOffThermostat = new Device
         {
@@ -174,8 +168,7 @@ public class SetRoomDevicesPowerTests(IntegrationTestWebAppFactory factory)
             Brand = "LG",
             ExternalId = "MAC-BULK-6",
             Type = DeviceType.Thermostat,
-            IsOnline = true,
-            IsOn = false,
+            LiveState = new DeviceLiveState { IsOnline = true, IsOn = false },
         };
 
         DbContext.Users.Add(user);
@@ -206,7 +199,7 @@ public class SetRoomDevicesPowerTests(IntegrationTestWebAppFactory factory)
             .Where(device => device.RoomId == room.Id)
             .ToDictionaryAsync(
                 device => device.Id,
-                device => device.LiveState != null ? device.LiveState.IsOn : device.IsOn,
+                device => device.LiveState!.IsOn,
                 TestContext.Current.CancellationToken
             );
 
@@ -243,8 +236,7 @@ public class SetRoomDevicesPowerTests(IntegrationTestWebAppFactory factory)
             Brand = "Philips",
             ExternalId = "MAC-BULK-7",
             Type = DeviceType.Light,
-            IsOnline = true,
-            IsOn = true,
+            LiveState = new DeviceLiveState { IsOnline = true, IsOn = true },
         };
 
         DbContext.Users.Add(user);

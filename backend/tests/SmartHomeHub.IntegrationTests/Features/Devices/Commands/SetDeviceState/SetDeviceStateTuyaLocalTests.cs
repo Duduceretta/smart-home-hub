@@ -31,13 +31,12 @@ public class SetDeviceStateTuyaLocalTests(IntegrationTestWebAppFactory factory)
             ExternalId = "tuya-device-abc",
             Type = DeviceType.Light,
             IntegrationType = IntegrationType.TuyaLocal,
-            IsOn = isOn,
-            IsOnline = true,
             Configuration = new DeviceConfiguration
             {
                 IpAddress = "192.168.1.50",
                 LocalKey = "local-key-123",
             },
+            LiveState = new DeviceLiveState { IsOn = isOn, IsOnline = true },
         };
 
         DbContext.Users.Add(user);
@@ -149,16 +148,11 @@ public class SetDeviceStateTuyaLocalTests(IntegrationTestWebAppFactory factory)
             .Devices.AsNoTracking()
             .Include(d => d.LiveState)
             .FirstAsync(d => d.Id == device.Id, TestContext.Current.CancellationToken);
-        (physicalDevice.LiveState != null ? physicalDevice.LiveState.IsOn : physicalDevice.IsOn)
-            .Should()
+        physicalDevice.LiveState.Should().NotBeNull();
+        physicalDevice
+            .LiveState!.IsOn.Should()
             .BeFalse("comando não confirmado — a UI não deve mostrar ligado.");
-        (
-            physicalDevice.LiveState != null
-                ? physicalDevice.LiveState.IsOnline
-                : physicalDevice.IsOnline
-        )
-            .Should()
-            .BeFalse();
+        physicalDevice.LiveState.IsOnline.Should().BeFalse();
     }
 
     [Fact]

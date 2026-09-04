@@ -33,7 +33,6 @@ public class ProcessTelemetryTests(IntegrationTestWebAppFactory factory)
             Brand = "Sonoff",
             ExternalId = "MAC-TELEMETRY-1",
             Type = DeviceType.Switch,
-            IsOn = false,
         };
 
         var liveState = new DeviceLiveState

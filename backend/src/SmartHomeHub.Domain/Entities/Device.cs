@@ -30,20 +30,6 @@ public class Device : IAuditableEntity, ISoftDeletable
     public DeviceType Type { get; set; }
     public IntegrationType IntegrationType { get; set; } = IntegrationType.NativeMqtt;
 
-    public bool IsOn { get; set; } = false;
-    public bool IsOnline { get; set; } = false;
-    public DateTimeOffset? LastSeenAt { get; set; }
-
-    // Só preenchido depois do primeiro SetDeviceBrightnessCommand bem-sucedido
-    // contra o hardware — null pra dispositivos que nunca tiveram brilho
-    // definido (não-luzes, ou luzes ainda não ajustadas via este comando).
-    public int? Brightness { get; set; }
-
-    // Mesmo padrão de Brightness: só preenchido após SetDeviceColorCommand/
-    // SetDeviceColorTempCommand confirmarem sucesso no hardware.
-    public string? ColorHex { get; set; }
-    public int? ColorTempPercent { get; set; }
-
     public DeviceConfiguration Configuration { get; set; } = new();
 
     public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;

@@ -20,18 +20,6 @@ public class DeviceConfiguration : IEntityTypeConfiguration<Device>
 
         builder.Property(device => device.IntegrationType).IsRequired();
 
-        builder.Property(device => device.IsOn).IsRequired().HasDefaultValue(false);
-
-        builder.Property(device => device.IsOnline).IsRequired().HasDefaultValue(false);
-
-        builder.Property(device => device.LastSeenAt).IsRequired(false);
-
-        builder.Property(device => device.Brightness).IsRequired(false);
-
-        builder.Property(device => device.ColorHex).IsRequired(false).HasMaxLength(7);
-
-        builder.Property(device => device.ColorTempPercent).IsRequired(false);
-
         builder.Property(device => device.CreatedAt).IsRequired();
 
         builder.Property(device => device.UpdatedAt).IsRequired(false);

@@ -51,7 +51,7 @@ public class ToggleDeviceCommandHandler(IAppDbContext dbContext, ISender sender)
                 new Error("Device.NotFound", "Dispositivo não encontrado ou sem permissão.")
             );
 
-        var currentIsOn = device.LiveState != null ? device.LiveState.IsOn : device.IsOn;
+        var currentIsOn = device.LiveState != null && device.LiveState.IsOn;
         var traceId = Activity.Current?.Id ?? Guid.NewGuid().ToString();
 
         return await sender.Send(

@@ -68,8 +68,8 @@ public sealed class GetDashboardOverviewQueryHandler(IAppDbContext dbContext)
             .Select(device => new
             {
                 device.Id,
-                device.IsOn,
-                device.IsOnline,
+                IsOn = device.LiveState != null && device.LiveState.IsOn,
+                IsOnline = device.LiveState != null && device.LiveState.IsOnline,
                 device.RoomId,
             })
             .ToListAsync(cancellationToken);

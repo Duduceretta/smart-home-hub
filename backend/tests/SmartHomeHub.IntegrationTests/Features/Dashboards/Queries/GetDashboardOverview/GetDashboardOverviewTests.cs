@@ -107,8 +107,7 @@ public class GetDashboardOverviewTests(IntegrationTestWebAppFactory factory)
             Brand = "Philips",
             ExternalId = "MAC-DASH-1",
             Type = DeviceType.Light,
-            IsOn = true,
-            IsOnline = true,
+            LiveState = new DeviceLiveState { IsOn = true, IsOnline = true },
         };
         var myOnlineDevice2 = new Device
         {
@@ -118,8 +117,7 @@ public class GetDashboardOverviewTests(IntegrationTestWebAppFactory factory)
             Brand = "LG",
             ExternalId = "MAC-DASH-2",
             Type = DeviceType.Thermostat,
-            IsOn = false,
-            IsOnline = true,
+            LiveState = new DeviceLiveState { IsOn = false, IsOnline = true },
         };
         var myOfflineDevice = new Device
         {
@@ -129,8 +127,7 @@ public class GetDashboardOverviewTests(IntegrationTestWebAppFactory factory)
             Brand = "Intelbras",
             ExternalId = "MAC-DASH-3",
             Type = DeviceType.Lock,
-            IsOn = false,
-            IsOnline = false,
+            LiveState = new DeviceLiveState { IsOn = false, IsOnline = false },
         };
 
         var otherUserDevice = new Device
@@ -141,8 +138,7 @@ public class GetDashboardOverviewTests(IntegrationTestWebAppFactory factory)
             Brand = "Samsung",
             ExternalId = "MAC-DASH-VIZINHO",
             Type = DeviceType.Television,
-            IsOn = true,
-            IsOnline = true,
+            LiveState = new DeviceLiveState { IsOn = true, IsOnline = true },
         };
 
         var myAlert1 = new SystemEvent

@@ -36,7 +36,6 @@ public class GetDeviceGroupAutomationsTests(IntegrationTestWebAppFactory factory
             Brand = "Tuya",
             ExternalId = "AUTO-GRP-DEV-1",
             Type = DeviceType.Light,
-            IsOnline = true,
         };
 
         var deviceOutside = new Device
@@ -47,7 +46,6 @@ public class GetDeviceGroupAutomationsTests(IntegrationTestWebAppFactory factory
             Brand = "Tuya",
             ExternalId = "AUTO-GRP-DEV-2",
             Type = DeviceType.Light,
-            IsOnline = true,
         };
 
         group.Devices.Add(deviceInGroup);

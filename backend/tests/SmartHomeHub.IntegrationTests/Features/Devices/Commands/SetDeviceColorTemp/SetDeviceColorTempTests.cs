@@ -35,13 +35,12 @@ public class SetDeviceColorTempTests(IntegrationTestWebAppFactory factory)
             ExternalId = "tuya-device-abc",
             Type = DeviceType.Light,
             IntegrationType = IntegrationType.TuyaLocal,
-            IsOn = true,
-            IsOnline = true,
             Configuration = new DeviceConfiguration
             {
                 IpAddress = "192.168.1.50",
                 LocalKey = "local-key-123",
             },
+            LiveState = new DeviceLiveState { IsOn = true, IsOnline = true },
         };
 
         DbContext.Users.Add(user);

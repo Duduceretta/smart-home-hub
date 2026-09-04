@@ -113,12 +113,15 @@ public class CreateDeviceCommandHandler(
             },
         };
 
+        var isOnline = false;
+        DateTimeOffset? lastSeenAt = null;
+
         if (
             !string.IsNullOrWhiteSpace(device.Configuration.IpAddress)
             && device.IntegrationType.IsNetworkProbeable()
         )
         {
-            var isOnline = await probeService.ProbeDeviceAsync(
+            isOnline = await probeService.ProbeDeviceAsync(
                 device.Configuration.IpAddress,
                 device.IntegrationType,
                 cancellationToken
@@ -126,17 +129,17 @@ public class CreateDeviceCommandHandler(
 
             if (isOnline)
             {
-                device.IsOnline = true;
-                device.LastSeenAt = DateTimeOffset.UtcNow;
+                lastSeenAt = DateTimeOffset.UtcNow;
             }
         }
 
+        var isOn = false;
         if (
             device.Type == DeviceType.Television
             && !string.IsNullOrWhiteSpace(device.Configuration.IpAddress)
         )
         {
-            device.IsOn = await googleTvService.GetPowerStateAsync(
+            isOn = await googleTvService.GetPowerStateAsync(
                 device.Configuration.IpAddress,
                 cancellationToken
             );
@@ -145,9 +148,9 @@ public class CreateDeviceCommandHandler(
         var liveState = new DeviceLiveState
         {
             DeviceId = device.Id,
-            IsOn = device.IsOn,
-            IsOnline = device.IsOnline,
-            LastSeenAt = device.LastSeenAt,
+            IsOn = isOn,
+            IsOnline = isOnline,
+            LastSeenAt = lastSeenAt,
         };
         device.LiveState = liveState;
 

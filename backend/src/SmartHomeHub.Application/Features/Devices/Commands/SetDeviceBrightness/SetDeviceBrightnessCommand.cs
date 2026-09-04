@@ -56,15 +56,10 @@ public class SetDeviceBrightnessCommandHandler(
             liveState = new DeviceLiveState
             {
                 DeviceId = device.Id,
-                IsOn = device.IsOn,
-                IsOnline = device.IsOnline,
-                LastSeenAt = device.LastSeenAt,
-                Attributes = new DeviceLiveStateAttributes
-                {
-                    Brightness = device.Brightness,
-                    ColorHex = device.ColorHex,
-                    ColorTempPercent = device.ColorTempPercent,
-                },
+                IsOn = false,
+                IsOnline = false,
+                LastSeenAt = null,
+                Attributes = new DeviceLiveStateAttributes(),
             };
             device.LiveState = liveState;
             dbContext.DeviceLiveStates.Add(liveState);

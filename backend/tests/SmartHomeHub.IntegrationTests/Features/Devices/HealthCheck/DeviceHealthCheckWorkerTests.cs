@@ -61,8 +61,8 @@ public class DeviceHealthCheckWorkerTests(IntegrationTestWebAppFactory factory)
             ExternalId = "CAST-OFFLINE-001",
             Type = DeviceType.Television,
             IntegrationType = IntegrationType.GoogleCast,
-            IsOnline = true,
             Configuration = new DeviceConfiguration { IpAddress = ipAddress },
+            LiveState = new DeviceLiveState { IsOnline = true },
         };
         DbContext.Devices.Add(device);
         await DbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
@@ -73,8 +73,9 @@ public class DeviceHealthCheckWorkerTests(IntegrationTestWebAppFactory factory)
 
         var updated = await DbContext
             .Devices.AsNoTracking()
+            .Include(d => d.LiveState)
             .FirstAsync(d => d.Id == device.Id, TestContext.Current.CancellationToken);
-        updated.IsOnline.Should().BeFalse();
+        updated.LiveState!.IsOnline.Should().BeFalse();
 
         await _notificationService
             .Received(1)
@@ -102,8 +103,8 @@ public class DeviceHealthCheckWorkerTests(IntegrationTestWebAppFactory factory)
             ExternalId = "CAST-UNCHANGED-001",
             Type = DeviceType.Television,
             IntegrationType = IntegrationType.GoogleCast,
-            IsOnline = true,
             Configuration = new DeviceConfiguration { IpAddress = ipAddress },
+            LiveState = new DeviceLiveState { IsOnline = true },
         };
         DbContext.Devices.Add(device);
         await DbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
@@ -138,8 +139,8 @@ public class DeviceHealthCheckWorkerTests(IntegrationTestWebAppFactory factory)
             ExternalId = "MQTT-SKIP-001",
             Type = DeviceType.Sensor,
             IntegrationType = IntegrationType.NativeMqtt,
-            IsOnline = false,
             Configuration = new DeviceConfiguration { IpAddress = ipAddress },
+            LiveState = new DeviceLiveState { IsOnline = false },
         };
         DbContext.Devices.Add(device);
         await DbContext.SaveChangesAsync(TestContext.Current.CancellationToken);

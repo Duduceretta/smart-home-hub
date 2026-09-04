@@ -60,15 +60,10 @@ public class SetDeviceWorkModeCommandHandler(
             liveState = new DeviceLiveState
             {
                 DeviceId = device.Id,
-                IsOn = device.IsOn,
-                IsOnline = device.IsOnline,
-                LastSeenAt = device.LastSeenAt,
-                Attributes = new DeviceLiveStateAttributes
-                {
-                    Brightness = device.Brightness,
-                    ColorHex = device.ColorHex,
-                    ColorTempPercent = device.ColorTempPercent,
-                },
+                IsOn = false,
+                IsOnline = false,
+                LastSeenAt = null,
+                Attributes = new DeviceLiveStateAttributes(),
             };
             device.LiveState = liveState;
             dbContext.DeviceLiveStates.Add(liveState);
@@ -110,11 +105,8 @@ public class SetDeviceWorkModeCommandHandler(
         if (tuyaResult.Value.ResolvedIpAddress is not null)
             device.Configuration.IpAddress = tuyaResult.Value.ResolvedIpAddress;
 
-        device.IsOnline = true;
-        device.LastSeenAt = DateTimeOffset.UtcNow;
-
         liveState.IsOnline = true;
-        liveState.LastSeenAt = device.LastSeenAt;
+        liveState.LastSeenAt = DateTimeOffset.UtcNow;
 
         await dbContext.SaveChangesAsync(cancellationToken);
 

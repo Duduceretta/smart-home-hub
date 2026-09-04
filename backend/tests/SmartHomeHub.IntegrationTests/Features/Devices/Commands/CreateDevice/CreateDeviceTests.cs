@@ -65,14 +65,18 @@ public class CreateDeviceTests(IntegrationTestWebAppFactory factory) : BaseInteg
 
         var physicalDevice = await DbContext
             .Devices.AsNoTracking()
+            .Include(d => d.LiveState)
             .FirstOrDefaultAsync(
                 device => device.ExternalId == request.ExternalId,
                 cancellationToken: TestContext.Current.CancellationToken
             );
 
         physicalDevice.Should().NotBeNull();
-        physicalDevice.UserId.Should().Be(userId);
-        physicalDevice.IsOn.Should().BeFalse("A configuração definiu o DefaultValue como false.");
+        physicalDevice!.UserId.Should().Be(userId);
+        physicalDevice.LiveState.Should().NotBeNull();
+        physicalDevice
+            .LiveState!.IsOn.Should()
+            .BeFalse("A configuração definiu o DefaultValue como false.");
     }
 
     [Fact]
@@ -92,15 +96,15 @@ public class CreateDeviceTests(IntegrationTestWebAppFactory factory) : BaseInteg
         DbContext.Users.Add(user);
         await DbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
-        const string ipAddress = "192.168.1.77";
+        const string ipAddress = "192.168.1.55";
         _probeService.SetResult(ipAddress, true);
 
         var request = new CreateDeviceRequest(
-            "Chromecast Sala",
-            "Google",
-            "CAST-A1-B2-C3",
-            DeviceType.Television,
-            IntegrationType.GoogleCast,
+            "Lâmpada Sala",
+            "Philips",
+            "MAC-A1-B2-C3",
+            DeviceType.Light,
+            IntegrationType.TuyaLocal,
             null,
             ipAddress
         );
@@ -115,14 +119,16 @@ public class CreateDeviceTests(IntegrationTestWebAppFactory factory) : BaseInteg
 
         var physicalDevice = await DbContext
             .Devices.AsNoTracking()
+            .Include(d => d.LiveState)
             .FirstOrDefaultAsync(
                 device => device.ExternalId == request.ExternalId,
                 cancellationToken: TestContext.Current.CancellationToken
             );
 
         physicalDevice.Should().NotBeNull();
-        physicalDevice!.IsOnline.Should().BeTrue();
-        physicalDevice.LastSeenAt.Should().NotBeNull();
+        physicalDevice!.LiveState.Should().NotBeNull();
+        physicalDevice.LiveState!.IsOnline.Should().BeTrue();
+        physicalDevice.LiveState.LastSeenAt.Should().NotBeNull();
     }
 
     [Fact]
@@ -165,13 +171,15 @@ public class CreateDeviceTests(IntegrationTestWebAppFactory factory) : BaseInteg
 
         var physicalDevice = await DbContext
             .Devices.AsNoTracking()
+            .Include(d => d.LiveState)
             .FirstOrDefaultAsync(
                 device => device.ExternalId == request.ExternalId,
                 cancellationToken: TestContext.Current.CancellationToken
             );
 
         physicalDevice.Should().NotBeNull();
-        physicalDevice!.IsOn.Should().BeTrue();
+        physicalDevice!.LiveState.Should().NotBeNull();
+        physicalDevice.LiveState!.IsOn.Should().BeTrue();
     }
 
     [Fact]
