@@ -711,6 +711,27 @@ public sealed class TuyaLocalControlService(
             return Result.Success(true);
         }
 
+        // Se o SetDpsAsync abaixo falhar, o Error devolvido a cada campo é
+        // genérico (Code/Description de rede, sem saber que veio de um lote
+        // coalescido) — de propósito, pra não inflar o record Error com um
+        // campo que só esse caminho usaria e que efeitos colaterais em outros
+        // lugares que consomem Error genericamente. Esse log é quem carrega o
+        // diagnóstico "quais campos estavam juntos" pra investigação futura.
+        logger.LogInformation(
+            "Lote coalescido do dispositivo Tuya {DeviceId}: campos={Fields}, DPs={Dps}",
+            connection.TuyaDeviceId,
+            string.Join(
+                "+",
+                new[]
+                {
+                    brightnessOutcome is not null ? "brightness" : null,
+                    colorOutcome is not null ? "color" : null,
+                    colorTempOutcome is not null ? "colorTemp" : null,
+                }.Where(field => field is not null)
+            ),
+            string.Join(",", dps.Keys)
+        );
+
         var setResult = await TryWithTimeoutAsync(
             ct =>
                 protocolClient.SetDpsAsync(
