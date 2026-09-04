@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Net.Sockets;
 using System.Security.Cryptography;
 using Microsoft.Extensions.Logging;
@@ -9,7 +10,10 @@ namespace SmartHomeHub.Infrastructure.Tuya;
 public sealed class TuyaLocalControlService(
     ITuyaProtocolClientFactory protocolClientFactory,
     ITuyaUdpDiscoveryScanner ipDiscoveryScanner,
-    ILogger<TuyaLocalControlService> logger
+    ILogger<TuyaLocalControlService> logger,
+    // Seam de teste: timeout de aquisição do semáforo menor, pra não deixar o
+    // teste de "Device.Busy" esperando 10s de verdade. Produção usa o default.
+    TimeSpan? semaphoreAcquireTimeoutForTests = null
 ) : ITuyaLocalControlService
 {
     // Chamada síncrona dentro do handler HTTP — sem limite próprio, uma lâmpada
@@ -18,7 +22,78 @@ public sealed class TuyaLocalControlService(
     private static readonly TimeSpan OperationTimeout = TimeSpan.FromSeconds(3);
     private static readonly TimeSpan IpResolutionTimeout = TimeSpan.FromSeconds(3);
 
-    public async Task<Result<TuyaCommandOutcome>> SetPowerStateAsync(
+    // O driver Tuya não reutiliza conexão — cada operação pública abre TCP novo
+    // (query de status + set de DPs = 2 handshakes). Sem serialização por
+    // dispositivo, duas operações concorrentes no MESMO device (ex: usuário
+    // arrastando brilho e cor quase ao mesmo tempo) correm o risco real de uma
+    // ler o status ANTES da outra escrever, decidindo com base em informação
+    // obsoleta (ver auditoria de drivers IoT). Dispositivos DIFERENTES (IPs/
+    // sockets diferentes) nunca competem pelo mesmo semáforo — o paralelismo
+    // entre devices distintos continua livre.
+    private readonly TimeSpan _semaphoreAcquireTimeout =
+        semaphoreAcquireTimeoutForTests ?? TimeSpan.FromSeconds(10);
+    private readonly ConcurrentDictionary<string, SemaphoreSlim> _deviceLocks = new();
+
+    // Serializa toda a sequência query+decide+set de uma operação contra o
+    // mesmo TuyaDeviceId, tornando-a atômica do ponto de vista de qualquer
+    // outra operação no mesmo dispositivo. Timeout de aquisição próprio
+    // (distinto do OperationTimeout de rede) — se uma operação anterior travar
+    // por algum motivo inesperado, a próxima falha com "Device.Busy" em vez de
+    // esperar indefinidamente.
+    private async Task<Result<T>> WithDeviceLockAsync<T>(
+        string tuyaDeviceId,
+        Func<Task<Result<T>>> operation,
+        CancellationToken cancellationToken
+    )
+    {
+        var deviceLock = _deviceLocks.GetOrAdd(tuyaDeviceId, static _ => new SemaphoreSlim(1, 1));
+
+        using var timeoutCts = new CancellationTokenSource(_semaphoreAcquireTimeout);
+        using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(
+            cancellationToken,
+            timeoutCts.Token
+        );
+
+        try
+        {
+            await deviceLock.WaitAsync(linkedCts.Token);
+        }
+        catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
+        {
+            logger.LogWarning(
+                "Timeout aguardando lock do dispositivo Tuya {DeviceId} — outra operação em andamento.",
+                tuyaDeviceId
+            );
+            return Result.Failure<T>(
+                new Error(
+                    "Device.Busy",
+                    "Dispositivo Tuya ocupado com outro comando. Tente novamente em instantes."
+                )
+            );
+        }
+
+        try
+        {
+            return await operation();
+        }
+        finally
+        {
+            deviceLock.Release();
+        }
+    }
+
+    public Task<Result<TuyaCommandOutcome>> SetPowerStateAsync(
+        TuyaDeviceConnectionInfo connection,
+        bool desiredState,
+        CancellationToken cancellationToken
+    ) =>
+        WithDeviceLockAsync(
+            connection.TuyaDeviceId,
+            () => SetPowerStateCoreAsync(connection, desiredState, cancellationToken),
+            cancellationToken
+        );
+
+    private async Task<Result<TuyaCommandOutcome>> SetPowerStateCoreAsync(
         TuyaDeviceConnectionInfo connection,
         bool desiredState,
         CancellationToken cancellationToken
@@ -164,7 +239,18 @@ public sealed class TuyaLocalControlService(
         return booleanDps.Length > 0 ? booleanDps[0] : null;
     }
 
-    public async Task<Result<TuyaBrightnessCommandOutcome>> SetBrightnessAsync(
+    public Task<Result<TuyaBrightnessCommandOutcome>> SetBrightnessAsync(
+        TuyaDeviceConnectionInfo connection,
+        int brightnessPercent,
+        CancellationToken cancellationToken
+    ) =>
+        WithDeviceLockAsync(
+            connection.TuyaDeviceId,
+            () => SetBrightnessCoreAsync(connection, brightnessPercent, cancellationToken),
+            cancellationToken
+        );
+
+    private async Task<Result<TuyaBrightnessCommandOutcome>> SetBrightnessCoreAsync(
         TuyaDeviceConnectionInfo connection,
         int brightnessPercent,
         CancellationToken cancellationToken
@@ -271,7 +357,18 @@ public sealed class TuyaLocalControlService(
         return Result.Success(new TuyaBrightnessCommandOutcome(resolvedIp, resolvedDpString));
     }
 
-    public async Task<Result<TuyaColorCommandOutcome>> SetColorAsync(
+    public Task<Result<TuyaColorCommandOutcome>> SetColorAsync(
+        TuyaDeviceConnectionInfo connection,
+        string colorHex,
+        CancellationToken cancellationToken
+    ) =>
+        WithDeviceLockAsync(
+            connection.TuyaDeviceId,
+            () => SetColorCoreAsync(connection, colorHex, cancellationToken),
+            cancellationToken
+        );
+
+    private async Task<Result<TuyaColorCommandOutcome>> SetColorCoreAsync(
         TuyaDeviceConnectionInfo connection,
         string colorHex,
         CancellationToken cancellationToken
@@ -346,7 +443,18 @@ public sealed class TuyaLocalControlService(
         );
     }
 
-    public async Task<Result<TuyaColorTempCommandOutcome>> SetColorTempAsync(
+    public Task<Result<TuyaColorTempCommandOutcome>> SetColorTempAsync(
+        TuyaDeviceConnectionInfo connection,
+        int colorTempPercent,
+        CancellationToken cancellationToken
+    ) =>
+        WithDeviceLockAsync(
+            connection.TuyaDeviceId,
+            () => SetColorTempCoreAsync(connection, colorTempPercent, cancellationToken),
+            cancellationToken
+        );
+
+    private async Task<Result<TuyaColorTempCommandOutcome>> SetColorTempCoreAsync(
         TuyaDeviceConnectionInfo connection,
         int colorTempPercent,
         CancellationToken cancellationToken
@@ -408,7 +516,18 @@ public sealed class TuyaLocalControlService(
         return Result.Success(new TuyaColorTempCommandOutcome(resolvedIp, resolvedDpString));
     }
 
-    public async Task<Result<TuyaWorkModeCommandOutcome>> SetWorkModeAsync(
+    public Task<Result<TuyaWorkModeCommandOutcome>> SetWorkModeAsync(
+        TuyaDeviceConnectionInfo connection,
+        string workMode,
+        CancellationToken cancellationToken
+    ) =>
+        WithDeviceLockAsync(
+            connection.TuyaDeviceId,
+            () => SetWorkModeCoreAsync(connection, workMode, cancellationToken),
+            cancellationToken
+        );
+
+    private async Task<Result<TuyaWorkModeCommandOutcome>> SetWorkModeCoreAsync(
         TuyaDeviceConnectionInfo connection,
         string workMode,
         CancellationToken cancellationToken
@@ -453,7 +572,20 @@ public sealed class TuyaLocalControlService(
         return Result.Success(new TuyaWorkModeCommandOutcome(resolvedIp));
     }
 
-    public async Task<Result<string?>> GetWorkModeAsync(
+    // Read-only (sem SetDpsAsync), mas ainda serializado contra o mesmo
+    // dispositivo — evita ler status no meio de uma escrita concorrente de
+    // outra operação e devolver um work_mode transitório/inconsistente.
+    public Task<Result<string?>> GetWorkModeAsync(
+        TuyaDeviceConnectionInfo connection,
+        CancellationToken cancellationToken
+    ) =>
+        WithDeviceLockAsync(
+            connection.TuyaDeviceId,
+            () => GetWorkModeCoreAsync(connection, cancellationToken),
+            cancellationToken
+        );
+
+    private async Task<Result<string?>> GetWorkModeCoreAsync(
         TuyaDeviceConnectionInfo connection,
         CancellationToken cancellationToken
     )

@@ -600,6 +600,295 @@ public class TuyaLocalControlServiceTests
         result.Value.Should().BeNull();
     }
 
+    // ---- Exclusão mútua por dispositivo (achado central da auditoria de drivers IoT) ----
+
+    [Fact]
+    public async Task ConcurrentOperations_OnSameDevice_ShouldSerializeQueryDecideSetAsAtomicUnit()
+    {
+        // Arrange — cenário concreto da auditoria: brilho e cor disparados quase
+        // ao mesmo tempo no MESMO dispositivo. Sem o lock, SetColorAsync poderia
+        // ler o status ANTES do SetDpsAsync do brilho terminar.
+        var timeline = new List<string>();
+        var timelineLock = new object();
+        void Record(string ev)
+        {
+            lock (timelineLock)
+            {
+                timeline.Add(ev);
+            }
+        }
+
+        _protocolClient
+            .QueryStatusAsync(
+                Arg.Any<string>(),
+                Arg.Any<string>(),
+                Arg.Any<string>(),
+                Arg.Any<CancellationToken>()
+            )
+            .Returns(_ =>
+            {
+                Record("query");
+                return Task.FromResult<IReadOnlyDictionary<int, object?>>(
+                    new Dictionary<int, object?>
+                    {
+                        [20] = true,
+                        [21] = "white",
+                        [22] = 520.0,
+                        [24] = "00b403e803e8",
+                    }
+                );
+            });
+
+        _protocolClient
+            .SetDpsAsync(
+                Arg.Any<string>(),
+                Arg.Any<string>(),
+                Arg.Any<string>(),
+                Arg.Is<IReadOnlyDictionary<int, object>>(dps => dps.ContainsKey(22)),
+                Arg.Any<CancellationToken>()
+            )
+            .Returns(_ => DelayedBrightnessSetAsync());
+
+        async Task<IReadOnlyDictionary<int, object?>> DelayedBrightnessSetAsync()
+        {
+            Record("brightness-set-start");
+            await Task.Delay(200);
+            Record("brightness-set-end");
+            return new Dictionary<int, object?> { [22] = 505.0 };
+        }
+
+        _protocolClient
+            .SetDpsAsync(
+                Arg.Any<string>(),
+                Arg.Any<string>(),
+                Arg.Any<string>(),
+                Arg.Is<IReadOnlyDictionary<int, object>>(dps => dps.ContainsKey(24)),
+                Arg.Any<CancellationToken>()
+            )
+            .Returns(_ =>
+            {
+                Record("color-set");
+                return Task.FromResult<IReadOnlyDictionary<int, object?>>(
+                    new Dictionary<int, object?> { [24] = "000003e803e8", [21] = "colour" }
+                );
+            });
+
+        // Act
+        var brightnessTask = _sut.SetBrightnessAsync(
+            Connection() with
+            {
+                DpsBrightnessKey = "22",
+            },
+            brightnessPercent: 50,
+            CancellationToken.None
+        );
+        await Task.Delay(20); // garante que o brilho já pegou o lock antes do disparo da cor
+        var colorTask = _sut.SetColorAsync(
+            Connection() with
+            {
+                DpsColorKey = "24",
+            },
+            colorHex: "#FF0000",
+            CancellationToken.None
+        );
+
+        await Task.WhenAll(brightnessTask, colorTask);
+        var brightnessResult = await brightnessTask;
+        var colorResult = await colorTask;
+
+        // Assert
+        brightnessResult.IsSuccess.Should().BeTrue();
+        colorResult.IsSuccess.Should().BeTrue();
+
+        var brightnessSetEndIndex = timeline.IndexOf("brightness-set-end");
+        var queryIndexes = timeline
+            .Select((ev, i) => (ev, i))
+            .Where(x => x.ev == "query")
+            .Select(x => x.i)
+            .ToList();
+
+        queryIndexes.Should().HaveCount(2);
+        queryIndexes[1]
+            .Should()
+            .BeGreaterThan(
+                brightnessSetEndIndex,
+                "a segunda operação (cor) só deve iniciar sua leitura de status depois que a "
+                    + "primeira (brilho) completou query+set inteiramente — sem isso, a cor "
+                    + "poderia ler um status obsoleto e decidir com base em informação errada."
+            );
+    }
+
+    [Fact]
+    public async Task ConcurrentOperations_OnDifferentDevices_ShouldRunInParallelWithoutBlockingEachOther()
+    {
+        // Arrange — dispositivos diferentes (IPs/sockets diferentes) não devem
+        // competir pelo mesmo semáforo.
+        _protocolClient
+            .QueryStatusAsync(
+                Arg.Any<string>(),
+                Arg.Any<string>(),
+                Arg.Any<string>(),
+                Arg.Any<CancellationToken>()
+            )
+            .Returns(new Dictionary<int, object?> { [20] = false });
+
+        _protocolClient
+            .SetDpAsync(
+                Arg.Any<string>(),
+                Arg.Any<string>(),
+                Arg.Any<string>(),
+                Arg.Any<int>(),
+                Arg.Any<bool>(),
+                Arg.Any<CancellationToken>()
+            )
+            .Returns(_ => DelayedPowerSetAsync());
+
+        static async Task<IReadOnlyDictionary<int, object?>> DelayedPowerSetAsync()
+        {
+            await Task.Delay(300);
+            return new Dictionary<int, object?> { [20] = true };
+        }
+
+        var connectionA = Connection();
+        var connectionB = new TuyaDeviceConnectionInfo(
+            "tuya-device-xyz",
+            "local-key-456",
+            "192.168.1.51",
+            "20"
+        );
+
+        // Act
+        var stopwatch = System.Diagnostics.Stopwatch.StartNew();
+        var taskA = _sut.SetPowerStateAsync(connectionA, true, CancellationToken.None);
+        var taskB = _sut.SetPowerStateAsync(connectionB, true, CancellationToken.None);
+        await Task.WhenAll(taskA, taskB);
+        stopwatch.Stop();
+
+        // Assert — se estivessem serializadas por engano, o total seria ~600ms (soma).
+        // Em paralelo de verdade, fica perto de uma única operação (~300ms).
+        stopwatch
+            .ElapsedMilliseconds.Should()
+            .BeLessThan(
+                550,
+                "dispositivos diferentes não devem bloquear um ao outro — o tempo total deve "
+                    + "ficar perto de uma operação isolada (300ms), não da soma das duas (600ms)."
+            );
+    }
+
+    [Fact]
+    public async Task Exception_DuringOperation_ShouldReleaseSemaphore_AllowingNextOperationOnSameDeviceToProceed()
+    {
+        // Arrange — força uma exceção não tratada dentro da operação (antes de
+        // qualquer I/O real, direto na resolução do protocol client) pra provar
+        // que o finally libera o semáforo mesmo assim.
+        var callCount = 0;
+        _protocolClientFactory
+            .Resolve(Arg.Any<string?>())
+            .Returns(_ =>
+            {
+                callCount++;
+                if (callCount == 1)
+                {
+                    throw new InvalidOperationException("Falha simulada dentro da operação.");
+                }
+                return _protocolClient;
+            });
+
+        _protocolClient
+            .QueryStatusAsync(
+                Arg.Any<string>(),
+                Arg.Any<string>(),
+                Arg.Any<string>(),
+                Arg.Any<CancellationToken>()
+            )
+            .Returns(new Dictionary<int, object?> { [20] = false });
+
+        _protocolClient
+            .SetDpAsync(
+                Arg.Any<string>(),
+                Arg.Any<string>(),
+                Arg.Any<string>(),
+                Arg.Any<int>(),
+                Arg.Any<bool>(),
+                Arg.Any<CancellationToken>()
+            )
+            .Returns(new Dictionary<int, object?> { [20] = true });
+
+        // Act
+        Func<Task> firstCall = () =>
+            _sut.SetPowerStateAsync(Connection(), true, CancellationToken.None);
+        await firstCall.Should().ThrowAsync<InvalidOperationException>();
+
+        var secondResult = await _sut.SetPowerStateAsync(
+            Connection(),
+            true,
+            CancellationToken.None
+        );
+
+        // Assert
+        secondResult
+            .IsSuccess.Should()
+            .BeTrue(
+                "o semáforo deve ser liberado no finally mesmo após uma exceção não tratada — "
+                    + "senão a próxima operação no mesmo dispositivo travaria para sempre."
+            );
+    }
+
+    [Fact]
+    public async Task SemaphoreAcquireTimeout_WhenAnotherOperationHoldsTheLockTooLong_ShouldReturnDeviceBusy()
+    {
+        // Arrange — timeout de aquisição bem curto pro teste não esperar 10s de verdade.
+        var sut = new TuyaLocalControlService(
+            _protocolClientFactory,
+            _ipDiscoveryScanner,
+            Substitute.For<ILogger<TuyaLocalControlService>>(),
+            semaphoreAcquireTimeoutForTests: TimeSpan.FromMilliseconds(100)
+        );
+
+        _protocolClient
+            .QueryStatusAsync(
+                Arg.Any<string>(),
+                Arg.Any<string>(),
+                Arg.Any<string>(),
+                Arg.Any<CancellationToken>()
+            )
+            .Returns(_ => DelayedQueryAsync());
+
+        static async Task<IReadOnlyDictionary<int, object?>> DelayedQueryAsync()
+        {
+            // Segura o lock bem além do timeout de aquisição configurado.
+            await Task.Delay(500);
+            return new Dictionary<int, object?> { [20] = false };
+        }
+
+        _protocolClient
+            .SetDpAsync(
+                Arg.Any<string>(),
+                Arg.Any<string>(),
+                Arg.Any<string>(),
+                Arg.Any<int>(),
+                Arg.Any<bool>(),
+                Arg.Any<CancellationToken>()
+            )
+            .Returns(new Dictionary<int, object?> { [20] = true });
+
+        // Act
+        var firstTask = sut.SetPowerStateAsync(Connection(), true, CancellationToken.None);
+        await Task.Delay(20); // garante que a primeira já pegou o lock
+        var secondResult = await sut.SetPowerStateAsync(Connection(), true, CancellationToken.None);
+        await firstTask;
+
+        // Assert
+        secondResult.IsFailure.Should().BeTrue();
+        secondResult
+            .Error.Code.Should()
+            .Be(
+                "Device.Busy",
+                "timeout de aquisição do semáforo deve retornar erro diferenciado de "
+                    + "'dispositivo não respondeu' (Device.Offline/CommunicationError)."
+            );
+    }
+
     private static async IAsyncEnumerable<DiscoveredDeviceDto> EmptyDiscoveryStream()
     {
         await Task.CompletedTask;
