@@ -5,13 +5,14 @@ using SmartHomeHub.Domain.ValueObjects;
 namespace SmartHomeHub.Domain.Entities;
 
 /// <summary>
-/// NUNCA execute DELETE físico direto nesta entidade fora do fluxo de
-/// soft-delete da aplicação — isso cascateia (<see cref="DeviceTelemetryLog"/>
-/// → Device é <c>DeleteBehavior.Cascade</c> de propósito) e apaga
-/// permanentemente todo o histórico de telemetria associado, incluindo dados
-/// preservados deliberadamente para treinamento de ML futuro (ver
-/// <c>backend/docs/database-iot.md</c>, seção "Invariante: hard-delete de
-/// Device apaga telemetria de ML permanentemente").
+/// Representa um dispositivo físico registrado no Hub.
+/// Exclusões pela aplicação utilizam soft-delete (<see cref="ISoftDeletable"/>).
+/// Tentativas de DELETE físico direto via SQL com telemetria vinculada são
+/// bloqueadas pela constraint física do banco (<see cref="DeviceTelemetryLog"/>
+/// → Device é <c>DeleteBehavior.Restrict</c>), protegendo permanentemente o
+/// dataset histórico preservado para treinamento de ML futuro (ver
+/// <c>backend/docs/database-iot.md</c>, seção "Proteção física: hard-delete de
+/// Device bloqueado por Restrict").
 /// </summary>
 public class Device : IAuditableEntity, ISoftDeletable
 {

@@ -40,7 +40,7 @@ public class SystemEventConfiguration : IEntityTypeConfiguration<SystemEvent>
             .HasOne(events => events.User)
             .WithMany()
             .HasForeignKey(events => events.UserId)
-            .OnDelete(DeleteBehavior.Cascade)
+            .OnDelete(DeleteBehavior.Restrict)
             .IsRequired(false);
 
         builder.Property(events => events.UserId).IsRequired();

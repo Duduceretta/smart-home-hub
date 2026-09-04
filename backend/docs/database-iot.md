@@ -42,27 +42,25 @@ Nenhuma entidade principal (`User`, `Room`, `Device`, `DeviceGroup`) sofre remo�
 
 Diferente do que uma versão anterior deste documento afirmava, o projeto **usa `DeleteBehavior` do EF Core extensivamente** no mapeamento das relações — não é proibido:
 
-- `DeleteBehavior.Cascade` — predominante, usado nas relações onde o registro dependente não faz sentido sem o pai (ex: `DeviceTelemetryLogs` → `Device`).
-- `DeleteBehavior.SetNull` — usado em referências opcionais, onde o filho deve sobreviver à remoção do pai só perdendo a referência (candidato típico: `Device.RoomId` quando um `Room` é removido).
-- `DeleteBehavior.Restrict` — usado onde a exclusão do pai deve ser bloqueada enquanto existirem dependentes.
+- `DeleteBehavior.Cascade` — usado exclusivamente nas relações associativas puras (ex: tabela N:N `DeviceGroup_Devices`) e credenciais de sessão/integração 1:1 (`SpotifyIntegrations`).
+- `DeleteBehavior.SetNull` — usado em referências opcionais, onde o filho deve sobreviver à remoção do pai só perdendo a referência (ex: snapshots de eventos em `SystemEvents` para `DeviceId`, `RoomId`, `DeviceGroupId`, `AutomationId`).
+- `DeleteBehavior.Restrict` — usado para proteger dados críticos contra exclusão física acidental via SQL: `Rooms.UserId`, `Devices.UserId`, `DeviceGroups.UserId`, `Automations.UserId`, `SystemEvents.UserId` e `DeviceTelemetryLogs.DeviceId`.
 
-Como a aplicação nunca dispara `DELETE` físico de fato (o interceptor do `AppDbContext` converte tudo em soft delete antes de chegar ao banco), essas configurações de `DeleteBehavior` funcionam como uma segunda camada de proteção — útil em migrações, scripts administrativos ou qualquer caminho que acesse o banco fora do `AppDbContext` interceptado — mais do que como o mecanismo do dia a dia da aplicação.
+Como a aplicação nunca dispara `DELETE` físico de fato (o interceptor do `AppDbContext` converte tudo em soft delete antes de chegar ao banco), essas configurações de `DeleteBehavior` funcionam como uma segunda camada de proteção física no Postgres — bloqueando com `foreign_key_violation` qualquer tentativa indevida em migrações, scripts administrativos ou acessos externos ao banco.
 
-Se a intenção original era mesmo proibir cascade físico e mover toda a lógica de desvinculação para os Handlers (DDD "puro"), isso ainda não é o que o schema reflete hoje — vale uma decisão consciente do time sobre qual dos dois caminhos seguir daqui pra frente, em vez de manter a documentação descrevendo uma regra que o código já não segue.
+### Proteção física: hard-delete de Device bloqueado por Restrict
 
-### Invariante: hard-delete de Device apaga telemetria de ML permanentemente
+Anteriormente, `DeviceTelemetryLog.DeviceId → Device` utilizava `DeleteBehavior.Cascade`. Embora a aplicação usasse soft-delete, qualquer script manual rodando `DELETE FROM "Devices"` fora do `AppDbContext` apagava em cascata todo o histórico de telemetria daquele dispositivo, destruindo o dataset preservado sem retenção para ML.
 
-`DeviceTelemetryLog.DeviceId → Device` usa `DeleteBehavior.Cascade` de propósito (seção acima) — telemetria sem device não tem sentido, isso está correto. Mas isso tem uma consequência séria fora do fluxo normal da aplicação:
+Com a migration `RestrictRemainingCascades`, essa relação passou a ser estritamente **`DeleteBehavior.Restrict`**:
 
-> **Um `DELETE` físico direto em `Device` — script de decomissionamento manual, migration de limpeza, qualquer acesso ao banco fora do `AppDbContext` interceptado — apaga em cascata TODO o histórico de telemetria daquele dispositivo, de forma permanente e irreversível.**
+> **Qualquer tentativa de `DELETE` físico direto em `Device` contendo telemetria associada é bloqueada pelo PostgreSQL com erro `foreign_key_violation` (código 23503).**
 
-Isso conflita com a decisão consciente (seção 2 deste documento) de manter `DeviceTelemetryLogs` **sem retention policy**, justamente para preservar o histórico bruto completo pra treinar modelos de ML no futuro. Um hard-delete de `Device` destrói exatamente o dado que essa decisão pretendia guardar.
+Isso transforma o aviso operacional anterior em uma **garantia física imposta pelo schema do banco de dados**:
 
-**Regra operacional, antes de rodar qualquer `DELETE` em `Device`:**
-
-- Nunca use `DELETE` físico em `Device` fora do soft-delete (`IsDeleted`/`DeletedAt`) da aplicação.
-- Scripts administrativos de limpeza e migrations de dados devem soft-deletar (`UPDATE ... SET "IsDeleted" = true, "DeletedAt" = now()`), nunca `DELETE FROM "Devices"`.
-- Se um hard-delete real for genuinamente necessário (ex: GDPR, expurgo de dado de teste), **exporte/arquive `DeviceTelemetryLogs` daquele `DeviceId` antes** — depois do `DELETE`, o dado não existe mais em lugar nenhum.
+- O histórico bruto de telemetria não pode ser destruído acidentalmente por um `DELETE` em `Devices`.
+- Se um expurgo físico de um dispositivo for estritamente exigido (ex: conformidade legal/GDPR), o operador é obrigado a decidir e exportar/arquivar `DeviceTelemetryLogs` daquele `DeviceId` explicitamente antes de conseguir remover o registro do dispositivo no Postgres.
+- A mesma política de `Restrict` é aplicada a `Automations.UserId` (protegendo regras de automação construídas pelo usuário) e `SystemEvents.UserId` (protegendo a trilha de auditoria e segurança da casa contra deleção em cascata).
 
 ---
 

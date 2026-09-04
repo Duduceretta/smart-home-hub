@@ -25,12 +25,12 @@ public class AutomationConfiguration : IEntityTypeConfiguration<Automation>
         builder.Property(a => a.CreatedAt).IsRequired();
         builder.Property(a => a.UpdatedAt).IsRequired(false);
 
-        // Relacionamento com Usuário
+        // Relacionamento com Usuário (Restrict por simetria com Device/Room/DeviceGroup)
         builder
             .HasOne(a => a.User)
             .WithMany()
             .HasForeignKey(a => a.UserId)
-            .OnDelete(DeleteBehavior.Cascade);
+            .OnDelete(DeleteBehavior.Restrict);
 
         // Oculta registros soft-deleted
         builder.HasQueryFilter(a => !a.IsDeleted);
