@@ -173,30 +173,93 @@ public sealed class TuyaSessionProtocolClient : ITuyaProtocolClient
         return ParseCommandResponse(_useGcm, sessionKey, commandRespFrame);
     }
 
-    private async Task SendAsync(NetworkStream stream, byte[] frame, CancellationToken ct)
+    private async Task SendAsync(Stream stream, byte[] frame, CancellationToken ct)
     {
         _logger.LogDebug("SEND [{Length} bytes]: {Hex}", frame.Length, Convert.ToHexString(frame));
         await stream.WriteAsync(frame, ct);
         await stream.FlushAsync(ct);
     }
 
-    private async Task<byte[]> ReceiveFrameAsync(NetworkStream stream, CancellationToken ct)
+    // TCP não garante 1 Read() = 1 frame completo. Lê primeiro o prefixo (4
+    // bytes) pra saber o formato de header (55AA/16 bytes vs 6699/18 bytes),
+    // depois o resto do header pra achar o campo `length`, e só então lê
+    // exatamente os bytes do corpo — em loop, acumulando, nunca assumindo que
+    // um único Read() basta. Um `timeoutCts` só, criado uma vez fora do loop de
+    // reassembly, garante que o timeout (ReceiveTimeoutMs) vale pra operação
+    // inteira — um frame fragmentado em vários pedaços pequenos não pode
+    // esticar a espera indefinidamente só porque cada pedaço individual
+    // chegou dentro do prazo.
+    //
+    // Múltiplos frames grudados no mesmo Read() (2+ respostas numa única
+    // leitura): não tratado de propósito, não por omissão — o protocolo aqui é
+    // estritamente 1 request → 1 response, sempre aguardado antes do próximo
+    // envio (ExecuteAsync nunca dispara dois comandos em paralelo no mesmo
+    // socket). Como agora lemos exatamente `length` bytes do corpo (nunca "o
+    // que vier"), mesmo que o SO entregasse bytes de mais numa única leitura de
+    // baixo nível, o loop de ReadExactAsync abaixo já para no limite do frame
+    // atual — o excedente (que não deveria existir dado o padrão de uso) fica
+    // no buffer do socket pra próxima leitura, não é misturado no frame atual.
+    private async Task<byte[]> ReceiveFrameAsync(Stream stream, CancellationToken ct)
     {
         using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(ct);
         timeoutCts.CancelAfter(ReceiveTimeoutMs);
+        var timeoutToken = timeoutCts.Token;
 
-        var buffer = new byte[4096];
-        var read = await stream.ReadAsync(buffer, timeoutCts.Token);
-        _logger.LogDebug(
-            "RECV [{Length} bytes]: {Hex}",
-            read,
-            Convert.ToHexString(buffer.AsSpan(0, Math.Max(read, 0)))
-        );
-        if (read <= 0)
+        var prefixBuffer = new byte[4];
+        await ReadExactAsync(stream, prefixBuffer, timeoutToken);
+        var prefix = BinaryPrimitives.ReadUInt32BigEndian(prefixBuffer);
+
+        byte[] frame;
+        if (prefix == Prefix6699)
         {
-            throw new IOException("Conexão Tuya encerrada sem resposta.");
+            // Header 6699 tem 18 bytes no total; já lemos os 4 do prefixo.
+            var headerRest = new byte[14];
+            await ReadExactAsync(stream, headerRest, timeoutToken);
+            // length (offset 14 do header completo = offset 10 daqui) cobre
+            // iv(12) + ciphertext + tag(16); falta ainda o suffix(4) fixo.
+            var lengthField = BinaryPrimitives.ReadUInt32BigEndian(headerRest.AsSpan(10, 4));
+            var body = new byte[lengthField + 4];
+            await ReadExactAsync(stream, body, timeoutToken);
+            frame = Concat(prefixBuffer, headerRest, body);
         }
-        return buffer[..read];
+        else if (prefix == Prefix55Aa)
+        {
+            // Header 55AA tem 16 bytes no total; já lemos os 4 do prefixo.
+            var headerRest = new byte[12];
+            await ReadExactAsync(stream, headerRest, timeoutToken);
+            // length (offset 12 do header completo = offset 8 daqui) já cobre
+            // ciphertext + hmac(32) + suffix(4) inteiros — nada extra depois.
+            var lengthField = BinaryPrimitives.ReadUInt32BigEndian(headerRest.AsSpan(8, 4));
+            var body = new byte[lengthField];
+            await ReadExactAsync(stream, body, timeoutToken);
+            frame = Concat(prefixBuffer, headerRest, body);
+        }
+        else
+        {
+            throw new IOException(
+                $"Prefixo de frame Tuya desconhecido: 0x{prefix:X8} — resposta corrompida ou fora de sincronia."
+            );
+        }
+
+        _logger.LogDebug("RECV [{Length} bytes]: {Hex}", frame.Length, Convert.ToHexString(frame));
+        return frame;
+    }
+
+    // Acumula em loop até preencher `buffer` inteiro — nunca assume que um
+    // único ReadAsync entrega tudo de uma vez. `ct` já carrega o timeout
+    // agregado da chamada inteira (não é resetado a cada pedaço parcial).
+    private static async Task ReadExactAsync(Stream stream, byte[] buffer, CancellationToken ct)
+    {
+        var totalRead = 0;
+        while (totalRead < buffer.Length)
+        {
+            var read = await stream.ReadAsync(buffer.AsMemory(totalRead), ct);
+            if (read <= 0)
+            {
+                throw new IOException("Conexão Tuya encerrada antes de completar o frame.");
+            }
+            totalRead += read;
+        }
     }
 
     // ---- Construção de frames (puro, sem I/O — usado direto pelos testes) ----
