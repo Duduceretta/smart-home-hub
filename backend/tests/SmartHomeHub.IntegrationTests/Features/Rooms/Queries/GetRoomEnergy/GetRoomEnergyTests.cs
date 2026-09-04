@@ -1,6 +1,7 @@
 using System.Net;
 using System.Net.Http.Json;
 using FluentAssertions;
+using Microsoft.EntityFrameworkCore;
 using SmartHomeHub.Domain.Entities;
 using SmartHomeHub.Domain.Enums;
 using SmartHomeHub.IntegrationTests.Setup;
@@ -221,6 +222,11 @@ public class GetRoomEnergyTests(IntegrationTestWebAppFactory factory) : BaseInte
         DbContext.Devices.Add(device);
         DbContext.DeviceTelemetryLogs.Add(threeDaysAgoLog);
         await DbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+
+        await DbContext.Database.ExecuteSqlRawAsync(
+            "CALL refresh_continuous_aggregate('device_telemetry_daily', NULL, NULL);",
+            TestContext.Current.CancellationToken
+        );
 
         var response24h = await Client.GetAsync(
             $"/api/rooms/{room.Id}/energy?range=24h",

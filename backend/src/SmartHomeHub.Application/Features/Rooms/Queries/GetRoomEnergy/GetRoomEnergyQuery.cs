@@ -104,80 +104,168 @@ public class GetRoomEnergyQueryHandler(IAppDbContext dbContext)
             _ => DateTimeOffset.UtcNow.AddHours(-24),
         };
 
-        var rawEnergyLogs = await dbContext
-            .DeviceTelemetryLogs.AsNoTracking()
-            .Where(log =>
-                roomDeviceIds.Contains(log.DeviceId)
-                && log.Timestamp >= fromDateUtc
-                && log.PowerUsageWatts.HasValue
-            )
-            .Select(log => new
-            {
-                log.Timestamp,
-                log.DeviceId,
-                log.PowerUsageWatts,
-                log.IsEstimated,
-            })
-            .ToListAsync(cancellationToken);
+        List<RoomEnergyChartPointDto> chartData;
+        double totalConsumptionKwh;
+        bool isEstimated;
 
-        if (rawEnergyLogs.Count == 0)
-            return Result.Success(new RoomEnergyResponseDto(false, [], 0, false));
-
-        const int bucketMinutes = TelemetryBucketing.DefaultBucketMinutes;
-
-        var deviceBucketAverages = TelemetryBucketing.BuildDeviceBucketAverages(
-            rawEnergyLogs.Select(log =>
-                (log.Timestamp, log.DeviceId, log.PowerUsageWatts, log.IsEstimated)
-            ),
-            bucketMinutes
-        );
-
-        var bucketDurationHours = bucketMinutes / 60.0;
-
-        var chartData = deviceBucketAverages
-            .GroupBy(x => x.Bucket)
-            .Select(group => new RoomEnergyChartPointDto(
-                group.Key,
-                Math.Round(group.Sum(x => x.AverageWatts) / 1000.0, 4),
-                group.Any(x => x.IsEstimated)
-            ))
-            .OrderBy(point => point.Timestamp)
-            .ToList();
-
-        // Mesmo gap-fill do gráfico da Dashboard — preenche baldes sem
-        // nenhuma amostra com 0kW pra manter o espaçamento do eixo X
-        // uniforme entre os pontos reais.
-        if (chartData.Count > 1)
+        if (range == "24h")
         {
-            var filledChartData = new List<RoomEnergyChartPointDto>();
-            var existingByBucket = chartData.ToDictionary(point => point.Timestamp);
-            var lastBucket = chartData[^1].Timestamp;
+            var rawEnergyLogs = await dbContext
+                .DeviceTelemetryLogs.AsNoTracking()
+                .Where(log =>
+                    roomDeviceIds.Contains(log.DeviceId)
+                    && log.Timestamp >= fromDateUtc
+                    && log.PowerUsageWatts.HasValue
+                )
+                .Select(log => new
+                {
+                    log.Timestamp,
+                    log.DeviceId,
+                    log.PowerUsageWatts,
+                    log.IsEstimated,
+                })
+                .ToListAsync(cancellationToken);
 
-            for (
-                var bucket = chartData[0].Timestamp;
-                bucket <= lastBucket;
-                bucket = bucket.AddMinutes(bucketMinutes)
-            )
+            if (rawEnergyLogs.Count == 0)
+                return Result.Success(new RoomEnergyResponseDto(false, [], 0, false));
+
+            const int bucketMinutes = TelemetryBucketing.DefaultBucketMinutes;
+
+            var deviceBucketAverages = TelemetryBucketing.BuildDeviceBucketAverages(
+                rawEnergyLogs.Select(log =>
+                    (log.Timestamp, log.DeviceId, log.PowerUsageWatts, log.IsEstimated)
+                ),
+                bucketMinutes
+            );
+
+            var bucketDurationHours = bucketMinutes / 60.0;
+
+            chartData = deviceBucketAverages
+                .GroupBy(x => x.Bucket)
+                .Select(group => new RoomEnergyChartPointDto(
+                    group.Key,
+                    Math.Round(group.Sum(x => x.AverageWatts) / 1000.0, 4),
+                    group.Any(x => x.IsEstimated)
+                ))
+                .OrderBy(point => point.Timestamp)
+                .ToList();
+
+            // Mesmo gap-fill do gráfico da Dashboard — preenche baldes sem
+            // nenhuma amostra com 0kW pra manter o espaçamento do eixo X
+            // uniforme entre os pontos reais.
+            if (chartData.Count > 1)
             {
-                filledChartData.Add(
-                    existingByBucket.TryGetValue(bucket, out var existingPoint)
-                        ? existingPoint
-                        : new RoomEnergyChartPointDto(bucket, 0, false)
-                );
+                var filledChartData = new List<RoomEnergyChartPointDto>();
+                var existingByBucket = chartData.ToDictionary(point => point.Timestamp);
+                var lastBucket = chartData[^1].Timestamp;
+
+                for (
+                    var bucket = chartData[0].Timestamp;
+                    bucket <= lastBucket;
+                    bucket = bucket.AddMinutes(bucketMinutes)
+                )
+                {
+                    filledChartData.Add(
+                        existingByBucket.TryGetValue(bucket, out var existingPoint)
+                            ? existingPoint
+                            : new RoomEnergyChartPointDto(bucket, 0, false)
+                    );
+                }
+
+                chartData = filledChartData;
             }
 
-            chartData = filledChartData;
+            totalConsumptionKwh = chartData.Sum(point => point.Value) * bucketDurationHours;
+            isEstimated = chartData.Any(point => point.IsEstimated);
         }
+        else
+        {
+            // Range 7d: Janela longa usa continuous aggregate device_telemetry_daily
+            // somando a potência média dos dispositivos do ambiente em cada dia consolidado.
+            var dailyBuckets = await dbContext
+                .Database.SqlQuery<RoomTelemetryDailyBucket>(
+                    $"""
+                    SELECT bucket AS "Bucket", SUM(avg_power_watts) AS "TotalAvgPowerWatts"
+                    FROM device_telemetry_daily
+                    WHERE "DeviceId" = ANY({roomDeviceIds.ToArray()})
+                        AND bucket >= {fromDateUtc}
+                        AND bucket < date_trunc('day', now())
+                    GROUP BY bucket
+                    ORDER BY bucket
+                    """
+                )
+                .ToListAsync(cancellationToken);
 
-        var totalConsumptionKwh = chartData.Sum(point => point.Value) * bucketDurationHours;
+            var startOfTodayUtc = new DateTimeOffset(
+                DateTimeOffset.UtcNow.UtcDateTime.Date,
+                TimeSpan.Zero
+            );
+
+            var todayLogs = await dbContext
+                .DeviceTelemetryLogs.AsNoTracking()
+                .Where(log =>
+                    roomDeviceIds.Contains(log.DeviceId)
+                    && log.Timestamp >= startOfTodayUtc
+                    && log.PowerUsageWatts.HasValue
+                )
+                .Select(log => new
+                {
+                    log.DeviceId,
+                    log.Timestamp,
+                    log.PowerUsageWatts,
+                    log.IsEstimated,
+                })
+                .ToListAsync(cancellationToken);
+
+            if (dailyBuckets.Count == 0 && todayLogs.Count == 0)
+                return Result.Success(new RoomEnergyResponseDto(false, [], 0, false));
+
+            chartData = dailyBuckets
+                .Select(bucket => new RoomEnergyChartPointDto(
+                    bucket.Bucket,
+                    Math.Round((bucket.TotalAvgPowerWatts ?? 0) / 1000.0, 4),
+                    false
+                ))
+                .ToList();
+
+            double aggregatedDaysKwh = dailyBuckets.Sum(b =>
+                ((b.TotalAvgPowerWatts ?? 0) / 1000.0) * 24.0
+            );
+            double todayKwh = 0;
+            bool todayEstimated = false;
+
+            if (todayLogs.Count > 0)
+            {
+                var todayTotalAvgWatts = todayLogs
+                    .GroupBy(l => l.DeviceId)
+                    .Sum(g => g.Average(x => x.PowerUsageWatts!.Value));
+
+                todayEstimated = todayLogs.Any(l => l.IsEstimated);
+                var todayKw = Math.Round(todayTotalAvgWatts / 1000.0, 4);
+                chartData.Add(
+                    new RoomEnergyChartPointDto(startOfTodayUtc, todayKw, todayEstimated)
+                );
+
+                var hoursToday = Math.Max(
+                    (DateTimeOffset.UtcNow - startOfTodayUtc).TotalHours,
+                    0.1
+                );
+                todayKwh = (todayTotalAvgWatts / 1000.0) * hoursToday;
+            }
+
+            totalConsumptionKwh = aggregatedDaysKwh + todayKwh;
+            isEstimated = chartData.Any(point => point.IsEstimated) || todayEstimated;
+        }
 
         return Result.Success(
             new RoomEnergyResponseDto(
                 true,
                 chartData,
                 Math.Round(totalConsumptionKwh, 4),
-                chartData.Any(point => point.IsEstimated)
+                isEstimated
             )
         );
     }
 }
+
+internal record RoomTelemetryDailyBucket(DateTimeOffset Bucket, double? TotalAvgPowerWatts);
