@@ -142,7 +142,17 @@ public class CreateDeviceCommandHandler(
             );
         }
 
+        var liveState = new DeviceLiveState
+        {
+            DeviceId = device.Id,
+            IsOn = device.IsOn,
+            IsOnline = device.IsOnline,
+            LastSeenAt = device.LastSeenAt,
+        };
+        device.LiveState = liveState;
+
         dbContext.Devices.Add(device);
+        dbContext.DeviceLiveStates.Add(liveState);
         await dbContext.SaveChangesAsync(cancellationToken);
 
         return Result.Success(device.Id);

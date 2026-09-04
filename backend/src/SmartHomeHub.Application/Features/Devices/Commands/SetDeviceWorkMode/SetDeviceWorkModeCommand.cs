@@ -3,7 +3,9 @@ using Mediator;
 using Microsoft.EntityFrameworkCore;
 using SmartHomeHub.Application.Common.Interfaces;
 using SmartHomeHub.Domain.Common.Primitives;
+using SmartHomeHub.Domain.Entities;
 using SmartHomeHub.Domain.Enums;
+using SmartHomeHub.Domain.ValueObjects;
 
 namespace SmartHomeHub.Application.Features.Devices.Commands.SetDeviceWorkMode;
 
@@ -42,13 +44,35 @@ public class SetDeviceWorkModeCommandHandler(
         CancellationToken cancellationToken
     )
     {
-        var device = await dbContext.Devices.FirstOrDefaultAsync(
-            d => d.Id == request.DeviceId && d.User.ExternalAuthUid == request.FirebaseUid,
-            cancellationToken
-        );
+        var device = await dbContext
+            .Devices.Include(d => d.LiveState)
+            .FirstOrDefaultAsync(
+                d => d.Id == request.DeviceId && d.User.ExternalAuthUid == request.FirebaseUid,
+                cancellationToken
+            );
 
         if (device == null)
             return Result.Failure(new Error("Device.NotFound", "Dispositivo não encontrado."));
+
+        var liveState = device.LiveState;
+        if (liveState == null)
+        {
+            liveState = new DeviceLiveState
+            {
+                DeviceId = device.Id,
+                IsOn = device.IsOn,
+                IsOnline = device.IsOnline,
+                LastSeenAt = device.LastSeenAt,
+                Attributes = new DeviceLiveStateAttributes
+                {
+                    Brightness = device.Brightness,
+                    ColorHex = device.ColorHex,
+                    ColorTempPercent = device.ColorTempPercent,
+                },
+            };
+            device.LiveState = liveState;
+            dbContext.DeviceLiveStates.Add(liveState);
+        }
 
         if (device.Type != DeviceType.Light || device.IntegrationType != IntegrationType.TuyaLocal)
             return Result.Failure(
@@ -88,6 +112,9 @@ public class SetDeviceWorkModeCommandHandler(
 
         device.IsOnline = true;
         device.LastSeenAt = DateTimeOffset.UtcNow;
+
+        liveState.IsOnline = true;
+        liveState.LastSeenAt = device.LastSeenAt;
 
         await dbContext.SaveChangesAsync(cancellationToken);
 

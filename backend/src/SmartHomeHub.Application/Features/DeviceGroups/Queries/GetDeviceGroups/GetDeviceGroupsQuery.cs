@@ -75,9 +75,11 @@ public class GetDeviceGroupsQueryHandler(IAppDbContext dbContext)
                         device.Brand,
                         device.ExternalId,
                         device.Type,
-                        device.IsOn,
-                        device.IsOnline,
-                        device.Brightness
+                        device.LiveState != null ? device.LiveState.IsOn : device.IsOn,
+                        device.LiveState != null ? device.LiveState.IsOnline : device.IsOnline,
+                        device.LiveState != null
+                            ? device.LiveState.Attributes.Brightness
+                            : device.Brightness
                     ))
                     .ToList()
             ))

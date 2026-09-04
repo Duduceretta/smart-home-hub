@@ -76,8 +76,10 @@ public class SetDeviceColorTests(IntegrationTestWebAppFactory factory)
 
         var physicalDevice = await DbContext
             .Devices.AsNoTracking()
+            .Include(d => d.LiveState)
             .FirstAsync(d => d.Id == device.Id, TestContext.Current.CancellationToken);
-        physicalDevice.ColorHex.Should().Be("#FF00AA");
+        physicalDevice.LiveState.Should().NotBeNull();
+        physicalDevice.LiveState!.Attributes.ColorHex.Should().Be("#FF00AA");
 
         var getResponse = await Client.GetAsync(
             $"/api/devices/{device.Id}",
@@ -120,9 +122,10 @@ public class SetDeviceColorTests(IntegrationTestWebAppFactory factory)
 
         var physicalDevice = await DbContext
             .Devices.AsNoTracking()
+            .Include(d => d.LiveState)
             .FirstAsync(d => d.Id == device.Id, TestContext.Current.CancellationToken);
-        physicalDevice
-            .ColorHex.Should()
+        (physicalDevice.LiveState?.Attributes.ColorHex)
+            .Should()
             .BeNull("o comando falhou — não deve gravar um valor que o hardware não confirmou.");
     }
 

@@ -11,6 +11,7 @@ public interface IAppDbContext
     DbSet<User> Users { get; }
     DbSet<Room> Rooms { get; }
     DbSet<Device> Devices { get; }
+    DbSet<DeviceLiveState> DeviceLiveStates { get; }
     DbSet<DeviceGroup> DeviceGroups { get; }
     DbSet<DeviceTelemetryLog> DeviceTelemetryLogs { get; }
     DbSet<SystemEvent> SystemEvents { get; }

@@ -59,6 +59,7 @@ public class GetDevicesQueryHandler(IAppDbContext dbContext)
         var rawDevices = await dbContext
             .Devices.AsNoTracking()
             .Include(device => device.Room)
+            .Include(device => device.LiveState)
             .Where(device => device.User.ExternalAuthUid == request.FirebaseUid)
             .FilterByCategory(request.Category)
             .FilterByStatus(request.Status)

@@ -10,7 +10,9 @@ using SmartHomeHub.Application.Features.Devices.Commands.DeleteDevice;
 using SmartHomeHub.Application.Features.Rooms.Commands.CreateRoom;
 using SmartHomeHub.Application.Features.Rooms.Commands.DeleteRoom;
 using SmartHomeHub.Application.Features.Telemetry.Commands.ProcessTelemetry;
+using SmartHomeHub.Domain.Entities;
 using SmartHomeHub.Domain.Enums;
+using SmartHomeHub.Domain.ValueObjects;
 
 namespace SmartHomeHub.Api.Endpoints;
 
@@ -300,22 +302,47 @@ public static class DevEndpoints
 
                     var device = await dbContext
                         .Devices.Include(d => d.User)
+                        .Include(d => d.LiveState)
                         .FirstOrDefaultAsync(d => d.Id == request.DeviceId, ct);
 
                     if (device == null || device.User.ExternalAuthUid != firebaseUid)
                         return Results.NotFound();
 
+                    var liveState = device.LiveState;
+                    if (liveState == null)
+                    {
+                        liveState = new DeviceLiveState
+                        {
+                            DeviceId = device.Id,
+                            IsOn = device.IsOn,
+                            IsOnline = device.IsOnline,
+                            LastSeenAt = device.LastSeenAt,
+                            Attributes = new DeviceLiveStateAttributes
+                            {
+                                Brightness = device.Brightness,
+                                ColorHex = device.ColorHex,
+                                ColorTempPercent = device.ColorTempPercent,
+                            },
+                        };
+                        device.LiveState = liveState;
+                        dbContext.DeviceLiveStates.Add(liveState);
+                    }
+
                     device.IsOnline = request.IsOnline;
+                    liveState.IsOnline = request.IsOnline;
                     if (request.IsOnline)
+                    {
                         device.LastSeenAt = DateTimeOffset.UtcNow;
+                        liveState.LastSeenAt = device.LastSeenAt;
+                    }
 
                     await dbContext.SaveChangesAsync(ct);
 
                     await notificationService.NotifyDeviceStatusChangedAsync(
                         device.User.ExternalAuthUid,
                         device.Id,
-                        device.IsOn,
-                        device.IsOnline,
+                        liveState.IsOn,
+                        liveState.IsOnline,
                         ct
                     );
 

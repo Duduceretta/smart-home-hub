@@ -10,6 +10,7 @@ using SmartHomeHub.Application.Features.Devices.Common;
 using SmartHomeHub.Domain.Common.Constants;
 using SmartHomeHub.Domain.Entities;
 using SmartHomeHub.Domain.Enums;
+using SmartHomeHub.Domain.ValueObjects;
 
 namespace SmartHomeHub.Infrastructure.BackgroundJobs;
 
@@ -83,6 +84,7 @@ public sealed class DeviceStatePollingWorker(
         var candidates = await dbContext
             .Devices.Include(device => device.User)
             .Include(device => device.Room)
+            .Include(device => device.LiveState)
             .Where(device =>
                 device.Type == DeviceType.Television && device.Configuration.IpAddress != null
             )
@@ -111,12 +113,33 @@ public sealed class DeviceStatePollingWorker(
 
             foreach (var (device, isOn) in pollResults)
             {
-                if (device.IsOn == isOn)
+                var liveState = device.LiveState;
+                if (liveState == null)
+                {
+                    liveState = new DeviceLiveState
+                    {
+                        DeviceId = device.Id,
+                        IsOn = device.IsOn,
+                        IsOnline = device.IsOnline,
+                        LastSeenAt = device.LastSeenAt,
+                        Attributes = new DeviceLiveStateAttributes
+                        {
+                            Brightness = device.Brightness,
+                            ColorHex = device.ColorHex,
+                            ColorTempPercent = device.ColorTempPercent,
+                        },
+                    };
+                    device.LiveState = liveState;
+                    dbContext.DeviceLiveStates.Add(liveState);
+                }
+
+                if (liveState.IsOn == isOn)
                 {
                     continue;
                 }
 
                 device.IsOn = isOn;
+                liveState.IsOn = isOn;
                 changed.Add(device);
             }
 
@@ -124,10 +147,11 @@ public sealed class DeviceStatePollingWorker(
             {
                 foreach (var device in changed)
                 {
+                    var liveState = device.LiveState!;
                     var (title, description) = ActivityLogMessages.DevicePowerStateChanged(
                         device.Name,
                         device.Room?.Name,
-                        device.IsOn
+                        liveState.IsOn
                     );
 
                     dbContext.SystemEvents.Add(
@@ -143,8 +167,8 @@ public sealed class DeviceStatePollingWorker(
                             DeviceName = device.Name,
                             RoomId = device.RoomId,
                             RoomName = device.Room?.Name,
-                            OldValue = !device.IsOn ? "on" : "off",
-                            NewValue = device.IsOn ? "on" : "off",
+                            OldValue = !liveState.IsOn ? "on" : "off",
+                            NewValue = liveState.IsOn ? "on" : "off",
                             IsAlert = false,
                             Timestamp = DateTimeOffset.UtcNow,
                         }
@@ -174,17 +198,18 @@ public sealed class DeviceStatePollingWorker(
             {
                 foreach (var device in changed)
                 {
+                    var liveState = device.LiveState!;
                     logger.LogInformation(
                         "Estado de energia do dispositivo {DeviceId} mudou para {Status}",
                         device.Id,
-                        device.IsOn ? "ligado" : "desligado"
+                        liveState.IsOn ? "ligado" : "desligado"
                     );
 
                     await notificationService.NotifyDeviceStatusChangedAsync(
                         device.User.ExternalAuthUid,
                         device.Id,
-                        device.IsOn,
-                        device.IsOnline,
+                        liveState.IsOn,
+                        liveState.IsOnline,
                         cancellationToken
                     );
                 }

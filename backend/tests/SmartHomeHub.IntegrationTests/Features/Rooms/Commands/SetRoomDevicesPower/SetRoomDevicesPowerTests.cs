@@ -103,10 +103,11 @@ public class SetRoomDevicesPowerTests(IntegrationTestWebAppFactory factory)
 
         var devices = await DbContext
             .Devices.AsNoTracking()
+            .Include(d => d.LiveState)
             .Where(device => device.RoomId == room.Id)
             .ToDictionaryAsync(
                 device => device.Id,
-                device => device.IsOn,
+                device => device.LiveState != null ? device.LiveState.IsOn : device.IsOn,
                 TestContext.Current.CancellationToken
             );
 
@@ -201,10 +202,11 @@ public class SetRoomDevicesPowerTests(IntegrationTestWebAppFactory factory)
 
         var devices = await DbContext
             .Devices.AsNoTracking()
+            .Include(d => d.LiveState)
             .Where(device => device.RoomId == room.Id)
             .ToDictionaryAsync(
                 device => device.Id,
-                device => device.IsOn,
+                device => device.LiveState != null ? device.LiveState.IsOn : device.IsOn,
                 TestContext.Current.CancellationToken
             );
 

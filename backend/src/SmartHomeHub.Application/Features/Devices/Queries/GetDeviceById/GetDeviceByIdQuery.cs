@@ -19,6 +19,7 @@ public class GetDeviceByIdQueryHandler(IAppDbContext dbContext)
         var device = await dbContext
             .Devices.AsNoTracking()
             .Include(d => d.Room)
+            .Include(d => d.LiveState)
             .FirstOrDefaultAsync(
                 d => d.Id == request.DeviceId && d.User.ExternalAuthUid == request.FirebaseUid,
                 cancellationToken

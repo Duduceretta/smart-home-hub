@@ -58,6 +58,7 @@ public partial class SetDeviceStateCommandHandler(
         var device = await dbContext
             .Devices.Include(d => d.Room)
             .Include(d => d.User)
+            .Include(d => d.LiveState)
             .FirstOrDefaultAsync(
                 d => d.Id == request.DeviceId && d.User.ExternalAuthUid == request.FirebaseUid,
                 cancellationToken
@@ -66,10 +67,33 @@ public partial class SetDeviceStateCommandHandler(
         if (device == null)
             return Result.Failure(new Error("Device.NotFound", "Dispositivo não encontrado."));
 
+        var liveState = device.LiveState;
+        if (liveState == null)
+        {
+            liveState = await dbContext.DeviceLiveStates.FirstOrDefaultAsync(
+                s => s.DeviceId == device.Id,
+                cancellationToken
+            );
+
+            if (liveState == null)
+            {
+                liveState = new DeviceLiveState
+                {
+                    DeviceId = device.Id,
+                    IsOn = device.IsOn,
+                    IsOnline = device.IsOnline,
+                    LastSeenAt = device.LastSeenAt,
+                };
+                dbContext.DeviceLiveStates.Add(liveState);
+            }
+
+            device.LiveState = liveState;
+        }
+
         // ---------------------------------------------------------
         // PROTEÇÃO DE ESTADO (IDEMPOTÊNCIA) E REDUÇÃO DE DESGASTE FÍSICO
         // ---------------------------------------------------------
-        if (device.IsOn == request.DesiredState)
+        if (liveState.IsOn == request.DesiredState)
         {
             // O dispositivo já está no estado desejado.
             // Retornamos sucesso imediatamente sem tocar no hardware físico.
@@ -169,12 +193,13 @@ public partial class SetDeviceStateCommandHandler(
                 if (tuyaResult.Error.Code == "Device.Offline")
                 {
                     device.IsOnline = false;
+                    liveState.IsOnline = false;
                     await dbContext.SaveChangesAsync(cancellationToken);
                     await notificationService.NotifyDeviceStatusChangedAsync(
                         request.FirebaseUid,
                         device.Id,
-                        device.IsOn,
-                        device.IsOnline,
+                        liveState.IsOn,
+                        liveState.IsOnline,
                         cancellationToken
                     );
                 }
@@ -193,6 +218,8 @@ public partial class SetDeviceStateCommandHandler(
 
             device.IsOnline = true;
             device.LastSeenAt = DateTimeOffset.UtcNow;
+            liveState.IsOnline = true;
+            liveState.LastSeenAt = device.LastSeenAt;
         }
         else // Outros hardwares via MQTT
         {
@@ -204,13 +231,13 @@ public partial class SetDeviceStateCommandHandler(
         }
 
         // Atualiza estado e salva evento com snapshot completo
-        var previousState = device.IsOn;
-        device.IsOn = confirmedIsOn;
+        var previousState = liveState.IsOn;
+        liveState.IsOn = confirmedIsOn;
 
         var (title, description) = ActivityLogMessages.DevicePowerStateChanged(
             device.Name,
             device.Room?.Name,
-            device.IsOn
+            liveState.IsOn
         );
 
         dbContext.SystemEvents.Add(
@@ -240,8 +267,8 @@ public partial class SetDeviceStateCommandHandler(
         await notificationService.NotifyDeviceStatusChangedAsync(
             request.FirebaseUid,
             device.Id,
-            device.IsOn,
-            device.IsOnline,
+            liveState.IsOn,
+            liveState.IsOnline,
             cancellationToken
         );
 

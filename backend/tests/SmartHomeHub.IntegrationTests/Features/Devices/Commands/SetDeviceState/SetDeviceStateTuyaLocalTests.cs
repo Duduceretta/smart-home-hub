@@ -74,9 +74,11 @@ public class SetDeviceStateTuyaLocalTests(IntegrationTestWebAppFactory factory)
 
         var physicalDevice = await DbContext
             .Devices.AsNoTracking()
+            .Include(d => d.LiveState)
             .FirstAsync(d => d.Id == device.Id, TestContext.Current.CancellationToken);
-        physicalDevice.IsOn.Should().BeTrue();
-        physicalDevice.IsOnline.Should().BeTrue();
+        physicalDevice.LiveState.Should().NotBeNull();
+        physicalDevice.LiveState!.IsOn.Should().BeTrue();
+        physicalDevice.LiveState.IsOnline.Should().BeTrue();
     }
 
     [Fact]
@@ -145,11 +147,18 @@ public class SetDeviceStateTuyaLocalTests(IntegrationTestWebAppFactory factory)
 
         var physicalDevice = await DbContext
             .Devices.AsNoTracking()
+            .Include(d => d.LiveState)
             .FirstAsync(d => d.Id == device.Id, TestContext.Current.CancellationToken);
-        physicalDevice
-            .IsOn.Should()
+        (physicalDevice.LiveState != null ? physicalDevice.LiveState.IsOn : physicalDevice.IsOn)
+            .Should()
             .BeFalse("comando não confirmado — a UI não deve mostrar ligado.");
-        physicalDevice.IsOnline.Should().BeFalse();
+        (
+            physicalDevice.LiveState != null
+                ? physicalDevice.LiveState.IsOnline
+                : physicalDevice.IsOnline
+        )
+            .Should()
+            .BeFalse();
     }
 
     [Fact]

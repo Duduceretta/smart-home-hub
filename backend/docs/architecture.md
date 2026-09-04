@@ -23,6 +23,32 @@ O projeto é LINQ-to-Entities por padrão — toda consulta contra uma entidade 
 
 Pra esse caso específico, `dbContext.Database.SqlQuery<TProjection>($"...")` é o padrão correto, não um desvio a ser "corrigido" de volta pra LINQ numa auditoria futura — desde que a interpolação use sempre `$"..."` (gera `FormattableString`, parametrizado de verdade pelo EF Core) e nunca concatenação manual de string. Ver `GetDeviceTelemetryHistoryQuery.cs` como referência real: junta pontos vindos da tabela bruta (`DeviceTelemetryLogs`, via LINQ normal) com pontos vindos da aggregate (via `SqlQuery<T>`) no mesmo DTO de saída.
 
+### 1.4. Padrão Device Shadow — Estado Estático vs. Live State
+
+A entidade `Device` separa explicitamente metadados estruturais de baixa mutabilidade do estado volátil de alta frequência de escrita (Device Shadow / Digital Twin, análogo aos padrões do **AWS IoT Device Shadow** e **Azure Digital Twins**).
+
+Não utilizamos herança de classes do EF Core (TPH, TPT ou TPC) nem o antipadrão EAV (Entity-Attribute-Value). A modelagem adota **composição 1:1 estrita**:
+- `Device`: registro mestre relacional (Name, Brand, ExternalId, Type, IntegrationType, UserId, RoomId, Configuration).
+- `DeviceLiveState`: entidade satélite enxuta (1:1 com Device via `DeviceId`) armazenando status de conectividade (`IsOnline`, `LastSeenAt`), energia (`IsOn`) e payload dinâmico/semi-estruturado (`Attributes` como JSONB).
+
+Essa separação resolve dois gargalos fundamentais de arquitetura IoT:
+1. **Mitigação de MVCC Write Bloat**: Atualizações frequentes de telemetria, sondagens de rede e comandos de toggle reescrevem apenas a tupla compacta de `DeviceLiveStates`, eliminando reescritas redundantes das colunas largas de `Devices` (evitando geração desnecessária de dead tuples e pressão sobre o autovacuum no PostgreSQL).
+2. **Eliminação de Colunas Esparsas**: Atributos específicos de categoria (iluminação, climatização, segurança) residem no documento JSONB tipado (`DeviceLiveStateAttributes`), impedindo que a tabela principal `Devices` acumule dezenas de colunas com valores nulos.
+
+#### Regra de Decisão para Novos Campos de Dispositivos:
+Para qualquer adição futura de categorias de hardware (ex: quando `ClimateControlPanel` receber setpoints e modos de operação reais, ou cortinas/trincos ganharem atributos específicos), siga o critério objetivo:
+
+- **Coluna Relacional (em `Device`)**:
+  - Filtrado ou ordenado em queries com frequência (ex: cláusulas `WHERE` / `ORDER BY` indexadas);
+  - Referenciado como chave estrangeira (`FK`);
+  - Existe universalmente para praticamente qualquer dispositivo físico, independente da categoria de hardware.
+- **JSONB `Attributes` (em `DeviceLiveState`)**:
+  - Específico de categoria ou subtipo de hardware (ex: `TargetTemperature`, `FanSpeed`, `OpenPercentage`, `PinCodeRequired`);
+  - Lido como objeto composto (deserializado junto ao DTO de saída, e não filtrado diretamente via operadores JSONB `Attributes->>'campo'`);
+  - Necessidade de evolução de schema sem exigir nova migração física de banco de dados.
+
+> **Importante**: O contrato de API (`DeviceDto`) permanece plano. As queries e projeções (via Mapster ou projeção explícita no Handler) realizam a junção entre `Device` e `DeviceLiveState` de forma transparente para o frontend, mantendo retrocompatibilidade total.
+
 ---
 
 ## 2. Padrões de Projeto do Back-end

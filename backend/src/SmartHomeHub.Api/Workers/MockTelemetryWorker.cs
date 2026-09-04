@@ -48,7 +48,8 @@ public sealed class MockTelemetryWorker(
         var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
 
         var devices = await dbContext
-            .Devices.Where(device =>
+            .Devices.Include(d => d.LiveState)
+            .Where(device =>
                 device.IntegrationType == IntegrationType.NativeMqtt && !device.IsDeleted
             )
             .ToListAsync(cancellationToken);
@@ -67,20 +68,22 @@ public sealed class MockTelemetryWorker(
 
     private static TelemetryPayload BuildMockPayload(Device device)
     {
+        var isOn = device.LiveState != null ? device.LiveState.IsOn : device.IsOn;
+
         return device.Type switch
         {
             // Dispositivo desligado não consome — gerar Watts aleatório aqui
             // independente de IsOn faria uma lâmpada "OFF" aparecer consumindo
             // energia no dashboard.
             DeviceType.Light or DeviceType.Switch => new TelemetryPayload(
-                IsOn: device.IsOn,
+                IsOn: isOn,
                 Voltage: 220,
                 SignalStrength: "strong",
-                PowerUsageWatts: device.IsOn ? Random.Shared.Next(5, 61) : 0,
+                PowerUsageWatts: isOn ? Random.Shared.Next(5, 61) : 0,
                 TemperatureCelsius: null
             ),
             DeviceType.Sensor or DeviceType.Thermostat => new TelemetryPayload(
-                IsOn: device.IsOn,
+                IsOn: isOn,
                 Voltage: null,
                 SignalStrength: "strong",
                 PowerUsageWatts: null,
@@ -88,14 +91,14 @@ public sealed class MockTelemetryWorker(
                 HumidityPercent: Math.Round(30 + Random.Shared.NextDouble() * 40, 1)
             ),
             DeviceType.Television => new TelemetryPayload(
-                IsOn: device.IsOn,
+                IsOn: isOn,
                 Voltage: 220,
                 SignalStrength: "strong",
-                PowerUsageWatts: device.IsOn ? Random.Shared.Next(80, 151) : 0,
+                PowerUsageWatts: isOn ? Random.Shared.Next(80, 151) : 0,
                 TemperatureCelsius: null
             ),
             _ => new TelemetryPayload(
-                IsOn: device.IsOn,
+                IsOn: isOn,
                 Voltage: null,
                 SignalStrength: "strong",
                 PowerUsageWatts: null,

@@ -197,4 +197,90 @@ public class GetDevicesTests(IntegrationTestWebAppFactory factory) : BaseIntegra
         pagedResult.Items[0].Name.Should().Be("C_Luz");
         pagedResult.Items[1].Name.Should().Be("D_Luz");
     }
+
+    [Fact]
+    public async Task GetDevices_ShouldReturnDeviceDtoWithExpectedShapeAndLiveStateParity()
+    {
+        var loggedUser = new User
+        {
+            Id = Guid.NewGuid(),
+            Name = "Contrato Frontend",
+            Email = "frontend@smarthome.com",
+            ExternalAuthUid = "firebase-token-123",
+        };
+
+        var deviceId = Guid.NewGuid();
+        var device = new Device
+        {
+            Id = deviceId,
+            UserId = loggedUser.Id,
+            Name = "Lâmpada Colorida",
+            Brand = "Tuya",
+            ExternalId = "TUYA-CONTRACT-1",
+            Type = DeviceType.Light,
+            IntegrationType = IntegrationType.TuyaLocal,
+            IsOn = false, // valor legado na tabela Device
+        };
+
+        var liveState = new DeviceLiveState
+        {
+            DeviceId = deviceId,
+            IsOn = true, // valor live (prioritário)
+            IsOnline = true,
+            LastSeenAt = DateTimeOffset.UtcNow,
+            Attributes = new Domain.ValueObjects.DeviceLiveStateAttributes
+            {
+                Brightness = 85,
+                ColorHex = "#00FF00",
+                ColorTempPercent = 50,
+            },
+        };
+        device.LiveState = liveState;
+
+        DbContext.Users.Add(loggedUser);
+        DbContext.Devices.Add(device);
+        DbContext.DeviceLiveStates.Add(liveState);
+        await DbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+
+        var response = await Client.GetAsync(
+            $"/api/devices?query=Lâmpada",
+            TestContext.Current.CancellationToken
+        );
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        var json = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+        using var doc = System.Text.Json.JsonDocument.Parse(json);
+        var root = doc.RootElement;
+
+        root.TryGetProperty("items", out var items).Should().BeTrue();
+        items.GetArrayLength().Should().Be(1);
+
+        var item = items[0];
+
+        // Valida todas as propriedades do DTO plano para garantir zero breaking change
+        item.GetProperty("id").GetGuid().Should().Be(deviceId);
+        item.GetProperty("name").GetString().Should().Be("Lâmpada Colorida");
+        item.GetProperty("brand").GetString().Should().Be("Tuya");
+        item.GetProperty("externalId").GetString().Should().Be("TUYA-CONTRACT-1");
+        item.GetProperty("type").GetInt32().Should().Be((int)DeviceType.Light);
+        item.GetProperty("category").GetString().Should().Be("Light");
+        item.GetProperty("isOn").GetBoolean().Should().BeTrue("isOn deve vir de DeviceLiveState");
+        item.GetProperty("isOnline")
+            .GetBoolean()
+            .Should()
+            .BeTrue("isOnline deve vir de DeviceLiveState");
+        item.GetProperty("brightness")
+            .GetInt32()
+            .Should()
+            .Be(85, "brightness deve vir de DeviceLiveState.Attributes");
+        item.GetProperty("colorHex")
+            .GetString()
+            .Should()
+            .Be("#00FF00", "colorHex deve vir de DeviceLiveState.Attributes");
+        item.GetProperty("colorTempPercent")
+            .GetInt32()
+            .Should()
+            .Be(50, "colorTempPercent deve vir de DeviceLiveState.Attributes");
+    }
 }

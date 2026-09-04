@@ -12,6 +12,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
     public DbSet<User> Users => Set<User>();
     public DbSet<Room> Rooms => Set<Room>();
     public DbSet<Device> Devices => Set<Device>();
+    public DbSet<DeviceLiveState> DeviceLiveStates => Set<DeviceLiveState>();
     public DbSet<DeviceGroup> DeviceGroups => Set<DeviceGroup>();
     public DbSet<DeviceTelemetryLog> DeviceTelemetryLogs => Set<DeviceTelemetryLog>();
     public DbSet<SystemEvent> SystemEvents => Set<SystemEvent>();

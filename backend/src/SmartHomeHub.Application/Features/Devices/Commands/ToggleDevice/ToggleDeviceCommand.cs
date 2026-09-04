@@ -38,6 +38,7 @@ public class ToggleDeviceCommandHandler(IAppDbContext dbContext, ISender sender)
     {
         var device = await dbContext
             .Devices.AsNoTracking()
+            .Include(d => d.LiveState)
             .FirstOrDefaultAsync(
                 device =>
                     device.Id == request.DeviceId
@@ -50,10 +51,11 @@ public class ToggleDeviceCommandHandler(IAppDbContext dbContext, ISender sender)
                 new Error("Device.NotFound", "Dispositivo não encontrado ou sem permissão.")
             );
 
+        var currentIsOn = device.LiveState != null ? device.LiveState.IsOn : device.IsOn;
         var traceId = Activity.Current?.Id ?? Guid.NewGuid().ToString();
 
         return await sender.Send(
-            new SetDeviceStateCommand(request.DeviceId, request.FirebaseUid, !device.IsOn, traceId),
+            new SetDeviceStateCommand(request.DeviceId, request.FirebaseUid, !currentIsOn, traceId),
             cancellationToken
         );
     }

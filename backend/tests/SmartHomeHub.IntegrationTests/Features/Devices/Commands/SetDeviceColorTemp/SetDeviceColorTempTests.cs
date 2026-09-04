@@ -76,8 +76,10 @@ public class SetDeviceColorTempTests(IntegrationTestWebAppFactory factory)
 
         var physicalDevice = await DbContext
             .Devices.AsNoTracking()
+            .Include(d => d.LiveState)
             .FirstAsync(d => d.Id == device.Id, TestContext.Current.CancellationToken);
-        physicalDevice.ColorTempPercent.Should().Be(70);
+        physicalDevice.LiveState.Should().NotBeNull();
+        physicalDevice.LiveState!.Attributes.ColorTempPercent.Should().Be(70);
 
         var getResponse = await Client.GetAsync(
             $"/api/devices/{device.Id}",
@@ -120,9 +122,10 @@ public class SetDeviceColorTempTests(IntegrationTestWebAppFactory factory)
 
         var physicalDevice = await DbContext
             .Devices.AsNoTracking()
+            .Include(d => d.LiveState)
             .FirstAsync(d => d.Id == device.Id, TestContext.Current.CancellationToken);
-        physicalDevice
-            .ColorTempPercent.Should()
+        (physicalDevice.LiveState?.Attributes.ColorTempPercent)
+            .Should()
             .BeNull("o comando falhou — não deve gravar um valor que o hardware não confirmou.");
     }
 

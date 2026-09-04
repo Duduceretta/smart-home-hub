@@ -54,5 +54,6 @@ public class Device : IAuditableEntity, ISoftDeletable
 
     public User User { get; set; } = null!;
     public Room? Room { get; set; }
+    public DeviceLiveState? LiveState { get; set; }
     public ICollection<DeviceGroup> Groups { get; set; } = [];
 }

@@ -8,6 +8,7 @@ using SmartHomeHub.Application.Features.Dashboards.ActivityLog;
 using SmartHomeHub.Domain.Common.Constants;
 using SmartHomeHub.Domain.Entities;
 using SmartHomeHub.Domain.Enums;
+using SmartHomeHub.Domain.ValueObjects;
 
 namespace SmartHomeHub.Infrastructure.BackgroundJobs;
 
@@ -55,6 +56,7 @@ public sealed class DeviceHealthCheckWorker(
         var candidates = await dbContext
             .Devices.Include(device => device.User)
             .Include(device => device.Room)
+            .Include(device => device.LiveState)
             .Where(device => device.Configuration.IpAddress != null)
             .ToListAsync(cancellationToken);
 
@@ -84,15 +86,38 @@ public sealed class DeviceHealthCheckWorker(
 
         foreach (var (device, isOnline) in probeResults)
         {
-            if (device.IsOnline == isOnline)
+            var liveState = device.LiveState;
+            if (liveState == null)
+            {
+                liveState = new DeviceLiveState
+                {
+                    DeviceId = device.Id,
+                    IsOn = device.IsOn,
+                    IsOnline = device.IsOnline,
+                    LastSeenAt = device.LastSeenAt,
+                    Attributes = new DeviceLiveStateAttributes
+                    {
+                        Brightness = device.Brightness,
+                        ColorHex = device.ColorHex,
+                        ColorTempPercent = device.ColorTempPercent,
+                    },
+                };
+                device.LiveState = liveState;
+                dbContext.DeviceLiveStates.Add(liveState);
+            }
+
+            var currentOnline = liveState.IsOnline;
+            if (currentOnline == isOnline)
             {
                 continue;
             }
 
             device.IsOnline = isOnline;
+            liveState.IsOnline = isOnline;
             if (isOnline)
             {
                 device.LastSeenAt = DateTimeOffset.UtcNow;
+                liveState.LastSeenAt = device.LastSeenAt;
             }
 
             changed.Add(device);
@@ -105,10 +130,11 @@ public sealed class DeviceHealthCheckWorker(
 
         foreach (var device in changed)
         {
+            var liveState = device.LiveState!;
             var (title, description) = ActivityLogMessages.DeviceConnectivityChanged(
                 device.Name,
                 device.Room?.Name,
-                device.IsOnline
+                liveState.IsOnline
             );
 
             dbContext.SystemEvents.Add(
@@ -116,19 +142,19 @@ public sealed class DeviceHealthCheckWorker(
                 {
                     UserId = device.UserId,
                     DeviceId = device.Id,
-                    EventType = device.IsOnline
+                    EventType = liveState.IsOnline
                         ? SystemEventTypes.DeviceOnline
                         : SystemEventTypes.DeviceOffline,
                     Title = title,
                     Description = description,
-                    Severity = device.IsOnline ? EventSeverity.Info : EventSeverity.Warning,
+                    Severity = liveState.IsOnline ? EventSeverity.Info : EventSeverity.Warning,
                     Source = EventSource.System,
                     DeviceName = device.Name,
                     RoomId = device.RoomId,
                     RoomName = device.Room?.Name,
-                    OldValue = device.IsOnline ? "offline" : "online",
-                    NewValue = device.IsOnline ? "online" : "offline",
-                    IsAlert = !device.IsOnline,
+                    OldValue = liveState.IsOnline ? "offline" : "online",
+                    NewValue = liveState.IsOnline ? "online" : "offline",
+                    IsAlert = !liveState.IsOnline,
                     Timestamp = DateTimeOffset.UtcNow,
                 }
             );
@@ -138,17 +164,18 @@ public sealed class DeviceHealthCheckWorker(
 
         foreach (var device in changed)
         {
+            var liveState = device.LiveState!;
             logger.LogInformation(
                 "Dispositivo {DeviceId} mudou para {Status}",
                 device.Id,
-                device.IsOnline ? "online" : "offline"
+                liveState.IsOnline ? "online" : "offline"
             );
 
             await notificationService.NotifyDeviceStatusChangedAsync(
                 device.User.ExternalAuthUid,
                 device.Id,
-                device.IsOn,
-                device.IsOnline,
+                liveState.IsOn,
+                liveState.IsOnline,
                 cancellationToken
             );
         }

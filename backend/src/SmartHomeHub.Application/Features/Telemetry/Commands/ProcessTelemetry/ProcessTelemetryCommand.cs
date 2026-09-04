@@ -9,6 +9,7 @@ using SmartHomeHub.Domain.Common.Constants;
 using SmartHomeHub.Domain.Common.Primitives;
 using SmartHomeHub.Domain.Entities;
 using SmartHomeHub.Domain.Enums;
+using SmartHomeHub.Domain.ValueObjects;
 
 namespace SmartHomeHub.Application.Features.Telemetry.Commands.ProcessTelemetry;
 
@@ -66,6 +67,7 @@ public class ProcessTelemetryCommandHandler(
             var device = await dbContext
                 .Devices.Include(device => device.User)
                 .Include(device => device.Room)
+                .Include(device => device.LiveState)
                 .FirstOrDefaultAsync(device => device.ExternalId == externalId, cancellationToken);
 
             if (device == null)
@@ -75,13 +77,33 @@ public class ProcessTelemetryCommandHandler(
                 );
             }
 
-            var nowUtc = DateTimeOffset.UtcNow;
-            var wasOn = device.IsOn;
-            var wasOnline = device.IsOnline;
+            var liveState = device.LiveState;
+            if (liveState == null)
+            {
+                liveState = new DeviceLiveState
+                {
+                    DeviceId = device.Id,
+                    IsOn = device.IsOn,
+                    IsOnline = device.IsOnline,
+                    LastSeenAt = device.LastSeenAt,
+                    Attributes = new DeviceLiveStateAttributes
+                    {
+                        Brightness = device.Brightness,
+                        ColorHex = device.ColorHex,
+                        ColorTempPercent = device.ColorTempPercent,
+                    },
+                };
+                device.LiveState = liveState;
+                dbContext.DeviceLiveStates.Add(liveState);
+            }
 
-            device.IsOn = telemetry.IsOn;
-            device.IsOnline = true;
-            device.LastSeenAt = nowUtc;
+            var nowUtc = DateTimeOffset.UtcNow;
+            var wasOn = liveState.IsOn;
+            var wasOnline = liveState.IsOnline;
+
+            liveState.IsOn = telemetry.IsOn;
+            liveState.IsOnline = true;
+            liveState.LastSeenAt = nowUtc;
 
             if (!string.IsNullOrWhiteSpace(telemetry.IpAddress))
             {
@@ -102,15 +124,15 @@ public class ProcessTelemetryCommandHandler(
 
             dbContext.DeviceTelemetryLogs.Add(telemetryLog);
 
-            var statusChanged = wasOn != device.IsOn || !wasOnline;
+            var statusChanged = wasOn != liveState.IsOn || !wasOnline;
 
             if (statusChanged)
             {
                 var (title, description) = ActivityLogMessages.DeviceStatusChanged(
                     device.Name,
                     device.Room?.Name,
-                    device.IsOn,
-                    device.IsOnline
+                    liveState.IsOn,
+                    liveState.IsOnline
                 );
 
                 dbContext.SystemEvents.Add(
@@ -127,7 +149,7 @@ public class ProcessTelemetryCommandHandler(
                         RoomId = device.RoomId,
                         RoomName = device.Room?.Name,
                         OldValue = !wasOnline ? "offline" : (wasOn ? "on" : "off"),
-                        NewValue = device.IsOn ? "on" : "off",
+                        NewValue = liveState.IsOn ? "on" : "off",
                         IsAlert = false,
                         Timestamp = nowUtc,
                     }
@@ -142,7 +164,7 @@ public class ProcessTelemetryCommandHandler(
                 new TelemetryProcessedEvent(
                     device.Id,
                     device.User.ExternalAuthUid,
-                    device.IsOn,
+                    liveState.IsOn,
                     telemetry.PowerUsageWatts,
                     telemetry.TemperatureCelsius,
                     traceId
@@ -155,8 +177,8 @@ public class ProcessTelemetryCommandHandler(
                 await notificationService.NotifyDeviceStatusChangedAsync(
                     device.User.ExternalAuthUid,
                     device.Id,
-                    device.IsOn,
-                    device.IsOnline,
+                    liveState.IsOn,
+                    liveState.IsOnline,
                     cancellationToken
                 );
             }

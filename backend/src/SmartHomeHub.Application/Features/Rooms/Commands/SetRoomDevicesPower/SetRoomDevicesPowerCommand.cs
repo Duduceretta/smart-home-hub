@@ -85,13 +85,15 @@ public class SetRoomDevicesPowerCommandHandler(IAppDbContext dbContext, ISender 
 
         var eligibleDeviceIds = await dbContext
             .Devices.AsNoTracking()
+            .Include(d => d.LiveState)
             .Where(device =>
                 device.RoomId == request.RoomId
                 && device.UserId == user.Id
                 && !device.IsDeleted
-                && device.IsOnline
+                && (device.LiveState != null ? device.LiveState.IsOnline : device.IsOnline)
                 && ActuatorTypes.Contains(device.Type)
-                && device.IsOn != request.DesiredState
+                && (device.LiveState != null ? device.LiveState.IsOn : device.IsOn)
+                    != request.DesiredState
             )
             .Select(device => device.Id)
             .ToListAsync(cancellationToken);

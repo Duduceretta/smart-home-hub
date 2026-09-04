@@ -76,8 +76,10 @@ public class SetDeviceBrightnessTests(IntegrationTestWebAppFactory factory)
 
         var physicalDevice = await DbContext
             .Devices.AsNoTracking()
+            .Include(d => d.LiveState)
             .FirstAsync(d => d.Id == device.Id, TestContext.Current.CancellationToken);
-        physicalDevice.Brightness.Should().Be(65);
+        physicalDevice.LiveState.Should().NotBeNull();
+        physicalDevice.LiveState!.Attributes.Brightness.Should().Be(65);
 
         var getResponse = await Client.GetAsync(
             $"/api/devices/{device.Id}",
@@ -120,9 +122,10 @@ public class SetDeviceBrightnessTests(IntegrationTestWebAppFactory factory)
 
         var physicalDevice = await DbContext
             .Devices.AsNoTracking()
+            .Include(d => d.LiveState)
             .FirstAsync(d => d.Id == device.Id, TestContext.Current.CancellationToken);
-        physicalDevice
-            .Brightness.Should()
+        (physicalDevice.LiveState?.Attributes.Brightness)
+            .Should()
             .BeNull("o comando falhou — não deve gravar um valor que o hardware não confirmou.");
     }
 

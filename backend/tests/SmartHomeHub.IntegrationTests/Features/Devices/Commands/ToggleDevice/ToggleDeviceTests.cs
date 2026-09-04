@@ -54,8 +54,17 @@ public class ToggleDeviceTests(IntegrationTestWebAppFactory factory) : BaseInteg
             },
         };
 
+        var liveState = new DeviceLiveState
+        {
+            DeviceId = device.Id,
+            IsOn = isOn,
+            IsOnline = false,
+        };
+        device.LiveState = liveState;
+
         DbContext.Users.Add(user);
         DbContext.Devices.Add(device);
+        DbContext.DeviceLiveStates.Add(liveState);
         await DbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         return (user, device);
@@ -195,10 +204,10 @@ public class ToggleDeviceTests(IntegrationTestWebAppFactory factory) : BaseInteg
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
 
-        var physicalDevice = await DbContext
-            .Devices.AsNoTracking()
-            .FirstAsync(d => d.Id == device.Id, TestContext.Current.CancellationToken);
-        physicalDevice
+        var liveState = await DbContext
+            .DeviceLiveStates.AsNoTracking()
+            .FirstAsync(s => s.DeviceId == device.Id, TestContext.Current.CancellationToken);
+        liveState
             .IsOn.Should()
             .BeTrue("mesmo com timeout residual do Cast, o toggle deve concluir.");
     }
@@ -296,8 +305,17 @@ public class ToggleDeviceTests(IntegrationTestWebAppFactory factory) : BaseInteg
             IsOn = false,
         };
 
+        var liveState = new DeviceLiveState
+        {
+            DeviceId = deviceId,
+            IsOn = false,
+            IsOnline = true,
+        };
+        device.LiveState = liveState;
+
         DbContext.Users.Add(user);
         DbContext.Devices.Add(device);
+        DbContext.DeviceLiveStates.Add(liveState);
         await DbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         var response1 = await Client.PostAsync(
@@ -308,18 +326,18 @@ public class ToggleDeviceTests(IntegrationTestWebAppFactory factory) : BaseInteg
 
         response1.StatusCode.Should().Be(HttpStatusCode.OK);
 
-        var physicalDeviceAfterFirstToggle = await DbContext
-            .Devices.AsNoTracking()
+        var liveStateAfterFirstToggle = await DbContext
+            .DeviceLiveStates.AsNoTracking()
             .FirstOrDefaultAsync(
-                device => device.Id == deviceId,
+                s => s.DeviceId == deviceId,
                 TestContext.Current.CancellationToken
             );
 
-        physicalDeviceAfterFirstToggle
+        liveStateAfterFirstToggle
             .Should()
-            .NotBeNull("O dispositivo deve continuar existindo após a primeira requisição.");
+            .NotBeNull("O live state deve continuar existindo após a primeira requisição.");
 
-        physicalDeviceAfterFirstToggle
+        liveStateAfterFirstToggle!
             .IsOn.Should()
             .BeTrue("O dispositivo começou 'false', deve ser alterado para 'true'.");
 
@@ -331,18 +349,18 @@ public class ToggleDeviceTests(IntegrationTestWebAppFactory factory) : BaseInteg
 
         response2.StatusCode.Should().Be(HttpStatusCode.OK);
 
-        var physicalDeviceAfterSecondToggle = await DbContext
-            .Devices.AsNoTracking()
+        var liveStateAfterSecondToggle = await DbContext
+            .DeviceLiveStates.AsNoTracking()
             .FirstOrDefaultAsync(
-                device => device.Id == deviceId,
+                s => s.DeviceId == deviceId,
                 TestContext.Current.CancellationToken
             );
 
-        physicalDeviceAfterSecondToggle
+        liveStateAfterSecondToggle
             .Should()
-            .NotBeNull("O dispositivo deve continuar existindo após a segunda requisição.");
+            .NotBeNull("O live state deve continuar existindo após a segunda requisição.");
 
-        physicalDeviceAfterSecondToggle
+        liveStateAfterSecondToggle!
             .IsOn.Should()
             .BeFalse("A segunda requisição deve inverter o 'true' de volta para 'false'.");
     }
@@ -397,5 +415,80 @@ public class ToggleDeviceTests(IntegrationTestWebAppFactory factory) : BaseInteg
 
         physicalDevice.Should().NotBeNull("O dispositivo do vizinho deve continuar existindo.");
         physicalDevice.IsOn.Should().BeFalse("O estado não pode ser alterado por terceiros.");
+    }
+
+    [Fact]
+    public async Task ToggleDevice_ShouldOnlyUpdateDeviceLiveStates_AndNotModifyDevices()
+    {
+        // ARRANGE: Cria um usuário e dispositivo com LiveState
+        var userId = Guid.NewGuid();
+        var user = new User
+        {
+            Id = userId,
+            Name = "Auditor DBA",
+            ExternalAuthUid = "firebase-token-123",
+        };
+
+        var deviceId = Guid.NewGuid();
+        var initialUpdatedAt = DateTimeOffset.UtcNow.AddMinutes(-10);
+        var device = new Device
+        {
+            Id = deviceId,
+            UserId = userId,
+            Name = "Relé Quente",
+            Brand = "Sonoff",
+            ExternalId = "MAC-HOT-PATH-1",
+            Type = DeviceType.Light,
+            IsOn = false,
+            UpdatedAt = initialUpdatedAt,
+        };
+
+        var liveState = new DeviceLiveState
+        {
+            DeviceId = deviceId,
+            IsOn = false,
+            IsOnline = true,
+        };
+        device.LiveState = liveState;
+
+        DbContext.Users.Add(user);
+        DbContext.Devices.Add(device);
+        DbContext.DeviceLiveStates.Add(liveState);
+        await DbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+        DbContext.ChangeTracker.Clear();
+
+        // ACT: Executa toggle (escrita quente)
+        var response = await Client.PostAsync(
+            $"/api/devices/{deviceId}/toggle",
+            null,
+            TestContext.Current.CancellationToken
+        );
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        // ASSERT: DeviceLiveStates foi atualizado
+        var updatedLiveState = await DbContext
+            .DeviceLiveStates.AsNoTracking()
+            .FirstAsync(s => s.DeviceId == deviceId, TestContext.Current.CancellationToken);
+
+        updatedLiveState.IsOn.Should().BeTrue("O LiveState DEVE ser atualizado para true.");
+
+        // ASSERT: Devices NÃO foi modificado (UpdatedAt permanece idêntico e IsOn original inalterado)
+        var unperturbedDevice = await DbContext
+            .Devices.AsNoTracking()
+            .FirstAsync(d => d.Id == deviceId, TestContext.Current.CancellationToken);
+
+        unperturbedDevice
+            .UpdatedAt.Should()
+            .BeCloseTo(
+                initialUpdatedAt,
+                TimeSpan.FromMilliseconds(1),
+                "a tabela Devices NÃO deve sofrer UPDATE na rota quente de toggle."
+            );
+        unperturbedDevice
+            .IsOn.Should()
+            .BeFalse(
+                "a tabela Devices mantém seu valor original e não sofre escrita na rota quente."
+            );
     }
 }

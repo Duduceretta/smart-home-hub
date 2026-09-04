@@ -36,8 +36,17 @@ public class ProcessTelemetryTests(IntegrationTestWebAppFactory factory)
             IsOn = false,
         };
 
+        var liveState = new DeviceLiveState
+        {
+            DeviceId = deviceId,
+            IsOn = false,
+            IsOnline = false,
+        };
+        device.LiveState = liveState;
+
         DbContext.Users.Add(user);
         DbContext.Devices.Add(device);
+        DbContext.DeviceLiveStates.Add(liveState);
         await DbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         var payloadJson = JsonSerializer.Serialize(
@@ -74,15 +83,18 @@ public class ProcessTelemetryTests(IntegrationTestWebAppFactory factory)
                 "O dispositivo deve continuar existindo após o processamento da telemetria."
             );
 
-        physicalDevice
-            .Should()
-            .NotBeNull(
-                "O dispositivo deve continuar existindo após o processamento da telemetria."
-            );
+        var persistedLiveState = await DbContext.DeviceLiveStates.FirstOrDefaultAsync(
+            s => s.DeviceId == deviceId,
+            TestContext.Current.CancellationToken
+        );
 
-        physicalDevice
+        persistedLiveState.Should().NotBeNull("O live state do dispositivo DEVE existir.");
+        persistedLiveState!
             .IsOn.Should()
-            .BeTrue("O handler deve espelhar o IsOn do payload para o Device.");
+            .BeTrue("O handler deve atualizar o IsOn do LiveState para true.");
+        persistedLiveState
+            .IsOnline.Should()
+            .BeTrue("O handler deve marcar o dispositivo como online no LiveState.");
 
         var telemetryLog = await DbContext.DeviceTelemetryLogs.FirstOrDefaultAsync(
             log => log.DeviceId == deviceId,
