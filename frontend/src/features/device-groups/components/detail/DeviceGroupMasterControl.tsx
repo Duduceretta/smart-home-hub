@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { Switch } from "@/core/components/ui/switch";
 import { useSyncedDeviceControl } from "@/core/hooks/useSyncedDeviceControl";
+import { useThrottledHubInvoke } from "@/core/hooks/useThrottledHubInvoke";
 import { cn } from "@/core/utils";
 import { useSetDeviceGroupBrightness } from "../../hooks/useSetDeviceGroupBrightness";
 import { useSetDeviceGroupPower } from "../../hooks/useSetDeviceGroupPower";
@@ -27,6 +28,15 @@ export function DeviceGroupMasterControl({
 	const { t } = useTranslation("device-groups");
 	const setPower = useSetDeviceGroupPower();
 	const setBrightness = useSetDeviceGroupBrightness();
+
+	// Preview em tempo real durante o arraste do slider coletivo — throttled a
+	// 90ms, espelhado pros outros clientes conectados via SignalR (evento
+	// "GroupControlPreview", ver useRealtimeListener). Complementar ao commit
+	// final via REST no onPointerUp (handleCommitBrightness, inalterado
+	// abaixo) — nunca o substitui.
+	const previewGroupBrightness = useThrottledHubInvoke<[string, number]>(
+		"PreviewGroupBrightness",
+	);
 
 	// Sincroniza com o brilho médio real vindo da API (GET inicial, refetch) —
 	// mesmo padrão já usado no brilho individual de LightControlPanel.tsx/
@@ -207,7 +217,11 @@ export function DeviceGroupMasterControl({
 							max={100}
 							value={collectiveBrightness}
 							disabled={isBrightnessPending || !isAnyOn}
-							onChange={(e) => setCollectiveBrightness(Number(e.target.value))}
+							onChange={(e) => {
+								const val = Number(e.target.value);
+								setCollectiveBrightness(val);
+								previewGroupBrightness(groupId, val);
+							}}
 							onPointerDown={() => setIsInteractingBrightness(true)}
 							onPointerUp={() => {
 								setIsInteractingBrightness(false);

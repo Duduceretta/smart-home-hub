@@ -5,6 +5,21 @@ import {
 } from "@microsoft/signalr";
 import { auth } from "./firebase";
 
+// Referência à conexão ativa (gerenciada por useRealtimeListener, o único
+// lugar que chama start()/stop()), pra permitir que OUTROS pontos da árvore
+// (ex: hooks de preview de arraste de slider) invoquem métodos do Hub sem
+// abrir uma segunda conexão WebSocket duplicada. null enquanto não há
+// conexão ativa (usuário deslogado, ainda conectando, ou conexão encerrada).
+let activeConnection: HubConnection | null = null;
+
+export function setActiveHubConnection(connection: HubConnection | null): void {
+	activeConnection = connection;
+}
+
+export function getActiveHubConnection(): HubConnection | null {
+	return activeConnection;
+}
+
 const BASE_API_URL: string =
 	import.meta.env.VITE_API_URL || "http://localhost:5252/api";
 

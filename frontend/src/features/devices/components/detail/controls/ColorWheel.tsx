@@ -7,6 +7,13 @@ interface ColorWheelProps {
 	/** Cor real persistida (`device.colorHex`) pra posicionar o thumb — null/undefined nasce em branco neutro (thumb no centro). */
 	value?: string | null;
 	onCommit: (hex: string) => void;
+	/**
+	 * Chamado a cada movimento durante o arraste (não throttled aqui — quem
+	 * chama, ex: `LightControlPanel`, já passa uma função throttled via
+	 * `useThrottledHubInvoke`). Puramente pro espelhamento visual em outros
+	 * clientes conectados — nunca substitui `onCommit` no `onPointerUp`.
+	 */
+	onPreview?: (hex: string) => void;
 }
 
 const DEFAULT_SIZE = 168;
@@ -36,6 +43,7 @@ export function ColorWheel({
 	disabled,
 	value,
 	onCommit,
+	onPreview,
 }: ColorWheelProps) {
 	const wheelRef = useRef<HTMLDivElement>(null);
 	// design-token-lint-ignore: cor real da lâmpada (dado de domínio), não decisão de estilo
@@ -79,6 +87,7 @@ export function ColorWheel({
 
 		setHue(nextHue);
 		setSaturation(nextSaturation);
+		onPreview?.(hsvToHex(nextHue, nextSaturation, 1));
 	};
 
 	const commit = () => {

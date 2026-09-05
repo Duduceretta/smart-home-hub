@@ -1,11 +1,16 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef } from "react";
-import { createSignalRConnection } from "@/core/lib/signalr";
+import {
+	createSignalRConnection,
+	setActiveHubConnection,
+} from "@/core/lib/signalr";
 import { Logger } from "@/core/logger/app.logger";
 import type { PagedResponse } from "@/core/types/pagination.types";
 import { useAuthStore } from "@/features/auth/store/useAuthStore";
 import { automationsKeys } from "@/features/automations/hooks/automations.keys";
 import { dashboardKeys } from "@/features/dashboard/hooks/dashboard.keys";
+import { deviceGroupsKeys } from "@/features/device-groups/hooks/device-groups.keys";
+import type { DeviceGroup } from "@/features/device-groups/types/device-groups.types";
 import { devicesKeys } from "@/features/devices/hooks/devices.keys";
 import type {
 	Device,
@@ -37,6 +42,26 @@ interface AutomationExecutionResultPayload {
 	success: boolean;
 	errorMessage: string | null;
 	traceId: string;
+}
+
+/**
+ * Eco de arraste de slider contínuo (brilho/cor/temperatura de cor) de UM
+ * dispositivo, emitido por OUTRO cliente conectado com a mesma conta —
+ * campos ausentes = não fazem parte deste frame (só o campo sendo
+ * arrastado no momento é enviado). Puramente visual: nunca dispara
+ * invalidação/refetch, só espelha a posição do slider.
+ */
+interface DeviceControlPreviewPayload {
+	deviceId: string;
+	brightnessPercent?: number;
+	colorHex?: string;
+	colorTempPercent?: number;
+}
+
+/** Mesmo racional de DeviceControlPreviewPayload, para o slider mestre de brilho coletivo de um grupo de dispositivos. */
+interface GroupControlPreviewPayload {
+	groupId: string;
+	brightnessPercent?: number;
 }
 
 export function useRealtimeListener(): void {
@@ -158,6 +183,67 @@ export function useRealtimeListener(): void {
 		);
 
 		connection.on(
+			"DeviceControlPreview",
+			(payload: DeviceControlPreviewPayload) => {
+				queryClient.setQueriesData<PagedResponse<Device>>(
+					{ queryKey: devicesKeys.lists() },
+					(oldData) => {
+						if (!oldData) return oldData;
+						return {
+							...oldData,
+							items: oldData.items.map((device) =>
+								device.id === payload.deviceId
+									? {
+											...device,
+											brightness:
+												payload.brightnessPercent ?? device.brightness,
+											colorHex: payload.colorHex ?? device.colorHex,
+											colorTempPercent:
+												payload.colorTempPercent ?? device.colorTempPercent,
+										}
+									: device,
+							),
+						};
+					},
+				);
+
+				queryClient.setQueryData<Device>(
+					devicesKeys.detail(payload.deviceId),
+					(oldDevice) => {
+						if (!oldDevice) return oldDevice;
+						return {
+							...oldDevice,
+							brightness: payload.brightnessPercent ?? oldDevice.brightness,
+							colorHex: payload.colorHex ?? oldDevice.colorHex,
+							colorTempPercent:
+								payload.colorTempPercent ?? oldDevice.colorTempPercent,
+						};
+					},
+				);
+			},
+		);
+
+		connection.on(
+			"GroupControlPreview",
+			(payload: GroupControlPreviewPayload) => {
+				const { brightnessPercent } = payload;
+				if (brightnessPercent === undefined) return;
+
+				queryClient.setQueriesData<DeviceGroup[]>(
+					{ queryKey: deviceGroupsKeys.lists() },
+					(oldData) => {
+						if (!oldData) return oldData;
+						return oldData.map((group) =>
+							group.id === payload.groupId
+								? { ...group, averageBrightness: brightnessPercent }
+								: group,
+						);
+					},
+				);
+			},
+		);
+
+		connection.on(
 			"AutomationExecutionResult",
 			(payload: AutomationExecutionResultPayload) => {
 				Logger.info("Evento SignalR: AutomationExecutionResult", payload);
@@ -214,8 +300,15 @@ export function useRealtimeListener(): void {
 				Logger.error("Falha ao conectar ao SignalR Hub", error);
 			});
 
+		// Exposta pra outros hooks (ex: useThrottledHubInvoke, usado pelo preview
+		// de arraste de slider) reaproveitarem a MESMA conexão, sem abrir um
+		// segundo WebSocket duplicado — este hook é o único dono do ciclo de
+		// vida (start/stop), os demais só leem a referência pra invocar métodos.
+		setActiveHubConnection(connection);
+
 		return () => {
 			clearTimeout(telemetryDebounceRef.current);
+			setActiveHubConnection(null);
 			connection.stop().catch((error: unknown) => {
 				Logger.warn("Erro ao encerrar conexão SignalR de forma limpa", error);
 			});

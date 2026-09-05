@@ -1,5 +1,7 @@
+import { HubConnectionState } from "@microsoft/signalr";
 import { HttpResponse, http } from "msw";
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { setActiveHubConnection } from "@/core/lib/signalr";
 import { createDeviceMock } from "@/testing/mocks/device.mock";
 import { server } from "@/testing/mocks/server";
 import {
@@ -67,6 +69,61 @@ function mockSliderGeometry(slider: HTMLElement) {
 }
 
 describe("LightControlPanel Integration Tests", () => {
+	afterEach(() => {
+		setActiveHubConnection(null);
+	});
+
+	it("LightControlPanel_DragInProgress_ShouldThrottleHubPreviewInvoke_AndStillCommitViaRestOnPointerUp", async () => {
+		// Arrange
+		mockWorkMode();
+		let capturedBody: unknown = null;
+		server.use(
+			http.put("*/api/devices/:id/brightness", async ({ request }) => {
+				capturedBody = await request.json();
+				return new HttpResponse(null, { status: 200 });
+			}),
+		);
+		const mockInvoke = vi.fn().mockResolvedValue(undefined);
+		setActiveHubConnection({
+			state: HubConnectionState.Connected,
+			invoke: mockInvoke,
+		} as never);
+
+		const device = createDeviceMock({
+			isOnline: true,
+			isOn: true,
+			brightness: 30,
+		});
+		renderWithProviders(<LightControlPanel device={device} />);
+		const slider = await screen.findByRole("button", { name: "Brilho" });
+		mockSliderGeometry(slider);
+
+		// Act — rajada de arraste rápida (não deve gerar 1 invocação por frame).
+		fireEvent.pointerDown(slider, { clientX: 40, pointerId: 1 });
+		fireEvent.pointerMove(slider, { clientX: 45, pointerId: 1, buttons: 1 });
+		fireEvent.pointerMove(slider, { clientX: 50, pointerId: 1, buttons: 1 });
+		fireEvent.pointerMove(slider, { clientX: 55, pointerId: 1, buttons: 1 });
+
+		// Assert — throttle (90ms) coalesce a rajada numa única invocação do Hub,
+		// sempre com o valor mais recente, bem menos que 1 por evento de pointermove.
+		await waitFor(() => {
+			expect(mockInvoke).toHaveBeenCalledTimes(1);
+		});
+		expect(mockInvoke).toHaveBeenCalledWith(
+			"PreviewDeviceBrightness",
+			device.id,
+			55,
+		);
+
+		// Act — solta o slider
+		fireEvent.pointerUp(slider, { pointerId: 1 });
+
+		// Assert — commit final via REST continua ocorrendo independente do Hub.
+		await waitFor(() => {
+			expect(capturedBody).toEqual({ brightnessPercent: 55 });
+		});
+	});
+
 	it("LightControlPanel_DeviceHasBrightness_ShouldInitializeSliderWithRemoteValue", async () => {
 		// Arrange
 		mockWorkMode();

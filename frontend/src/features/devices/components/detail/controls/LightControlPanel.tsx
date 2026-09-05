@@ -2,6 +2,7 @@ import { Lightbulb, Palette, Sun } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useSyncedDeviceControl } from "@/core/hooks/useSyncedDeviceControl";
+import { useThrottledHubInvoke } from "@/core/hooks/useThrottledHubInvoke";
 import { useDeviceWorkMode } from "../../../hooks/useDeviceWorkMode";
 import { useSetDeviceBrightness } from "../../../hooks/useSetDeviceBrightness";
 import { useSetDeviceColor } from "../../../hooks/useSetDeviceColor";
@@ -47,6 +48,20 @@ export function LightControlPanel({ device }: DeviceControlPanelProps) {
 	const isOn = device.isOn && isOnline;
 
 	const { mutate: toggleDevice, isPending: isToggling } = useToggleDevice();
+
+	// Preview em tempo real durante o arraste — throttled a 90ms, espelhado
+	// pros outros clientes conectados via SignalR (ver useRealtimeListener,
+	// evento "DeviceControlPreview"). Complementar ao commit final via REST
+	// no onPointerUp (rede de segurança, inalterado abaixo) — nunca o
+	// substitui. Ver useThrottledHubInvoke pro racional completo.
+	const previewBrightness = useThrottledHubInvoke<[string, number]>(
+		"PreviewDeviceBrightness",
+	);
+	const previewColorTemp = useThrottledHubInvoke<[string, number]>(
+		"PreviewDeviceColorTemp",
+	);
+	const previewColor =
+		useThrottledHubInvoke<[string, string]>("PreviewDeviceColor");
 
 	// --- Aba Branco/Cor (work_mode real) ---
 	const { data: remoteWorkMode, isLoading: isLoadingWorkMode } =
@@ -242,10 +257,15 @@ export function LightControlPanel({ device }: DeviceControlPanelProps) {
 						onPointerMove={(e) => {
 							if (!isOnline || e.buttons !== 1) return;
 							const rect = e.currentTarget.getBoundingClientRect();
-							const pct = Math.round(
-								((e.clientX - rect.left) / rect.width) * 100,
+							const pct = Math.max(
+								0,
+								Math.min(
+									100,
+									Math.round(((e.clientX - rect.left) / rect.width) * 100),
+								),
 							);
-							setBrightness(Math.max(0, Math.min(100, pct)));
+							setBrightness(pct);
+							previewBrightness(device.id, pct);
 						}}
 						onPointerUp={(e) => {
 							if (e.currentTarget.hasPointerCapture(e.pointerId)) {
@@ -314,10 +334,15 @@ export function LightControlPanel({ device }: DeviceControlPanelProps) {
 							onPointerMove={(e) => {
 								if (!isOnline || e.buttons !== 1) return;
 								const rect = e.currentTarget.getBoundingClientRect();
-								const pct = Math.round(
-									((e.clientX - rect.left) / rect.width) * 100,
+								const pct = Math.max(
+									0,
+									Math.min(
+										100,
+										Math.round(((e.clientX - rect.left) / rect.width) * 100),
+									),
 								);
-								setColorTemp(Math.max(0, Math.min(100, pct)));
+								setColorTemp(pct);
+								previewColorTemp(device.id, pct);
 							}}
 							onPointerUp={(e) => {
 								if (e.currentTarget.hasPointerCapture(e.pointerId)) {
@@ -354,6 +379,7 @@ export function LightControlPanel({ device }: DeviceControlPanelProps) {
 							disabled={!isOnline || isSettingColor}
 							value={colorHex}
 							onCommit={commitColor}
+							onPreview={(hex) => previewColor(device.id, hex)}
 						/>
 
 						<div className="flex flex-wrap items-center gap-1">
