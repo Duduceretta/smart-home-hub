@@ -17,6 +17,26 @@ Os métodos do hub hoje escutados são:
 | 🎵 **`DeviceMediaChanged`** | Atualiza o cache de mídia do dispositivo (TV/Chromecast); invalida o activity log só quando o título realmente muda. |
 | 🎧 **`SpotifyPlaybackChanged`** | Atualiza o cache de playback do Spotify; mesma lógica de invalidação condicional por mudança de título/estado. |
 | ⚡ **`AutomationExecutionResult`** | Invalida automações, activity log e o resumo de automações do dashboard — a execução já gravou um `SystemEvent` novo, então esses dados ficariam defasados até o próximo `staleTime` sem essa invalidação imediata. |
+| 🎚️ **`DeviceControlPreview`** / **`GroupControlPreview`** | Espelhamento de arraste de slider contínuo (brilho/cor/temperatura de cor) entre clientes conectados com a mesma conta — ver seção 1.1 abaixo. |
+
+**Não há `refetchInterval`/`setInterval` em nenhuma feature hoje** — toda atualização de estado ao vivo (dispositivos, mídia, Spotify, automações) é feita exclusivamente via os eventos SignalR acima; `useDevices`/`useDeviceMedia`/`useSpotifyPlayback`/`useSpotifyStatus` usam só `staleTime` fixo + fetch no mount. Essa decisão já foi auditada e confirmada — antes de reintroduzir qualquer polling client-side (inclusive um "keep-alive" de aplicação pra detectar offline mais rápido), ver `backend/docs/iot-drivers.md`, seção 2.5: uma investigação de bancada real já mediu que push espontâneo via sessão TCP Tuya cobre mudança via app/nuvem mas **não** cobre o caso mais comum (interruptor físico), e que manter sessão persistente por dispositivo pra viabilizar isso contradiz o TTL de 60s adotado deliberadamente — recomendação registrada foi não implementar.
+
+### 1.1. Preview em tempo real de sliders contínuos (brilho/cor/temperatura de cor)
+
+Diferente dos demais eventos da tabela acima (que refletem estado JÁ CONFIRMADO pelo hardware), `DeviceControlPreview`/`GroupControlPreview` são eco visual de um arraste EM ANDAMENTO por outro cliente conectado com a mesma conta (ex: dois moradores com o app aberto ao mesmo tempo) — nunca disparam `invalidateQueries`, só `setQueryData` direto:
+
+- `DeviceControlPreview` atualiza `brightness`/`colorHex`/`colorTempPercent` do dispositivo correspondente em `devicesKeys.lists()` e `devicesKeys.detail(id)` — só os campos presentes no payload (o campo sendo arrastado naquele frame; os demais ficam ausentes, não sobrescritos com `null`).
+- `GroupControlPreview` atualiza `averageBrightness` do grupo correspondente em `deviceGroupsKeys.lists()`.
+
+**Emissão (lado do cliente que está arrastando)**: `useThrottledHubInvoke` (`core/hooks/`) throttla a invocação do método do Hub (`PreviewDeviceBrightness`/`PreviewDeviceColor`/`PreviewDeviceColorTemp`/`PreviewGroupBrightness`) a ~90ms (faixa 80-100ms), sempre com o valor mais recente do frame — nunca uma fila dos intermediários. Usado em `LightControlPanel`/`ColorWheel` (individual) e `DeviceGroupMasterControl` (coletivo). Fire-and-forget: falha de invocação (conexão momentaneamente fora do ar, `Device.Busy` no backend) só é logada via `Logger.warn`, nunca interrompe o arraste nem mostra erro — o commit final via REST no `onPointerUp`/`onChangeEnd` (inalterado, `useSetDeviceBrightness`/etc.) continua sendo a única fonte de verdade sobre sucesso real.
+
+**Complementar à coalescência de 75ms do driver Tuya** (`TuyaLightCommandCoalescer`, backend) — o throttle de ~90ms no cliente reduz o volume de invocações ANTES de chegar no backend; a coalescência do driver funde o que ainda sobra do lado do hardware. Não competem: cada um resolve a mesma rajada em um ponto diferente do pipeline.
+
+**Atuadores discretos (toggle liga/desliga, trava, alarme) NÃO usam este padrão** — continuam confirmados só no clique/toque, sem throttle nem envio contínuo (rajada de toggle é desgaste mecânico real de relé, diferente de dimming PWM contínuo).
+
+**Conexão compartilhada**: `useThrottledHubInvoke` invoca na MESMA conexão gerenciada por `useRealtimeListener` (única dona do ciclo de vida start/stop), obtida via `getActiveHubConnection()`/`setActiveHubConnection()` (`core/lib/signalr.ts`) — nunca abre um segundo WebSocket.
+
+Ver `backend/docs/architecture.md`, seção "SignalR / Hub", pro racional completo do lado do servidor (reaproveitamento do mesmo Command/Handler do commit final, escopo isolado por dispositivo no caminho de grupo, tratamento de falha).
 
 **Resiliência de Conexão:** a conexão usa `withAutomaticReconnect` com uma política customizada — o array fixo padrão do SignalR desiste de reconectar de vez após a última tentativa, o que mataria o tempo real silenciosamente pro resto da sessão numa rede instável. A política customizada nunca retorna `null`, então tenta para sempre, com backoff limitado a 30s após a 5ª tentativa:
 

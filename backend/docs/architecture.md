@@ -218,7 +218,46 @@ O código deve ser autoadocumentado com nomes claros. Comentários (`///`) são 
 
 ---
 
-## 5. Organização do Workspace (Hoppscotch / Postman)
+## 5. SignalR / Hub
+
+### 5.1. `TelemetryHub` — grupos por usuário, eventos e métodos invocáveis
+
+Único hub da aplicação (`/hubs/telemetry`, `[Authorize]`), autenticado via Firebase JWT (`access_token` na query string, exigido pelo transporte WebSocket do SignalR). Toda conexão entra automaticamente no grupo `user_{firebaseUid}` (`OnConnectedAsync`/`OnDisconnectedAsync`) — cada usuário só recebe eventos da própria conta, nunca de outro.
+
+**Eventos emitidos para o cliente** (via `IRealtimeNotificationService`/`IHubContext<TelemetryHub>`, a partir de Handlers/Workers — nunca do próprio Hub, que só empurra os eventos de preview abaixo diretamente):
+
+| Evento | Disparado por |
+|---|---|
+| `DeviceStatusChanged` | Qualquer mudança de liga/desliga/conectividade (comando do usuário, automação, `DeviceHealthCheckWorker`, `TuyaDeviceStatePollingWorker`, LWT MQTT) |
+| `ReceiveTelemetryUpdate` | `ProcessTelemetryCommand` (watts/temperatura) |
+| `DeviceDiscovered` | `IDeviceDiscoveryManager` durante uma sessão de descoberta ativa |
+| `DeviceMediaChanged` / `SpotifyPlaybackChanged` | `DeviceStatePollingWorker` (TV/Spotify, 12s) |
+| `AutomationExecutionResult` | Execução de automação (sucesso/falha) |
+| `DeviceControlPreview` / `GroupControlPreview` | Ver seção 5.2 — espelhamento de arraste de slider |
+
+**Sem fila/replay**: `Clients.Group(...).SendAsync` é fire-and-forget — um evento perdido durante uma queda de conexão nunca é reenviado. O cliente reconcilia via `onreconnected`, forçando um refetch das queries relevantes (ver `frontend/docs/telemetry-and-state.md`).
+
+**Métodos invocáveis pelo cliente**: `StartDiscovery`/`StopDiscovery` (descoberta de dispositivos) e `PreviewDeviceBrightness`/`PreviewDeviceColor`/`PreviewDeviceColorTemp`/`PreviewGroupBrightness` (seção 5.2).
+
+### 5.2. Preview em tempo real de sliders contínuos (brilho/cor/temperatura de cor) — individual e de grupo
+
+**Problema**: o controle de slider era commit-on-release puro (`useSyncedDeviceControl` + `onPointerUp`, ver `frontend/docs/telemetry-and-state.md`) — sem feedback em tempo real durante o arraste, e sem visibilidade do arraste em andamento para outros clientes conectados com a mesma conta (ex: dois moradores com o app aberto).
+
+**Mecanismo**: durante o arraste, o front-end invoca `PreviewDeviceBrightness`/`PreviewDeviceColor`/`PreviewDeviceColorTemp`/`PreviewGroupBrightness` no Hub, throttled a ~90ms no cliente (ver `frontend/docs/telemetry-and-state.md`). Cada método:
+
+1. **Espelha primeiro, incondicionalmente**: `Clients.OthersInGroup($"user_{firebaseUid}")` (nunca o próprio remetente) recebe `DeviceControlPreview`/`GroupControlPreview` com o valor cru do frame — isso acontece ANTES de esperar qualquer resultado do comando. É só eco visual da posição do slider sendo arrastado, nunca confirmação de hardware, e por isso não depende do sucesso da escrita real (payloads só carregam o campo sendo arrastado naquele frame; os demais ficam ausentes, não `null`).
+2. **Flui pelo MESMO comando/handler do commit final**: `PreviewDeviceBrightness` dispara `SetDeviceBrightnessCommand` (idem `PreviewDeviceColor`/`PreviewDeviceColorTemp` e `SetDeviceColorCommand`/`SetDeviceColorTempCommand`), exatamente o que o REST `onPointerUp` já dispara — não existe um segundo caminho de escrita pro hardware. `PreviewGroupBrightness` reaproveita `SetDeviceGroupBrightnessCommand` tal como está, incluindo o fan-out paralelo com `IServiceScopeFactory`/scope isolado por dispositivo já existente ali (evita reintroduzir o bug de `DbContext` compartilhado entre dispositivos concorrentes).
+3. **Falha nunca é disruptiva**: um `Result.Failure` (Device.Busy/Offline) num frame intermediário não gera exceção — o método só termina. Exceções inesperadas (ex: `OperationCanceledException` por desconexão no meio do arraste) são engolidas e logadas em `Warning`, nunca propagadas como `HubException` pro remetente. O commit final via REST no `onPointerUp` continua sendo a única fonte de verdade sobre sucesso real.
+
+**Complementar, não redundante, à coalescência de 75ms do driver Tuya** (`TuyaLightCommandCoalescer`, ver `iot-drivers.md` seção 2.3): o throttle de ~90ms no cliente reduz o volume de invocações ANTES de chegar no backend; a coalescência last-value-wins do driver funde o que ainda sobra do lado do hardware. Os dois níveis resolvem a mesma rajada em pontos diferentes do pipeline, sem competir.
+
+**Escopo de grupo, deliberadamente limitado a brilho**: `PreviewGroupBrightness` é o único método de grupo hoje porque `DeviceGroupMasterControl` (front-end) só expõe um slider coletivo de brilho — não existe controle coletivo de cor/temperatura de cor na UI nem comando de grupo dedicado para esses campos ainda. Adicionar um exigiria primeiro criar o `SetDeviceGroup{Color,ColorTemp}Command` equivalente (mesmo padrão de `SetDeviceGroupBrightnessCommand`) antes de expor o preview.
+
+**Testado em** `DeviceControlPreviewHubTests` (`backend/tests/SmartHomeHub.IntegrationTests/Features/Devices/Control/`): espelhamento chega ao outro cliente e nunca ao remetente; grupo com múltiplos dispositivos não gera erro de concorrência de `DbContext`; dispositivo inexistente (`Result.Failure`) ainda assim espelha e não lança exceção.
+
+---
+
+## 6. Organização do Workspace (Hoppscotch / Postman)
 
 A coleção segue o ciclo de vida do recurso e cardinalidade (plural/singular):
 
