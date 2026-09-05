@@ -33,6 +33,14 @@ public class DeviceTelemetryLogConfiguration : IEntityTypeConfiguration<DeviceTe
 
         builder.Property(log => log.DeviceId).IsRequired();
 
-        builder.HasIndex(log => log.Timestamp).IsDescending();
+        // Sem índice EF explícito em Timestamp: o TimescaleDB já cria e
+        // mantém um índice nativo na dimensão de tempo da hypertable
+        // (DeviceTelemetryLogs_Timestamp_idx, sem prefixo IX_) para suportar
+        // chunk exclusion — o antigo IX_DeviceTelemetryLogs_Timestamp era
+        // redundância estrutural sobre a MESMA coluna, confirmada via
+        // pg_stat_user_indexes (zero scans em todos os chunks e na tabela
+        // mestre, enquanto o índice nativo tinha milhares) e removida em
+        // RemoveRedundantDeviceTelemetryLogsTimestampIndex (ver
+        // backend/docs/database-iot.md, seção 4).
     }
 }

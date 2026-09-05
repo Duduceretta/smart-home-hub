@@ -84,6 +84,12 @@ Diferente dos índices compostos, os índices monocoluna gerados pela migration 
 | `IX_SystemEvents_RoomId` | **NÃO** | **0 scans** em todos os chunks | **REMOVIDO / CANDIDATO A DROP** | Toda consulta de histórico por cômodo filtra por `UserId` e é melhor atendida pelo índice triplo `(UserId, RoomId, Timestamp DESC)`. O `EXPLAIN` confirmou que a presença de `IX_SystemEvents_RoomId` causava indecisão de custo no planejador do Postgres, gerando sort em memória no chunk 13, que é eliminado sem esse índice. |
 | `IX_SystemEvents_DeviceGroupId` | **NÃO** | **0 scans** nos chunks | **REMOVIDO / CANDIDATO A DROP** | Consultas sempre passam por `UserId` e utilizam `(UserId, DeviceGroupId, Timestamp DESC)`. |
 
+### 4.2.1. `DeviceTelemetryLogs` — remoção de índice de convenção EF redundante com o índice nativo da hypertable
+
+Diferente da cautela aplicada em 4.2 (métrica real acumulada antes de decidir), este caso é redundância **estrutural garantida**, não dependente de acumular mais tempo de uso: `DeviceTelemetryLogs` é hypertable com PK composta `(DeviceId, Timestamp)`, e o TimescaleDB cria e mantém sozinho um índice nativo na dimensão de tempo (`DeviceTelemetryLogs_Timestamp_idx`, sem prefixo `IX_`, gerenciado pela extensão) para suportar chunk exclusion. `DeviceTelemetryLogConfiguration.cs` também configurava explicitamente `IX_DeviceTelemetryLogs_Timestamp` — índice EF monocoluna cobrindo a **mesma** coluna que o índice nativo já cobre.
+
+Confirmado via `pg_stat_user_indexes`: `DeviceTelemetryLogs_Timestamp_idx` (nativo) tinha milhares de scans reais em múltiplos chunks; `IX_DeviceTelemetryLogs_Timestamp` (convenção EF) tinha **zero scans** em todos os chunks e na tabela mestre. Removido em `RemoveRedundantDeviceTelemetryLogsTimestampIndex` — a PK composta `(DeviceId, Timestamp)` não é afetada (`DropIndex` isolado, sem tocar em chave). Validado pós-migração via `pg_indexes`: só `DeviceTelemetryLogs_Timestamp_idx` e `PK_DeviceTelemetryLogs` restam na coluna `Timestamp`; `EXPLAIN` em queries filtradas por `Timestamp` (com e sem `DeviceId`) confirma Index Scan, sem Seq Scan.
+
 ### 4.3. Processo para revisão contínua em produção
 Rodar periodicamente (a cada 30+ dias de tráfego real):
 
