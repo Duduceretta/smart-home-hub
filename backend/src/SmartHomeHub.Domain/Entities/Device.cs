@@ -30,7 +30,7 @@ public class Device : IAuditableEntity, ISoftDeletable
     public DeviceType Type { get; set; }
     public IntegrationType IntegrationType { get; set; } = IntegrationType.NativeMqtt;
 
-    public DeviceConfiguration Configuration { get; set; } = new();
+    public IDeviceConfiguration Configuration { get; set; } = new MqttDeviceConfiguration();
 
     public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
     public DateTimeOffset? UpdatedAt { get; set; }

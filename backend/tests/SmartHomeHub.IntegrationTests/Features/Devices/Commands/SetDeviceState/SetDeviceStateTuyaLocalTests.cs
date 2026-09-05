@@ -1,10 +1,12 @@
 using System.Net;
 using FluentAssertions;
+using Mediator;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using NSubstitute;
 using NSubstitute.ClearExtensions;
 using SmartHomeHub.Application.Common.Interfaces;
+using SmartHomeHub.Application.Features.Devices.Commands.SetDeviceState;
 using SmartHomeHub.Domain.Entities;
 using SmartHomeHub.Domain.Enums;
 using SmartHomeHub.Domain.ValueObjects;
@@ -31,7 +33,7 @@ public class SetDeviceStateTuyaLocalTests(IntegrationTestWebAppFactory factory)
             ExternalId = "tuya-device-abc",
             Type = DeviceType.Light,
             IntegrationType = IntegrationType.TuyaLocal,
-            Configuration = new DeviceConfiguration
+            Configuration = new TuyaDeviceConfiguration
             {
                 IpAddress = "192.168.1.50",
                 LocalKey = "local-key-123",
@@ -111,7 +113,7 @@ public class SetDeviceStateTuyaLocalTests(IntegrationTestWebAppFactory factory)
             .Devices.AsNoTracking()
             .FirstAsync(d => d.Id == device.Id, TestContext.Current.CancellationToken);
         physicalDevice.Configuration.IpAddress.Should().Be("192.168.1.77");
-        physicalDevice.Configuration.DpsPowerKey.Should().Be("20");
+        ((TuyaDeviceConfiguration)physicalDevice.Configuration).DpsPowerKey.Should().Be("20");
     }
 
     [Fact]
@@ -161,7 +163,7 @@ public class SetDeviceStateTuyaLocalTests(IntegrationTestWebAppFactory factory)
         ResetTuyaService();
 
         var device = await SeedTuyaLampAsync(isOn: false);
-        device.Configuration.LocalKey = null;
+        ((TuyaDeviceConfiguration)device.Configuration).LocalKey = null;
         await DbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         var response = await Client.PostAsync(
@@ -171,6 +173,51 @@ public class SetDeviceStateTuyaLocalTests(IntegrationTestWebAppFactory factory)
         );
 
         response.StatusCode.Should().NotBe(HttpStatusCode.OK);
+
+        await _tuyaLocalControlService
+            .DidNotReceive()
+            .SetPowerStateAsync(
+                Arg.Any<TuyaDeviceConnectionInfo>(),
+                Arg.Any<bool>(),
+                Arg.Any<CancellationToken>()
+            );
+    }
+
+    // Simula dado inconsistente em memória (IntegrationType=TuyaLocal com
+    // Configuration de outra categoria) — nunca deveria acontecer via
+    // CreateDevice/UpdateDevice, e nem sobrevive a uma volta ao banco (a
+    // materialização sempre corrige o tipo concreto a partir de
+    // IntegrationType — ver DeviceConfigurationMaterializationInterceptor).
+    // Envia o Command direto pelo mesmo escopo/DbContext do Arrange (sem
+    // passar pelo endpoint HTTP, que abriria um DbContext novo e re-
+    // materializaria a Configuration certa) para exercitar o cenário só
+    // alcançável por um bug de código no meio de um mesmo request — o driver
+    // Tuya nunca deve operar silenciosamente sobre um tipo de Configuration
+    // que não é o seu.
+    [Fact]
+    public async Task SetDeviceState_TuyaLocalWithMismatchedConfigurationType_ShouldFailLoudly()
+    {
+        ResetTuyaService();
+
+        var device = await SeedTuyaLampAsync(isOn: false);
+        device.Configuration = new NetworkDeviceConfiguration { IpAddress = "192.168.1.50" };
+
+        var sender = Scope.ServiceProvider.GetRequiredService<ISender>();
+
+        var act = () =>
+            sender
+                .Send(
+                    new SetDeviceStateCommand(
+                        device.Id,
+                        "firebase-token-123",
+                        true,
+                        Guid.NewGuid().ToString()
+                    ),
+                    TestContext.Current.CancellationToken
+                )
+                .AsTask();
+
+        await act.Should().ThrowAsync<InvalidOperationException>();
 
         await _tuyaLocalControlService
             .DidNotReceive()

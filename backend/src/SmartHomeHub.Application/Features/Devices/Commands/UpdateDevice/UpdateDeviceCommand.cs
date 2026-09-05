@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using SmartHomeHub.Application.Common.Interfaces;
 using SmartHomeHub.Domain.Common.Primitives;
 using SmartHomeHub.Domain.Enums;
+using SmartHomeHub.Domain.ValueObjects;
 
 namespace SmartHomeHub.Application.Features.Devices.Commands.UpdateDevice;
 
@@ -105,7 +106,20 @@ public class UpdateDeviceCommandHandler(IAppDbContext dbContext)
         device.Brand = request.Brand;
         device.ExternalId = request.ExternalId;
         device.Type = request.Type;
-        device.IntegrationType = request.IntegrationType;
+
+        // Troca de protocolo (IntegrationType) reconstrói Configuration do
+        // zero na categoria certa (TuyaDeviceConfiguration/
+        // MqttDeviceConfiguration/NetworkDeviceConfiguration) — os campos da
+        // categoria antiga não fazem sentido pra nova, então não são
+        // preservados. Reaplicados abaixo os que o request trouxer.
+        if (device.IntegrationType != request.IntegrationType)
+        {
+            device.IntegrationType = request.IntegrationType;
+            device.Configuration = DeviceConfigurationTypeResolver.CreateDefault(
+                request.IntegrationType
+            );
+        }
+
         device.RoomId = request.RoomId;
 
         // Atualiza a configuração aninhada apenas quando um novo valor é
@@ -114,28 +128,37 @@ public class UpdateDeviceCommandHandler(IAppDbContext dbContext)
         if (!string.IsNullOrWhiteSpace(request.IpAddress))
             device.Configuration.IpAddress = request.IpAddress;
 
-        if (!string.IsNullOrWhiteSpace(request.MacAddress))
-            device.Configuration.MacAddress = request.MacAddress;
+        if (
+            device.Configuration is INetworkAddressableConfiguration networkConfiguration
+            && !string.IsNullOrWhiteSpace(request.MacAddress)
+        )
+            networkConfiguration.MacAddress = request.MacAddress;
 
-        if (!string.IsNullOrWhiteSpace(request.LocalKey))
-            device.Configuration.LocalKey = request.LocalKey;
+        if (device.Configuration is TuyaDeviceConfiguration tuyaConfiguration)
+        {
+            if (!string.IsNullOrWhiteSpace(request.LocalKey))
+                tuyaConfiguration.LocalKey = request.LocalKey;
 
-        if (!string.IsNullOrWhiteSpace(request.ProtocolVersion))
-            device.Configuration.ProtocolVersion = request.ProtocolVersion;
+            if (!string.IsNullOrWhiteSpace(request.ProtocolVersion))
+                tuyaConfiguration.ProtocolVersion = request.ProtocolVersion;
 
-        if (!string.IsNullOrWhiteSpace(request.DpsPowerKey))
-            device.Configuration.DpsPowerKey = request.DpsPowerKey;
+            if (!string.IsNullOrWhiteSpace(request.DpsPowerKey))
+                tuyaConfiguration.DpsPowerKey = request.DpsPowerKey;
 
-        if (!string.IsNullOrWhiteSpace(request.ClientKey))
-            device.Configuration.ClientKey = request.ClientKey;
+            // Ao contrário dos campos de string acima (onde "vazio" = preservar,
+            // já que o GET nunca devolve segredos como LocalKey/ClientKey), o
+            // formulário de edição sempre recebe e reenvia o tri-state atual de
+            // SupportsColor (via DeviceDto.SupportsColorOverride) — não é um campo
+            // sensível omitido do GET, então null aqui é uma escolha real do
+            // usuário ("voltar pra detecção automática"), não "campo não enviado".
+            tuyaConfiguration.SupportsColor = request.SupportsColor;
+        }
 
-        // Ao contrário dos campos de string acima (onde "vazio" = preservar,
-        // já que o GET nunca devolve segredos como LocalKey/ClientKey), o
-        // formulário de edição sempre recebe e reenvia o tri-state atual de
-        // SupportsColor (via DeviceDto.SupportsColorOverride) — não é um campo
-        // sensível omitido do GET, então null aqui é uma escolha real do
-        // usuário ("voltar pra detecção automática"), não "campo não enviado".
-        device.Configuration.SupportsColor = request.SupportsColor;
+        if (
+            device.Configuration is MqttDeviceConfiguration mqttConfiguration
+            && !string.IsNullOrWhiteSpace(request.ClientKey)
+        )
+            mqttConfiguration.ClientKey = request.ClientKey;
 
         await dbContext.SaveChangesAsync(cancellationToken);
 

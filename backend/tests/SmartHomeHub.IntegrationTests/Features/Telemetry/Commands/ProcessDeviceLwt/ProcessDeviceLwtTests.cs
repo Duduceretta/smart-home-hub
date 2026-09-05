@@ -34,7 +34,7 @@ public class ProcessDeviceLwtTests(IntegrationTestWebAppFactory factory)
             ExternalId = $"MAC-LWT-{Guid.NewGuid():N}",
             Type = DeviceType.Switch,
             IntegrationType = IntegrationType.NativeMqtt,
-            Configuration = new DeviceConfiguration(),
+            Configuration = new MqttDeviceConfiguration(),
             LiveState = new DeviceLiveState { IsOnline = true, IsOn = true },
         };
 
@@ -110,7 +110,7 @@ public class ProcessDeviceLwtTests(IntegrationTestWebAppFactory factory)
             ExternalId = $"MAC-LWT-{Guid.NewGuid():N}",
             Type = DeviceType.Sensor,
             IntegrationType = IntegrationType.NativeMqtt,
-            Configuration = new DeviceConfiguration(),
+            Configuration = new MqttDeviceConfiguration(),
             LiveState = new DeviceLiveState { IsOnline = false },
         };
         user.Devices.Add(device);

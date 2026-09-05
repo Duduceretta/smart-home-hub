@@ -73,7 +73,12 @@ public class SetDeviceColorTempCommandHandler(
                 )
             );
 
-        if (string.IsNullOrWhiteSpace(device.Configuration.LocalKey))
+        if (device.Configuration is not TuyaDeviceConfiguration tuyaConfig)
+            throw new InvalidOperationException(
+                $"Dispositivo {device.Id} tem IntegrationType=TuyaLocal mas Configuration é {device.Configuration.GetType().Name}."
+            );
+
+        if (string.IsNullOrWhiteSpace(tuyaConfig.LocalKey))
             return Result.Failure(
                 new Error(
                     "Device.MissingConfiguration",
@@ -83,11 +88,11 @@ public class SetDeviceColorTempCommandHandler(
 
         var connection = new TuyaDeviceConnectionInfo(
             device.ExternalId,
-            device.Configuration.LocalKey,
-            device.Configuration.IpAddress,
-            device.Configuration.DpsPowerKey,
-            device.Configuration.ProtocolVersion,
-            DpsColorTempKey: device.Configuration.DpsColorTempKey
+            tuyaConfig.LocalKey,
+            tuyaConfig.IpAddress,
+            tuyaConfig.DpsPowerKey,
+            tuyaConfig.ProtocolVersion,
+            DpsColorTempKey: tuyaConfig.DpsColorTempKey
         );
 
         var tuyaResult = await tuyaLocalControlService.SetColorTempAsync(
@@ -102,10 +107,10 @@ public class SetDeviceColorTempCommandHandler(
         var outcome = tuyaResult.Value;
 
         if (outcome.ResolvedIpAddress is not null)
-            device.Configuration.IpAddress = outcome.ResolvedIpAddress;
+            tuyaConfig.IpAddress = outcome.ResolvedIpAddress;
 
         if (outcome.ResolvedDpsColorTempKey is not null)
-            device.Configuration.DpsColorTempKey = outcome.ResolvedDpsColorTempKey;
+            tuyaConfig.DpsColorTempKey = outcome.ResolvedDpsColorTempKey;
 
         liveState.IsOnline = true;
         liveState.LastSeenAt = DateTimeOffset.UtcNow;

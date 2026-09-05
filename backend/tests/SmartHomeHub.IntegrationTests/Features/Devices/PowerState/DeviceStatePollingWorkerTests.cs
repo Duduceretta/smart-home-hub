@@ -66,7 +66,7 @@ public class DeviceStatePollingWorkerTests(IntegrationTestWebAppFactory factory)
             ExternalId = "ADB-POLL-001",
             Type = DeviceType.Television,
             IntegrationType = IntegrationType.AndroidTvAdb,
-            Configuration = new DeviceConfiguration { IpAddress = ipAddress },
+            Configuration = new NetworkDeviceConfiguration { IpAddress = ipAddress },
             LiveState = new DeviceLiveState { IsOn = false, IsOnline = true },
         };
         DbContext.Devices.Add(device);
@@ -108,7 +108,7 @@ public class DeviceStatePollingWorkerTests(IntegrationTestWebAppFactory factory)
             ExternalId = "ADB-POLL-002",
             Type = DeviceType.Television,
             IntegrationType = IntegrationType.AndroidTvAdb,
-            Configuration = new DeviceConfiguration { IpAddress = ipAddress },
+            Configuration = new NetworkDeviceConfiguration { IpAddress = ipAddress },
             LiveState = new DeviceLiveState { IsOn = true, IsOnline = true },
         };
         DbContext.Devices.Add(device);
@@ -144,7 +144,7 @@ public class DeviceStatePollingWorkerTests(IntegrationTestWebAppFactory factory)
             ExternalId = "SENSOR-POLL-001",
             Type = DeviceType.Sensor,
             IntegrationType = IntegrationType.EspHomeMqtt,
-            Configuration = new DeviceConfiguration { IpAddress = ipAddress },
+            Configuration = new MqttDeviceConfiguration { IpAddress = ipAddress },
             LiveState = new DeviceLiveState { IsOn = false, IsOnline = true },
         };
         DbContext.Devices.Add(device);
@@ -174,7 +174,7 @@ public class DeviceStatePollingWorkerTests(IntegrationTestWebAppFactory factory)
             ExternalId = "ADB-MEDIA-001",
             Type = DeviceType.Television,
             IntegrationType = IntegrationType.AndroidTvAdb,
-            Configuration = new DeviceConfiguration { IpAddress = ipAddress },
+            Configuration = new NetworkDeviceConfiguration { IpAddress = ipAddress },
             LiveState = new DeviceLiveState { IsOn = true, IsOnline = true },
         };
         DbContext.Devices.Add(device);
@@ -219,7 +219,7 @@ public class DeviceStatePollingWorkerTests(IntegrationTestWebAppFactory factory)
             ExternalId = "ADB-MEDIA-002",
             Type = DeviceType.Television,
             IntegrationType = IntegrationType.AndroidTvAdb,
-            Configuration = new DeviceConfiguration { IpAddress = ipAddress },
+            Configuration = new NetworkDeviceConfiguration { IpAddress = ipAddress },
             LiveState = new DeviceLiveState { IsOn = true, IsOnline = true },
         };
         DbContext.Devices.Add(device);
@@ -263,7 +263,7 @@ public class DeviceStatePollingWorkerTests(IntegrationTestWebAppFactory factory)
             ExternalId = "ADB-MEDIA-003",
             Type = DeviceType.Television,
             IntegrationType = IntegrationType.AndroidTvAdb,
-            Configuration = new DeviceConfiguration { IpAddress = ipAddress },
+            Configuration = new NetworkDeviceConfiguration { IpAddress = ipAddress },
             LiveState = new DeviceLiveState { IsOn = true, IsOnline = true },
         };
         DbContext.Devices.Add(device);
@@ -310,7 +310,7 @@ public class DeviceStatePollingWorkerTests(IntegrationTestWebAppFactory factory)
             ExternalId = "LG-MEDIA-001",
             Type = DeviceType.Television,
             IntegrationType = IntegrationType.LgWebOs,
-            Configuration = new DeviceConfiguration { IpAddress = ipAddress },
+            Configuration = new NetworkDeviceConfiguration { IpAddress = ipAddress },
             LiveState = new DeviceLiveState { IsOn = false, IsOnline = true },
         };
         DbContext.Devices.Add(device);

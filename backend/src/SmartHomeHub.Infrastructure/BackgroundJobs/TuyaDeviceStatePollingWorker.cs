@@ -84,17 +84,23 @@ public sealed class TuyaDeviceStatePollingWorker(
         var notificationService =
             scope.ServiceProvider.GetRequiredService<IRealtimeNotificationService>();
 
+        // Configuration.LocalKey não é traduzível pro SQL (propriedade
+        // escalar convertida via ValueConverter para jsonb — ver
+        // backend/docs/architecture.md) — filtrado em memória após o
+        // Where(IntegrationType) traduzível.
         var candidates = await dbContext
             .Devices.Include(device => device.User)
             .Include(device => device.Room)
             .Include(device => device.LiveState)
-            .Where(device =>
-                device.IntegrationType == IntegrationType.TuyaLocal
-                && device.Configuration.LocalKey != null
-            )
+            .Where(device => device.IntegrationType == IntegrationType.TuyaLocal)
             .ToListAsync(cancellationToken);
 
-        var pollable = candidates.Where(device => device.User != null).ToList();
+        var pollable = candidates
+            .Where(device =>
+                device.User != null
+                && device.Configuration is TuyaDeviceConfiguration { LocalKey: not null }
+            )
+            .ToList();
 
         if (pollable.Count == 0)
         {
@@ -109,15 +115,20 @@ public sealed class TuyaDeviceStatePollingWorker(
         var pollResults = await Task.WhenAll(
             pollable.Select(async device =>
             {
+                if (device.Configuration is not TuyaDeviceConfiguration tuyaConfig)
+                    throw new InvalidOperationException(
+                        $"Dispositivo {device.Id} tem IntegrationType=TuyaLocal mas Configuration é {device.Configuration.GetType().Name}."
+                    );
+
                 var connection = new TuyaDeviceConnectionInfo(
                     device.ExternalId,
-                    device.Configuration.LocalKey!,
-                    device.Configuration.IpAddress,
-                    device.Configuration.DpsPowerKey,
-                    device.Configuration.ProtocolVersion,
-                    device.Configuration.DpsBrightnessKey,
-                    device.Configuration.DpsColorKey,
-                    device.Configuration.DpsColorTempKey
+                    tuyaConfig.LocalKey!,
+                    tuyaConfig.IpAddress,
+                    tuyaConfig.DpsPowerKey,
+                    tuyaConfig.ProtocolVersion,
+                    tuyaConfig.DpsBrightnessKey,
+                    tuyaConfig.DpsColorKey,
+                    tuyaConfig.DpsColorTempKey
                 );
 
                 var result = await tuyaLocalControlService.GetStateForPollingAsync(
@@ -170,9 +181,12 @@ public sealed class TuyaDeviceStatePollingWorker(
                 device.Configuration.IpAddress = outcome.ResolvedIpAddress;
             }
 
-            if (outcome.ResolvedDpsPowerKey is not null)
+            if (
+                outcome.ResolvedDpsPowerKey is not null
+                && device.Configuration is TuyaDeviceConfiguration tuyaConfig
+            )
             {
-                device.Configuration.DpsPowerKey = outcome.ResolvedDpsPowerKey;
+                tuyaConfig.DpsPowerKey = outcome.ResolvedDpsPowerKey;
             }
 
             var liveState = device.LiveState;

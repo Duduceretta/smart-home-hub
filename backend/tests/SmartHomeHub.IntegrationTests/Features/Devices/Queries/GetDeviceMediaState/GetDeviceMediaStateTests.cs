@@ -33,7 +33,7 @@ public class GetDeviceMediaStateTests(IntegrationTestWebAppFactory factory)
             ExternalId = $"ADB-{Guid.NewGuid():N}",
             Type = DeviceType.Television,
             IntegrationType = IntegrationType.AndroidTvAdb,
-            Configuration = new DeviceConfiguration { IpAddress = ipAddress },
+            Configuration = new NetworkDeviceConfiguration { IpAddress = ipAddress },
         };
 
         DbContext.Users.Add(user);
@@ -88,7 +88,7 @@ public class GetDeviceMediaStateTests(IntegrationTestWebAppFactory factory)
             ExternalId = $"ADB-{Guid.NewGuid():N}",
             Type = DeviceType.Television,
             IntegrationType = IntegrationType.AndroidTvAdb,
-            Configuration = new DeviceConfiguration { IpAddress = "192.168.1.232" },
+            Configuration = new NetworkDeviceConfiguration { IpAddress = "192.168.1.232" },
         };
         DbContext.Users.Add(victimUser);
         DbContext.Devices.Add(victimDevice);

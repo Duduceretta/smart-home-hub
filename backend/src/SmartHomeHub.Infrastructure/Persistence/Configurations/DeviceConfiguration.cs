@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using SmartHomeHub.Domain.Entities;
+using SmartHomeHub.Infrastructure.Persistence.Conversions;
 
 namespace SmartHomeHub.Infrastructure.Persistence.Configurations;
 
@@ -24,13 +25,24 @@ public class DeviceConfiguration : IEntityTypeConfiguration<Device>
 
         builder.Property(device => device.UpdatedAt).IsRequired(false);
 
-        builder.OwnsOne(
-            device => device.Configuration,
-            config =>
-            {
-                config.ToJson();
-            }
-        );
+        // Tipagem por Value Object discriminada por IntegrationType (ver
+        // backend/docs/architecture.md, decisão "Configuration tipada por
+        // protocolo") — não é mais um Owned Type via ToJson() porque a
+        // coluna guarda um de três tipos concretos diferentes
+        // (TuyaDeviceConfiguration/MqttDeviceConfiguration/
+        // NetworkDeviceConfiguration), e o EF Core não escolhe tipo
+        // concreto de Owned/JSON a partir de uma coluna irmã sem
+        // discriminador embutido no próprio documento — o que este projeto
+        // deliberadamente evita (duplicaria IntegrationType como fonte de
+        // verdade). Ver DeviceConfigurationValueConverter,
+        // DeviceConfigurationValueComparer e
+        // DeviceConfigurationMaterializationInterceptor.
+        builder
+            .Property(device => device.Configuration)
+            .HasConversion(new DeviceConfigurationValueConverter())
+            .HasColumnName("Configuration")
+            .HasColumnType("jsonb")
+            .Metadata.SetValueComparer(new DeviceConfigurationValueComparer());
 
         builder.HasIndex(device => device.ExternalId).IsUnique().HasFilter("\"IsDeleted\" = false");
 

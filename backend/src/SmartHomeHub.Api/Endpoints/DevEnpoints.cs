@@ -373,22 +373,21 @@ public static class DevEndpoints
                         return Results.NotFound();
 
                     if (
-                        string.IsNullOrWhiteSpace(device.Configuration.IpAddress)
-                        || string.IsNullOrWhiteSpace(device.Configuration.LocalKey)
+                        device.Configuration is not TuyaDeviceConfiguration tuyaConfig
+                        || string.IsNullOrWhiteSpace(tuyaConfig.IpAddress)
+                        || string.IsNullOrWhiteSpace(tuyaConfig.LocalKey)
                     )
                         return Results.Problem(
-                            "Dispositivo sem IP ou LocalKey configurados.",
+                            "Dispositivo não é TuyaLocal, ou está sem IP/LocalKey configurados.",
                             statusCode: StatusCodes.Status400BadRequest
                         );
 
-                    var protocolClient = protocolClientFactory.Resolve(
-                        device.Configuration.ProtocolVersion
-                    );
+                    var protocolClient = protocolClientFactory.Resolve(tuyaConfig.ProtocolVersion);
 
                     var dps = await protocolClient.QueryStatusAsync(
-                        device.Configuration.IpAddress,
+                        tuyaConfig.IpAddress,
                         device.ExternalId,
-                        device.Configuration.LocalKey,
+                        tuyaConfig.LocalKey,
                         ct
                     );
 

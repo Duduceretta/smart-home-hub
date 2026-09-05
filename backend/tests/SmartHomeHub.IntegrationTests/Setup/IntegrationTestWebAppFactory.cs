@@ -8,6 +8,7 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using NSubstitute;
 using SmartHomeHub.Application.Common.Interfaces;
 using SmartHomeHub.Infrastructure.Persistence;
+using SmartHomeHub.Infrastructure.Persistence.Conversions;
 using Testcontainers.PostgreSql;
 
 namespace SmartHomeHub.IntegrationTests.Setup;
@@ -68,7 +69,9 @@ public class IntegrationTestWebAppFactory : WebApplicationFactory<Program>, IAsy
 
             services.AddDbContext<AppDbContext>(options =>
             {
-                options.UseNpgsql(_dbContainer.GetConnectionString());
+                options
+                    .UseNpgsql(_dbContainer.GetConnectionString())
+                    .AddInterceptors(DeviceConfigurationMaterializationInterceptor.Instance);
             });
 
             // Descoberta de dispositivos: substitui os scanners reais (rede/UDP/MQTT) por um

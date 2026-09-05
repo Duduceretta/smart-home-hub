@@ -92,6 +92,23 @@ public class CreateDeviceCommandHandler(
                 );
         }
 
+        var configuration = DeviceConfigurationTypeResolver.CreateDefault(request.IntegrationType);
+        configuration.IpAddress = request.IpAddress;
+
+        if (configuration is INetworkAddressableConfiguration networkConfiguration)
+            networkConfiguration.MacAddress = request.MacAddress;
+
+        if (configuration is TuyaDeviceConfiguration tuyaConfiguration)
+        {
+            tuyaConfiguration.LocalKey = request.LocalKey;
+            tuyaConfiguration.ProtocolVersion = request.ProtocolVersion;
+            tuyaConfiguration.DpsPowerKey = request.DpsPowerKey ?? "20";
+            tuyaConfiguration.SupportsColor = request.SupportsColor;
+        }
+
+        if (configuration is MqttDeviceConfiguration mqttConfiguration)
+            mqttConfiguration.ClientKey = request.ClientKey;
+
         var device = new Device
         {
             Name = request.Name,
@@ -101,16 +118,7 @@ public class CreateDeviceCommandHandler(
             IntegrationType = request.IntegrationType,
             RoomId = request.RoomId,
             UserId = user.Id,
-            Configuration = new DeviceConfiguration
-            {
-                IpAddress = request.IpAddress,
-                MacAddress = request.MacAddress,
-                LocalKey = request.LocalKey,
-                ProtocolVersion = request.ProtocolVersion,
-                DpsPowerKey = request.DpsPowerKey ?? "20",
-                ClientKey = request.ClientKey,
-                SupportsColor = request.SupportsColor,
-            },
+            Configuration = configuration,
         };
 
         var isOnline = false;

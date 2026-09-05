@@ -1,6 +1,7 @@
 namespace SmartHomeHub.Domain.ValueObjects;
 
-public class DeviceConfiguration
+/// <summary>Configuração específica de dispositivos Tuya via protocolo local (TCP/UDP, AES-GCM).</summary>
+public sealed class TuyaDeviceConfiguration : INetworkAddressableConfiguration
 {
     public string? IpAddress { get; set; }
     public string? MacAddress { get; set; }
@@ -29,10 +30,6 @@ public class DeviceConfiguration
     // pelo app real). Faixa 0-1000 assumida (padrão Tuya `temp_value`),
     // pendente de confirmação visual E2E completa (só um extremo testado).
     public string? DpsColorTempKey { get; set; } = "23";
-
-    public string? ClientKey { get; set; }
-    public string? CommandTopic { get; set; }
-    public string? StateTopic { get; set; }
 
     // Override manual — a detecção automática de suporte a RGB (ver
     // TuyaLocalControlService) só marca true depois que o DP de cor aparece

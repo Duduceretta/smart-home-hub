@@ -50,15 +50,22 @@ public sealed class DeviceHealthCheckWorker(
         var notificationService =
             scope.ServiceProvider.GetRequiredService<IRealtimeNotificationService>();
 
+        // Configuration.IpAddress não é traduzível pro SQL (propriedade
+        // escalar convertida via ValueConverter para jsonb, não mais um
+        // Owned Type via ToJson — ver backend/docs/architecture.md) — o
+        // filtro precisa acontecer em memória, depois de materializar.
         var candidates = await dbContext
             .Devices.Include(device => device.User)
             .Include(device => device.Room)
             .Include(device => device.LiveState)
-            .Where(device => device.Configuration.IpAddress != null)
             .ToListAsync(cancellationToken);
 
         var probeable = candidates
-            .Where(device => device.User != null && device.IntegrationType.IsNetworkProbeable())
+            .Where(device =>
+                device.User != null
+                && device.IntegrationType.IsNetworkProbeable()
+                && device.Configuration.IpAddress != null
+            )
             .ToList();
 
         if (probeable.Count == 0)

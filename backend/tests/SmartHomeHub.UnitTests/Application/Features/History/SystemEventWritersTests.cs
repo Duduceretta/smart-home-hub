@@ -187,7 +187,7 @@ public class SystemEventWritersTests
             ExternalId = "cam-01",
             Type = DeviceType.Camera,
             IntegrationType = IntegrationType.GoogleCast,
-            Configuration = new DeviceConfiguration { IpAddress = "192.168.1.50" },
+            Configuration = new NetworkDeviceConfiguration { IpAddress = "192.168.1.50" },
             LiveState = new DeviceLiveState { IsOnline = true },
         };
 

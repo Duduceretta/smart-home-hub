@@ -77,7 +77,12 @@ public class SetDeviceWorkModeCommandHandler(
                 )
             );
 
-        if (string.IsNullOrWhiteSpace(device.Configuration.LocalKey))
+        if (device.Configuration is not TuyaDeviceConfiguration tuyaConfig)
+            throw new InvalidOperationException(
+                $"Dispositivo {device.Id} tem IntegrationType=TuyaLocal mas Configuration é {device.Configuration.GetType().Name}."
+            );
+
+        if (string.IsNullOrWhiteSpace(tuyaConfig.LocalKey))
             return Result.Failure(
                 new Error(
                     "Device.MissingConfiguration",
@@ -87,10 +92,10 @@ public class SetDeviceWorkModeCommandHandler(
 
         var connection = new TuyaDeviceConnectionInfo(
             device.ExternalId,
-            device.Configuration.LocalKey,
-            device.Configuration.IpAddress,
-            device.Configuration.DpsPowerKey,
-            device.Configuration.ProtocolVersion
+            tuyaConfig.LocalKey,
+            tuyaConfig.IpAddress,
+            tuyaConfig.DpsPowerKey,
+            tuyaConfig.ProtocolVersion
         );
 
         var tuyaResult = await tuyaLocalControlService.SetWorkModeAsync(
@@ -103,7 +108,7 @@ public class SetDeviceWorkModeCommandHandler(
             return Result.Failure(tuyaResult.Error);
 
         if (tuyaResult.Value.ResolvedIpAddress is not null)
-            device.Configuration.IpAddress = tuyaResult.Value.ResolvedIpAddress;
+            tuyaConfig.IpAddress = tuyaResult.Value.ResolvedIpAddress;
 
         liveState.IsOnline = true;
         liveState.LastSeenAt = DateTimeOffset.UtcNow;

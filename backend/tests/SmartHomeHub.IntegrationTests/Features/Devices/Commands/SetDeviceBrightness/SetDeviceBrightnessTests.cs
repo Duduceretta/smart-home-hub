@@ -35,7 +35,7 @@ public class SetDeviceBrightnessTests(IntegrationTestWebAppFactory factory)
             ExternalId = "tuya-device-abc",
             Type = DeviceType.Light,
             IntegrationType = IntegrationType.TuyaLocal,
-            Configuration = new DeviceConfiguration
+            Configuration = new TuyaDeviceConfiguration
             {
                 IpAddress = "192.168.1.50",
                 LocalKey = "local-key-123",

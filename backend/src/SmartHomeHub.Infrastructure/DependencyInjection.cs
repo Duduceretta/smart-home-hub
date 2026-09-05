@@ -12,6 +12,7 @@ using SmartHomeHub.Infrastructure.Discovery.Scanners;
 using SmartHomeHub.Infrastructure.HealthCheck;
 using SmartHomeHub.Infrastructure.Messaging;
 using SmartHomeHub.Infrastructure.Persistence;
+using SmartHomeHub.Infrastructure.Persistence.Conversions;
 using SmartHomeHub.Infrastructure.Realtime.Services;
 using SmartHomeHub.Infrastructure.Scheduling;
 using SmartHomeHub.Infrastructure.Services;
@@ -27,7 +28,9 @@ public static class DependencyInjection
     )
     {
         services.AddDbContext<AppDbContext>(options =>
-            options.UseNpgsql(configuration.GetConnectionString("DefaultConnection"))
+            options
+                .UseNpgsql(configuration.GetConnectionString("DefaultConnection"))
+                .AddInterceptors(DeviceConfigurationMaterializationInterceptor.Instance)
         );
 
         services.AddScoped<IAppDbContext>(provider => provider.GetRequiredService<AppDbContext>());

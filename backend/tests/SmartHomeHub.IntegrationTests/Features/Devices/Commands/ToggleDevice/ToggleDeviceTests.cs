@@ -46,7 +46,7 @@ public class ToggleDeviceTests(IntegrationTestWebAppFactory factory) : BaseInteg
             ExternalId = $"CAST-{Guid.NewGuid():N}",
             Type = DeviceType.Television,
             IntegrationType = IntegrationType.GoogleCast,
-            Configuration = new DeviceConfiguration
+            Configuration = new NetworkDeviceConfiguration
             {
                 IpAddress = "192.168.1.150",
                 MacAddress = macAddress,

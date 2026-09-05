@@ -11,6 +11,7 @@ using SmartHomeHub.Domain.Common.Exceptions;
 using SmartHomeHub.Domain.Common.Primitives;
 using SmartHomeHub.Domain.Entities;
 using SmartHomeHub.Domain.Enums;
+using SmartHomeHub.Domain.ValueObjects;
 
 namespace SmartHomeHub.Application.Features.Devices.Commands.SetDeviceState;
 
@@ -122,7 +123,7 @@ public partial class SetDeviceStateCommandHandler(
                 if (IsTvMediaIntegration(device.IntegrationType))
                 {
                     var macAddress =
-                        device.Configuration.MacAddress
+                        (device.Configuration as INetworkAddressableConfiguration)?.MacAddress
                         ?? (LooksLikeMacAddress(device.ExternalId) ? device.ExternalId : null);
                     if (macAddress is not null)
                     {
@@ -164,7 +165,12 @@ public partial class SetDeviceStateCommandHandler(
         }
         else if (device.IntegrationType == IntegrationType.TuyaLocal)
         {
-            if (string.IsNullOrWhiteSpace(device.Configuration.LocalKey))
+            if (device.Configuration is not TuyaDeviceConfiguration tuyaConfig)
+                throw new InvalidOperationException(
+                    $"Dispositivo {device.Id} tem IntegrationType=TuyaLocal mas Configuration é {device.Configuration.GetType().Name}."
+                );
+
+            if (string.IsNullOrWhiteSpace(tuyaConfig.LocalKey))
             {
                 return Result.Failure(
                     new Error(
@@ -176,10 +182,10 @@ public partial class SetDeviceStateCommandHandler(
 
             var connection = new TuyaDeviceConnectionInfo(
                 device.ExternalId,
-                device.Configuration.LocalKey,
-                device.Configuration.IpAddress,
-                device.Configuration.DpsPowerKey,
-                device.Configuration.ProtocolVersion
+                tuyaConfig.LocalKey,
+                tuyaConfig.IpAddress,
+                tuyaConfig.DpsPowerKey,
+                tuyaConfig.ProtocolVersion
             );
 
             var tuyaResult = await tuyaLocalControlService.SetPowerStateAsync(
@@ -210,10 +216,10 @@ public partial class SetDeviceStateCommandHandler(
             confirmedIsOn = outcome.ConfirmedIsOn;
 
             if (outcome.ResolvedIpAddress is not null)
-                device.Configuration.IpAddress = outcome.ResolvedIpAddress;
+                tuyaConfig.IpAddress = outcome.ResolvedIpAddress;
 
             if (outcome.ResolvedDpsPowerKey is not null)
-                device.Configuration.DpsPowerKey = outcome.ResolvedDpsPowerKey;
+                tuyaConfig.DpsPowerKey = outcome.ResolvedDpsPowerKey;
 
             liveState.IsOnline = true;
             liveState.LastSeenAt = DateTimeOffset.UtcNow;

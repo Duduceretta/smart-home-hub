@@ -74,7 +74,12 @@ public class SetDeviceColorCommandHandler(
                 )
             );
 
-        if (string.IsNullOrWhiteSpace(device.Configuration.LocalKey))
+        if (device.Configuration is not TuyaDeviceConfiguration tuyaConfig)
+            throw new InvalidOperationException(
+                $"Dispositivo {device.Id} tem IntegrationType=TuyaLocal mas Configuration é {device.Configuration.GetType().Name}."
+            );
+
+        if (string.IsNullOrWhiteSpace(tuyaConfig.LocalKey))
             return Result.Failure(
                 new Error(
                     "Device.MissingConfiguration",
@@ -84,11 +89,11 @@ public class SetDeviceColorCommandHandler(
 
         var connection = new TuyaDeviceConnectionInfo(
             device.ExternalId,
-            device.Configuration.LocalKey,
-            device.Configuration.IpAddress,
-            device.Configuration.DpsPowerKey,
-            device.Configuration.ProtocolVersion,
-            DpsColorKey: device.Configuration.DpsColorKey
+            tuyaConfig.LocalKey,
+            tuyaConfig.IpAddress,
+            tuyaConfig.DpsPowerKey,
+            tuyaConfig.ProtocolVersion,
+            DpsColorKey: tuyaConfig.DpsColorKey
         );
 
         var tuyaResult = await tuyaLocalControlService.SetColorAsync(
@@ -103,15 +108,15 @@ public class SetDeviceColorCommandHandler(
         var outcome = tuyaResult.Value;
 
         if (outcome.ResolvedIpAddress is not null)
-            device.Configuration.IpAddress = outcome.ResolvedIpAddress;
+            tuyaConfig.IpAddress = outcome.ResolvedIpAddress;
 
         if (outcome.ResolvedDpsColorKey is not null)
-            device.Configuration.DpsColorKey = outcome.ResolvedDpsColorKey;
+            tuyaConfig.DpsColorKey = outcome.ResolvedDpsColorKey;
 
         // Detecção automática — só grava se o usuário nunca definiu o override
-        // manual explicitamente (null). Ver comentário em DeviceConfiguration.cs.
-        if (outcome.ResolvedSupportsColor == true && device.Configuration.SupportsColor is null)
-            device.Configuration.SupportsColor = true;
+        // manual explicitamente (null). Ver comentário em TuyaDeviceConfiguration.cs.
+        if (outcome.ResolvedSupportsColor == true && tuyaConfig.SupportsColor is null)
+            tuyaConfig.SupportsColor = true;
 
         liveState.IsOnline = true;
         liveState.LastSeenAt = DateTimeOffset.UtcNow;

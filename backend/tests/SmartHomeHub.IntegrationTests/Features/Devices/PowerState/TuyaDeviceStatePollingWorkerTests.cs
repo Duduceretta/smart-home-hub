@@ -77,7 +77,7 @@ public class TuyaDeviceStatePollingWorkerTests(IntegrationTestWebAppFactory fact
             ExternalId = externalId,
             Type = deviceType,
             IntegrationType = IntegrationType.TuyaLocal,
-            Configuration = new DeviceConfiguration
+            Configuration = new TuyaDeviceConfiguration
             {
                 IpAddress = "192.168.1.60",
                 LocalKey = "local-key-123",

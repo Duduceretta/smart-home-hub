@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using SmartHomeHub.Application.Common.Interfaces;
 using SmartHomeHub.Domain.Common.Primitives;
 using SmartHomeHub.Domain.Enums;
+using SmartHomeHub.Domain.ValueObjects;
 
 namespace SmartHomeHub.Application.Features.Devices.Queries.GetDeviceWorkMode;
 
@@ -57,19 +58,26 @@ public class GetDeviceWorkModeQueryHandler(
                 new Error("Device.NotFound", "Dispositivo não encontrado.")
             );
 
+        if (device.Type != DeviceType.Light || device.IntegrationType != IntegrationType.TuyaLocal)
+            return Result.Success(new DeviceWorkModeResponseDto(null));
+
+        // Consulta tolerante (ver doc do handler): tipo de Configuration
+        // incompatível com IntegrationType=TuyaLocal aqui é tratado como
+        // "sem work mode pra mostrar", não como bug fatal — ao contrário dos
+        // Commands que efetivamente operam o hardware Tuya (esses falham
+        // alto com exceção, nunca silenciosamente).
         if (
-            device.Type != DeviceType.Light
-            || device.IntegrationType != IntegrationType.TuyaLocal
-            || string.IsNullOrWhiteSpace(device.Configuration.LocalKey)
+            device.Configuration is not TuyaDeviceConfiguration tuyaConfig
+            || string.IsNullOrWhiteSpace(tuyaConfig.LocalKey)
         )
             return Result.Success(new DeviceWorkModeResponseDto(null));
 
         var connection = new TuyaDeviceConnectionInfo(
             device.ExternalId,
-            device.Configuration.LocalKey,
-            device.Configuration.IpAddress,
-            device.Configuration.DpsPowerKey,
-            device.Configuration.ProtocolVersion
+            tuyaConfig.LocalKey,
+            tuyaConfig.IpAddress,
+            tuyaConfig.DpsPowerKey,
+            tuyaConfig.ProtocolVersion
         );
 
         var tuyaResult = await tuyaLocalControlService.GetWorkModeAsync(

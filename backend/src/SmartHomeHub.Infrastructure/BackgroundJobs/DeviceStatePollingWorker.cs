@@ -81,16 +81,20 @@ public sealed class DeviceStatePollingWorker(
         var notificationService =
             scope.ServiceProvider.GetRequiredService<IRealtimeNotificationService>();
 
+        // Configuration.IpAddress não é traduzível pro SQL (propriedade
+        // escalar convertida via ValueConverter para jsonb — ver
+        // backend/docs/architecture.md) — filtrado em memória após o
+        // Where(Type) traduzível.
         var candidates = await dbContext
             .Devices.Include(device => device.User)
             .Include(device => device.Room)
             .Include(device => device.LiveState)
-            .Where(device =>
-                device.Type == DeviceType.Television && device.Configuration.IpAddress != null
-            )
+            .Where(device => device.Type == DeviceType.Television)
             .ToListAsync(cancellationToken);
 
-        var pollable = candidates.Where(device => device.User != null).ToList();
+        var pollable = candidates
+            .Where(device => device.User != null && device.Configuration.IpAddress != null)
+            .ToList();
 
         // O early-return de "nenhuma TV" não pode pular o polling do Spotify —
         // são fontes de mídia independentes (usuário pode só ter Spotify conectado,

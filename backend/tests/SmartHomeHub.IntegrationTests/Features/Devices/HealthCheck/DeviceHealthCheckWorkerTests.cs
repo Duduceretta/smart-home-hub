@@ -61,7 +61,7 @@ public class DeviceHealthCheckWorkerTests(IntegrationTestWebAppFactory factory)
             ExternalId = "CAST-OFFLINE-001",
             Type = DeviceType.Television,
             IntegrationType = IntegrationType.GoogleCast,
-            Configuration = new DeviceConfiguration { IpAddress = ipAddress },
+            Configuration = new NetworkDeviceConfiguration { IpAddress = ipAddress },
             LiveState = new DeviceLiveState { IsOnline = true },
         };
         DbContext.Devices.Add(device);
@@ -103,7 +103,7 @@ public class DeviceHealthCheckWorkerTests(IntegrationTestWebAppFactory factory)
             ExternalId = "CAST-UNCHANGED-001",
             Type = DeviceType.Television,
             IntegrationType = IntegrationType.GoogleCast,
-            Configuration = new DeviceConfiguration { IpAddress = ipAddress },
+            Configuration = new NetworkDeviceConfiguration { IpAddress = ipAddress },
             LiveState = new DeviceLiveState { IsOnline = true },
         };
         DbContext.Devices.Add(device);
@@ -139,7 +139,7 @@ public class DeviceHealthCheckWorkerTests(IntegrationTestWebAppFactory factory)
             ExternalId = "MQTT-SKIP-001",
             Type = DeviceType.Sensor,
             IntegrationType = IntegrationType.NativeMqtt,
-            Configuration = new DeviceConfiguration { IpAddress = ipAddress },
+            Configuration = new MqttDeviceConfiguration { IpAddress = ipAddress },
             LiveState = new DeviceLiveState { IsOnline = false },
         };
         DbContext.Devices.Add(device);
