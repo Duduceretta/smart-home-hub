@@ -58,8 +58,8 @@ public static class DependencyInjection
         services.AddTransient<IDeviceDiscoveryScanner, MqttDiscoveryScanner>();
         services.AddSingleton<IDeviceDiscoveryManager, DeviceDiscoveryManager>();
 
-        services.AddTransient<TuyaNetProtocolClient>();
-        services.AddTransient<ITuyaProtocolClientFactory, TuyaProtocolClientFactory>();
+        services.AddSingleton<TuyaNetProtocolClient>();
+        services.AddSingleton<ITuyaProtocolClientFactory, TuyaProtocolClientFactory>();
         // Singleton, não Transient: o semáforo por dispositivo e a coalescência
         // de comandos vivem em campos de instância (_deviceLocks, _pendingBatches)
         // — como Transient cria uma instância nova por resolução do DI (uma por

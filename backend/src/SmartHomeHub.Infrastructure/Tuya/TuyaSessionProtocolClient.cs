@@ -5,6 +5,8 @@ using System.Text.Json;
 using Microsoft.Extensions.Logging;
 using SmartHomeHub.Application.Common.Interfaces;
 
+using System.Collections.Concurrent;
+
 namespace SmartHomeHub.Infrastructure.Tuya;
 
 // Protocolo local Tuya v3.4 (frame 55AA, sessão HMAC-SHA256 + AES-ECB) e v3.5
@@ -17,7 +19,7 @@ namespace SmartHomeHub.Infrastructure.Tuya;
 // local_key real de um dispositivo do usuário — golden vectors usam sempre
 // credenciais fake, geradas com o tinytuya rodando localmente (nunca commitado
 // como dependência de produção).
-public sealed class TuyaSessionProtocolClient : ITuyaProtocolClient
+public sealed class TuyaSessionProtocolClient : ITuyaProtocolClient, IDisposable, IAsyncDisposable
 {
     private const int Port = 6668;
     private const int ConnectTimeoutMs = 2500;
@@ -41,24 +43,102 @@ public sealed class TuyaSessionProtocolClient : ITuyaProtocolClient
     private const uint Prefix6699 = 0x00006699;
     private static readonly byte[] Suffix6699 = [0x00, 0x00, 0x99, 0x66];
 
+    private static readonly TimeSpan DefaultSessionTtl = TimeSpan.FromSeconds(60);
+
     private readonly bool _useGcm; // false = v3.4, true = v3.5
     private readonly ILogger<TuyaSessionProtocolClient> _logger;
+    private readonly TimeSpan _sessionTtl;
 
     // Seams de teste: nonces fixos opcionais (produção usa RandomNumberGenerator).
     private readonly byte[]? _fixedLocalNonce;
     private readonly byte[]? _fixedGcmMessageIv;
+    private readonly Func<string, int, CancellationToken, Task<(TcpClient? Client, Stream Stream)>>? _streamFactoryForTests;
+
+    // Cache de sessões TCP autenticadas persistentes por TuyaDeviceId.
+    // A concorrência para o mesmo TuyaDeviceId é serializada pelo SemaphoreSlim
+    // já existente em TuyaLocalControlService._deviceLocks (sem duplicação de locks).
+    private readonly ConcurrentDictionary<string, TuyaSession> _sessions = new();
 
     public TuyaSessionProtocolClient(
         bool useGcm,
         ILogger<TuyaSessionProtocolClient> logger,
         byte[]? fixedLocalNonceForTests = null,
-        byte[]? fixedGcmMessageIvForTests = null
+        byte[]? fixedGcmMessageIvForTests = null,
+        TimeSpan? sessionTtlForTests = null,
+        Func<string, int, CancellationToken, Task<(TcpClient? Client, Stream Stream)>>? streamFactoryForTests = null
     )
     {
         _useGcm = useGcm;
         _logger = logger;
         _fixedLocalNonce = fixedLocalNonceForTests;
         _fixedGcmMessageIv = fixedGcmMessageIvForTests;
+        _sessionTtl = sessionTtlForTests ?? DefaultSessionTtl;
+        _streamFactoryForTests = streamFactoryForTests;
+    }
+
+    public int ActiveSessionCount => _sessions.Count;
+
+    public void PruneExpiredSessions()
+    {
+        var now = DateTime.UtcNow;
+        foreach (var (deviceId, session) in _sessions)
+        {
+            if (now - session.LastActiveUtc > _sessionTtl)
+            {
+                if (_sessions.TryRemove(deviceId, out var expiredSession))
+                {
+                    try
+                    {
+                        expiredSession.Dispose();
+                    }
+                    catch
+                    {
+                        // ignore disposal errors
+                    }
+                }
+            }
+        }
+    }
+
+    public void ClearSessions()
+    {
+        foreach (var (deviceId, session) in _sessions)
+        {
+            if (_sessions.TryRemove(deviceId, out var s))
+            {
+                try
+                {
+                    s.Dispose();
+                }
+                catch
+                {
+                    // ignore
+                }
+            }
+        }
+    }
+
+    public void Dispose()
+    {
+        ClearSessions();
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        foreach (var (deviceId, session) in _sessions)
+        {
+            if (_sessions.TryRemove(deviceId, out var s))
+            {
+                try
+                {
+                    await s.DisposeAsync();
+                }
+                catch
+                {
+                    // ignore
+                }
+            }
+        }
     }
 
     public async Task<IReadOnlyDictionary<int, object?>> QueryStatusAsync(
@@ -67,7 +147,14 @@ public sealed class TuyaSessionProtocolClient : ITuyaProtocolClient
         string localKey,
         CancellationToken cancellationToken
     ) =>
-        await ExecuteAsync(ipAddress, localKey, CmdDpQueryNew, "{}"u8.ToArray(), cancellationToken);
+        await ExecuteAsync(
+            ipAddress,
+            tuyaDeviceId,
+            localKey,
+            CmdDpQueryNew,
+            "{}"u8.ToArray(),
+            cancellationToken
+        );
 
     public Task<IReadOnlyDictionary<int, object?>> SetDpAsync(
         string ipAddress,
@@ -106,6 +193,7 @@ public sealed class TuyaSessionProtocolClient : ITuyaProtocolClient
         );
         return await ExecuteAsync(
             ipAddress,
+            tuyaDeviceId,
             localKey,
             CmdControlNew,
             System.Text.Encoding.UTF8.GetBytes(json),
@@ -115,69 +203,294 @@ public sealed class TuyaSessionProtocolClient : ITuyaProtocolClient
 
     private async Task<IReadOnlyDictionary<int, object?>> ExecuteAsync(
         string ipAddress,
+        string tuyaDeviceId,
         string localKey,
         int commandCode,
         byte[] commandPayload,
         CancellationToken cancellationToken
     )
     {
-        var localKeyBytes = System.Text.Encoding.UTF8.GetBytes(localKey);
+        PruneExpiredSessions();
 
-        using var tcpClient = new TcpClient();
-        // Desliga o algoritmo de Nagle: o protocolo Tuya é request-response
-        // síncrono com pacotes pequenos (handshake + comando, poucas dezenas
-        // a centenas de bytes) — Nagle ligado atrasaria o envio esperando
-        // acumular mais dados ou o ACK anterior, adicionando até ~40ms de
-        // latência por escrita nesse padrão de tráfego, sem benefício (não há
-        // throughput de bytes grandes aqui pra Nagle otimizar).
-        tcpClient.NoDelay = true;
-        using var connectCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-        connectCts.CancelAfter(ConnectTimeoutMs);
-        await tcpClient.ConnectAsync(ipAddress, Port, connectCts.Token);
+        if (_sessions.TryGetValue(tuyaDeviceId, out var cachedSession))
+        {
+            var isExpired = DateTime.UtcNow - cachedSession.LastActiveUtc > _sessionTtl;
+            var isEndpointChanged =
+                cachedSession.IpAddress != ipAddress || cachedSession.LocalKey != localKey;
 
-        using var stream = tcpClient.GetStream();
+            if (isExpired || isEndpointChanged)
+            {
+                _sessions.TryRemove(tuyaDeviceId, out _);
+                try
+                {
+                    await cachedSession.DisposeAsync();
+                }
+                catch
+                {
+                    // ignore disposal failure
+                }
+            }
+            else
+            {
+                try
+                {
+                    var result = await SendCommandOnSessionAsync(
+                        cachedSession,
+                        commandCode,
+                        commandPayload,
+                        cancellationToken
+                    );
+                    cachedSession.LastActiveUtc = DateTime.UtcNow;
+                    return result;
+                }
+                catch (Exception ex) when (IsRecoverableSocketException(ex, cancellationToken))
+                {
+                    _logger.LogWarning(
+                        ex,
+                        "Sessão TCP em cache para dispositivo Tuya {DeviceId} ({IpAddress}) falhou. Reconectando transparentemente...",
+                        tuyaDeviceId,
+                        ipAddress
+                    );
+                    _sessions.TryRemove(tuyaDeviceId, out _);
+                    try
+                    {
+                        await cachedSession.DisposeAsync();
+                    }
+                    catch
+                    {
+                        // ignore disposal failure
+                    }
+                }
+            }
+        }
 
-        var localNonce = _fixedLocalNonce ?? RandomNumberGenerator.GetBytes(16);
-        var gcmIv = _fixedGcmMessageIv; // null => cada frame GCM gera nonce próprio abaixo
-
-        var startFrame = BuildHandshakeStartFrame(
-            _useGcm,
-            localKeyBytes,
-            localNonce,
-            gcmIv ?? RandomNumberGenerator.GetBytes(12)
+        // Sem sessão em cache válida ou reconexão transparente necessária:
+        // Abre conexão TCP, realiza handshake de 3 vias completo e envia comando.
+        var freshSession = await CreateSessionAsync(
+            ipAddress,
+            tuyaDeviceId,
+            localKey,
+            cancellationToken
         );
-        await SendAsync(stream, startFrame, cancellationToken);
+        try
+        {
+            var result = await SendCommandOnSessionAsync(
+                freshSession,
+                commandCode,
+                commandPayload,
+                cancellationToken
+            );
+            freshSession.LastActiveUtc = DateTime.UtcNow;
+            _sessions[tuyaDeviceId] = freshSession;
+            return result;
+        }
+        catch
+        {
+            _sessions.TryRemove(tuyaDeviceId, out _);
+            try
+            {
+                await freshSession.DisposeAsync();
+            }
+            catch
+            {
+                // ignore disposal failure
+            }
+            throw;
+        }
+    }
 
-        var respFrame = await ReceiveFrameAsync(stream, cancellationToken);
-        var (remoteNonce, _) = ProcessHandshakeResponse(
-            _useGcm,
-            localKeyBytes,
-            localNonce,
-            respFrame
-        );
-
-        var finishFrame = BuildHandshakeFinishFrame(
-            _useGcm,
-            localKeyBytes,
-            remoteNonce,
-            gcmIv ?? RandomNumberGenerator.GetBytes(12)
-        );
-        await SendAsync(stream, finishFrame, cancellationToken);
-
-        var sessionKey = DeriveSessionKey(_useGcm, localKeyBytes, localNonce, remoteNonce);
+    private async Task<IReadOnlyDictionary<int, object?>> SendCommandOnSessionAsync(
+        TuyaSession session,
+        int commandCode,
+        byte[] commandPayload,
+        CancellationToken cancellationToken
+    )
+    {
+        var gcmIv = _fixedGcmMessageIv;
+        var seqno = session.NextSeqNo++;
 
         var commandFrame = BuildCommandFrame(
             _useGcm,
-            sessionKey,
+            session.SessionKey,
             commandCode,
             commandPayload,
-            seqno: 3,
+            seqno,
             gcmIv ?? RandomNumberGenerator.GetBytes(12)
         );
-        await SendAsync(stream, commandFrame, cancellationToken);
+        await SendAsync(session.Stream, commandFrame, cancellationToken);
 
-        var commandRespFrame = await ReceiveFrameAsync(stream, cancellationToken);
-        return ParseCommandResponse(_useGcm, sessionKey, commandRespFrame);
+        var commandRespFrame = await ReceiveFrameAsync(session.Stream, cancellationToken);
+        return ParseCommandResponse(_useGcm, session.SessionKey, commandRespFrame);
+    }
+
+    private async Task<TuyaSession> CreateSessionAsync(
+        string ipAddress,
+        string tuyaDeviceId,
+        string localKey,
+        CancellationToken cancellationToken
+    )
+    {
+        var (tcpClient, stream) = await OpenConnectionAsync(ipAddress, cancellationToken);
+        try
+        {
+            var localKeyBytes = System.Text.Encoding.UTF8.GetBytes(localKey);
+            var localNonce = _fixedLocalNonce ?? RandomNumberGenerator.GetBytes(16);
+            var gcmIv = _fixedGcmMessageIv;
+
+            var startFrame = BuildHandshakeStartFrame(
+                _useGcm,
+                localKeyBytes,
+                localNonce,
+                gcmIv ?? RandomNumberGenerator.GetBytes(12)
+            );
+            await SendAsync(stream, startFrame, cancellationToken);
+
+            var respFrame = await ReceiveFrameAsync(stream, cancellationToken);
+            var (remoteNonce, _) = ProcessHandshakeResponse(
+                _useGcm,
+                localKeyBytes,
+                localNonce,
+                respFrame
+            );
+
+            var finishFrame = BuildHandshakeFinishFrame(
+                _useGcm,
+                localKeyBytes,
+                remoteNonce,
+                gcmIv ?? RandomNumberGenerator.GetBytes(12)
+            );
+            await SendAsync(stream, finishFrame, cancellationToken);
+
+            var sessionKey = DeriveSessionKey(_useGcm, localKeyBytes, localNonce, remoteNonce);
+
+            return new TuyaSession
+            {
+                TcpClient = tcpClient,
+                Stream = stream,
+                SessionKey = sessionKey,
+                IpAddress = ipAddress,
+                LocalKey = localKey,
+                LastActiveUtc = DateTime.UtcNow,
+                NextSeqNo = 3,
+            };
+        }
+        catch
+        {
+            try
+            {
+                stream.Dispose();
+            }
+            catch
+            {
+                // ignore
+            }
+
+            try
+            {
+                tcpClient?.Dispose();
+            }
+            catch
+            {
+                // ignore
+            }
+            throw;
+        }
+    }
+
+    private async Task<(TcpClient? Client, Stream Stream)> OpenConnectionAsync(
+        string ipAddress,
+        CancellationToken cancellationToken
+    )
+    {
+        if (_streamFactoryForTests is not null)
+        {
+            return await _streamFactoryForTests(ipAddress, Port, cancellationToken);
+        }
+
+        var tcpClient = new TcpClient();
+        try
+        {
+            // Desliga o algoritmo de Nagle: o protocolo Tuya é request-response
+            // síncrono com pacotes pequenos (handshake + comando, poucas dezenas
+            // a centenas de bytes) — Nagle ligado atrasaria o envio esperando
+            // acumular mais dados ou o ACK anterior, adicionando até ~40ms de
+            // latência por escrita nesse padrão de tráfego, sem benefício.
+            tcpClient.NoDelay = true;
+            using var connectCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            connectCts.CancelAfter(ConnectTimeoutMs);
+            await tcpClient.ConnectAsync(ipAddress, Port, connectCts.Token);
+
+            return (tcpClient, tcpClient.GetStream());
+        }
+        catch
+        {
+            tcpClient.Dispose();
+            throw;
+        }
+    }
+
+    private static bool IsRecoverableSocketException(
+        Exception ex,
+        CancellationToken cancellationToken
+    )
+    {
+        if (cancellationToken.IsCancellationRequested)
+        {
+            return false;
+        }
+
+        return ex is IOException
+            or SocketException
+            or OperationCanceledException;
+    }
+
+    internal sealed class TuyaSession : IAsyncDisposable, IDisposable
+    {
+        public TcpClient? TcpClient { get; init; }
+        public required Stream Stream { get; init; }
+        public required byte[] SessionKey { get; init; }
+        public required string IpAddress { get; set; }
+        public required string LocalKey { get; set; }
+        public DateTime LastActiveUtc { get; set; }
+        public uint NextSeqNo { get; set; }
+
+        public void Dispose()
+        {
+            try
+            {
+                Stream.Dispose();
+            }
+            catch
+            {
+            }
+
+            try
+            {
+                TcpClient?.Dispose();
+            }
+            catch
+            {
+            }
+        }
+
+        public async ValueTask DisposeAsync()
+        {
+            try
+            {
+                await Stream.DisposeAsync();
+            }
+            catch
+            {
+            }
+
+            try
+            {
+                TcpClient?.Dispose();
+            }
+            catch
+            {
+            }
+        }
     }
 
     private async Task SendAsync(Stream stream, byte[] frame, CancellationToken ct)
@@ -337,6 +650,49 @@ public sealed class TuyaSessionProtocolClient : ITuyaProtocolClient
         return useGcm
             ? PackGcmFrame(commandCode, seqno, sessionKey, payload, gcmMessageIv, retcode: null)
             : PackHmacFrame(commandCode, seqno, sessionKey, Aes_EncryptEcb(sessionKey, payload));
+    }
+
+    public static byte[] BuildHandshakeResponseFrame(
+        bool useGcm,
+        byte[] localKey,
+        byte[] localNonce,
+        byte[] remoteNonce,
+        byte[]? gcmMessageIv = null
+    )
+    {
+        var hmac = HMACSHA256.HashData(localKey, localNonce);
+        var body = Concat(remoteNonce, hmac);
+        var iv = gcmMessageIv ?? new byte[12];
+        return useGcm
+            ? PackGcmFrame(CmdSessKeyNegResp, seqno: 1, localKey, body, iv, retcode: 0)
+            : PackHmacFrame(
+                CmdSessKeyNegResp,
+                seqno: 1,
+                localKey,
+                Concat(IntBE(0), Aes_EncryptEcb(localKey, body))
+            );
+    }
+
+    public static byte[] BuildCommandResponseFrame(
+        bool useGcm,
+        byte[] sessionKey,
+        int commandCode,
+        string jsonPayload,
+        uint seqno = 3,
+        byte[]? gcmMessageIv = null,
+        int retcode = 0
+    )
+    {
+        var plaintextPayload = System.Text.Encoding.UTF8.GetBytes(jsonPayload);
+        var iv = gcmMessageIv ?? new byte[12];
+        return useGcm
+            ? PackGcmFrame(commandCode, seqno, sessionKey, plaintextPayload, iv, retcode: retcode)
+            : PackHmacFrame(
+                commandCode,
+                seqno,
+                sessionKey,
+                Concat(IntBE(retcode), Aes_EncryptEcb(sessionKey, plaintextPayload))
+            );
     }
 
     private static readonly byte[] VersionHeader34 = Concat("3.4"u8.ToArray(), new byte[12]);
