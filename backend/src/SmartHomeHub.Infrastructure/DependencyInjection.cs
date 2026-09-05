@@ -77,7 +77,20 @@ public static class DependencyInjection
         services.AddDataProtection();
         services.AddSingleton<ISpotifyTokenCipher, SpotifyTokenCipher>();
         services.AddSingleton<ISpotifyOAuthStateStore, SpotifyOAuthStateStore>();
-        services.AddHttpClient<ISpotifyMediaService, SpotifyMediaService>();
+        services
+            .AddHttpClient<ISpotifyMediaService, SpotifyMediaService>()
+            .AddStandardResilienceHandler(options =>
+            {
+                options.AttemptTimeout.Timeout = TimeSpan.FromSeconds(5);
+                options.TotalRequestTimeout.Timeout = TimeSpan.FromSeconds(10);
+                options.CircuitBreaker.SamplingDuration = TimeSpan.FromSeconds(20);
+                options.CircuitBreaker.FailureRatio = 0.5;
+                options.CircuitBreaker.MinimumThroughput = 5;
+                options.CircuitBreaker.BreakDuration = TimeSpan.FromSeconds(30);
+                options.Retry.MaxRetryAttempts = 3;
+                options.Retry.BackoffType = Polly.DelayBackoffType.Exponential;
+                options.Retry.Delay = TimeSpan.FromMilliseconds(500);
+            });
 
         services.AddSingleton<IAutomationEventQueue, AutomationEventQueue>();
 
