@@ -124,6 +124,13 @@ public sealed class TuyaSessionProtocolClient : ITuyaProtocolClient
         var localKeyBytes = System.Text.Encoding.UTF8.GetBytes(localKey);
 
         using var tcpClient = new TcpClient();
+        // Desliga o algoritmo de Nagle: o protocolo Tuya é request-response
+        // síncrono com pacotes pequenos (handshake + comando, poucas dezenas
+        // a centenas de bytes) — Nagle ligado atrasaria o envio esperando
+        // acumular mais dados ou o ACK anterior, adicionando até ~40ms de
+        // latência por escrita nesse padrão de tráfego, sem benefício (não há
+        // throughput de bytes grandes aqui pra Nagle otimizar).
+        tcpClient.NoDelay = true;
         using var connectCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         connectCts.CancelAfter(ConnectTimeoutMs);
         await tcpClient.ConnectAsync(ipAddress, Port, connectCts.Token);

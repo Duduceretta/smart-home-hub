@@ -223,4 +223,87 @@ public class MqttServiceTests
                 Arg.Any<CancellationToken>()
             );
     }
+
+    [Fact]
+    public async Task StartAsync_ShouldConfigurePersistentSessionWithFixedClientIdAndNoDelay()
+    {
+        // Arrange
+        var sut = new MqttService(
+            Substitute.For<ILogger<MqttService>>(),
+            Substitute.For<IServiceScopeFactory>()
+        );
+
+        // Act
+        await sut.StartAsync(CancellationToken.None);
+
+        // Assert
+        var options = (MqttClientOptions)
+            typeof(MqttService)
+                .GetField("_options", BindingFlags.NonPublic | BindingFlags.Instance)!
+                .GetValue(sut)!;
+
+        options
+            .ClientId.Should()
+            .Be(
+                "SmartHomeHub_Backend",
+                "ClientId fixo é pré-requisito da sessão persistente — não pode ser gerado por conexão."
+            );
+        options.CleanSession.Should().BeFalse("sessão persistente exige CleanStart(false).");
+        options
+            .SessionExpiryInterval.Should()
+            .BeGreaterThan(
+                0,
+                "CleanStart(false) sozinho não basta em MQTT v5 — sem SessionExpiryInterval > 0 o broker descarta a sessão de qualquer forma."
+            );
+
+        options.ChannelOptions.Should().BeOfType<MqttClientTcpOptions>();
+        ((MqttClientTcpOptions)options.ChannelOptions!).NoDelay.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task ConfigureEvents_AfterBriefReconnect_ShouldStillResubscribeToWildcardTopic()
+    {
+        // Arrange — sessão persistente pode fazer o broker restaurar a
+        // subscription sozinho, mas o código deve continuar resubscrevendo em
+        // TODA reconexão (SUBSCRIBE é idempotente) — não deve pressupor que a
+        // sessão sempre foi retomada e pular a resubscrição.
+        var sut = new MqttService(
+            Substitute.For<ILogger<MqttService>>(),
+            Substitute.For<IServiceScopeFactory>()
+        );
+
+        var fakeClient = Substitute.For<IMqttClient>();
+        fakeClient
+            .SubscribeAsync(Arg.Any<MqttClientSubscribeOptions>(), Arg.Any<CancellationToken>())
+            .Returns(new MqttClientSubscribeResult(0, [], null, []));
+
+        Func<MqttClientConnectedEventArgs, Task>? connectedHandler = null;
+        fakeClient
+            .When(x => x.ConnectedAsync += Arg.Any<Func<MqttClientConnectedEventArgs, Task>>())
+            .Do(ci => connectedHandler = ci.Arg<Func<MqttClientConnectedEventArgs, Task>>());
+
+        typeof(MqttService)
+            .GetMethod("ConfigureEvents", BindingFlags.NonPublic | BindingFlags.Instance)!
+            .Invoke(sut, [fakeClient]);
+
+        connectedHandler.Should().NotBeNull();
+
+        // Act — simula: conecta, reconexão breve (sessão persistida), conecta de novo.
+        await connectedHandler!.Invoke(
+            new MqttClientConnectedEventArgs(new MqttClientConnectResult())
+        );
+        await connectedHandler!.Invoke(
+            new MqttClientConnectedEventArgs(new MqttClientConnectResult())
+        );
+
+        // Assert
+        await fakeClient
+            .Received(2)
+            .SubscribeAsync(
+                Arg.Is<MqttClientSubscribeOptions>(options =>
+                    options.TopicFilters.Count == 1 && options.TopicFilters[0].Topic == "home/#"
+                ),
+                Arg.Any<CancellationToken>()
+            );
+    }
 }
