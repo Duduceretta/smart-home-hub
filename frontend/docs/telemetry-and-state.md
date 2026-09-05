@@ -12,12 +12,14 @@ Os métodos do hub hoje escutados são:
 
 | Método do Hub | Ação no Estado |
 |---|---|
-| 🌡️ **`ReceiveTelemetryUpdate`** | Debounce de ~800ms para coalescer rajadas (um tick do worker pode disparar dezenas de eventos em poucos ms) antes de invalidar o overview do dashboard. |
+| 🌡️ **`ReceiveTelemetryUpdate`** | Debounce de ~800ms para coalescer rajadas (um tick do worker pode disparar dezenas de eventos em poucos ms). Invalida o overview do dashboard e, de forma direcionada aos IDs recebidos na rajada, o consumo de energia do dispositivo (`devicesKeys.energy`) e o clima/energia do cômodo associado (`roomsKeys.climate`, `roomsKeys.energy`). |
 | 🔌 **`DeviceStatusChanged`** | Atualiza cirurgicamente o cache de dispositivos (`setQueriesData`) e invalida o detalhe do dispositivo + overview do dashboard. |
 | 🎵 **`DeviceMediaChanged`** | Atualiza o cache de mídia do dispositivo (TV/Chromecast); invalida o activity log só quando o título realmente muda. |
 | 🎧 **`SpotifyPlaybackChanged`** | Atualiza o cache de playback do Spotify; mesma lógica de invalidação condicional por mudança de título/estado. |
 | ⚡ **`AutomationExecutionResult`** | Invalida automações, activity log e o resumo de automações do dashboard — a execução já gravou um `SystemEvent` novo, então esses dados ficariam defasados até o próximo `staleTime` sem essa invalidação imediata. |
 | 🎚️ **`DeviceControlPreview`** / **`GroupControlPreview`** | Espelhamento de arraste de slider contínuo (brilho/cor/temperatura de cor) entre clientes conectados com a mesma conta — ver seção 1.1 abaixo. |
+
+**Invalidação Direcionada de Telemetria**: Quando uma mensagem `ReceiveTelemetryUpdate` chega, ela carrega o `deviceId` (e opcionalmente `roomId`, se presente no payload ou resolvido via cache de dispositivos). O handler agrupa os identificadores únicos afetados durante a janela de 800ms de debounce e, ao expirar o timer, invalida pontualmente apenas as queries de energia daquele dispositivo (`devicesKeys.energies(deviceId)`) e o clima/energia do seu respectivo cômodo (`roomsKeys.climate(roomId)` e `roomsKeys.energy(roomId)`), além do `dashboardKeys.overview()`. Isso garante que telas de detalhe já abertas pelo usuário atualizem instantaneamente seus gráficos sem infligir refetch em cômodos ou dispositivos alheios.
 
 **Não há `refetchInterval`/`setInterval` em nenhuma feature hoje** — toda atualização de estado ao vivo (dispositivos, mídia, Spotify, automações) é feita exclusivamente via os eventos SignalR acima; `useDevices`/`useDeviceMedia`/`useSpotifyPlayback`/`useSpotifyStatus` usam só `staleTime` fixo + fetch no mount. Essa decisão já foi auditada e confirmada — antes de reintroduzir qualquer polling client-side (inclusive um "keep-alive" de aplicação pra detectar offline mais rápido), ver `backend/docs/iot-drivers.md`, seção 2.5: uma investigação de bancada real já mediu que push espontâneo via sessão TCP Tuya cobre mudança via app/nuvem mas **não** cobre o caso mais comum (interruptor físico), e que manter sessão persistente por dispositivo pra viabilizar isso contradiz o TTL de 60s adotado deliberadamente — recomendação registrada foi não implementar.
 

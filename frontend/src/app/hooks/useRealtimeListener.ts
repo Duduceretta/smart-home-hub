@@ -18,6 +18,7 @@ import type {
 } from "@/features/devices/types/devices.types";
 import { integrationsKeys } from "@/features/integrations/hooks/integrations.keys";
 import type { SpotifyPlaybackState } from "@/features/integrations/types/integrations.types";
+import { roomsKeys } from "@/features/rooms/hooks/rooms.keys";
 
 interface DeviceStatusChangedPayload {
 	deviceId: string;
@@ -31,6 +32,7 @@ interface DeviceMediaChangedPayload extends DeviceMediaState {
 
 interface TelemetryReceivedPayload {
 	deviceId: string;
+	roomId?: string | null;
 	powerUsageWatts: number | null;
 	temperatureCelsius: number | null;
 	timestamp: string;
@@ -69,6 +71,8 @@ export function useRealtimeListener(): void {
 	const isLoading = useAuthStore((state) => state.isLoading);
 	const queryClient = useQueryClient();
 	const telemetryDebounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
+	const pendingTelemetryDevicesRef = useRef<Set<string>>(new Set());
+	const pendingTelemetryRoomsRef = useRef<Set<string>>(new Set());
 
 	useEffect(() => {
 		if (isLoading || !user) return;
@@ -166,18 +170,69 @@ export function useRealtimeListener(): void {
 			(payload: TelemetryReceivedPayload) => {
 				Logger.info("Evento SignalR: ReceiveTelemetryUpdate", payload);
 
-				// Telemetria chega em rajada — um único tick do worker mock dispara
-				// um evento por dispositivo (dezenas em poucos ms), e cada
+				if (payload.deviceId) {
+					pendingTelemetryDevicesRef.current.add(payload.deviceId);
+
+					let roomId = payload.roomId;
+					if (!roomId) {
+						const cachedDetail = queryClient.getQueryData<Device>(
+							devicesKeys.detail(payload.deviceId),
+						);
+						if (cachedDetail?.roomId) {
+							roomId = cachedDetail.roomId;
+						} else {
+							const listQueries = queryClient.getQueriesData<
+								PagedResponse<Device>
+							>({
+								queryKey: devicesKeys.lists(),
+							});
+							for (const [, listData] of listQueries) {
+								const found = listData?.items?.find(
+									(d) => d.id === payload.deviceId,
+								);
+								if (found?.roomId) {
+									roomId = found.roomId;
+									break;
+								}
+							}
+						}
+					}
+
+					if (roomId) {
+						pendingTelemetryRoomsRef.current.add(roomId);
+					}
+				}
+
+				// Telemetria chega em rajada — um único tick do worker dispara um
+				// evento por dispositivo (dezenas em poucos ms), e cada
 				// invalidateQueries dispara um refetch. Sem debounce, isso vira uma
-				// rajada de requisições HTTP simultâneas pra /dashboard/overview a
-				// cada ciclo. O dashboard não precisa de precisão sub-segundo (o
-				// gráfico agrega em baldes de 5 min), só coalescer as invalidações
-				// do burst numa única, após um breve período de silêncio.
+				// rajada de requisições HTTP simultâneas a cada ciclo. Agrupamos
+				// as invalidações do burst numa única, após 800ms de silêncio,
+				// cobrindo o overview do dashboard e os detalhes (energy/climate)
+				// direcionados aos dispositivos e cômodos afetados.
 				clearTimeout(telemetryDebounceRef.current);
 				telemetryDebounceRef.current = setTimeout(() => {
 					queryClient.invalidateQueries({
 						queryKey: dashboardKeys.overview(),
 					});
+
+					for (const deviceId of pendingTelemetryDevicesRef.current) {
+						queryClient.invalidateQueries({
+							queryKey: [...devicesKeys.energies(), deviceId],
+						});
+					}
+
+					for (const roomId of pendingTelemetryRoomsRef.current) {
+						queryClient.invalidateQueries({
+							queryKey: roomsKeys.climate(roomId),
+						});
+						queryClient.invalidateQueries({
+							queryKey: [...roomsKeys.detail(roomId), "energy"],
+						});
+					}
+
+					pendingTelemetryDevicesRef.current.clear();
+					pendingTelemetryRoomsRef.current.clear();
 				}, 800);
 			},
 		);
@@ -308,6 +363,8 @@ export function useRealtimeListener(): void {
 
 		return () => {
 			clearTimeout(telemetryDebounceRef.current);
+			pendingTelemetryDevicesRef.current.clear();
+			pendingTelemetryRoomsRef.current.clear();
 			setActiveHubConnection(null);
 			connection.stop().catch((error: unknown) => {
 				Logger.warn("Erro ao encerrar conexão SignalR de forma limpa", error);
