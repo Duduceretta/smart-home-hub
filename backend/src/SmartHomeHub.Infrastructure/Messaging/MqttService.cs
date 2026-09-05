@@ -21,10 +21,19 @@ public sealed class MqttService(
     // esses dois valores divergirem, os dois são "tenta de novo em breve".
     private readonly TimeSpan _retryDelay = retryDelayForTests ?? TimeSpan.FromSeconds(5);
 
+    // Timeout do shutdown gracioso: precisa passar de sobra do que uma
+    // iteração normal do loop de manutenção leva (ping/connect + o Task.Delay
+    // do retry), sem travar o desligamento do processo indefinidamente se o
+    // supervisor nunca observar o cancelamento (ex: preso numa chamada de
+    // rede sem CancellationToken interno).
+    private static readonly TimeSpan StopTimeout = TimeSpan.FromSeconds(5);
+
     private const string BackendStatusTopic = "home/status/backend";
 
     private IMqttClient _client = null!;
     private MqttClientOptions _options = null!;
+    private CancellationTokenSource? _stoppingCts;
+    private Task? _maintainConnectionTask;
 
     public Task StartAsync(CancellationToken cancellationToken)
     {
@@ -72,17 +81,67 @@ public sealed class MqttService(
 
         ConfigureEvents(_client);
 
-        _ = Task.Run(
+        // CTS próprio (não o cancellationToken de StartAsync direto): StopAsync
+        // precisa poder sinalizar esse loop mesmo que o token original do host
+        // ainda não tenha sido cancelado (chamada explícita de shutdown).
+        _stoppingCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+
+        _maintainConnectionTask = Task.Run(
             () =>
                 RunSupervisedAsync(
                     MaintainConnectionAsync,
                     "Loop de manutenção de conexão MQTT",
-                    cancellationToken
+                    _stoppingCts.Token
                 ),
             cancellationToken
         );
 
         return Task.CompletedTask;
+    }
+
+    public async Task StopAsync(CancellationToken cancellationToken)
+    {
+        _stoppingCts?.Cancel();
+
+        if (_maintainConnectionTask is not null)
+        {
+            try
+            {
+                // WaitAsync com timeout curto — RunSupervisedAsync já trata e loga
+                // qualquer exceção internamente (nunca propaga sem log), então esse
+                // await não corre risco de engolir uma exceção não observada; ele só
+                // protege o shutdown do processo contra o supervisor nunca notar o
+                // cancelamento.
+                await _maintainConnectionTask.WaitAsync(StopTimeout, cancellationToken);
+            }
+            catch (TimeoutException)
+            {
+                logger.LogWarning(
+                    "Loop de manutenção de conexão MQTT não parou dentro de {TimeoutSeconds}s. Prosseguindo com o shutdown mesmo assim.",
+                    StopTimeout.TotalSeconds
+                );
+            }
+            catch (OperationCanceledException)
+            {
+                // cancellationToken do próprio StopAsync foi cancelado — segue o shutdown.
+            }
+        }
+
+        if (_client is not null)
+        {
+            try
+            {
+                // DisconnectAsync explícito: sinaliza ao broker uma desconexão limpa
+                // (DISCONNECT), fazendo-o descartar o Will em vez de publicá-lo — sem
+                // isso o LWT (home/status/backend, retain: true) fica marcado como se
+                // o backend tivesse caído, mesmo num shutdown ordenado.
+                await _client.DisconnectAsync(cancellationToken: CancellationToken.None);
+            }
+            catch (Exception ex)
+            {
+                logger.LogWarning(ex, "Falha ao desconectar do broker MQTT durante o shutdown.");
+            }
+        }
     }
 
     public async Task PublishAsync(

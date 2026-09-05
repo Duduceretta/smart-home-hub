@@ -261,6 +261,51 @@ public class MqttServiceTests
     }
 
     [Fact]
+    public async Task StopAsync_ShouldCancelSupervisorAndDisconnectClientCleanly()
+    {
+        // Arrange
+        var sut = new MqttService(
+            Substitute.For<ILogger<MqttService>>(),
+            Substitute.For<IServiceScopeFactory>(),
+            retryDelayForTests: TimeSpan.FromMilliseconds(20)
+        );
+
+        await sut.StartAsync(CancellationToken.None);
+
+        var fakeClient = Substitute.For<IMqttClient>();
+        fakeClient.TryPingAsync(Arg.Any<CancellationToken>()).Returns(true);
+        fakeClient
+            .DisconnectAsync(Arg.Any<MqttClientDisconnectOptions>(), Arg.Any<CancellationToken>())
+            .Returns(Task.CompletedTask);
+
+        typeof(MqttService)
+            .GetField("_client", BindingFlags.NonPublic | BindingFlags.Instance)!
+            .SetValue(sut, fakeClient);
+
+        // Act
+        var stopTask = sut.StopAsync(CancellationToken.None);
+        var completed = await Task.WhenAny(stopTask, Task.Delay(TimeSpan.FromSeconds(5)));
+
+        // Assert
+        completed.Should().Be(stopTask, "StopAsync não pode travar o shutdown indefinidamente.");
+        await stopTask; // propaga qualquer exceção não observada, se houver.
+
+        var maintainTask = (Task?)
+            typeof(MqttService)
+                .GetField(
+                    "_maintainConnectionTask",
+                    BindingFlags.NonPublic | BindingFlags.Instance
+                )!
+                .GetValue(sut);
+        maintainTask.Should().NotBeNull();
+        maintainTask!.IsCompleted.Should().BeTrue("o supervisor deve ter parado de reconectar.");
+
+        await fakeClient
+            .Received(1)
+            .DisconnectAsync(Arg.Any<MqttClientDisconnectOptions>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
     public async Task ConfigureEvents_AfterBriefReconnect_ShouldStillResubscribeToWildcardTopic()
     {
         // Arrange — sessão persistente pode fazer o broker restaurar a

@@ -20,4 +20,14 @@ public sealed class MqttListenerWorker(IMqttService mqttService, ILogger<MqttLis
             logger.LogInformation("Desligando o motor MQTT de forma segura...");
         }
     }
+
+    public override async Task StopAsync(CancellationToken cancellationToken)
+    {
+        // CancellationToken.None: o shutdown gracioso do MqttService (esperar o
+        // supervisor parar, desconectar do broker) precisa rodar mesmo que o
+        // token de shutdown do host já esteja cancelado nesse ponto — ele tem
+        // seu próprio timeout interno (StopTimeout) pra não travar o processo.
+        await mqttService.StopAsync(CancellationToken.None);
+        await base.StopAsync(cancellationToken);
+    }
 }
