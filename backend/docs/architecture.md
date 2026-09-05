@@ -137,6 +137,21 @@ Para proteger a memória do servidor (OOM) e a CPU do banco de dados, o sistema 
 - **Centralização:** A matemática do Offset (`Skip`/`Take`) é delegada exclusivamente ao Extension Method `.ToPagedResultAsync()`, evitando repetição de código nos Handlers.
 - **Exceção deliberada:** queries de estatística agregada (ex: `GetEventHistoryStatsQuery`) não seguem `IPagedQuery` — elas somam/contam sobre todo o conjunto filtrado de propósito, e não devem ser confundidas com uma listagem paginável.
 
+### 2.6. Hub SignalR (`TelemetryHub`) e Comunicação em Tempo Real
+
+A comunicação push em tempo real com as interfaces de usuário (front-end web e mobile) é centralizada no **`TelemetryHub`** (`Infrastructure/Realtime/Hubs/TelemetryHub.cs`), mapeado como endpoint SignalR:
+
+- **Rota do Hub:** `/hubs/telemetry` (protegida por autenticação JWT via Firebase).
+- **Agrupamento e Isolamento Multi-Tenant:** No momento do handshake (`OnConnectedAsync`), a conexão do cliente é automaticamente vinculada ao grupo `user_{firebaseUid}`. Todos os disparos efetuados por meio do `IRealtimeNotificationService` utilizam `Clients.Group($"user_{firebaseUid}")`, garantindo que um usuário nunca receba atualizações ou telemetria dos dispositivos de outro usuário.
+- **Catálogo de Eventos Emitidos:**
+  - `DeviceStatusChanged`: disparado na alteração de status/conectividade (`IsOn`, `IsOnline`) de um dispositivo (via comandos diretos, workers de health check ou mensagens MQTT).
+  - `DeviceMediaChanged`: atualiza metadados e volume de reprodução em televisores (GoogleCast/Android TV ADB).
+  - `SpotifyPlaybackChanged`: sincroniza estado do player, faixa e progresso da integração com Spotify.
+  - `ReceiveTelemetryUpdate`: sinaliza chegada de novos logs temporais de sensores para atualização da visão geral de consumo/clima.
+  - `AutomationExecutionResult`: notifica a conclusão do disparo de regras de automação (ECA).
+- **Sem Fila ou Replay (Fire-and-Forget):** O transporte SignalR opera estritamente no padrão *fire-and-forget* (`SendAsync`). O backend não mantém buffer de mensagens nem fila de replay para conexões inativas. Caso a rede do cliente oscile e a conexão caia, a reconciliação de estado perdido fica a cargo exclusivo do cliente no ciclo de `onreconnected` (que realiza um refetch pontual das queries pertinentes, sem depender de polling contínuo).
+- **Origem dos Eventos Tuya (Polling vs. Push Físico):** Os eventos de mudança de estado de dispositivos Tuya retransmitidos via SignalR decorrem de **polling deliberado** executado a cada 12s pelo `TuyaDeviceStatePollingWorker` no backend, e **não de push nativo espontâneo do hardware físico**. Conforme evidenciado nos testes de bancada documentados em [`iot-drivers.md`](iot-drivers.md#25-investigação-push-espontâneo-via-sessão-tcp-local-v34v35--confirmado-só-para-mudanças-via-appnuvem-não-ocorre-para-interruptor-físico), os microcontroladores Tuya locais (v3.4/v3.5) não emitem frames não solicitados quando acionados por interruptor físico de parede. Portanto, quem consulta esses eventos via SignalR não deve presumir a existência de push de hardware nativo.
+
 ---
 
 ## 3. Padrões de Código e Convenções (C#)
