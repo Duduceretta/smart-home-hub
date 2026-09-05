@@ -3,6 +3,7 @@ using Mediator;
 using Microsoft.EntityFrameworkCore;
 using SmartHomeHub.Application.Common.Interfaces;
 using SmartHomeHub.Application.Features.Telemetry.Commands.ProcessTelemetry;
+using SmartHomeHub.Domain.Common.Constants;
 using SmartHomeHub.Domain.Entities;
 using SmartHomeHub.Domain.Enums;
 
@@ -57,7 +58,7 @@ public sealed class MockTelemetryWorker(
         foreach (var device in devices)
         {
             var payload = BuildMockPayload(device);
-            var topic = $"home/telemetry/{device.ExternalId}";
+            var topic = MqttTopics.TelemetryFor(device.ExternalId);
 
             await mediator.Send(
                 new ProcessTelemetryCommand(topic, JsonSerializer.Serialize(payload)),

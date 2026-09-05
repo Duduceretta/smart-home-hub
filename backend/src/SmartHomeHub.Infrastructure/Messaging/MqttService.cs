@@ -6,6 +6,7 @@ using MQTTnet;
 using SmartHomeHub.Application.Common.Interfaces;
 using SmartHomeHub.Application.Features.Telemetry.Commands.ProcessDeviceLwt;
 using SmartHomeHub.Application.Features.Telemetry.Commands.ProcessTelemetry;
+using SmartHomeHub.Domain.Common.Constants;
 
 namespace SmartHomeHub.Infrastructure.Messaging;
 
@@ -28,9 +29,6 @@ public sealed class MqttService(
     // supervisor nunca observar o cancelamento (ex: preso numa chamada de
     // rede sem CancellationToken interno).
     private static readonly TimeSpan StopTimeout = TimeSpan.FromSeconds(5);
-
-    private const string BackendStatusTopic = "home/status/backend";
-    private const string CommandTopicPrefix = "home/commands/";
 
     // Estado desejado mais recente por tópico de comando MQTT nativo
     // (Tasmota/ESPHome), aplicando ao MQTT o mesmo princípio do padrão Device
@@ -74,7 +72,7 @@ public sealed class MqttService(
             // desligamento limpo (crash, queda de rede) — sinaliza que o
             // BACKEND caiu, não detecção de dispositivo MQTT individual (esse
             // gap fica registrado à parte, exigiria LWT por dispositivo).
-            .WithWillTopic(BackendStatusTopic)
+            .WithWillTopic(MqttTopics.BackendStatus)
             .WithWillPayload("offline")
             .WithWillRetain(true)
             .Build();
@@ -168,7 +166,7 @@ public sealed class MqttService(
         // iot-drivers.md seção 3.5. Sobrescreve sempre, mesmo antes de
         // tentar publicar: se o broker estiver fora, esse é o valor que
         // sobrevive pra reconciliação na reconexão.
-        var isNativeCommand = topic.StartsWith(CommandTopicPrefix, StringComparison.Ordinal);
+        var isNativeCommand = topic.StartsWith(MqttTopics.CommandPrefix, StringComparison.Ordinal);
         if (isNativeCommand)
         {
             _desiredCommands[topic] = payload;
@@ -305,7 +303,7 @@ public sealed class MqttService(
             var subscribeOptions = new MqttClientSubscribeOptionsBuilder()
                 .WithTopicFilter(filter =>
                     filter
-                        .WithTopic("home/#")
+                        .WithTopic(MqttTopics.GlobalWildcard)
                         .WithQualityOfServiceLevel(
                             MQTTnet.Protocol.MqttQualityOfServiceLevel.AtLeastOnce
                         )
@@ -314,7 +312,10 @@ public sealed class MqttService(
 
             await client.SubscribeAsync(subscribeOptions, CancellationToken.None);
 
-            logger.LogInformation("Inscrito no tópico global 'home/#' com QoS 1");
+            logger.LogInformation(
+                "Inscrito no tópico global '{WildcardTopic}' com QoS 1",
+                MqttTopics.GlobalWildcard
+            );
 
             await ReconcileDesiredCommandsAsync(client, CancellationToken.None);
         };
@@ -350,7 +351,7 @@ public sealed class MqttService(
             // perdeu a conexão sem o broker processar o Will a tempo. Já
             // coberto pela subscription home/# existente, sem precisar de
             // uma subscription adicional.
-            var result = topic.StartsWith("home/status/", StringComparison.Ordinal)
+            var result = topic.StartsWith(MqttTopics.StatusPrefix, StringComparison.Ordinal)
                 ? await mediator.Send(new ProcessDeviceLwtCommand(topic, payload))
                 : await mediator.Send(new ProcessTelemetryCommand(topic, payload));
 

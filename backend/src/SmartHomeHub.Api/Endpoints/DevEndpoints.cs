@@ -10,6 +10,7 @@ using SmartHomeHub.Application.Features.Devices.Commands.DeleteDevice;
 using SmartHomeHub.Application.Features.Rooms.Commands.CreateRoom;
 using SmartHomeHub.Application.Features.Rooms.Commands.DeleteRoom;
 using SmartHomeHub.Application.Features.Telemetry.Commands.ProcessTelemetry;
+using SmartHomeHub.Domain.Common.Constants;
 using SmartHomeHub.Domain.Entities;
 using SmartHomeHub.Domain.Enums;
 using SmartHomeHub.Domain.ValueObjects;
@@ -86,7 +87,7 @@ public static class DevEndpoints
                 "/api/dev/seed-mock-house",
                 async (ClaimsPrincipal userToken, IMediator mediator, CancellationToken ct) =>
                 {
-                    var firebaseUid = userToken.FindFirst("user_id")?.Value;
+                    var firebaseUid = userToken.GetFirebaseUid();
 
                     if (string.IsNullOrEmpty(firebaseUid))
                         return Results.Unauthorized();
@@ -173,7 +174,7 @@ public static class DevEndpoints
                     CancellationToken ct
                 ) =>
                 {
-                    var firebaseUid = userToken.FindFirst("user_id")?.Value;
+                    var firebaseUid = userToken.GetFirebaseUid();
 
                     if (string.IsNullOrEmpty(firebaseUid))
                         return Results.Unauthorized();
@@ -241,7 +242,7 @@ public static class DevEndpoints
                     CancellationToken ct
                 ) =>
                 {
-                    var firebaseUid = userToken.FindFirst("user_id")?.Value;
+                    var firebaseUid = userToken.GetFirebaseUid();
 
                     if (string.IsNullOrEmpty(firebaseUid))
                         return Results.Unauthorized();
@@ -253,7 +254,7 @@ public static class DevEndpoints
                     if (device == null || device.User.ExternalAuthUid != firebaseUid)
                         return Results.NotFound();
 
-                    var topic = $"home/telemetry/{device.ExternalId}";
+                    var topic = MqttTopics.TelemetryFor(device.ExternalId);
                     var payload = JsonSerializer.Serialize(
                         new TelemetryPayload(
                             request.IsOn,
@@ -295,7 +296,7 @@ public static class DevEndpoints
                     CancellationToken ct
                 ) =>
                 {
-                    var firebaseUid = userToken.FindFirst("user_id")?.Value;
+                    var firebaseUid = userToken.GetFirebaseUid();
 
                     if (string.IsNullOrEmpty(firebaseUid))
                         return Results.Unauthorized();
@@ -361,7 +362,7 @@ public static class DevEndpoints
                     CancellationToken ct
                 ) =>
                 {
-                    var firebaseUid = userToken.FindFirst("user_id")?.Value;
+                    var firebaseUid = userToken.GetFirebaseUid();
                     if (string.IsNullOrEmpty(firebaseUid))
                         return Results.Unauthorized();
 

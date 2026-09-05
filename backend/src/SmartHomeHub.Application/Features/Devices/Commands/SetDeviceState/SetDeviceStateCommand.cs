@@ -229,7 +229,7 @@ public partial class SetDeviceStateCommandHandler(
             var commandPayload = JsonSerializer.Serialize(
                 new { action = request.DesiredState ? "turn_on" : "turn_off" }
             );
-            var topic = $"home/commands/{device.ExternalId}";
+            var topic = MqttTopics.CommandFor(device.ExternalId);
             await mqttService.PublishAsync(topic, commandPayload, cancellationToken);
         }
 
