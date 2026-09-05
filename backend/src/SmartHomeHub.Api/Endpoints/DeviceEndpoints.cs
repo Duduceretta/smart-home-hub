@@ -673,7 +673,7 @@ public static class DeviceEndpoints
                     await discoveryManager.StartDiscoveryAsync(
                         firebaseUid,
                         request.TimeoutSeconds,
-                        CancellationToken.None
+                        cancellationToken
                     );
 
                     return Results.Accepted();
