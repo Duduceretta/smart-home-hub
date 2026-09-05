@@ -28,6 +28,23 @@ public static partial class TuyaColorConverter
     }
 
     /// <summary>
+    /// Inversa de <see cref="PercentToDeviceBrightness"/> — usada pelo polling
+    /// (TuyaDeviceStatePollingWorker) pra converter o valor bruto lido de volta
+    /// pro percentual que a UI espera, já que a leitura reporta o valor real do
+    /// DP (10-1000), não o percentual original que foi escrito.
+    /// </summary>
+    public static int DeviceBrightnessToPercent(int deviceValue)
+    {
+        var clamped = Math.Clamp(deviceValue, DeviceBrightnessMin, DeviceBrightnessMax);
+        return (int)
+            Math.Round(
+                (clamped - DeviceBrightnessMin)
+                    * 100.0
+                    / (DeviceBrightnessMax - DeviceBrightnessMin)
+            );
+    }
+
+    /// <summary>
     /// Converte 0-100% (UI, 0=mais quente, 100=mais frio) pra escala real do
     /// DP de temperatura de cor (0-1000, faixa assumida — só um extremo
     /// confirmado por diagnóstico manual, ver DeviceConfiguration.cs).
@@ -37,6 +54,19 @@ public static partial class TuyaColorConverter
         var clampedPercent = Math.Clamp(percent, 0, 100);
         return DeviceColorTempMin
             + (int)Math.Round((DeviceColorTempMax - DeviceColorTempMin) * (clampedPercent / 100.0));
+    }
+
+    /// <summary>
+    /// Inversa de <see cref="PercentToDeviceColorTemp"/> — mesmo racional de
+    /// <see cref="DeviceBrightnessToPercent"/>, usada pelo polling.
+    /// </summary>
+    public static int DeviceColorTempToPercent(int deviceValue)
+    {
+        var clamped = Math.Clamp(deviceValue, DeviceColorTempMin, DeviceColorTempMax);
+        return (int)
+            Math.Round(
+                (clamped - DeviceColorTempMin) * 100.0 / (DeviceColorTempMax - DeviceColorTempMin)
+            );
     }
 
     /// <summary>Converte "#RRGGBB" para o formato de DP "HHHHSSSSVVVV" (HSV hex, 4 dígitos cada).</summary>
@@ -100,6 +130,48 @@ public static partial class TuyaColorConverter
 
         var v = PercentToDeviceBrightness(brightnessPercent);
         return $"{h}{s}{v:x4}";
+    }
+
+    /// <summary>
+    /// Extrai só o componente V (brilho, 0-1000) de um DP de cor já existente —
+    /// usado pelo polling pra reportar o brilho efetivo quando o dispositivo
+    /// está em modo colorido (nesse modo o brilho "mora" no V do HSV, não no DP
+    /// de brilho branco — mesmo racional de <see cref="ReplaceHsvValueComponent"/>,
+    /// só que lendo em vez de escrever).
+    /// </summary>
+    public static int ExtractHsvValueComponent(string hsvHex) => Convert.ToInt32(hsvHex[8..12], 16);
+
+    /// <summary>
+    /// Inversa de <see cref="HexColorToDpValue"/> — converte o DP de cor
+    /// "HHHHSSSSVVVV" (HSV hex) de volta pra "#RRGGBB", usada pelo polling pra
+    /// reportar a cor atual lida do dispositivo no mesmo formato que a UI e o
+    /// comando de escrita (SetDeviceColorAsync) já usam.
+    /// </summary>
+    public static string DpValueToHexColor(string hsvHex)
+    {
+        var h = Convert.ToInt32(hsvHex[..4], 16) % 360;
+        var s = Convert.ToInt32(hsvHex[4..8], 16) / 1000.0;
+        var v = Convert.ToInt32(hsvHex[8..12], 16) / 1000.0;
+
+        var c = v * s;
+        var x = c * (1 - Math.Abs(h / 60.0 % 2 - 1));
+        var m = v - c;
+
+        var (rPrime, gPrime, bPrime) = h switch
+        {
+            < 60 => (c, x, 0.0),
+            < 120 => (x, c, 0.0),
+            < 180 => (0.0, c, x),
+            < 240 => (0.0, x, c),
+            < 300 => (x, 0.0, c),
+            _ => (c, 0.0, x),
+        };
+
+        var r = (int)Math.Round((rPrime + m) * 255);
+        var g = (int)Math.Round((gPrime + m) * 255);
+        var b = (int)Math.Round((bPrime + m) * 255);
+
+        return $"#{r:X2}{g:X2}{b:X2}";
     }
 
     /// <summary>

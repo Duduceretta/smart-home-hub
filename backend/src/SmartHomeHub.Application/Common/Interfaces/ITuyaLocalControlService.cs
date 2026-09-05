@@ -45,6 +45,21 @@ public record TuyaColorTempCommandOutcome(
 
 public record TuyaWorkModeCommandOutcome(string? ResolvedIpAddress);
 
+// Mesmo racional de resolução/persistência dos outros outcomes — usado pelo
+// polling de sincronização de estado externo (interruptor físico/app), não
+// por um comando de escrita. BrightnessPercent/ColorHex/ColorTempPercent vêm
+// null quando o dispositivo não resolveu o DP correspondente (categoria sem
+// esse atributo, ex: uma tomada simples não tem DP de cor/brilho) — não é
+// erro, é "não aplicável pra este dispositivo".
+public record TuyaPollingOutcome(
+    bool IsOn,
+    int? BrightnessPercent,
+    string? ColorHex,
+    int? ColorTempPercent,
+    string? ResolvedIpAddress,
+    string? ResolvedDpsPowerKey
+);
+
 public interface ITuyaLocalControlService
 {
     Task<Result<TuyaCommandOutcome>> SetPowerStateAsync(
@@ -88,6 +103,21 @@ public interface ITuyaLocalControlService
     /// dispositivo em vez de assumir um padrão fixo.
     /// </summary>
     Task<Result<string?>> GetWorkModeAsync(
+        TuyaDeviceConnectionInfo connection,
+        CancellationToken cancellationToken
+    );
+
+    /// <summary>
+    /// Lê o estado completo (liga/desliga + brilho/cor/temperatura de cor,
+    /// quando aplicável) pra sincronização periódica (polling) de mudanças
+    /// externas (interruptor físico, app SmartLife) — não um comando de
+    /// escrita. Adquire o MESMO lock por dispositivo do caminho de escrita,
+    /// mas com um timeout de aquisição bem mais curto: uma consulta de
+    /// polling nunca deve esperar por um comando de usuário em andamento,
+    /// deve desistir rápido (Device.Busy) e deixar o próximo ciclo tentar de
+    /// novo, já que não é uma leitura crítica.
+    /// </summary>
+    Task<Result<TuyaPollingOutcome>> GetStateForPollingAsync(
         TuyaDeviceConnectionInfo connection,
         CancellationToken cancellationToken
     );

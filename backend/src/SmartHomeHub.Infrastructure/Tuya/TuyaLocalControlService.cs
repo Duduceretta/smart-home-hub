@@ -20,7 +20,11 @@ public sealed class TuyaLocalControlService(
     // Seam de teste: janela do circuit breaker de resolução de IP menor, pra
     // não deixar o teste de "janela expira e tenta de novo" esperando 10s de
     // verdade. Produção usa o default.
-    TimeSpan? ipResolutionCircuitBreakerWindowForTests = null
+    TimeSpan? ipResolutionCircuitBreakerWindowForTests = null,
+    // Seam de teste: timeout de aquisição do semáforo para POLLING menor, pra
+    // não deixar o teste de "pula ciclo se ocupado" esperando de verdade.
+    // Produção usa o default.
+    TimeSpan? pollingSemaphoreAcquireTimeoutForTests = null
 ) : ITuyaLocalControlService
 {
     // Chamada síncrona dentro do handler HTTP — sem limite próprio, uma lâmpada
@@ -40,6 +44,18 @@ public sealed class TuyaLocalControlService(
     private readonly TimeSpan _semaphoreAcquireTimeout =
         semaphoreAcquireTimeoutForTests ?? TimeSpan.FromSeconds(10);
     private readonly ConcurrentDictionary<string, SemaphoreSlim> _deviceLocks = new();
+
+    // Timeout de aquisição bem mais curto, exclusivo do caminho de POLLING
+    // periódico (TuyaDeviceStatePollingWorker) — usa o MESMO _deviceLocks
+    // acima (nunca colide com uma escrita de usuário no mesmo socket), mas
+    // uma consulta de sincronização de estado NUNCA pode competir de verdade
+    // com um comando real: se o lock não estiver livre quase imediatamente,
+    // pula esse dispositivo neste ciclo (Device.Busy) em vez de esperar — há
+    // um próximo ciclo em ~12s, não é uma leitura crítica. Bem menor que os
+    // 10s do caminho de escrita, que aceita esperar mais porque é uma ação
+    // direta do usuário.
+    private readonly TimeSpan _pollingSemaphoreAcquireTimeout =
+        pollingSemaphoreAcquireTimeoutForTests ?? TimeSpan.FromSeconds(2);
 
     // Circuit breaker leve pra resolução de IP via broadcast UDP: um
     // dispositivo genuinamente offline (não é IP obsoleto por DHCP, é o
@@ -111,12 +127,15 @@ public sealed class TuyaLocalControlService(
     private async Task<Result<T>> WithDeviceLockAsync<T>(
         string tuyaDeviceId,
         Func<Task<Result<T>>> operation,
-        CancellationToken cancellationToken
+        CancellationToken cancellationToken,
+        TimeSpan? acquireTimeoutOverride = null
     )
     {
         var deviceLock = _deviceLocks.GetOrAdd(tuyaDeviceId, static _ => new SemaphoreSlim(1, 1));
 
-        using var timeoutCts = new CancellationTokenSource(_semaphoreAcquireTimeout);
+        using var timeoutCts = new CancellationTokenSource(
+            acquireTimeoutOverride ?? _semaphoreAcquireTimeout
+        );
         using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(
             cancellationToken,
             timeoutCts.Token
@@ -921,6 +940,123 @@ public sealed class TuyaLocalControlService(
             return Result.Success<string?>(null);
 
         return Result.Success(resolved.Value.Status[workModeDp.Value] as string);
+    }
+
+    // Timeout de aquisição CURTO (_pollingSemaphoreAcquireTimeout, não
+    // _semaphoreAcquireTimeout) — ver comentário do campo. Se o lock já
+    // estiver com um comando de usuário em andamento, falha rápido com
+    // Device.Busy em vez de competir por ele; o worker de polling trata esse
+    // código especificamente como "pula este dispositivo neste ciclo", não
+    // como falha de dispositivo offline.
+    public Task<Result<TuyaPollingOutcome>> GetStateForPollingAsync(
+        TuyaDeviceConnectionInfo connection,
+        CancellationToken cancellationToken
+    ) =>
+        WithDeviceLockAsync(
+            connection.TuyaDeviceId,
+            () => GetStateForPollingCoreAsync(connection, cancellationToken),
+            cancellationToken,
+            acquireTimeoutOverride: _pollingSemaphoreAcquireTimeout
+        );
+
+    // Lê TODOS os atributos relevantes num único QueryStatusAsync (não um por
+    // atributo) — o custo de rede já foi pago pra resolver power, reaproveitar
+    // o mesmo `status` pra brilho/cor/temp. de cor é gratuito. Brilho/cor/temp.
+    // de cor null significa "DP não resolvido pra este device" — pode ser
+    // categoria sem esse atributo (ex: tomada simples não tem DpsColorKey
+    // configurada, então ResolveColorDp nunca acha nada no status), não erro.
+    private async Task<Result<TuyaPollingOutcome>> GetStateForPollingCoreAsync(
+        TuyaDeviceConnectionInfo connection,
+        CancellationToken cancellationToken
+    )
+    {
+        var protocolClient = protocolClientFactory.Resolve(connection.ProtocolVersion);
+
+        var resolved = await ResolveIpAndStatusAsync(connection, protocolClient, cancellationToken);
+        if (resolved.IsFailure)
+            return Result.Failure<TuyaPollingOutcome>(resolved.Error);
+
+        var (_, resolvedIp, status) = resolved.Value;
+
+        var resolvedDp = ResolveDp(connection.DpsPowerKey, status, connection.TuyaDeviceId);
+        if (resolvedDp is null)
+        {
+            return Result.Failure<TuyaPollingOutcome>(
+                new Error(
+                    "Device.NoBooleanDp",
+                    "Não foi possível identificar o Data Point de liga/desliga deste dispositivo Tuya."
+                )
+            );
+        }
+
+        var isOn = status[resolvedDp.Value] as bool? ?? false;
+        var resolvedDpString =
+            connection.DpsPowerKey == resolvedDp.Value.ToString()
+                ? null
+                : resolvedDp.Value.ToString();
+
+        // Cor: reportada sempre que o DP resolver, independente do work_mode
+        // atual — o dispositivo mantém o último HSV conhecido mesmo em modo
+        // branco, e a UI já trata ColorHex como "última cor conhecida", não
+        // "cor ativa agora" (mesmo racional do caminho de escrita).
+        string? colorHex = null;
+        var colorDp = ResolveColorDp(connection.DpsColorKey, status);
+        if (colorDp is not null && status[colorDp.Value] is string colorDpValue)
+        {
+            colorHex = TuyaColorConverter.DpValueToHexColor(colorDpValue);
+        }
+
+        // Brilho: em modo colorido o brilho "mora" no componente V do HSV, não
+        // no DP de brilho branco (mesma distinção já feita na escrita, ver
+        // ExecuteLightAdjustmentBatchAsync) — ler direto o DP de brilho nesse
+        // modo devolveria um valor obsoleto/errado.
+        int? brightnessPercent = null;
+        var workModeDp = ResolveWorkModeDp(status);
+        var isColourMode = workModeDp is not null && status[workModeDp.Value] as string == "colour";
+
+        if (isColourMode && colorDp is not null && status[colorDp.Value] is string hsvForBrightness)
+        {
+            brightnessPercent = TuyaColorConverter.DeviceBrightnessToPercent(
+                TuyaColorConverter.ExtractHsvValueComponent(hsvForBrightness)
+            );
+        }
+        else
+        {
+            var brightnessDp = ResolveNumericDp(
+                connection.DpsBrightnessKey,
+                status,
+                DefaultBrightnessDp
+            );
+            if (
+                brightnessDp is not null
+                && status[brightnessDp.Value] is double brightnessDeviceValue
+            )
+            {
+                brightnessPercent = TuyaColorConverter.DeviceBrightnessToPercent(
+                    (int)brightnessDeviceValue
+                );
+            }
+        }
+
+        int? colorTempPercent = null;
+        var colorTempDp = ResolveNumericDp(connection.DpsColorTempKey, status, DefaultColorTempDp);
+        if (colorTempDp is not null && status[colorTempDp.Value] is double colorTempDeviceValue)
+        {
+            colorTempPercent = TuyaColorConverter.DeviceColorTempToPercent(
+                (int)colorTempDeviceValue
+            );
+        }
+
+        return Result.Success(
+            new TuyaPollingOutcome(
+                isOn,
+                brightnessPercent,
+                colorHex,
+                colorTempPercent,
+                resolvedIp,
+                resolvedDpString
+            )
+        );
     }
 
     private async Task<

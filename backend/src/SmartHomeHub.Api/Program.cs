@@ -81,6 +81,7 @@ try
     builder.Services.AddHostedService<MqttListenerWorker>();
     builder.Services.AddHostedService<DeviceHealthCheckWorker>();
     builder.Services.AddHostedService<DeviceStatePollingWorker>();
+    builder.Services.AddHostedService<TuyaDeviceStatePollingWorker>();
 
     if (builder.Environment.IsDevelopment())
     {

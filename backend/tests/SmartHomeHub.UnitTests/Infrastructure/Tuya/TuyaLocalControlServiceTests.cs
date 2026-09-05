@@ -638,6 +638,98 @@ public class TuyaLocalControlServiceTests
         result.Value.Should().BeNull();
     }
 
+    [Fact]
+    public async Task GetStateForPollingAsync_WhiteModeWithBrightnessAndColorTemp_ShouldResolveBothAsPercentAndLeaveColorNull()
+    {
+        // Arrange — modo "white": brilho e temp. de cor vêm dos DPs numéricos
+        // default (22/23); nenhum DP de cor (12 hex) presente neste snapshot.
+        _protocolClient
+            .QueryStatusAsync(
+                "192.168.1.50",
+                "tuya-device-abc",
+                "local-key-123",
+                Arg.Any<CancellationToken>()
+            )
+            .Returns(
+                new Dictionary<int, object?>
+                {
+                    [20] = true,
+                    [9] = "white",
+                    [22] = 505.0,
+                    [23] = 830.0,
+                }
+            );
+
+        // Act
+        var result = await _sut.GetStateForPollingAsync(Connection(), CancellationToken.None);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        result.Value.IsOn.Should().BeTrue();
+        result.Value.BrightnessPercent.Should().Be(50);
+        result.Value.ColorTempPercent.Should().Be(83);
+        result.Value.ColorHex.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task GetStateForPollingAsync_ColourModeWithColorDp_ShouldDeriveBrightnessFromHsvValueComponent()
+    {
+        // Arrange — modo "colour": brilho não vem do DP branco (ausente aqui de
+        // propósito), vem do componente V do próprio DP de cor (vermelho puro,
+        // V=1000 => 100%).
+        _protocolClient
+            .QueryStatusAsync(
+                "192.168.1.50",
+                "tuya-device-abc",
+                "local-key-123",
+                Arg.Any<CancellationToken>()
+            )
+            .Returns(
+                new Dictionary<int, object?>
+                {
+                    [20] = true,
+                    [9] = "colour",
+                    [24] = "000003e803e8",
+                }
+            );
+
+        // Act
+        var result = await _sut.GetStateForPollingAsync(Connection(), CancellationToken.None);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        result.Value.ColorHex.Should().Be("#FF0000");
+        result.Value.BrightnessPercent.Should().Be(100);
+        result
+            .Value.ColorTempPercent.Should()
+            .BeNull("nenhum DP de temperatura de cor presente neste snapshot de modo colorido.");
+    }
+
+    [Fact]
+    public async Task GetStateForPollingAsync_DeviceWithoutBrightnessOrColorDps_ShouldReturnNullAttributesWithoutError()
+    {
+        // Arrange — categoria sem brilho/cor (ex: tomada simples): status só
+        // tem o DP de power, nenhum DP numérico/12-hex que pareça brilho/cor.
+        _protocolClient
+            .QueryStatusAsync(
+                "192.168.1.50",
+                "tuya-device-abc",
+                "local-key-123",
+                Arg.Any<CancellationToken>()
+            )
+            .Returns(new Dictionary<int, object?> { [20] = false });
+
+        // Act
+        var result = await _sut.GetStateForPollingAsync(Connection(), CancellationToken.None);
+
+        // Assert — não é erro, é "não aplicável pra este dispositivo".
+        result.IsSuccess.Should().BeTrue();
+        result.Value.IsOn.Should().BeFalse();
+        result.Value.BrightnessPercent.Should().BeNull();
+        result.Value.ColorHex.Should().BeNull();
+        result.Value.ColorTempPercent.Should().BeNull();
+    }
+
     // ---- Exclusão mútua por dispositivo (achado central da auditoria de drivers IoT) ----
 
     [Fact]
@@ -904,6 +996,114 @@ public class TuyaLocalControlServiceTests
                 "timeout de aquisição do semáforo deve retornar erro diferenciado de "
                     + "'dispositivo não respondeu' (Device.Offline/CommunicationError)."
             );
+    }
+
+    [Fact]
+    public async Task GetStateForPollingAsync_WhenWriteHoldsTheLock_ShouldFailFastWithDeviceBusyUsingShortPollingTimeout()
+    {
+        // Arrange — timeout de aquisição da ESCRITA propositalmente longo (bem
+        // maior que o da consulta de polling), pra provar que a consulta usa o
+        // timeout curto próprio (_pollingSemaphoreAcquireTimeout), não o
+        // default de 10s do caminho de escrita.
+        var sut = new TuyaLocalControlService(
+            _protocolClientFactory,
+            _ipDiscoveryScanner,
+            Substitute.For<ILogger<TuyaLocalControlService>>(),
+            semaphoreAcquireTimeoutForTests: TimeSpan.FromSeconds(5),
+            pollingSemaphoreAcquireTimeoutForTests: TimeSpan.FromMilliseconds(100)
+        );
+
+        _protocolClient
+            .QueryStatusAsync(
+                Arg.Any<string>(),
+                Arg.Any<string>(),
+                Arg.Any<string>(),
+                Arg.Any<CancellationToken>()
+            )
+            .Returns(_ => DelayedQueryAsync());
+
+        static async Task<IReadOnlyDictionary<int, object?>> DelayedQueryAsync()
+        {
+            // Segura o lock bem além do timeout curto de polling configurado
+            // acima, mas dentro do timeout longo de escrita — simula um
+            // comando de usuário real em andamento no mesmo dispositivo.
+            await Task.Delay(1000);
+            return new Dictionary<int, object?> { [20] = false };
+        }
+
+        _protocolClient
+            .SetDpAsync(
+                Arg.Any<string>(),
+                Arg.Any<string>(),
+                Arg.Any<string>(),
+                Arg.Any<int>(),
+                Arg.Any<bool>(),
+                Arg.Any<CancellationToken>()
+            )
+            .Returns(new Dictionary<int, object?> { [20] = true });
+
+        // Act
+        var writeTask = sut.SetPowerStateAsync(Connection(), true, CancellationToken.None);
+        await Task.Delay(20); // garante que a escrita já pegou o lock
+
+        var stopwatch = System.Diagnostics.Stopwatch.StartNew();
+        var pollingResult = await sut.GetStateForPollingAsync(Connection(), CancellationToken.None);
+        stopwatch.Stop();
+
+        await writeTask;
+
+        // Assert
+        pollingResult.IsFailure.Should().BeTrue();
+        pollingResult.Error.Code.Should().Be("Device.Busy");
+        stopwatch
+            .Elapsed.Should()
+            .BeLessThan(
+                TimeSpan.FromMilliseconds(500),
+                "a consulta de polling deve desistir rápido (timeout curto próprio), "
+                    + "nunca esperar o tempo todo que uma escrita de usuário levaria."
+            );
+    }
+
+    [Fact]
+    public async Task GetStateForPollingAsync_ResolutionFailsTwiceWithinWindow_ShouldOnlyBroadcastOnce()
+    {
+        // Arrange — mesmo circuit breaker de resolução de IP usado pelo
+        // caminho de escrita (seção 5.4) também se aplica à consulta de
+        // polling, porque as duas passam pelo mesmo TryResolveIpAsync
+        // interno — nenhuma lógica nova, só reaproveitamento.
+        var sut = new TuyaLocalControlService(
+            _protocolClientFactory,
+            _ipDiscoveryScanner,
+            Substitute.For<ILogger<TuyaLocalControlService>>(),
+            ipResolutionCircuitBreakerWindowForTests: TimeSpan.FromSeconds(10)
+        );
+
+        _ipDiscoveryScanner.ScanAsync(Arg.Any<CancellationToken>()).Returns(EmptyDiscoveryStream());
+
+        var connection = new TuyaDeviceConnectionInfo(
+            "tuya-device-abc",
+            "local-key-123",
+            IpAddress: null,
+            "20"
+        );
+
+        // Act
+        var firstResult = await sut.GetStateForPollingAsync(connection, CancellationToken.None);
+        var secondResult = await sut.GetStateForPollingAsync(connection, CancellationToken.None);
+
+        // Assert
+        firstResult.IsFailure.Should().BeTrue();
+        firstResult.Error.Code.Should().Be("Device.Offline");
+        secondResult.IsFailure.Should().BeTrue();
+        secondResult
+            .Error.Code.Should()
+            .Be(
+                "Device.Offline",
+                "circuit breaker deve continuar falhando rápido pro mesmo device dentro da janela, "
+                    + "mesmo quando quem chama é o polling, não um comando de escrita."
+            );
+
+        _ipDiscoveryScanner.Received(1).ScanAsync(Arg.Any<CancellationToken>());
     }
 
     [Fact]

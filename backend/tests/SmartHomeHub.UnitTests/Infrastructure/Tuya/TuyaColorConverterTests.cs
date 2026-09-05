@@ -102,6 +102,68 @@ public class TuyaColorConverterTests
     }
 
     [Theory]
+    [InlineData(10, 0)]
+    [InlineData(1000, 100)]
+    [InlineData(505, 50)]
+    public void DeviceBrightnessToPercent_IsInverseOfPercentToDeviceBrightness(
+        int deviceValue,
+        int expectedPercent
+    )
+    {
+        // Act
+        var result = TuyaColorConverter.DeviceBrightnessToPercent(deviceValue);
+
+        // Assert
+        result.Should().Be(expectedPercent);
+    }
+
+    [Theory]
+    [InlineData(0, 0)]
+    [InlineData(1000, 100)]
+    [InlineData(830, 83)]
+    public void DeviceColorTempToPercent_IsInverseOfPercentToDeviceColorTemp(
+        int deviceValue,
+        int expectedPercent
+    )
+    {
+        // Act
+        var result = TuyaColorConverter.DeviceColorTempToPercent(deviceValue);
+
+        // Assert
+        result.Should().Be(expectedPercent);
+    }
+
+    [Theory]
+    [InlineData("#FF0000")]
+    [InlineData("#0000FF")]
+    [InlineData("#FFFFFF")]
+    [InlineData("#00FF00")]
+    [InlineData("#7F3FBF")]
+    public void DpValueToHexColor_RoundTripsThroughHexColorToDpValue(string originalHex)
+    {
+        // Act — escreve e lê de volta; a cor original deve sobreviver ao
+        // round-trip (dentro do arredondamento inteiro de HSV<->RGB).
+        var dpValue = TuyaColorConverter.HexColorToDpValue(originalHex);
+        var roundTripped = TuyaColorConverter.DpValueToHexColor(dpValue);
+
+        // Assert
+        roundTripped.Should().Be(originalHex);
+    }
+
+    [Fact]
+    public void ExtractHsvValueComponent_ShouldReturnOnlyTheVComponent()
+    {
+        // Arrange — H=0, S=1000 (0x3e8), V=500 (0x1f4).
+        const string hsvHex = "000003e801f4";
+
+        // Act
+        var result = TuyaColorConverter.ExtractHsvValueComponent(hsvHex);
+
+        // Assert
+        result.Should().Be(500);
+    }
+
+    [Theory]
     [InlineData("00b403e803e8", true)]
     [InlineData("016203e803e8", true)]
     [InlineData("white", false)]
