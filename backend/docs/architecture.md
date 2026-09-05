@@ -86,6 +86,29 @@ Resultado: três camadas de defesa complementares, não uma coisa só — `Chang
 
 Utilizamos o pacote **Mediator** (com Source Generators) em vez do MediatR tradicional. O código é gerado em tempo de compilação, eliminando Reflection e garantindo zero alocação de memória desnecessária — crucial para alta volumetria IoT.
 
+### 2.1.1. Fan-out Paralelo de Comandos em Lote (escopo de DI isolado por item)
+
+Comandos de "operação em massa" (`SetDeviceGroupPowerCommand`, `SetDeviceGroupBrightnessCommand`, `SetRoomDevicesPowerCommand`) despacham um comando individual (`SetDeviceStateCommand`/`SetDeviceBrightnessCommand`) para cada dispositivo elegível do grupo/ambiente, em paralelo.
+
+**Por que não `Task.WhenAll` direto sobre o `ISender` do escopo da requisição**: todo comando resolvido por esse `ISender` compartilha o mesmo `IAppDbContext` — a instância scoped por requisição HTTP. EF Core não é thread-safe: duas operações concorrentes na mesma instância de `DbContext` estouram `InvalidOperationException: A second operation was started on this context instance before a previous operation completed`. Isso foi descoberto na prática ao tentar paralelizar esses três handlers (que antes rodavam sequencialmente, um `foreach` com `await` por dispositivo, justamente por essa razão).
+
+**Padrão adotado — escopo de DI isolado por item do lote**: cada disparo individual cria seu próprio `IServiceScope` via `IServiceScopeFactory.CreateAsyncScope()`, resolve um `ISender` (e portanto um `IAppDbContext`) *daquele* escopo, e só então despacha o comando. O `Task.WhenAll` roda sobre essas N tasks independentes — cada uma com seu próprio DbContext, sem violar thread-safety. O escopo é sempre descartado ao final (`await using`), com sucesso ou falha.
+
+```csharp
+private async Task<bool> DispatchInIsolatedScopeAsync(Guid deviceId, ...)
+{
+    await using var scope = scopeFactory.CreateAsyncScope();
+    var scopedSender = scope.ServiceProvider.GetRequiredService<ISender>();
+
+    var result = await scopedSender.Send(new SetDeviceStateCommand(deviceId, ...), cancellationToken);
+    return result.IsSuccess;
+}
+```
+
+Consequência: uma falha de negócio (`Result.Failure`) em um dispositivo do lote não contamina os demais — cada um está isolado em seu próprio DbContext, e o resultado agregado (`SucceededCount`/`FailedCount`/`TotalCount`) é computado depois que todas as tasks completam. Uma exceção real (bug de infraestrutura) ainda propaga e é capturada pelo `GlobalExceptionHandler`, como esperado pelo tratamento de erros híbrido (seção 2.2).
+
+Coberto por teste de regressão de integração (`SetDeviceGroupPowerTests.TurnOn_WithManyDevices_ShouldDispatchInParallelWithoutDbContextConflictAndIsolateFailures`): N dispositivos reais, 1 configurado para falhar, confirma que não há exceção de concorrência de DbContext e que a falha isolada não afeta os demais.
+
 ### 2.2. Tratamento de Erros Híbrido (Result / Exceptions)
 
 - **Result Pattern:** Usado para falhas esperadas de negócio (validação falhou, dispositivo offline) através de records `Result` e `Error` alocados em `Domain.Common.Primitives`, com `ResultExtensions` para composição.

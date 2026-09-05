@@ -2,6 +2,7 @@ using System.Diagnostics;
 using FluentValidation;
 using Mediator;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using SmartHomeHub.Application.Common.Interfaces;
 using SmartHomeHub.Application.Features.Devices.Commands.SetDeviceState;
 using SmartHomeHub.Domain.Common.Primitives;
@@ -29,20 +30,27 @@ public class SetRoomDevicesPowerCommandValidator : AbstractValidator<SetRoomDevi
 /// <summary>
 /// "Ligar Tudo"/"Desligar Tudo" do ambiente — dispara <see cref="SetDeviceStateCommand"/>
 /// (mesmo comando do toggle individual, com toda a comunicação de hardware
-/// TV/ADB/WoL/MQTT já centralizada lá) sequencialmente pra cada dispositivo
-/// atuador elegível do ambiente, sem duplicar a lógica de dispositivo.
-/// Sequencial, não em paralelo: todos os comandos aninhados compartilham o
-/// mesmo <see cref="IAppDbContext"/> com escopo por requisição (via
-/// <c>ISender</c>), e EF Core não é thread-safe — Task.WhenAll aqui gera
-/// "A second operation was started on this context instance" quando dois
-/// SetDeviceStateCommand tentam consultar/salvar ao mesmo tempo. Só
-/// dispositivos online, do tipo atuador (Light/Switch/Thermostat/Lock/Alarm/
-/// Television — Sensor/Camera são só leitura) e que já não estão no estado
-/// desejado entram na leva, pelo mesmo motivo do SetDeviceStateCommand:
-/// evitar desgaste físico/comando redundante em quem já está certo.
+/// TV/ADB/WoL/MQTT já centralizada lá) pra cada dispositivo atuador elegível do
+/// ambiente, sem duplicar a lógica de dispositivo. Só dispositivos online, do tipo
+/// atuador (Light/Switch/Thermostat/Lock/Alarm/Television — Sensor/Camera são só
+/// leitura) e que já não estão no estado desejado entram na leva, pelo mesmo motivo
+/// do SetDeviceStateCommand: evitar desgaste físico/comando redundante em quem já
+/// está certo.
 /// </summary>
-public class SetRoomDevicesPowerCommandHandler(IAppDbContext dbContext, ISender sender)
-    : ICommandHandler<SetRoomDevicesPowerCommand, Result<RoomBulkPowerResultDto>>
+/// <remarks>
+/// O fan-out é paralelo, mas cada disparo roda em um <see cref="IServiceScope"/> próprio
+/// (via <see cref="IServiceScopeFactory"/>), com seu próprio <see cref="IAppDbContext"/>
+/// isolado. Não dá pra usar <c>Task.WhenAll</c> direto sobre um <see cref="ISender"/>
+/// resolvido no escopo da requisição: todos os <see cref="SetDeviceStateCommand"/>
+/// aninhados compartilhariam o mesmo DbContext, e EF Core não é thread-safe — duas
+/// operações concorrentes na mesma instância estouram "A second operation was started
+/// on this context instance". Um scope por dispositivo resolve isso sem perder o
+/// paralelismo (era o motivo pelo qual essa dispatch ficava sequencial antes).
+/// </remarks>
+public class SetRoomDevicesPowerCommandHandler(
+    IAppDbContext dbContext,
+    IServiceScopeFactory scopeFactory
+) : ICommandHandler<SetRoomDevicesPowerCommand, Result<RoomBulkPowerResultDto>>
 {
     private static readonly HashSet<DeviceType> ActuatorTypes =
     [
@@ -103,29 +111,41 @@ public class SetRoomDevicesPowerCommandHandler(IAppDbContext dbContext, ISender 
 
         var traceId = Activity.Current?.Id ?? Guid.NewGuid().ToString();
 
-        var succeededCount = 0;
-        var failedCount = 0;
+        var outcomes = await Task.WhenAll(
+            eligibleDeviceIds.Select(deviceId =>
+                DispatchInIsolatedScopeAsync(deviceId, request, traceId, cancellationToken)
+            )
+        );
 
-        foreach (var deviceId in eligibleDeviceIds)
-        {
-            var result = await sender.Send(
-                new SetDeviceStateCommand(
-                    deviceId,
-                    request.FirebaseUid,
-                    request.DesiredState,
-                    traceId
-                ),
-                cancellationToken
-            );
-
-            if (result.IsSuccess)
-                succeededCount++;
-            else
-                failedCount++;
-        }
+        var succeededCount = outcomes.Count(succeeded => succeeded);
+        var failedCount = outcomes.Length - succeededCount;
 
         return Result.Success(
             new RoomBulkPowerResultDto(succeededCount, failedCount, eligibleDeviceIds.Count)
         );
+    }
+
+    /// <summary>
+    /// Executa um <see cref="SetDeviceStateCommand"/> isolado, em seu próprio
+    /// <see cref="IServiceScope"/>/<see cref="IAppDbContext"/> — permite rodar N dispositivos
+    /// em paralelo sem violar a regra de thread-safety do EF Core. O escopo é sempre
+    /// descartado ao final, mesmo em caso de falha de negócio ou exceção.
+    /// </summary>
+    private async Task<bool> DispatchInIsolatedScopeAsync(
+        Guid deviceId,
+        SetRoomDevicesPowerCommand request,
+        string traceId,
+        CancellationToken cancellationToken
+    )
+    {
+        await using var scope = scopeFactory.CreateAsyncScope();
+        var scopedSender = scope.ServiceProvider.GetRequiredService<ISender>();
+
+        var result = await scopedSender.Send(
+            new SetDeviceStateCommand(deviceId, request.FirebaseUid, request.DesiredState, traceId),
+            cancellationToken
+        );
+
+        return result.IsSuccess;
     }
 }
