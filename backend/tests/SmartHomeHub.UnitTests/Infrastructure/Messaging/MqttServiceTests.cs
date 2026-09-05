@@ -109,7 +109,7 @@ public class MqttServiceTests
 
         // Act
         var supervisorTask = sut.RunSupervisedAsync(Work, "op-teste", cts.Token);
-        await Task.Delay(20);
+        await Task.Delay(20, TestContext.Current.CancellationToken);
         cts.Cancel();
         await supervisorTask;
 
@@ -525,7 +525,10 @@ public class MqttServiceTests
 
         // Act
         var stopTask = sut.StopAsync(CancellationToken.None);
-        var completed = await Task.WhenAny(stopTask, Task.Delay(TimeSpan.FromSeconds(5)));
+        var completed = await Task.WhenAny(
+            stopTask,
+            Task.Delay(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken)
+        );
 
         // Assert
         completed.Should().Be(stopTask, "StopAsync não pode travar o shutdown indefinidamente.");

@@ -18,7 +18,7 @@ public class CorsPreflightTests(IntegrationTestWebAppFactory factory) : BaseInte
         request.Headers.Add("Origin", allowedOrigin);
         request.Headers.Add("Access-Control-Request-Method", "GET");
 
-        var response = await Client.SendAsync(request);
+        var response = await Client.SendAsync(request, TestContext.Current.CancellationToken);
 
         response.StatusCode.Should().Be(HttpStatusCode.NoContent);
         response.Headers.Should().ContainKey("Access-Control-Allow-Origin");
