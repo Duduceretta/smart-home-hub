@@ -129,7 +129,7 @@ public static class DeviceEndpoints
                 }
             )
             .RequireAuthorization()
-            .WithTags("⚡ Dispositivos")
+            .WithTags("Devices")
             .WithSummary("Obtém histórico de telemetria do dispositivo")
             .WithDescription(
                 "Retorna os pontos temporais de telemetria (Watts, Temperatura, Voltagem) filtrados pelo período (24h, 7d, 30d)."
@@ -164,7 +164,7 @@ public static class DeviceEndpoints
                 }
             )
             .RequireAuthorization()
-            .WithTags("⚡ Dispositivos")
+            .WithTags("Devices")
             .WithSummary("Obtém volume e mídia em reprodução da TV")
             .WithDescription(
                 "Consulta em tempo real (via ADB) o volume atual e a sessão de mídia ativa da TV. Só suportado por TVs GoogleCast/AndroidTvAdb."
@@ -198,7 +198,7 @@ public static class DeviceEndpoints
             )
             .RequireAuthorization()
             .RequireRateLimiting("DeviceMutationRateLimit")
-            .WithTags("⚡ Dispositivos")
+            .WithTags("Devices")
             .WithSummary("Ajusta o volume da TV")
             .WithDescription(
                 "Define o volume (0-100%) da TV via ADB, convertendo para o nível absoluto real do stream de mídia. Só suportado por TVs GoogleCast/AndroidTvAdb."
@@ -236,7 +236,7 @@ public static class DeviceEndpoints
             )
             .RequireAuthorization()
             .RequireRateLimiting("DeviceMutationRateLimit")
-            .WithTags("⚡ Dispositivos")
+            .WithTags("Devices")
             .WithSummary("Ajusta o brilho de uma lâmpada Tuya local")
             .WithDescription(
                 "Define o brilho (0-100%) via protocolo local Tuya, convertendo para a escala real do "
@@ -271,7 +271,7 @@ public static class DeviceEndpoints
             )
             .RequireAuthorization()
             .RequireRateLimiting("DeviceMutationRateLimit")
-            .WithTags("⚡ Dispositivos")
+            .WithTags("Devices")
             .WithSummary("Ajusta a cor de uma lâmpada Tuya local (RGB)")
             .WithDescription(
                 "Define a cor (formato #RRGGBB) via protocolo local Tuya, convertendo para HSV no "
@@ -310,7 +310,7 @@ public static class DeviceEndpoints
             )
             .RequireAuthorization()
             .RequireRateLimiting("DeviceMutationRateLimit")
-            .WithTags("⚡ Dispositivos")
+            .WithTags("Devices")
             .WithSummary("Ajusta a temperatura de cor (branco) de uma lâmpada Tuya local")
             .WithDescription(
                 "Define a temperatura de cor (0-100%, 0=quente/100=frio) via protocolo local Tuya, "
@@ -345,7 +345,7 @@ public static class DeviceEndpoints
             )
             .RequireAuthorization()
             .RequireRateLimiting("DeviceMutationRateLimit")
-            .WithTags("⚡ Dispositivos")
+            .WithTags("Devices")
             .WithSummary("Troca o modo (Branco/Cor) de uma lâmpada Tuya local")
             .WithDescription(
                 "Define o work_mode ('white' ou 'colour') direto via protocolo local Tuya — usado pela "
@@ -375,7 +375,7 @@ public static class DeviceEndpoints
                 }
             )
             .RequireAuthorization()
-            .WithTags("⚡ Dispositivos")
+            .WithTags("Devices")
             .WithSummary("Lê o modo (Branco/Cor) atual de uma lâmpada Tuya local")
             .WithDescription(
                 "Consulta síncrona ao hardware real — usada pra abrir o painel de detalhe já na aba "
@@ -405,7 +405,7 @@ public static class DeviceEndpoints
                 }
             )
             .RequireAuthorization()
-            .WithTags("⚡ Dispositivos")
+            .WithTags("Devices")
             .WithSummary("Consumo de energia do dispositivo")
             .WithDescription(
                 "Gráfico de potência média (kW) por balde de 5min deste dispositivo. range aceita "
@@ -436,7 +436,7 @@ public static class DeviceEndpoints
                 }
             )
             .RequireAuthorization()
-            .WithTags("⚡ Dispositivos")
+            .WithTags("Devices")
             .WithSummary("Automações vinculadas ao dispositivo")
             .WithDescription(
                 "Retorna as automações do usuário cujo gatilho, condição ou ação referenciam este "
@@ -467,7 +467,7 @@ public static class DeviceEndpoints
                 }
             )
             .RequireAuthorization()
-            .WithTags("⚡ Dispositivos")
+            .WithTags("Devices")
             .WithSummary("Linha do tempo de eventos deste dispositivo")
             .WithDescription(
                 "Mesmo formato de GET /dashboard/activity-log, paginado, filtrado pelos eventos "
