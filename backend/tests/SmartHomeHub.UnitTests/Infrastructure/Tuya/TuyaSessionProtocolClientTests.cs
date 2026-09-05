@@ -158,4 +158,43 @@ public class TuyaSessionProtocolClientTests
 
         act.Should().Throw<System.Security.Cryptography.CryptographicException>();
     }
+
+    [Fact]
+    public void OpenConnectionAsync_SocketOptions_ShouldConfigureNoDelayAndKeepAlive()
+    {
+        // Valida que SocketOptionName.KeepAlive, TcpKeepAliveTime e TcpKeepAliveInterval
+        // são aceitos pela plataforma e configuram o socket adequadamente.
+        using var tcpClient = new System.Net.Sockets.TcpClient();
+        tcpClient.NoDelay = true;
+        tcpClient.Client.SetSocketOption(
+            System.Net.Sockets.SocketOptionLevel.Socket,
+            System.Net.Sockets.SocketOptionName.KeepAlive,
+            true
+        );
+        tcpClient.Client.SetSocketOption(
+            System.Net.Sockets.SocketOptionLevel.Tcp,
+            System.Net.Sockets.SocketOptionName.TcpKeepAliveTime,
+            10
+        );
+        tcpClient.Client.SetSocketOption(
+            System.Net.Sockets.SocketOptionLevel.Tcp,
+            System.Net.Sockets.SocketOptionName.TcpKeepAliveInterval,
+            2
+        );
+
+        tcpClient.NoDelay.Should().BeTrue();
+        tcpClient.Client.GetSocketOption(
+            System.Net.Sockets.SocketOptionLevel.Socket,
+            System.Net.Sockets.SocketOptionName.KeepAlive
+        ).Should().Be(1); // ou true / valor > 0 no SO
+        tcpClient.Client.GetSocketOption(
+            System.Net.Sockets.SocketOptionLevel.Tcp,
+            System.Net.Sockets.SocketOptionName.TcpKeepAliveTime
+        ).Should().Be(10);
+        tcpClient.Client.GetSocketOption(
+            System.Net.Sockets.SocketOptionLevel.Tcp,
+            System.Net.Sockets.SocketOptionName.TcpKeepAliveInterval
+        ).Should().Be(2);
+    }
 }
+

@@ -416,6 +416,21 @@ public sealed class TuyaSessionProtocolClient : ITuyaProtocolClient, IDisposable
             // acumular mais dados ou o ACK anterior, adicionando até ~40ms de
             // latência por escrita nesse padrão de tráfego, sem benefício.
             tcpClient.NoDelay = true;
+            tcpClient.Client.SetSocketOption(
+                SocketOptionLevel.Socket,
+                SocketOptionName.KeepAlive,
+                true
+            );
+            tcpClient.Client.SetSocketOption(
+                SocketOptionLevel.Tcp,
+                SocketOptionName.TcpKeepAliveTime,
+                10
+            );
+            tcpClient.Client.SetSocketOption(
+                SocketOptionLevel.Tcp,
+                SocketOptionName.TcpKeepAliveInterval,
+                2
+            );
             using var connectCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
             connectCts.CancelAfter(ConnectTimeoutMs);
             await tcpClient.ConnectAsync(ipAddress, Port, connectCts.Token);
