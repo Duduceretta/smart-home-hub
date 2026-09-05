@@ -3,6 +3,7 @@ using System.Text.Json;
 using Mediator;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using SmartHomeHub.Api.Endpoints.Common;
 using SmartHomeHub.Api.Extensions;
 using SmartHomeHub.Application.Common.Interfaces;
 using SmartHomeHub.Application.Features.Devices.Commands.CreateDevice;
@@ -80,7 +81,7 @@ public static class DevEndpoints
             .WithDescription(
                 "🚨 **APENAS EM DESENVOLVIMENTO:** Facilita os testes no Scalar gerando o token necessário para as outras rotas. Copie o token retornado e cole no botão 'Authentication' do Scalar."
             )
-            .Produces<object>(StatusCodes.Status200OK)
+            .Produces<string>(StatusCodes.Status200OK)
             .ProducesProblem(StatusCodes.Status400BadRequest);
 
         app.MapPost(
@@ -273,7 +274,7 @@ public static class DevEndpoints
                     if (result.IsFailure)
                         return result.ToProblemDetails();
 
-                    return Results.Ok(new { message = "Telemetria simulada emitida com sucesso." });
+                    return Results.Ok(new MessageResponseDto("Telemetria simulada emitida com sucesso."));
                 }
             )
             .RequireAuthorization()
@@ -282,7 +283,7 @@ public static class DevEndpoints
             .WithDescription(
                 "🚨 **APENAS EM DESENVOLVIMENTO:** Dispara a pipeline real de processamento de telemetria (persistência no TimescaleDB + notificação SignalR) para um dispositivo específico."
             )
-            .Produces<object>(StatusCodes.Status200OK)
+            .Produces<MessageResponseDto>(StatusCodes.Status200OK)
             .ProducesProblem(StatusCodes.Status404NotFound)
             .ProducesProblem(StatusCodes.Status400BadRequest);
 
@@ -340,7 +341,7 @@ public static class DevEndpoints
                         ct
                     );
 
-                    return Results.Ok(new { message = "Conectividade do dispositivo atualizada." });
+                    return Results.Ok(new MessageResponseDto("Conectividade do dispositivo atualizada."));
                 }
             )
             .RequireAuthorization()
@@ -349,7 +350,7 @@ public static class DevEndpoints
             .WithDescription(
                 "🚨 **APENAS EM DESENVOLVIMENTO:** Altera diretamente o status IsOnline de um dispositivo e notifica via SignalR, para testar a resiliência do frontend a quedas de conexão."
             )
-            .Produces<object>(StatusCodes.Status200OK)
+            .Produces<MessageResponseDto>(StatusCodes.Status200OK)
             .ProducesProblem(StatusCodes.Status404NotFound);
 
         app.MapPost(
@@ -404,7 +405,7 @@ public static class DevEndpoints
                     + "usado só pra descoberta manual de DP/faixa de valores (ex: brilho, cor), não "
                     + "faz parte de nenhum fluxo de produção."
             )
-            .Produces<object>(StatusCodes.Status200OK)
+            .Produces<Dictionary<string, object>>(StatusCodes.Status200OK)
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .ProducesProblem(StatusCodes.Status404NotFound);
     }

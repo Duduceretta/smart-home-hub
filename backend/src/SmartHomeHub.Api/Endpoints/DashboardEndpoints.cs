@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using Mediator;
 using SmartHomeHub.Api.Extensions;
+using SmartHomeHub.Application.Common.Pagination;
 using SmartHomeHub.Application.Features.Dashboards.Queries.GetActivityLog;
 using SmartHomeHub.Application.Features.Dashboards.Queries.GetDashboardOverview;
 
@@ -71,7 +72,7 @@ public static class DashboardEndpoints
             .WithDescription(
                 "Retorna, paginado, os eventos reais persistidos (status de dispositivo, mídia, Spotify) do usuário logado, do mais recente para o mais antigo."
             )
-            .Produces<object>(StatusCodes.Status200OK)
+            .Produces<PagedResult<ActivityLogEntryDto>>(StatusCodes.Status200OK)
             .ProducesProblem(StatusCodes.Status401Unauthorized);
     }
 }

@@ -1,7 +1,9 @@
 using System.Security.Claims;
 using Mediator;
+using SmartHomeHub.Api.Endpoints.Common;
 using SmartHomeHub.Api.Extensions;
 using SmartHomeHub.Application.Common.Pagination;
+using SmartHomeHub.Application.Features.Dashboards.Queries.GetActivityLog;
 using SmartHomeHub.Application.Features.Rooms.Commands.CreateRoom;
 using SmartHomeHub.Application.Features.Rooms.Commands.DeleteRoom;
 using SmartHomeHub.Application.Features.Rooms.Commands.SetRoomDevicesPower;
@@ -75,7 +77,7 @@ public static class RoomEndpoints
             .WithDescription(
                 "Retorna os detalhes de um ambiente específico. Retorna erro 404 caso o ambiente pertença a outro usuário ou não exista."
             )
-            .Produces<object>(StatusCodes.Status200OK)
+            .Produces<RoomDto>(StatusCodes.Status200OK)
             .ProducesProblem(StatusCodes.Status404NotFound);
 
         app.MapPost(
@@ -100,7 +102,7 @@ public static class RoomEndpoints
 
                     return Results.Created(
                         $"/api/rooms/{result.Value}",
-                        new { message = "Ambiente criado com sucesso!", roomId = result.Value }
+                        new RoomCreatedResponseDto("Ambiente criado com sucesso!", result.Value)
                     );
                 }
             )
@@ -110,7 +112,7 @@ public static class RoomEndpoints
             .WithDescription(
                 "Criação de um novo ambiente físico (ex: 'Sala de Estar', 'Cozinha') para alocação futura de dispositivos."
             )
-            .Produces<object>(StatusCodes.Status201Created)
+            .Produces<RoomCreatedResponseDto>(StatusCodes.Status201Created)
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .ProducesProblem(StatusCodes.Status422UnprocessableEntity);
 
@@ -141,12 +143,7 @@ public static class RoomEndpoints
                         return result.ToProblemDetails();
 
                     return Results.Ok(
-                        new
-                        {
-                            id = id,
-                            name = request.Name,
-                            icon = request.Icon,
-                        }
+                        new UpdatedRoomResponseDto(id, request.Name, request.Icon)
                     );
                 }
             )
@@ -154,7 +151,7 @@ public static class RoomEndpoints
             .WithTags("Rooms")
             .WithSummary("Atualiza um ambiente existente")
             .WithDescription("Permite a alteração do nome e ícone de um ambiente já criado.")
-            .Produces<object>(StatusCodes.Status200OK)
+            .Produces<UpdatedRoomResponseDto>(StatusCodes.Status200OK)
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .ProducesProblem(StatusCodes.Status404NotFound)
             .ProducesProblem(StatusCodes.Status422UnprocessableEntity);
@@ -220,7 +217,7 @@ public static class RoomEndpoints
                     + "quando o ambiente não tem nenhum dispositivo desse tipo — o front-end deve omitir a "
                     + "seção de clima nesse caso, sem espaço reservado."
             )
-            .Produces<object>(StatusCodes.Status200OK)
+            .Produces<RoomClimateResponseDto>(StatusCodes.Status200OK)
             .ProducesProblem(StatusCodes.Status404NotFound);
 
         app.MapGet(
@@ -252,7 +249,7 @@ public static class RoomEndpoints
                     + "range aceita '24h' (padrão) ou '7d'. hasEnergyData=false quando nenhum dispositivo do "
                     + "ambiente reportou consumo no período — o front-end deve omitir a seção de gráfico."
             )
-            .Produces<object>(StatusCodes.Status200OK)
+            .Produces<RoomEnergyResponseDto>(StatusCodes.Status200OK)
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .ProducesProblem(StatusCodes.Status404NotFound);
 
@@ -283,7 +280,7 @@ public static class RoomEndpoints
                 "Retorna as automações do usuário cujo gatilho, condição ou ação referenciam algum "
                     + "dispositivo deste ambiente (cruzamento feito no RulePayload de cada automação)."
             )
-            .Produces<object>(StatusCodes.Status200OK)
+            .Produces<List<RoomAutomationDto>>(StatusCodes.Status200OK)
             .ProducesProblem(StatusCodes.Status404NotFound);
 
         app.MapPost(
@@ -314,7 +311,7 @@ public static class RoomEndpoints
                     + "para cada dispositivo atuador (Light/Switch/Thermostat/Lock/Alarm/Television) "
                     + "online do ambiente que ainda não está ligado. Sensores/câmeras são ignorados."
             )
-            .Produces<object>(StatusCodes.Status200OK)
+            .Produces<RoomBulkPowerResultDto>(StatusCodes.Status200OK)
             .ProducesProblem(StatusCodes.Status404NotFound);
 
         app.MapPost(
@@ -344,7 +341,7 @@ public static class RoomEndpoints
                 "Mesmo comportamento de /devices/turn-on, invertido: desliga todo atuador online "
                     + "do ambiente que ainda não está desligado."
             )
-            .Produces<object>(StatusCodes.Status200OK)
+            .Produces<RoomBulkPowerResultDto>(StatusCodes.Status200OK)
             .ProducesProblem(StatusCodes.Status404NotFound);
 
         app.MapGet(
@@ -376,7 +373,7 @@ public static class RoomEndpoints
                 "Mesmo formato de GET /dashboard/activity-log, paginado, filtrado no banco pelos "
                     + "eventos cujo dispositivo pertence a este ambiente — mais recentes primeiro."
             )
-            .Produces<object>(StatusCodes.Status200OK)
+            .Produces<PagedResult<ActivityLogEntryDto>>(StatusCodes.Status200OK)
             .ProducesProblem(StatusCodes.Status404NotFound);
     }
 }

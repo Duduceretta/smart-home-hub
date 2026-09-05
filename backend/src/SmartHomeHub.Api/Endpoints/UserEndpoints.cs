@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using Mediator;
+using SmartHomeHub.Api.Endpoints.Common;
 using SmartHomeHub.Api.Extensions;
 using SmartHomeHub.Application.Features.Users.Commands.SyncUser;
 
@@ -34,18 +35,16 @@ public static class UserEndpoints
                     return result.Value.WasCreated
                         ? Results.Created(
                             $"/api/users/{result.Value.UserId}",
-                            new
-                            {
-                                message = "Usuário sincronizado com sucesso!",
-                                userId = result.Value.UserId,
-                            }
+                            new UserSyncResponseDto(
+                                "Usuário sincronizado com sucesso!",
+                                result.Value.UserId
+                            )
                         )
                         : Results.Ok(
-                            new
-                            {
-                                message = "Usuário já existe no banco.",
-                                userId = result.Value.UserId,
-                            }
+                            new UserSyncResponseDto(
+                                "Usuário já existe no banco.",
+                                result.Value.UserId
+                            )
                         );
                 }
             )
@@ -56,8 +55,8 @@ public static class UserEndpoints
             .WithDescription(
                 "Deve ser chamado logo após o primeiro login no front-end. Verifica se o UID do token já existe no Postgres. Se existir, retorna os dados. Se não, cria o registro inicial do usuário no ecossistema."
             )
-            .Produces<object>(StatusCodes.Status200OK)
-            .Produces<object>(StatusCodes.Status201Created)
+            .Produces<UserSyncResponseDto>(StatusCodes.Status200OK)
+            .Produces<UserSyncResponseDto>(StatusCodes.Status201Created)
             .Produces(StatusCodes.Status401Unauthorized);
     }
 }

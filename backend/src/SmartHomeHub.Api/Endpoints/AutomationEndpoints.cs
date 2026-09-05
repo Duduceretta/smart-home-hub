@@ -1,7 +1,9 @@
 using System.Security.Claims;
 using Mediator;
 using Microsoft.AspNetCore.Mvc;
+using SmartHomeHub.Api.Endpoints.Common;
 using SmartHomeHub.Api.Extensions;
+using SmartHomeHub.Application.Common.Pagination;
 using SmartHomeHub.Application.Features.Automations.Commands.CreateAutomation;
 using SmartHomeHub.Application.Features.Automations.Commands.DeleteAutomation;
 using SmartHomeHub.Application.Features.Automations.Commands.UpdateAutomation;
@@ -10,6 +12,7 @@ using SmartHomeHub.Application.Features.Automations.Queries.GetAutomationExecuti
 using SmartHomeHub.Application.Features.Automations.Queries.GetAutomationExecutionsByWeekday;
 using SmartHomeHub.Application.Features.Automations.Queries.GetAutomationFilterCounts;
 using SmartHomeHub.Application.Features.Automations.Queries.GetAutomations;
+using SmartHomeHub.Application.Features.Dashboards.Queries.GetActivityLog;
 
 namespace SmartHomeHub.Api.Endpoints;
 
@@ -58,7 +61,7 @@ public static class AutomationEndpoints
             .WithDescription(
                 "Retorna a lista paginada de automações cadastradas pelo usuário autenticado, com filtro por status/gatilho/rascunho, busca por nome e ordenação — tudo resolvido server-side."
             )
-            .Produces<object>(StatusCodes.Status200OK);
+            .Produces<PagedResult<AutomationDto>>(StatusCodes.Status200OK);
 
         app.MapGet(
                 "/api/automations/counts",
@@ -85,7 +88,7 @@ public static class AutomationEndpoints
             .WithDescription(
                 "Retorna o total e a contagem por status/gatilho/rascunho, independente de paginação — usado pela trilha de filtro e pela barra de resumo."
             )
-            .Produces<object>(StatusCodes.Status200OK);
+            .Produces<AutomationFilterCountsDto>(StatusCodes.Status200OK);
 
         app.MapGet(
                 "/api/automations/{id:guid}",
@@ -113,7 +116,7 @@ public static class AutomationEndpoints
             .WithDescription(
                 "Retorna os detalhes (incluindo o RulePayload ECA completo) de uma automação específica. Retorna 404 caso pertença a outro usuário ou não exista."
             )
-            .Produces<object>(StatusCodes.Status200OK)
+            .Produces<AutomationDto>(StatusCodes.Status200OK)
             .ProducesProblem(StatusCodes.Status404NotFound);
 
         app.MapGet(
@@ -149,7 +152,7 @@ public static class AutomationEndpoints
             .WithDescription(
                 "Retorna as execuções (sucesso/falha) já registradas dessa automação, mais recentes primeiro — mesmo formato da Linha do Tempo do dashboard, filtrado por automação."
             )
-            .Produces<object>(StatusCodes.Status200OK);
+            .Produces<PagedResult<ActivityLogEntryDto>>(StatusCodes.Status200OK);
 
         app.MapGet(
                 "/api/automations/{id:guid}/executions/by-weekday",
@@ -178,7 +181,7 @@ public static class AutomationEndpoints
             .WithDescription(
                 "Retorna as 7 contagens (Domingo a Sábado, zeradas quando não há execução) de quantas vezes essa automação executou em cada dia da semana, nos últimos N dias (padrão 30)."
             )
-            .Produces<object>(StatusCodes.Status200OK);
+            .Produces<IReadOnlyList<AutomationWeekdayExecutionDto>>(StatusCodes.Status200OK);
 
         app.MapPost(
                 "/api/automations",
@@ -207,11 +210,10 @@ public static class AutomationEndpoints
 
                     return Results.Created(
                         $"/api/automations/{result.Value}",
-                        new
-                        {
-                            message = "Automação criada com sucesso!",
-                            automationId = result.Value,
-                        }
+                        new AutomationCreatedResponseDto(
+                            "Automação criada com sucesso!",
+                            result.Value
+                        )
                     );
                 }
             )
@@ -221,7 +223,7 @@ public static class AutomationEndpoints
             .WithDescription(
                 "Cria uma automação ECA (Event-Condition-Action) a partir do payload gerado pelo editor visual."
             )
-            .Produces<object>(StatusCodes.Status201Created)
+            .Produces<AutomationCreatedResponseDto>(StatusCodes.Status201Created)
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .ProducesProblem(StatusCodes.Status422UnprocessableEntity);
 
@@ -253,12 +255,11 @@ public static class AutomationEndpoints
                         return result.ToProblemDetails();
 
                     return Results.Ok(
-                        new
-                        {
+                        new UpdatedAutomationResponseDto(
                             id,
-                            name = request.Name,
-                            isActive = request.IsActive,
-                        }
+                            request.Name,
+                            request.IsActive
+                        )
                     );
                 }
             )
@@ -268,7 +269,7 @@ public static class AutomationEndpoints
             .WithDescription(
                 "Substitui nome, payload ECA e status de uma automação já criada. Reagenda ou remove o gatilho de tempo no Hangfire conforme o novo payload."
             )
-            .Produces<object>(StatusCodes.Status200OK)
+            .Produces<UpdatedAutomationResponseDto>(StatusCodes.Status200OK)
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .ProducesProblem(StatusCodes.Status404NotFound)
             .ProducesProblem(StatusCodes.Status422UnprocessableEntity);

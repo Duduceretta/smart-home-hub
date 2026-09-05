@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using Mediator;
 using Microsoft.Extensions.Configuration;
+using SmartHomeHub.Api.Endpoints.Common;
 using SmartHomeHub.Api.Extensions;
 using SmartHomeHub.Application.Features.Integrations.Commands.CompleteSpotifyConnection;
 using SmartHomeHub.Application.Features.Integrations.Commands.DisconnectSpotify;
@@ -38,14 +39,14 @@ public static class SpotifyEndpoints
                     if (result.IsFailure)
                         return result.ToProblemDetails();
 
-                    return Results.Ok(new { authorizeUrl = result.Value });
+                    return Results.Ok(new SpotifyAuthorizeUrlResponseDto(result.Value));
                 }
             )
             .RequireAuthorization()
             .RequireRateLimiting("AuthRateLimit")
             .WithTags("🎵 Spotify")
             .WithSummary("Gera a URL de autorização OAuth2 do Spotify")
-            .Produces<object>(StatusCodes.Status200OK)
+            .Produces<SpotifyAuthorizeUrlResponseDto>(StatusCodes.Status200OK)
             .ProducesProblem(StatusCodes.Status401Unauthorized);
 
         app.MapGet(
@@ -181,13 +182,13 @@ public static class SpotifyEndpoints
                     if (result.IsFailure)
                         return result.ToProblemDetails();
 
-                    return Results.Ok(new { message = "Volume ajustado com sucesso." });
+                    return Results.Ok(new MessageResponseDto("Volume ajustado com sucesso."));
                 }
             )
             .RequireAuthorization()
             .WithTags("🎵 Spotify")
             .WithSummary("Ajusta o volume do dispositivo Spotify ativo")
-            .Produces<object>(StatusCodes.Status200OK)
+            .Produces<MessageResponseDto>(StatusCodes.Status200OK)
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .ProducesProblem(StatusCodes.Status401Unauthorized);
 
@@ -211,13 +212,13 @@ public static class SpotifyEndpoints
                     if (result.IsFailure)
                         return result.ToProblemDetails();
 
-                    return Results.Ok(new { message = "Comando enviado com sucesso." });
+                    return Results.Ok(new MessageResponseDto("Comando enviado com sucesso."));
                 }
             )
             .RequireAuthorization()
             .WithTags("🎵 Spotify")
             .WithSummary("Alterna play/pause no dispositivo Spotify ativo")
-            .Produces<object>(StatusCodes.Status200OK)
+            .Produces<MessageResponseDto>(StatusCodes.Status200OK)
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .ProducesProblem(StatusCodes.Status401Unauthorized);
 
@@ -241,13 +242,13 @@ public static class SpotifyEndpoints
                     if (result.IsFailure)
                         return result.ToProblemDetails();
 
-                    return Results.Ok(new { message = "Comando enviado com sucesso." });
+                    return Results.Ok(new MessageResponseDto("Comando enviado com sucesso."));
                 }
             )
             .RequireAuthorization()
             .WithTags("🎵 Spotify")
             .WithSummary("Pula para a próxima faixa no dispositivo Spotify ativo")
-            .Produces<object>(StatusCodes.Status200OK)
+            .Produces<MessageResponseDto>(StatusCodes.Status200OK)
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .ProducesProblem(StatusCodes.Status401Unauthorized);
 
@@ -271,13 +272,13 @@ public static class SpotifyEndpoints
                     if (result.IsFailure)
                         return result.ToProblemDetails();
 
-                    return Results.Ok(new { message = "Comando enviado com sucesso." });
+                    return Results.Ok(new MessageResponseDto("Comando enviado com sucesso."));
                 }
             )
             .RequireAuthorization()
             .WithTags("🎵 Spotify")
             .WithSummary("Volta para a faixa anterior no dispositivo Spotify ativo")
-            .Produces<object>(StatusCodes.Status200OK)
+            .Produces<MessageResponseDto>(StatusCodes.Status200OK)
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .ProducesProblem(StatusCodes.Status401Unauthorized);
     }

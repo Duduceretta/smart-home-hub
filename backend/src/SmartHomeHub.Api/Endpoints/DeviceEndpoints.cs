@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using SmartHomeHub.Api.Extensions;
 using SmartHomeHub.Application.Common.Interfaces;
 using SmartHomeHub.Application.Common.Pagination;
+using SmartHomeHub.Application.Features.Dashboards.Queries.GetActivityLog;
 using SmartHomeHub.Application.Features.Devices.Commands.CreateDevice;
 using SmartHomeHub.Application.Features.Devices.Commands.DeleteDevice;
 using SmartHomeHub.Application.Features.Devices.Commands.SetDeviceBrightness;
@@ -22,6 +23,7 @@ using SmartHomeHub.Application.Features.Devices.Queries.GetDeviceMediaState;
 using SmartHomeHub.Application.Features.Devices.Queries.GetDevices;
 using SmartHomeHub.Application.Features.Devices.Queries.GetDeviceTelemetryHistory;
 using SmartHomeHub.Application.Features.Devices.Queries.GetDeviceWorkMode;
+using SmartHomeHub.Api.Endpoints.Common;
 using SmartHomeHub.Domain.Enums;
 
 namespace SmartHomeHub.Api.Endpoints;
@@ -99,7 +101,7 @@ public static class DeviceEndpoints
             .WithDescription(
                 "Retorna os detalhes completos de um dispositivo específico. Retorna **404 Not Found** se o dispositivo não existir ou não pertencer ao usuário."
             )
-            .Produces<object>(StatusCodes.Status200OK)
+            .Produces<DeviceDto>(StatusCodes.Status200OK)
             .ProducesProblem(StatusCodes.Status404NotFound);
 
         app.MapGet(
@@ -193,7 +195,7 @@ public static class DeviceEndpoints
                     if (result.IsFailure)
                         return result.ToProblemDetails();
 
-                    return Results.Ok(new { message = "Volume ajustado com sucesso." });
+                    return Results.Ok(new MessageResponseDto("Volume ajustado com sucesso."));
                 }
             )
             .RequireAuthorization()
@@ -203,7 +205,7 @@ public static class DeviceEndpoints
             .WithDescription(
                 "Define o volume (0-100%) da TV via ADB, convertendo para o nível absoluto real do stream de mídia. Só suportado por TVs GoogleCast/AndroidTvAdb."
             )
-            .Produces<object>(StatusCodes.Status200OK)
+            .Produces<MessageResponseDto>(StatusCodes.Status200OK)
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .ProducesProblem(StatusCodes.Status404NotFound);
 
@@ -231,7 +233,7 @@ public static class DeviceEndpoints
                     if (result.IsFailure)
                         return result.ToProblemDetails();
 
-                    return Results.Ok(new { message = "Brilho ajustado com sucesso." });
+                    return Results.Ok(new MessageResponseDto("Brilho ajustado com sucesso."));
                 }
             )
             .RequireAuthorization()
@@ -242,7 +244,7 @@ public static class DeviceEndpoints
                 "Define o brilho (0-100%) via protocolo local Tuya, convertendo para a escala real do "
                     + "Data Point de brilho do dispositivo."
             )
-            .Produces<object>(StatusCodes.Status200OK)
+            .Produces<MessageResponseDto>(StatusCodes.Status200OK)
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .ProducesProblem(StatusCodes.Status404NotFound);
 
@@ -266,7 +268,7 @@ public static class DeviceEndpoints
                     if (result.IsFailure)
                         return result.ToProblemDetails();
 
-                    return Results.Ok(new { message = "Cor ajustada com sucesso." });
+                    return Results.Ok(new MessageResponseDto("Cor ajustada com sucesso."));
                 }
             )
             .RequireAuthorization()
@@ -277,7 +279,7 @@ public static class DeviceEndpoints
                 "Define a cor (formato #RRGGBB) via protocolo local Tuya, convertendo para HSV no "
                     + "formato de payload real do Data Point de cor do dispositivo."
             )
-            .Produces<object>(StatusCodes.Status200OK)
+            .Produces<MessageResponseDto>(StatusCodes.Status200OK)
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .ProducesProblem(StatusCodes.Status404NotFound);
 
@@ -305,7 +307,7 @@ public static class DeviceEndpoints
                     if (result.IsFailure)
                         return result.ToProblemDetails();
 
-                    return Results.Ok(new { message = "Temperatura de cor ajustada com sucesso." });
+                    return Results.Ok(new MessageResponseDto("Temperatura de cor ajustada com sucesso."));
                 }
             )
             .RequireAuthorization()
@@ -316,7 +318,7 @@ public static class DeviceEndpoints
                 "Define a temperatura de cor (0-100%, 0=quente/100=frio) via protocolo local Tuya, "
                     + "convertendo para a escala real do Data Point. Força o dispositivo pro modo branco."
             )
-            .Produces<object>(StatusCodes.Status200OK)
+            .Produces<MessageResponseDto>(StatusCodes.Status200OK)
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .ProducesProblem(StatusCodes.Status404NotFound);
 
@@ -340,7 +342,7 @@ public static class DeviceEndpoints
                     if (result.IsFailure)
                         return result.ToProblemDetails();
 
-                    return Results.Ok(new { message = "Modo ajustado com sucesso." });
+                    return Results.Ok(new MessageResponseDto("Modo ajustado com sucesso."));
                 }
             )
             .RequireAuthorization()
@@ -351,7 +353,7 @@ public static class DeviceEndpoints
                 "Define o work_mode ('white' ou 'colour') direto via protocolo local Tuya — usado pela "
                     + "troca de abas Branco/Cor no painel de controles, espelhando o app Smart Life."
             )
-            .Produces<object>(StatusCodes.Status200OK)
+            .Produces<MessageResponseDto>(StatusCodes.Status200OK)
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .ProducesProblem(StatusCodes.Status404NotFound);
 
@@ -381,7 +383,7 @@ public static class DeviceEndpoints
                 "Consulta síncrona ao hardware real — usada pra abrir o painel de detalhe já na aba "
                     + "correta, sem assumir um padrão fixo."
             )
-            .Produces<object>(StatusCodes.Status200OK)
+            .Produces<DeviceWorkModeResponseDto>(StatusCodes.Status200OK)
             .ProducesProblem(StatusCodes.Status404NotFound);
 
         app.MapGet(
@@ -412,7 +414,7 @@ public static class DeviceEndpoints
                     + "'24h' (padrão) ou '7d'. hasEnergyData=false quando o dispositivo não reportou "
                     + "consumo no período — o front-end deve omitir a seção de gráfico."
             )
-            .Produces<object>(StatusCodes.Status200OK)
+            .Produces<DeviceEnergyResponseDto>(StatusCodes.Status200OK)
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .ProducesProblem(StatusCodes.Status404NotFound);
 
@@ -442,7 +444,7 @@ public static class DeviceEndpoints
                 "Retorna as automações do usuário cujo gatilho, condição ou ação referenciam este "
                     + "dispositivo (cruzamento feito no RulePayload de cada automação)."
             )
-            .Produces<object>(StatusCodes.Status200OK)
+            .Produces<List<DeviceAutomationDto>>(StatusCodes.Status200OK)
             .ProducesProblem(StatusCodes.Status404NotFound);
 
         app.MapGet(
@@ -473,7 +475,7 @@ public static class DeviceEndpoints
                 "Mesmo formato de GET /dashboard/activity-log, paginado, filtrado pelos eventos "
                     + "deste dispositivo — mais recentes primeiro."
             )
-            .Produces<object>(StatusCodes.Status200OK)
+            .Produces<PagedResult<ActivityLogEntryDto>>(StatusCodes.Status200OK)
             .ProducesProblem(StatusCodes.Status404NotFound);
 
         app.MapPost(
@@ -513,11 +515,7 @@ public static class DeviceEndpoints
 
                     return Results.Created(
                         $"/api/devices/{result.Value}",
-                        new
-                        {
-                            message = "Dispositivo registrado com sucesso!",
-                            deviceId = result.Value,
-                        }
+                        new DeviceCreatedResponseDto("Dispositivo registrado com sucesso!", result.Value)
                     );
                 }
             )
@@ -527,7 +525,7 @@ public static class DeviceEndpoints
             .WithDescription(
                 "Registra um novo hardware IoT no sistema e o vincula ao usuário autenticado. Pode ser opcionalmente alocado em um Ambiente (`RoomId`)."
             )
-            .Produces<object>(StatusCodes.Status201Created)
+            .Produces<DeviceCreatedResponseDto>(StatusCodes.Status201Created)
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .ProducesProblem(StatusCodes.Status422UnprocessableEntity);
 
@@ -550,7 +548,7 @@ public static class DeviceEndpoints
                     if (result.IsFailure)
                         return result.ToProblemDetails();
 
-                    return Results.Ok(new { message = "Comando enviado com sucesso." });
+                    return Results.Ok(new MessageResponseDto("Comando enviado com sucesso."));
                 }
             )
             .RequireAuthorization()
@@ -560,7 +558,7 @@ public static class DeviceEndpoints
             .WithDescription(
                 "Inverte o estado atual (`IsOn`) do dispositivo no banco de dados e dispara automaticamente um comando para atualizar o hardware físico."
             )
-            .Produces<object>(StatusCodes.Status200OK)
+            .Produces<MessageResponseDto>(StatusCodes.Status200OK)
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .ProducesProblem(StatusCodes.Status404NotFound);
 
@@ -602,16 +600,15 @@ public static class DeviceEndpoints
                         return result.ToProblemDetails();
 
                     return Results.Ok(
-                        new
-                        {
-                            id = id,
-                            name = request.Name,
-                            brand = request.Brand,
-                            externalId = request.ExternalId,
-                            type = request.Type,
-                            integrationType = request.IntegrationType,
-                            roomId = request.RoomId,
-                        }
+                        new UpdatedDeviceResponseDto(
+                            id,
+                            request.Name,
+                            request.Brand,
+                            request.ExternalId,
+                            request.Type,
+                            request.IntegrationType,
+                            request.RoomId
+                        )
                     );
                 }
             )
@@ -621,7 +618,7 @@ public static class DeviceEndpoints
             .WithDescription(
                 "Substitui os dados cadastrais do dispositivo. A alteração de `RoomId` transfere o dispositivo de ambiente."
             )
-            .Produces<object>(StatusCodes.Status200OK)
+            .Produces<UpdatedDeviceResponseDto>(StatusCodes.Status200OK)
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .ProducesProblem(StatusCodes.Status404NotFound)
             .ProducesProblem(StatusCodes.Status422UnprocessableEntity);

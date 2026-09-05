@@ -1,6 +1,8 @@
 using System.Security.Claims;
 using Mediator;
+using SmartHomeHub.Api.Endpoints.Common;
 using SmartHomeHub.Api.Extensions;
+using SmartHomeHub.Application.Common.Pagination;
 using SmartHomeHub.Application.Features.DeviceGroups.Commands.CreateDeviceGroup;
 using SmartHomeHub.Application.Features.DeviceGroups.Commands.DeleteDeviceGroup;
 using SmartHomeHub.Application.Features.DeviceGroups.Commands.SetDeviceGroupBrightness;
@@ -42,7 +44,7 @@ public static class DeviceGroupEndpoints
             .WithDescription(
                 "Retorna todos os grupos criados pelo usuário logado, incluindo a lista interna de dispositivos vinculados a cada grupo."
             )
-            .Produces<object>(StatusCodes.Status200OK);
+            .Produces<PagedResult<DeviceGroupDto>>(StatusCodes.Status200OK);
 
         app.MapGet(
                 "/api/device-groups/{id:guid}",
@@ -69,7 +71,7 @@ public static class DeviceGroupEndpoints
             .WithDescription(
                 "Retorna os detalhes de um grupo e seus dispositivos. Retorna **404 Not Found** caso o grupo não exista ou pertença a outro usuário."
             )
-            .Produces<object>(StatusCodes.Status200OK)
+            .Produces<DeviceGroupDto>(StatusCodes.Status200OK)
             .ProducesProblem(StatusCodes.Status404NotFound);
 
         app.MapPost(
@@ -100,11 +102,10 @@ public static class DeviceGroupEndpoints
 
                     return Results.Created(
                         $"/api/device-groups/{result.Value}",
-                        new
-                        {
-                            message = "Grupo de dispositivos criado com sucesso!",
-                            groupId = result.Value,
-                        }
+                        new DeviceGroupCreatedResponseDto(
+                            "Grupo de dispositivos criado com sucesso!",
+                            result.Value
+                        )
                     );
                 }
             )
@@ -114,7 +115,7 @@ public static class DeviceGroupEndpoints
             .WithDescription(
                 "Cria um grupo e vincula os dispositivos fornecidos na lista de IDs. A API barrará a criação com **400 Bad Request** caso um ID informado pertença a outro usuário."
             )
-            .Produces<object>(StatusCodes.Status201Created)
+            .Produces<DeviceGroupCreatedResponseDto>(StatusCodes.Status201Created)
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .ProducesProblem(StatusCodes.Status422UnprocessableEntity);
 
@@ -147,13 +148,12 @@ public static class DeviceGroupEndpoints
                         return result.ToProblemDetails();
 
                     return Results.Ok(
-                        new
-                        {
-                            id = id,
-                            name = request.Name,
-                            icon = request.Icon,
-                            deviceIds = request.DeviceIds,
-                        }
+                        new UpdatedDeviceGroupResponseDto(
+                            id,
+                            request.Name,
+                            request.Icon,
+                            request.DeviceIds
+                        )
                     );
                 }
             )
@@ -163,7 +163,7 @@ public static class DeviceGroupEndpoints
             .WithDescription(
                 "Substitui os dados cadastrais do grupo e sincroniza os dispositivos vinculados. Para remover todos os dispositivos do grupo, envie uma lista `deviceIds` vazia."
             )
-            .Produces<object>(StatusCodes.Status200OK)
+            .Produces<UpdatedDeviceGroupResponseDto>(StatusCodes.Status200OK)
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .ProducesProblem(StatusCodes.Status404NotFound)
             .ProducesProblem(StatusCodes.Status422UnprocessableEntity);
