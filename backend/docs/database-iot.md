@@ -160,6 +160,35 @@ Quando um comando Tuya falha por IP desatualizado (DHCP mudou o IP do dispositiv
 
 **Seam de teste**: construtor aceita `ipResolutionCircuitBreakerWindowForTests` (mesmo padrão dos outros seams do driver — `semaphoreAcquireTimeoutForTests`, `coalescingWindowForTests`), produção usa o default de 10s.
 
+### 5.5. Investigação: push espontâneo via sessão TCP local (v3.4/v3.5) — confirmado só para mudanças via app/nuvem, NÃO ocorre para interruptor físico
+
+**Pergunta original**: com uma sessão TCP autenticada (handshake de 3 vias completo, session key derivada) mantida **aberta** em vez de fechada após o comando, o dispositivo empurra sozinho um frame de status quando o estado muda por fora (interruptor físico, app SmartLife) — sem nenhum polling nosso? Esse é o mecanismo que bibliotecas do ecossistema Tuya-local (localtuya, tinytuya) usam pra atualização "quase instantânea" sem depender da nuvem Tuya. Diferente da via já descartada (broadcast UDP nas portas 6666/6667 não carrega `dps` — payload idêntico entre estados on/off, confirmado empiricamente; não repetir esse teste).
+
+**Ferramenta**: `backend/tools/bench/TuyaSpontaneousPushBench` (protocolo de uso em `backend/tools/bench/README.md`) — console app isolado fora de `SmartHomeHub.slnx`, reaproveita handshake/derivação de session key de `TuyaSessionProtocolClient`, mantém o socket aberto após o handshake e entra em escuta passiva.
+
+**Resultado 1 — mudança via app SmartLife: SIM, gera push espontâneo.** Rodada real contra dispositivo v3.5 de bancada, sessão aberta, sem nenhum comando nosso além da query de baseline inicial. Dois frames não solicitados chegaram no socket durante a janela de escuta passiva, cada um coincidindo com uma mudança de estado feita pelo app:
+
+```
+[23:34:27.066] *** FRAME ESPONTÂNEO #1 (t=3.928s desde o início da sessão) ***
+  -> JSON decodificado (offset 19): {"protocol":4,"t":1788575636,"data":{"dps":{"20":false}}}
+[23:34:38.333] *** FRAME ESPONTÂNEO #2 (t=15.195s desde o início da sessão) ***
+  -> JSON decodificado (offset 19): {"protocol":4,"t":1788575648,"data":{"dps":{"20":true}}}
+```
+
+**Formato do frame de push**: `cmd=8` (não `0x0D`/`CmdControlNew` usado pelas nossas escritas, nem `0x10`/`CmdDpQueryNew` das nossas leituras — é um comando próprio de notificação), payload com prefixo de 19 bytes (versão + campos internos, mesmo padrão observado nas respostas a comando) seguido de JSON `{"protocol":4,"t":<unix>,"data":{"dps":{...}}}` — layout "protocol 4", diferente do "protocol 5" usado no nosso `SetDpsAsync` (`{"protocol":5,"t":...,"data":{"dps":{...}}}`). `dps` vem decodificável e com o valor correto do novo estado nos dois frames observados.
+
+**Latência**: não medida com precisão — o horário exato do toque no app não foi registrado com relógio sincronizado ao do script. Qualitativamente, os frames chegaram sem delay perceptível de segundos (não foi preciso esperar um ciclo de polling). Uma rodada futura com relógios sincronizados mediria latência exata em milissegundos, se isso vier a importar pra decisão final.
+
+**Resultado 2 — interruptor físico: NÃO gera push espontâneo (confirmado, evidência limpa).** Segunda rodada, mesma metodologia, dispositivo v3.5: interruptor físico acionado **dentro** da janela de escuta passiva, com confirmação visual de que o dispositivo mudou de estado fisicamente (luz mudou). **Nenhum frame chegou no socket durante os 90s inteiros da janela**, e a sessão nem sequer caiu (ver Resultado 3). Diferente da tentativa anterior (rodada sem log, cronometragem incerta), esta rodada tem log completo e confirmação de que a ação física de fato ocorreu dentro da janela monitorada — a ausência de frame aqui não é dúvida metodológica, é o resultado. **Esse é o achado mais importante pra decisão de arquitetura**: o cenário motivador original da investigação (mudança "por fora", sem passar pelo app/nuvem) é justamente o que NÃO é coberto por push local nesse hardware/firmware.
+
+**Resultado 3 — comportamento da sessão ociosa: revisto, não é um timeout fixo de ~15s.** A primeira rodada (Resultado 1) tinha registrado a sessão caindo ~15.2s após o último frame de push; documentamos isso inicialmente como "timeout de inatividade do dispositivo". **Essa conclusão está incorreta** — a segunda rodada (interruptor físico, zero tráfego de qualquer tipo depois da query de baseline) manteve a sessão aberta pelos 90s inteiros sem cair. Ou seja, ociosidade pura NÃO derruba a sessão dentro dessa janela. A hipótese mais consistente com as duas rodadas é que a queda da primeira rodada esteve correlacionada com a própria mudança via app/nuvem (o dispositivo pode reiniciar seu listener TCP local logo após processar um comando vindo do lado cloud, por exemplo), não com tempo de inatividade do socket. **Isso não está confirmado com certeza** — é uma hipótese com n=1 evento de queda observado; precisaria de mais rodadas (múltiplas mudanças via app na mesma sessão, observando se cada uma correlaciona com uma queda subsequente) pra virar conclusão sólida.
+
+**Recomendação**: 
+1. **Push puro não serve como substituto do polling** — o caso mais comum e mais citado como motivador (interruptor físico) não é coberto. Qualquer arquitetura de sync tem que manter o polling do `DeviceHealthCheckWorker` como caminho principal de qualquer forma, não como "rede de segurança" secundária.
+2. Push via app/nuvem É real e poderia reduzir latência **só** para esse subconjunto de mudanças (ex: usuário mudou pelo SmartLife enquanto o hub também está com sessão aberta) — mas o ganho prático é questionável: se o usuário já mudou pelo app, o próprio app/nuvem Tuya já refletiu a mudança; o hub só ganharia velocidade de refletir isso na UI própria antes do próximo ciclo de polling (~12s), não uma capacidade nova.
+3. Dado (1) e (2), **o custo de manter uma sessão TCP persistente por dispositivo Tuya** (gerenciamento de reconexão, uma sessão a mais por device rodando indefinidamente, possível reinício de sessão após comandos via app conforme Resultado 3) **não parece compensar** o ganho — que é só latência de UI pra um subconjunto de mudanças que o polling de 12s já cobre com atraso pequeno. **Não recomendado implementar em produção com a evidência atual.**
+4. Se o interesse for reduzir a latência do caso comum (interruptor físico), a via correta continua sendo reduzir o intervalo de polling do `DeviceHealthCheckWorker` ou investigar se o dispositivo aceita ser configurado para reportar por outro canal (ex: LWT MQTT, se o firmware suportar — não é o caso do hardware Tuya nativo, que não fala MQTT, ver seção 1) — não a sessão TCP persistente.
+
 ---
 
 ## 6. Resiliência MQTT — LWT individual, sessão persistente, NoDelay
