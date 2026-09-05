@@ -84,17 +84,12 @@ public class TuyaSessionProtocolClientTests
         var gcmIv = Convert.FromHexString(Vectors.FixedGcmMessageIvHex);
 
         // Passo 1: SESS_KEY_NEG_START
-        var step1 = TuyaSessionProtocolClient.BuildHandshakeStartFrame(
-            useGcm,
-            localKey,
-            localNonce,
-            gcmIv
-        );
+        var step1 = TuyaFrameCodec.BuildHandshakeStartFrame(useGcm, localKey, localNonce, gcmIv);
         Convert.ToHexString(step1).ToLowerInvariant().Should().Be(vectors.Step1SessKeyNegStart);
 
         // Passo 2: decodifica a resposta simulada (prova que o parser + validação de HMAC batem)
         var step2Bytes = Convert.FromHexString(vectors.Step2SessKeyNegRespSimulated);
-        var (remoteNonce, _) = TuyaSessionProtocolClient.ProcessHandshakeResponse(
+        var (remoteNonce, _) = TuyaFrameCodec.ProcessHandshakeResponse(
             useGcm,
             localKey,
             localNonce,
@@ -107,26 +102,16 @@ public class TuyaSessionProtocolClientTests
             .Be(Vectors.FixedRemoteNonceHex);
 
         // Passo 3: SESS_KEY_NEG_FINISH
-        var step3 = TuyaSessionProtocolClient.BuildHandshakeFinishFrame(
-            useGcm,
-            localKey,
-            remoteNonce,
-            gcmIv
-        );
+        var step3 = TuyaFrameCodec.BuildHandshakeFinishFrame(useGcm, localKey, remoteNonce, gcmIv);
         Convert.ToHexString(step3).ToLowerInvariant().Should().Be(vectors.Step3SessKeyNegFinish);
 
         // Derivação da session key
-        var sessionKey = TuyaSessionProtocolClient.DeriveSessionKey(
-            useGcm,
-            localKey,
-            localNonce,
-            remoteNonce
-        );
+        var sessionKey = TuyaFrameCodec.DeriveSessionKey(useGcm, localKey, localNonce, remoteNonce);
         Convert.ToHexString(sessionKey).ToLowerInvariant().Should().Be(vectors.SessionKey);
 
         // Comando de controle (ligar)
         var controlPlaintext = Encoding.UTF8.GetBytes(vectors.ControlPayloadPlaintext);
-        var controlFrame = TuyaSessionProtocolClient.BuildCommandFrame(
+        var controlFrame = TuyaFrameCodec.BuildCommandFrame(
             useGcm,
             sessionKey,
             CmdControl,
@@ -149,12 +134,7 @@ public class TuyaSessionProtocolClientTests
         var step2Bytes = Convert.FromHexString(Vectors.V34.Step2SessKeyNegRespSimulated);
 
         var act = () =>
-            TuyaSessionProtocolClient.ProcessHandshakeResponse(
-                false,
-                wrongKey,
-                localNonce,
-                step2Bytes
-            );
+            TuyaFrameCodec.ProcessHandshakeResponse(false, wrongKey, localNonce, step2Bytes);
 
         act.Should().Throw<System.Security.Cryptography.CryptographicException>();
     }
@@ -183,18 +163,26 @@ public class TuyaSessionProtocolClientTests
         );
 
         tcpClient.NoDelay.Should().BeTrue();
-        tcpClient.Client.GetSocketOption(
-            System.Net.Sockets.SocketOptionLevel.Socket,
-            System.Net.Sockets.SocketOptionName.KeepAlive
-        ).Should().Be(1); // ou true / valor > 0 no SO
-        tcpClient.Client.GetSocketOption(
-            System.Net.Sockets.SocketOptionLevel.Tcp,
-            System.Net.Sockets.SocketOptionName.TcpKeepAliveTime
-        ).Should().Be(10);
-        tcpClient.Client.GetSocketOption(
-            System.Net.Sockets.SocketOptionLevel.Tcp,
-            System.Net.Sockets.SocketOptionName.TcpKeepAliveInterval
-        ).Should().Be(2);
+        tcpClient
+            .Client.GetSocketOption(
+                System.Net.Sockets.SocketOptionLevel.Socket,
+                System.Net.Sockets.SocketOptionName.KeepAlive
+            )
+            .Should()
+            .Be(1); // ou true / valor > 0 no SO
+        tcpClient
+            .Client.GetSocketOption(
+                System.Net.Sockets.SocketOptionLevel.Tcp,
+                System.Net.Sockets.SocketOptionName.TcpKeepAliveTime
+            )
+            .Should()
+            .Be(10);
+        tcpClient
+            .Client.GetSocketOption(
+                System.Net.Sockets.SocketOptionLevel.Tcp,
+                System.Net.Sockets.SocketOptionName.TcpKeepAliveInterval
+            )
+            .Should()
+            .Be(2);
     }
 }
-

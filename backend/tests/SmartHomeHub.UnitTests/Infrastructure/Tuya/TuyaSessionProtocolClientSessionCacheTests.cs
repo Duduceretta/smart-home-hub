@@ -106,7 +106,7 @@ public class TuyaSessionProtocolClientSessionCacheTests
             if (cmd == 3) // CmdSessKeyNegStart
             {
                 HandshakeStartCount++;
-                var resp = TuyaSessionProtocolClient.BuildHandshakeResponseFrame(
+                var resp = TuyaFrameCodec.BuildHandshakeResponseFrame(
                     _useGcm,
                     _localKey,
                     _localNonce,
@@ -124,7 +124,7 @@ public class TuyaSessionProtocolClientSessionCacheTests
                 CommandCount++;
                 if (!DropOnNextRead)
                 {
-                    var resp = TuyaSessionProtocolClient.BuildCommandResponseFrame(
+                    var resp = TuyaFrameCodec.BuildCommandResponseFrame(
                         _useGcm,
                         _sessionKey,
                         (int)cmd,
@@ -190,12 +190,9 @@ public class TuyaSessionProtocolClientSessionCacheTests
         TuyaSessionProtocolClient Client,
         List<SimulatedTuyaStream> Streams,
         byte[] SessionKey
-    ) CreateTestClient(
-        bool useGcm = true,
-        TimeSpan? sessionTtl = null
-    )
+    ) CreateTestClient(bool useGcm = true, TimeSpan? sessionTtl = null)
     {
-        var sessionKey = TuyaSessionProtocolClient.DeriveSessionKey(
+        var sessionKey = TuyaFrameCodec.DeriveSessionKey(
             useGcm,
             FakeLocalKey,
             FakeLocalNonce,
@@ -427,9 +424,7 @@ public class TuyaSessionProtocolClientSessionCacheTests
     public void FactoryResolve_ShouldReturnSameSessionClientForV34AndV35_AndLegacyClientForV31V33()
     {
         var loggerFactory = Substitute.For<ILoggerFactory>();
-        loggerFactory
-            .CreateLogger(Arg.Any<string>())
-            .Returns(Substitute.For<ILogger>());
+        loggerFactory.CreateLogger(Arg.Any<string>()).Returns(Substitute.For<ILogger>());
 
         var legacyClient = new TuyaNetProtocolClient();
         using var factory = new TuyaProtocolClientFactory(legacyClient, loggerFactory);
@@ -547,4 +542,3 @@ public class TuyaSessionProtocolClientSessionCacheTests
         client.ActiveSessionCount.Should().Be(0);
     }
 }
-

@@ -116,7 +116,7 @@ public class TuyaSessionProtocolClientFrameReassemblyTests
         // válidos de um frame Tuya de verdade pra fatiar.
         var sessionKey = new byte[16];
         RandomNumberGenerator_Fill(sessionKey);
-        var wholeFrame = TuyaSessionProtocolClient.BuildCommandFrame(
+        var wholeFrame = TuyaFrameCodec.BuildCommandFrame(
             useGcm,
             sessionKey,
             commandCode: 0x10,
@@ -158,7 +158,7 @@ public class TuyaSessionProtocolClientFrameReassemblyTests
         // chegou "dentro do prazo" não deve resetar o relógio.
         var sessionKey = new byte[16];
         RandomNumberGenerator_Fill(sessionKey);
-        var wholeFrame = TuyaSessionProtocolClient.BuildCommandFrame(
+        var wholeFrame = TuyaFrameCodec.BuildCommandFrame(
             useGcm: false,
             sessionKey,
             commandCode: 0x10,
