@@ -41,6 +41,11 @@ const connection = new HubConnectionBuilder()
 
 Ao reconectar (`onreconnected`), eventos perdidos durante a queda **nunca são reenviados** pelo SignalR (`Clients.Group(...).SendAsync` é fire-and-forget, sem fila/replay) — por isso o handler força um refetch de todas as queries relevantes (dispositivos, mídia, overview, activity log, automações) pra reconciliar qualquer mudança ocorrida enquanto a conexão estava fora do ar.
 
+> [!IMPORTANT]
+> **Decisão Auditada — Ausência Total de Polling Contínuo no Front-end:**
+> Não há `refetchInterval` nem `setInterval` em nenhuma feature hoje — decisão auditada e confirmada (auditoria Pilar 4, setembro de 2026). O front-end reage exclusivamente aos eventos do SignalR e ao refetch pontual do `onreconnected`.
+> Consulte [`backend/docs/iot-drivers.md`](../../backend/docs/iot-drivers.md#25-investigação-push-espontâneo-via-sessão-tcp-local-v34v35--confirmado-só-para-mudanças-via-appnuvem-não-ocorre-para-interruptor-físico) (seção de investigação de push local) para o racional detalhado de por que push de aplicação via keep-alive contínuo de 2-5s foi avaliado e rejeitado no hardware. Esta diretriz existe para evitar a reintrodução futura de polling por desconhecimento de que isso já foi decidido conscientemente na arquitetura do produto.
+
 ---
 
 ## 2. Renderização de Séries Temporais e Alta Volumetria
