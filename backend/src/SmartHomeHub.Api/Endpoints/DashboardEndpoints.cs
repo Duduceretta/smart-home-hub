@@ -19,7 +19,7 @@ public static class DashboardEndpoints
                     DateTimeOffset? targetDate = null
                 ) =>
                 {
-                    var firebaseUid = userToken.FindFirst("user_id")?.Value;
+                    var firebaseUid = userToken.GetFirebaseUid();
 
                     if (string.IsNullOrEmpty(firebaseUid))
                         return Results.Unauthorized();
@@ -54,7 +54,7 @@ public static class DashboardEndpoints
                     int pageSize = 10
                 ) =>
                 {
-                    var firebaseUid = userToken.FindFirst("user_id")?.Value;
+                    var firebaseUid = userToken.GetFirebaseUid();
 
                     if (string.IsNullOrEmpty(firebaseUid))
                         return Results.Unauthorized();

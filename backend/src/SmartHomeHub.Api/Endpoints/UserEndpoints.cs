@@ -17,7 +17,7 @@ public static class UserEndpoints
                     CancellationToken cancellationToken
                 ) =>
                 {
-                    var firebaseUid = userToken.FindFirst("user_id")?.Value;
+                    var firebaseUid = userToken.GetFirebaseUid();
 
                     if (string.IsNullOrEmpty(firebaseUid))
                         return Results.Unauthorized();

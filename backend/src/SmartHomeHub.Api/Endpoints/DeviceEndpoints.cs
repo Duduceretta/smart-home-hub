@@ -45,7 +45,7 @@ public static class DeviceEndpoints
                     [FromQuery] int pageSize = 10
                 ) =>
                 {
-                    var firebaseUid = userToken.FindFirst("user_id")?.Value;
+                    var firebaseUid = userToken.GetFirebaseUid();
                     if (string.IsNullOrEmpty(firebaseUid))
                         return Results.Unauthorized();
 
@@ -83,7 +83,7 @@ public static class DeviceEndpoints
                     CancellationToken cancellationToken
                 ) =>
                 {
-                    var firebaseUid = userToken.FindFirst("user_id")?.Value;
+                    var firebaseUid = userToken.GetFirebaseUid();
                     if (string.IsNullOrEmpty(firebaseUid))
                         return Results.Unauthorized();
 
@@ -112,7 +112,7 @@ public static class DeviceEndpoints
                     CancellationToken cancellationToken
                 ) =>
                 {
-                    var firebaseUid = claimsPrincipal.FindFirst("user_id")?.Value;
+                    var firebaseUid = claimsPrincipal.GetFirebaseUid();
                     if (string.IsNullOrEmpty(firebaseUid))
                         return Results.Unauthorized();
 
@@ -147,7 +147,7 @@ public static class DeviceEndpoints
                     CancellationToken cancellationToken
                 ) =>
                 {
-                    var firebaseUid = userToken.FindFirst("user_id")?.Value;
+                    var firebaseUid = userToken.GetFirebaseUid();
                     if (string.IsNullOrEmpty(firebaseUid))
                         return Results.Unauthorized();
 
@@ -183,7 +183,7 @@ public static class DeviceEndpoints
                     CancellationToken cancellationToken
                 ) =>
                 {
-                    var firebaseUid = userToken.FindFirst("user_id")?.Value;
+                    var firebaseUid = userToken.GetFirebaseUid();
                     if (string.IsNullOrEmpty(firebaseUid))
                         return Results.Unauthorized();
 
@@ -217,7 +217,7 @@ public static class DeviceEndpoints
                     CancellationToken cancellationToken
                 ) =>
                 {
-                    var firebaseUid = userToken.FindFirst("user_id")?.Value;
+                    var firebaseUid = userToken.GetFirebaseUid();
                     if (string.IsNullOrEmpty(firebaseUid))
                         return Results.Unauthorized();
 
@@ -256,7 +256,7 @@ public static class DeviceEndpoints
                     CancellationToken cancellationToken
                 ) =>
                 {
-                    var firebaseUid = userToken.FindFirst("user_id")?.Value;
+                    var firebaseUid = userToken.GetFirebaseUid();
                     if (string.IsNullOrEmpty(firebaseUid))
                         return Results.Unauthorized();
 
@@ -291,7 +291,7 @@ public static class DeviceEndpoints
                     CancellationToken cancellationToken
                 ) =>
                 {
-                    var firebaseUid = userToken.FindFirst("user_id")?.Value;
+                    var firebaseUid = userToken.GetFirebaseUid();
                     if (string.IsNullOrEmpty(firebaseUid))
                         return Results.Unauthorized();
 
@@ -330,7 +330,7 @@ public static class DeviceEndpoints
                     CancellationToken cancellationToken
                 ) =>
                 {
-                    var firebaseUid = userToken.FindFirst("user_id")?.Value;
+                    var firebaseUid = userToken.GetFirebaseUid();
                     if (string.IsNullOrEmpty(firebaseUid))
                         return Results.Unauthorized();
 
@@ -364,7 +364,7 @@ public static class DeviceEndpoints
                     CancellationToken cancellationToken
                 ) =>
                 {
-                    var firebaseUid = userToken.FindFirst("user_id")?.Value;
+                    var firebaseUid = userToken.GetFirebaseUid();
                     if (string.IsNullOrEmpty(firebaseUid))
                         return Results.Unauthorized();
 
@@ -394,7 +394,7 @@ public static class DeviceEndpoints
                     string? range
                 ) =>
                 {
-                    var firebaseUid = userToken.FindFirst("user_id")?.Value;
+                    var firebaseUid = userToken.GetFirebaseUid();
                     if (string.IsNullOrEmpty(firebaseUid))
                         return Results.Unauthorized();
 
@@ -425,7 +425,7 @@ public static class DeviceEndpoints
                     CancellationToken cancellationToken
                 ) =>
                 {
-                    var firebaseUid = userToken.FindFirst("user_id")?.Value;
+                    var firebaseUid = userToken.GetFirebaseUid();
                     if (string.IsNullOrEmpty(firebaseUid))
                         return Results.Unauthorized();
 
@@ -456,7 +456,7 @@ public static class DeviceEndpoints
                     int pageSize = 10
                 ) =>
                 {
-                    var firebaseUid = userToken.FindFirst("user_id")?.Value;
+                    var firebaseUid = userToken.GetFirebaseUid();
                     if (string.IsNullOrEmpty(firebaseUid))
                         return Results.Unauthorized();
 
@@ -485,7 +485,7 @@ public static class DeviceEndpoints
                     CancellationToken cancellationToken
                 ) =>
                 {
-                    var firebaseUid = userToken.FindFirst("user_id")?.Value;
+                    var firebaseUid = userToken.GetFirebaseUid();
                     if (string.IsNullOrEmpty(firebaseUid))
                         return Results.Unauthorized();
 
@@ -540,7 +540,7 @@ public static class DeviceEndpoints
                     CancellationToken cancellationToken
                 ) =>
                 {
-                    var firebaseUid = userToken.FindFirst("user_id")?.Value;
+                    var firebaseUid = userToken.GetFirebaseUid();
                     if (string.IsNullOrEmpty(firebaseUid))
                         return Results.Unauthorized();
 
@@ -574,7 +574,7 @@ public static class DeviceEndpoints
                     CancellationToken cancellationToken
                 ) =>
                 {
-                    var firebaseUid = userToken.FindFirst("user_id")?.Value;
+                    var firebaseUid = userToken.GetFirebaseUid();
                     if (string.IsNullOrEmpty(firebaseUid))
                         return Results.Unauthorized();
 
@@ -635,7 +635,7 @@ public static class DeviceEndpoints
                     CancellationToken cancellationToken
                 ) =>
                 {
-                    var firebaseUid = userToken.FindFirst("user_id")?.Value;
+                    var firebaseUid = userToken.GetFirebaseUid();
                     if (string.IsNullOrEmpty(firebaseUid))
                         return Results.Unauthorized();
 
@@ -666,7 +666,7 @@ public static class DeviceEndpoints
                     CancellationToken cancellationToken
                 ) =>
                 {
-                    var firebaseUid = userToken.FindFirst("user_id")?.Value;
+                    var firebaseUid = userToken.GetFirebaseUid();
                     if (string.IsNullOrEmpty(firebaseUid))
                         return Results.Unauthorized();
 
@@ -692,7 +692,7 @@ public static class DeviceEndpoints
                 "/api/devices/discovery/stop",
                 async (ClaimsPrincipal userToken, IDeviceDiscoveryManager discoveryManager) =>
                 {
-                    var firebaseUid = userToken.FindFirst("user_id")?.Value;
+                    var firebaseUid = userToken.GetFirebaseUid();
                     if (string.IsNullOrEmpty(firebaseUid))
                         return Results.Unauthorized();
 

@@ -32,7 +32,7 @@ public static class AutomationEndpoints
                     [FromQuery] int pageSize = 10
                 ) =>
                 {
-                    var firebaseUid = userToken.FindFirst("user_id")?.Value;
+                    var firebaseUid = userToken.GetFirebaseUid();
 
                     if (string.IsNullOrEmpty(firebaseUid))
                         return Results.Unauthorized();
@@ -68,7 +68,7 @@ public static class AutomationEndpoints
                     CancellationToken cancellationToken
                 ) =>
                 {
-                    var firebaseUid = userToken.FindFirst("user_id")?.Value;
+                    var firebaseUid = userToken.GetFirebaseUid();
 
                     if (string.IsNullOrEmpty(firebaseUid))
                         return Results.Unauthorized();
@@ -96,7 +96,7 @@ public static class AutomationEndpoints
                     CancellationToken cancellationToken
                 ) =>
                 {
-                    var firebaseUid = userToken.FindFirst("user_id")?.Value;
+                    var firebaseUid = userToken.GetFirebaseUid();
 
                     if (string.IsNullOrEmpty(firebaseUid))
                         return Results.Unauthorized();
@@ -127,7 +127,7 @@ public static class AutomationEndpoints
                     int pageSize = 10
                 ) =>
                 {
-                    var firebaseUid = userToken.FindFirst("user_id")?.Value;
+                    var firebaseUid = userToken.GetFirebaseUid();
 
                     if (string.IsNullOrEmpty(firebaseUid))
                         return Results.Unauthorized();
@@ -161,7 +161,7 @@ public static class AutomationEndpoints
                     int days = 30
                 ) =>
                 {
-                    var firebaseUid = userToken.FindFirst("user_id")?.Value;
+                    var firebaseUid = userToken.GetFirebaseUid();
 
                     if (string.IsNullOrEmpty(firebaseUid))
                         return Results.Unauthorized();
@@ -189,7 +189,7 @@ public static class AutomationEndpoints
                     CancellationToken cancellationToken
                 ) =>
                 {
-                    var firebaseUid = userToken.FindFirst("user_id")?.Value;
+                    var firebaseUid = userToken.GetFirebaseUid();
 
                     if (string.IsNullOrEmpty(firebaseUid))
                         return Results.Unauthorized();
@@ -235,7 +235,7 @@ public static class AutomationEndpoints
                     CancellationToken cancellationToken
                 ) =>
                 {
-                    var firebaseUid = userToken.FindFirst("user_id")?.Value;
+                    var firebaseUid = userToken.GetFirebaseUid();
 
                     if (string.IsNullOrEmpty(firebaseUid))
                         return Results.Unauthorized();
@@ -282,7 +282,7 @@ public static class AutomationEndpoints
                     CancellationToken cancellationToken
                 ) =>
                 {
-                    var firebaseUid = userToken.FindFirst("user_id")?.Value;
+                    var firebaseUid = userToken.GetFirebaseUid();
 
                     if (string.IsNullOrEmpty(firebaseUid))
                         return Results.Unauthorized();

@@ -30,7 +30,7 @@ public static class HistoryEndpoints
                     int pageSize = 10
                 ) =>
                 {
-                    var firebaseUid = userToken.FindFirst("user_id")?.Value;
+                    var firebaseUid = userToken.GetFirebaseUid();
 
                     if (string.IsNullOrEmpty(firebaseUid))
                         return Results.Unauthorized();
@@ -79,7 +79,7 @@ public static class HistoryEndpoints
                     string? search = null
                 ) =>
                 {
-                    var firebaseUid = userToken.FindFirst("user_id")?.Value;
+                    var firebaseUid = userToken.GetFirebaseUid();
 
                     if (string.IsNullOrEmpty(firebaseUid))
                         return Results.Unauthorized();
