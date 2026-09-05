@@ -26,15 +26,23 @@ public class SystemEventConfiguration : IEntityTypeConfiguration<SystemEvent>
         builder.Property(events => events.NewValue).HasMaxLength(255);
         builder.Property(events => events.TraceId).HasMaxLength(64);
 
+        // HasSentinel(0) explícito nos dois: nem EventSeverity (Info=1...
+        // Critical=4) nem EventSource (Automation=1...DeviceGroup=4) têm
+        // membro 0 — 0 é sempre "CLR default, nunca setado", nunca um valor
+        // de negócio válido. Sem isso o EF avisa que o sentinel implícito (0)
+        // coincide com o default do CLR e pode disparar o default do banco
+        // sem intenção; aqui a coincidência é proposital.
         builder
             .Property(events => events.Severity)
             .IsRequired()
-            .HasDefaultValue(SmartHomeHub.Domain.Enums.EventSeverity.Info);
+            .HasDefaultValue(SmartHomeHub.Domain.Enums.EventSeverity.Info)
+            .HasSentinel((SmartHomeHub.Domain.Enums.EventSeverity)0);
 
         builder
             .Property(events => events.Source)
             .IsRequired()
-            .HasDefaultValue(SmartHomeHub.Domain.Enums.EventSource.System);
+            .HasDefaultValue(SmartHomeHub.Domain.Enums.EventSource.System)
+            .HasSentinel((SmartHomeHub.Domain.Enums.EventSource)0);
 
         builder
             .HasOne(events => events.User)
