@@ -284,7 +284,6 @@ public class TuyaLocalControlServiceTests
         _protocolClientFactory.Received(1).PruneExpiredSessions();
     }
 
-
     [Fact]
     public async Task SetPowerStateAsync_QueryFailsThenRediscoversFreshIp_ShouldRetryAndSucceed()
     {
@@ -1234,11 +1233,23 @@ public class TuyaLocalControlServiceTests
 
         const string tuyaDeviceId = "tuya-device-abc";
 
-        var breakerField = typeof(TuyaLocalControlService).GetField(
-            "_ipResolutionCircuitBreakerOpenUntil",
+        // _ipResolutionCircuitBreakerOpenUntil e TryResolveIpAsync vivem em
+        // TuyaIpResolver (ver backend-audit-2026-09-05.md, seção 05) — a
+        // reflexão precisa atravessar o campo interno _ipResolver primeiro.
+        var ipResolverField = typeof(TuyaLocalControlService).GetField(
+            "_ipResolver",
             BindingFlags.NonPublic | BindingFlags.Instance
         )!;
-        var breakerDictionary = (ConcurrentDictionary<string, DateTime>)breakerField.GetValue(sut)!;
+        var ipResolver = ipResolverField.GetValue(sut)!;
+
+        var breakerField = ipResolver
+            .GetType()
+            .GetField(
+                "_ipResolutionCircuitBreakerOpenUntil",
+                BindingFlags.NonPublic | BindingFlags.Instance
+            )!;
+        var breakerDictionary =
+            (ConcurrentDictionary<string, DateTime>)breakerField.GetValue(ipResolver)!;
         breakerDictionary[tuyaDeviceId] = DateTime.UtcNow.AddMilliseconds(-1);
 
         _ipDiscoveryScanner
@@ -1260,14 +1271,14 @@ public class TuyaLocalControlServiceTests
                 )
             );
 
-        var tryResolveIpAsync = typeof(TuyaLocalControlService).GetMethod(
-            "TryResolveIpAsync",
-            BindingFlags.NonPublic | BindingFlags.Instance
-        )!;
+        var tryResolveIpAsync = ipResolver
+            .GetType()
+            .GetMethod("TryResolveIpAsync", BindingFlags.Public | BindingFlags.Instance)!;
 
         // Act
         var task =
-            (Task<string?>)tryResolveIpAsync.Invoke(sut, [tuyaDeviceId, CancellationToken.None])!;
+            (Task<string?>)
+                tryResolveIpAsync.Invoke(ipResolver, [tuyaDeviceId, CancellationToken.None])!;
         var resolvedIp = await task;
 
         // Assert
