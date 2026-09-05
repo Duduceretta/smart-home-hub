@@ -245,6 +245,47 @@ public class TuyaLocalControlServiceTests
     }
 
     [Fact]
+    public async Task SetPowerStateAsync_QueryThrowsCryptographicException_ShouldReturnInvalidLocalKey()
+    {
+        // Arrange — CryptographicException ocorre quando HMAC ou tag GCM falha.
+        // Deve retornar Device.InvalidLocalKey com mensagem informativa.
+        _protocolClient
+            .QueryStatusAsync(
+                Arg.Any<string>(),
+                Arg.Any<string>(),
+                Arg.Any<string>(),
+                Arg.Any<CancellationToken>()
+            )
+            .Returns<IReadOnlyDictionary<int, object?>>(_ =>
+                throw new System.Security.Cryptography.CryptographicException(
+                    "HMAC / GCM tag validation failed."
+                )
+            );
+
+        // Act
+        var result = await _sut.SetPowerStateAsync(
+            Connection(),
+            desiredState: true,
+            CancellationToken.None
+        );
+
+        // Assert
+        result.IsFailure.Should().BeTrue();
+        result.Error.Code.Should().Be("Device.InvalidLocalKey");
+    }
+
+    [Fact]
+    public void PruneExpiredSessions_ShouldDelegateToProtocolClientFactory()
+    {
+        // Act
+        _sut.PruneExpiredSessions();
+
+        // Assert
+        _protocolClientFactory.Received(1).PruneExpiredSessions();
+    }
+
+
+    [Fact]
     public async Task SetPowerStateAsync_QueryFailsThenRediscoversFreshIp_ShouldRetryAndSucceed()
     {
         // Arrange — IP configurado (192.168.1.50) falha; broadcast revela IP novo (192.168.1.77).

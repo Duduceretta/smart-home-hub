@@ -31,6 +31,7 @@ public class TuyaSessionProtocolClientSessionCacheTests
         public int CommandCount { get; private set; }
         public bool DropOnNextRead { get; set; }
         public bool DropOnNextWrite { get; set; }
+        public bool CorruptCommandResponse { get; set; }
         public bool IsDisposed { get; private set; }
 
         public SimulatedTuyaStream(
@@ -131,6 +132,11 @@ public class TuyaSessionProtocolClientSessionCacheTests
                         seqno: 3,
                         gcmMessageIv: FixedGcmIv
                     );
+                    if (CorruptCommandResponse)
+                    {
+                        // Inverte byte para falhar tag GCM ou HMAC
+                        resp[^10] ^= 0xFF;
+                    }
                     EnqueueRead(resp);
                 }
             }
@@ -470,4 +476,75 @@ public class TuyaSessionProtocolClientSessionCacheTests
         client.ActiveSessionCount.Should().Be(0);
         streams[0].IsDisposed.Should().BeTrue();
     }
+
+    [Fact]
+    public async Task CryptographicExceptionOnCachedSession_ShouldDropSessionFromCacheAndRethrow()
+    {
+        var (client, streams, _) = CreateTestClient(useGcm: true);
+
+        // Op 1: bem-sucedida, sessão vai pro cache
+        await client.QueryStatusAsync(
+            "192.168.1.100",
+            "device-1",
+            Encoding.UTF8.GetString(FakeLocalKey),
+            CancellationToken.None
+        );
+
+        client.ActiveSessionCount.Should().Be(1);
+        streams.Should().HaveCount(1);
+
+        // Simula resposta corrompida (tag GCM falha) no stream em cache
+        streams[0].CorruptCommandResponse = true;
+
+        // Op 2: deve lançar CryptographicException E remover a sessão do cache
+        var act = () =>
+            client.QueryStatusAsync(
+                "192.168.1.100",
+                "device-1",
+                Encoding.UTF8.GetString(FakeLocalKey),
+                CancellationToken.None
+            );
+
+        await act.Should().ThrowAsync<CryptographicException>();
+
+        // Sessão suspeita foi expulsa do cache (ActiveSessionCount = 0)
+        client.ActiveSessionCount.Should().Be(0);
+        streams[0].IsDisposed.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task PruneExpiredSessions_ShouldDropExpiredSessionWithoutRequiringFutureUsage()
+    {
+        // TTL ultracurto de 40ms
+        var (client, streams, _) = CreateTestClient(
+            useGcm: true,
+            sessionTtl: TimeSpan.FromMilliseconds(40)
+        );
+
+        await client.QueryStatusAsync(
+            "192.168.1.100",
+            "device-abandoned",
+            Encoding.UTF8.GetString(FakeLocalKey),
+            CancellationToken.None
+        );
+
+        client.ActiveSessionCount.Should().Be(1);
+        streams.Should().HaveCount(1);
+        streams[0].IsDisposed.Should().BeFalse();
+
+        // Espera expirar o TTL
+        await Task.Delay(60, TestContext.Current.CancellationToken);
+
+        // PruneExpiredSessions chamado diretamente (como o worker faz incondicionalmente a cada 12s)
+        client.PruneExpiredSessions();
+
+        // Sessão do device que nunca mais foi chamado é limpa sem esperar novo comando!
+        client.ActiveSessionCount.Should().Be(0);
+        streams[0].IsDisposed.Should().BeTrue();
+
+        // Segunda chamada (idempotência): não gera erro
+        client.PruneExpiredSessions();
+        client.ActiveSessionCount.Should().Be(0);
+    }
 }
+

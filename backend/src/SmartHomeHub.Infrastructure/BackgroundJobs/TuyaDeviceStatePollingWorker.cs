@@ -79,10 +79,16 @@ public sealed class TuyaDeviceStatePollingWorker(
 
     public async Task RunPollingCycleAsync(CancellationToken cancellationToken)
     {
+        // Sweep periódico de sessões TCP inativas expiradas a cada ~12s: evita
+        // vazamento de descritores de socket e sessões órfãs para dispositivos
+        // soft-deleted ou não mais utilizados, sem depender de novo comando neles.
+        tuyaLocalControlService.PruneExpiredSessions();
+
         using var scope = scopeFactory.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<IAppDbContext>();
         var notificationService =
             scope.ServiceProvider.GetRequiredService<IRealtimeNotificationService>();
+
 
         // Configuration.LocalKey não é traduzível pro SQL (propriedade
         // escalar convertida via ValueConverter para jsonb — ver

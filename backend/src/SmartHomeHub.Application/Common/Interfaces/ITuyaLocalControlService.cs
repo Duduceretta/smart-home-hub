@@ -121,4 +121,9 @@ public interface ITuyaLocalControlService
         TuyaDeviceConnectionInfo connection,
         CancellationToken cancellationToken
     );
+
+    /// <summary>
+    /// Realiza a limpeza de sessões TCP inativas expiradas em nível de protocolo (sweep periódico).
+    /// </summary>
+    void PruneExpiredSessions();
 }

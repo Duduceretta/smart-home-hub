@@ -52,6 +52,12 @@ public sealed class TuyaProtocolClientFactory(
         return legacyClient;
     }
 
+    public void PruneExpiredSessions()
+    {
+        _v35Client.PruneExpiredSessions();
+        _v34Client.PruneExpiredSessions();
+    }
+
     public void Dispose()
     {
         _v35Client.Dispose();

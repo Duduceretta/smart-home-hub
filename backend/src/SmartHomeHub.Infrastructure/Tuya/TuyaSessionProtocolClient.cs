@@ -243,6 +243,25 @@ public sealed class TuyaSessionProtocolClient : ITuyaProtocolClient, IDisposable
                     cachedSession.LastActiveUtc = DateTime.UtcNow;
                     return result;
                 }
+                catch (CryptographicException ex)
+                {
+                    _logger.LogWarning(
+                        ex,
+                        "Falha criptográfica na sessão TCP em cache para dispositivo Tuya {DeviceId} ({IpAddress}). Removendo sessão suspeita do cache.",
+                        tuyaDeviceId,
+                        ipAddress
+                    );
+                    _sessions.TryRemove(tuyaDeviceId, out _);
+                    try
+                    {
+                        await cachedSession.DisposeAsync();
+                    }
+                    catch
+                    {
+                        // ignore disposal failure
+                    }
+                    throw;
+                }
                 catch (Exception ex) when (IsRecoverableSocketException(ex, cancellationToken))
                 {
                     _logger.LogWarning(

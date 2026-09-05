@@ -469,4 +469,17 @@ public class TuyaDeviceStatePollingWorkerTests(IntegrationTestWebAppFactory fact
         updatedA.LiveState!.IsOn.Should().BeTrue();
         updatedB.LiveState!.IsOn.Should().BeTrue();
     }
+
+    [Fact]
+    public async Task RunPollingCycle_ShouldAlwaysCallPruneExpiredSessionsEvenWithoutCandidates()
+    {
+        Reset();
+
+        // Nenhum dispositivo no banco (pollable = 0)
+        await CreateWorker().RunPollingCycleAsync(TestContext.Current.CancellationToken);
+
+        // PruneExpiredSessions deve ter sido invocado incondicionalmente no início do ciclo
+        _tuyaLocalControlService.Received(1).PruneExpiredSessions();
+    }
 }
+

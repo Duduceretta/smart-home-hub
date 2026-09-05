@@ -169,6 +169,11 @@ public sealed class TuyaLocalControlService(
         }
     }
 
+    public void PruneExpiredSessions()
+    {
+        protocolClientFactory.PruneExpiredSessions();
+    }
+
     public Task<Result<TuyaCommandOutcome>> SetPowerStateAsync(
         TuyaDeviceConnectionInfo connection,
         bool desiredState,
@@ -179,6 +184,7 @@ public sealed class TuyaLocalControlService(
             () => SetPowerStateCoreAsync(connection, desiredState, cancellationToken),
             cancellationToken
         );
+
 
     private async Task<Result<TuyaCommandOutcome>> SetPowerStateCoreAsync(
         TuyaDeviceConnectionInfo connection,
