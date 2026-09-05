@@ -109,16 +109,11 @@ public class UpdateDeviceCommandHandler(IAppDbContext dbContext)
 
         // Troca de protocolo (IntegrationType) reconstrói Configuration do
         // zero na categoria certa (TuyaDeviceConfiguration/
-        // MqttDeviceConfiguration/NetworkDeviceConfiguration) — os campos da
-        // categoria antiga não fazem sentido pra nova, então não são
-        // preservados. Reaplicados abaixo os que o request trouxer.
-        if (device.IntegrationType != request.IntegrationType)
-        {
-            device.IntegrationType = request.IntegrationType;
-            device.Configuration = DeviceConfigurationTypeResolver.CreateDefault(
-                request.IntegrationType
-            );
-        }
+        // MqttDeviceConfiguration/NetworkDeviceConfiguration) como parte
+        // atômica de Device.ChangeIntegrationType — os campos da categoria
+        // antiga não fazem sentido pra nova, então não são preservados.
+        // Reaplicados abaixo os que o request trouxer.
+        device.ChangeIntegrationType(request.IntegrationType);
 
         device.RoomId = request.RoomId;
 

@@ -218,8 +218,8 @@ public class GetDevicesTests(IntegrationTestWebAppFactory factory) : BaseIntegra
             Brand = "Tuya",
             ExternalId = "TUYA-CONTRACT-1",
             Type = DeviceType.Light,
-            IntegrationType = IntegrationType.TuyaLocal,
         };
+        device.ChangeIntegrationType(IntegrationType.TuyaLocal);
 
         var liveState = new DeviceLiveState
         {

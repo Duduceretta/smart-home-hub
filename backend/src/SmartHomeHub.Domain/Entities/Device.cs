@@ -32,6 +32,29 @@ public class Device : IAuditableEntity, ISoftDeletable
 
     public IDeviceConfiguration Configuration { get; set; } = new MqttDeviceConfiguration();
 
+    /// <summary>
+    /// Único caminho que deveria ser usado pra trocar o protocolo de um
+    /// Device já existente — reconstrói <see cref="Configuration"/> do zero
+    /// na categoria certa (<see cref="DeviceConfigurationTypeResolver"/>)
+    /// como parte atômica da própria troca de <see cref="IntegrationType"/>,
+    /// em vez de depender de cada Handler lembrar de reconstruir manualmente.
+    /// Os setters de <see cref="IntegrationType"/>/<see cref="Configuration"/>
+    /// continuam públicos (EF Core precisa deles pra materializar, e
+    /// <c>DeviceConfigurationMaterializationInterceptor</c> os usa a partir
+    /// de outro assembly), então esta invariante não é garantida em tempo de
+    /// compilação — qualquer divergência que escapar deste método é barrada
+    /// em <c>AppDbContext.SaveChangesAsync</c> antes de chegar no banco (ver
+    /// <c>backend/docs/architecture.md</c>, seção 1.5).
+    /// </summary>
+    public void ChangeIntegrationType(IntegrationType newType)
+    {
+        if (IntegrationType == newType)
+            return;
+
+        IntegrationType = newType;
+        Configuration = DeviceConfigurationTypeResolver.CreateDefault(newType);
+    }
+
     public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
     public DateTimeOffset? UpdatedAt { get; set; }
 

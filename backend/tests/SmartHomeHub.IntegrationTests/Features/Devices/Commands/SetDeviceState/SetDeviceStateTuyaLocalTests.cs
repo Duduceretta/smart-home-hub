@@ -185,15 +185,24 @@ public class SetDeviceStateTuyaLocalTests(IntegrationTestWebAppFactory factory)
 
     // Simula dado inconsistente em memória (IntegrationType=TuyaLocal com
     // Configuration de outra categoria) — nunca deveria acontecer via
-    // CreateDevice/UpdateDevice, e nem sobrevive a uma volta ao banco (a
-    // materialização sempre corrige o tipo concreto a partir de
-    // IntegrationType — ver DeviceConfigurationMaterializationInterceptor).
-    // Envia o Command direto pelo mesmo escopo/DbContext do Arrange (sem
-    // passar pelo endpoint HTTP, que abriria um DbContext novo e re-
-    // materializaria a Configuration certa) para exercitar o cenário só
-    // alcançável por um bug de código no meio de um mesmo request — o driver
-    // Tuya nunca deve operar silenciosamente sobre um tipo de Configuration
-    // que não é o seu.
+    // CreateDevice/UpdateDevice (que agora passam por
+    // Device.ChangeIntegrationType, ver backend/docs/architecture.md §1.5),
+    // e nem sobrevive a uma volta ao banco (a materialização sempre corrige
+    // o tipo concreto a partir de IntegrationType — ver
+    // DeviceConfigurationMaterializationInterceptor) nem a um SaveChangesAsync
+    // (AppDbContext barra a mesma divergência antes de persistir). Ainda é
+    // alcançável em C# porque os setters de IntegrationType/Configuration
+    // continuam públicos — não virou impossível de compilar, só passou a ter
+    // três camadas de defesa em vez de uma. Este teste cobre especificamente
+    // a camada mais interna: o driver Tuya nunca deve operar silenciosamente
+    // sobre um tipo de Configuration que não é o seu, mesmo que a divergência
+    // já tenha escapado das outras duas (ChangeIntegrationType e o guard de
+    // SaveChangesAsync, cobertos por DeviceTests e
+    // DeviceConfigurationInvariantTests). Envia o Command direto pelo mesmo
+    // escopo/DbContext do Arrange (sem passar pelo endpoint HTTP, que abriria
+    // um DbContext novo e re-materializaria a Configuration certa) para
+    // exercitar o cenário só alcançável por um bug de código no meio de um
+    // mesmo request, antes de qualquer SaveChangesAsync.
     [Fact]
     public async Task SetDeviceState_TuyaLocalWithMismatchedConfigurationType_ShouldFailLoudly()
     {
