@@ -135,6 +135,29 @@ Antes da tipagem de `Device.Configuration` por protocolo (ver `backend/docs/arch
 
 **Resultado**: dispositivos `NativeMqtt`/`EspHomeMqtt`/`TuyaBridge`/`Zigbee` (que nunca passavam no filtro em memória de qualquer forma) nem chegam a ser carregados do banco — reduz o volume trazido a cada ciclo de 12s proporcionalmente à fração de dispositivos MQTT/nuvem/Zigbee cadastrados, sem mudar nenhum comportamento funcional (mesmos dispositivos são sondados, mesmas notificações disparam).
 
+### 2.8. Organização de código: divisão de responsabilidades (God File)
+
+`TuyaLocalControlService.cs` e `TuyaSessionProtocolClient.cs` cresceram para 1361 e 969 linhas respectivamente, cada um concentrando múltiplas responsabilidades na mesma classe. Divididos em extrações puramente mecânicas — sem mudança de comportamento, mensagens de erro, códigos de erro, timeouts ou lógica de retry — em duas rodadas:
+
+**Rodada 1 — `TuyaLocalControlService.cs` (1361 → 533 linhas) e `TuyaSessionProtocolClient.cs` (969 → ~430 linhas):**
+
+- **`TuyaDeviceLockCoordinator`** — `WithDeviceLockAsync` e o `SemaphoreSlim` por `TuyaDeviceId` (seção 2.2 acima).
+- **`TuyaIpResolver`** — `TryResolveIpAsync` e o circuit breaker de resolução de IP (seção 2.4 acima).
+- **`TuyaDataPointResolver`** (estático) — `ResolveDp`/`ResolveNumericDp`/`ResolveColorDp`/`ResolveWorkModeDp`, puramente funcional.
+- **`TuyaLightCommandCoalescer`** — a coalescência de comandos de luz (seção 2.3 acima): `EnqueueLightAdjustment`, `FlushBatchAsync`, `ExecuteLightAdjustmentBatchAsync`, `CompleteWaiters`/`CompleteAllWaiters`, `AwaitWithCancellation`.
+- **`TuyaFrameCodec`** (estático) — construção/parsing de frame do protocolo (`Build*Frame`, `Process/DeriveSessionKey/ParseCommandResponse`, `Pack/UnpackHmacFrame`, `Pack/UnpackGcmFrame`, criptografia AES-ECB, `Concat/IntBE/StartsWithAscii`), extraído de `TuyaSessionProtocolClient` — puro, sem I/O, já não referenciava nenhum campo de instância.
+
+**Rodada 2 — `TuyaNetworkOperationExecutor` (novo, 201 linhas):**
+
+Dois helpers de rede que ainda inflavam o remanescente de `TuyaLocalControlService` e já eram passados por delegate no construtor pro `TuyaLightCommandCoalescer` (sinal de que já deveriam viver numa classe própria):
+
+- `ResolveIpAndStatusAsync` — resolve IP (direto ou via `TuyaIpResolver`), consulta status, com retry de redescoberta de IP em caso de timeout.
+- `TryWithTimeoutAsync<T>` — executor genérico com timeout, `CancellationToken` linkado, e tradução de `SocketException`/`CryptographicException`/`IOException`/timeout pros códigos de erro de domínio (`Device.Offline`, `Device.InvalidLocalKey`, `Device.ConnectionClosed`, `Device.CommunicationError`).
+
+`TuyaLocalControlService` e `TuyaLightCommandCoalescer` agora recebem a **mesma instância** de `TuyaNetworkOperationExecutor` por injeção de construtor (mesma disciplina de instância única já aplicada a `TuyaDeviceLockCoordinator`) — nada mais é passado por delegate solto.
+
+**Composição final**: `TuyaLocalControlService` (remanescente, 533 linhas — superfície de comando pública: `SetPowerStateAsync`/`SetBrightnessAsync`/`SetColorAsync`/`SetColorTempAsync`/`SetWorkModeAsync`/`GetWorkModeAsync`/`GetStateForPollingAsync`) orquestra `TuyaDeviceLockCoordinator`, `TuyaIpResolver`, `TuyaNetworkOperationExecutor` e `TuyaLightCommandCoalescer` via composição interna no construtor — nenhuma das cinco classes é registrada separadamente no container de DI, e `ITuyaLocalControlService` continua com o mesmo contrato público.
+
 ---
 
 ## 3. Resiliência MQTT — LWT individual, sessão persistente, NoDelay

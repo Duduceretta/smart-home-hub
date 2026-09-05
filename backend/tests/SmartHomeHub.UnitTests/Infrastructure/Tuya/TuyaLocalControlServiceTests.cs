@@ -1023,7 +1023,7 @@ public class TuyaLocalControlServiceTests
 
         // Act
         var firstTask = sut.SetPowerStateAsync(Connection(), true, CancellationToken.None);
-        await Task.Delay(20); // garante que a primeira já pegou o lock
+        await Task.Delay(20, TestContext.Current.CancellationToken); // garante que a primeira já pegou o lock
         var secondResult = await sut.SetPowerStateAsync(Connection(), true, CancellationToken.None);
         await firstTask;
 
@@ -1084,7 +1084,7 @@ public class TuyaLocalControlServiceTests
 
         // Act
         var writeTask = sut.SetPowerStateAsync(Connection(), true, CancellationToken.None);
-        await Task.Delay(20); // garante que a escrita já pegou o lock
+        await Task.Delay(20, TestContext.Current.CancellationToken); // garante que a escrita já pegou o lock
 
         var stopwatch = System.Diagnostics.Stopwatch.StartNew();
         var pollingResult = await sut.GetStateForPollingAsync(Connection(), CancellationToken.None);
@@ -1207,7 +1207,7 @@ public class TuyaLocalControlServiceTests
 
         // Act
         await sut.SetPowerStateAsync(connection, true, CancellationToken.None);
-        await Task.Delay(TimeSpan.FromMilliseconds(150));
+        await Task.Delay(TimeSpan.FromMilliseconds(150), TestContext.Current.CancellationToken);
         await sut.SetPowerStateAsync(connection, true, CancellationToken.None);
 
         // Assert

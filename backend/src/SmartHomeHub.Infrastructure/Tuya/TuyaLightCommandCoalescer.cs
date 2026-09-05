@@ -17,29 +17,16 @@ namespace SmartHomeHub.Infrastructure.Tuya;
 /// Tuya (TCP)", pro racional completo da janela escolhida.
 ///
 /// Extraído de TuyaLocalControlService (ver backend-audit-2026-09-05.md, seção
-/// 05) — extração mecânica, mesma lógica. Depende do lock por device (injetado,
-/// não duplicado) e recebe por delegate as duas operações de rede que
-/// permanecem em TuyaLocalControlService (resolução de IP+status e o wrapper
-/// de timeout/tratamento de exceção de rede), evitando duplicar essa lógica.
+/// 05) — extração mecânica, mesma lógica. Depende do lock por device e do
+/// TuyaNetworkOperationExecutor (ambos injetados, não duplicados) — este
+/// último concentra as duas operações de rede (resolução de IP+status e o
+/// wrapper de timeout/tratamento de exceção de rede) que antes viviam em
+/// TuyaLocalControlService e eram passadas por delegate.
 /// </summary>
 internal sealed class TuyaLightCommandCoalescer(
     ITuyaProtocolClientFactory protocolClientFactory,
     TuyaDeviceLockCoordinator deviceLockCoordinator,
-    Func<
-        TuyaDeviceConnectionInfo,
-        ITuyaProtocolClient,
-        CancellationToken,
-        Task<
-            Result<(string IpAddress, string? ResolvedIp, IReadOnlyDictionary<int, object?> Status)>
-        >
-    > resolveIpAndStatusAsync,
-    Func<
-        Func<CancellationToken, Task<IReadOnlyDictionary<int, object?>>>,
-        string,
-        string,
-        CancellationToken,
-        Task<Result<IReadOnlyDictionary<int, object?>>>
-    > tryWithTimeoutAsync,
+    TuyaNetworkOperationExecutor networkExecutor,
     ILogger logger,
     // Seam de teste: janela de coalescência menor, pra não deixar os testes de
     // rajada esperando dezenas de ms de verdade a mais que o necessário.
@@ -205,7 +192,7 @@ internal sealed class TuyaLightCommandCoalescer(
         var connection = batch.Connection;
         var protocolClient = protocolClientFactory.Resolve(connection.ProtocolVersion);
 
-        var resolved = await resolveIpAndStatusAsync(
+        var resolved = await networkExecutor.ResolveIpAndStatusAsync(
             connection,
             protocolClient,
             CancellationToken.None
@@ -462,7 +449,7 @@ internal sealed class TuyaLightCommandCoalescer(
             string.Join(",", dps.Keys)
         );
 
-        var setResult = await tryWithTimeoutAsync(
+        var setResult = await networkExecutor.TryWithTimeoutAsync(
             ct =>
                 protocolClient.SetDpsAsync(
                     ipAddress,

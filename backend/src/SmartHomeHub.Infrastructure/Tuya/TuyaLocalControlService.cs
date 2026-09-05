@@ -14,11 +14,6 @@ namespace SmartHomeHub.Infrastructure.Tuya;
 // expondo ITuyaLocalControlService sem alteração de contrato.
 public sealed class TuyaLocalControlService : ITuyaLocalControlService
 {
-    // Chamada síncrona dentro do handler HTTP — sem limite próprio, uma lâmpada
-    // presente na rede mas que não responde prenderia a requisição pelo timeout
-    // de TCP do SO (bem mais longo que aceitável). Cada etapa de rede usa este budget.
-    private static readonly TimeSpan OperationTimeout = TimeSpan.FromSeconds(3);
-
     private readonly ITuyaProtocolClientFactory protocolClientFactory;
     private readonly ILogger<TuyaLocalControlService> logger;
 
@@ -36,18 +31,22 @@ public sealed class TuyaLocalControlService : ITuyaLocalControlService
     private readonly TuyaDeviceLockCoordinator _lockCoordinator;
     private readonly TuyaIpResolver _ipResolver;
 
+    // Concentra ResolveIpAndStatusAsync e TryWithTimeoutAsync — usado tanto
+    // pelos métodos desta classe quanto injetado no coalescedor abaixo (mesma
+    // instância, não duplicada).
+    private readonly TuyaNetworkOperationExecutor _networkExecutor;
+
     // Usado só pelos setters de luz (SetBrightnessAsync/SetColorAsync/
     // SetColorTempAsync) abaixo, pra resolver o "último vence" por campo
     // quando vários comandos concorrentes chegam na mesma janela de
     // coalescência — ver TuyaLightCommandCoalescer.
     private long _batchSequence;
 
-    // Recebe por delegate ResolveIpAndStatusAsync e TryWithTimeoutAsync (ambos
-    // definidos mais abaixo nesta mesma classe) — evita duplicar essa lógica de
-    // rede no coalescedor, que só orquestra o agrupamento dos comandos. Reusa a
-    // MESMA instância de _lockCoordinator usada pelas demais operações — o
-    // ponto inteiro do lock por device é serializar TODAS as operações
-    // (power/workmode/luz) contra o mesmo dispositivo, não só um subconjunto.
+    // Reusa a MESMA instância de _lockCoordinator e _networkExecutor usadas
+    // pelas demais operações — o ponto inteiro do lock por device é serializar
+    // TODAS as operações (power/workmode/luz) contra o mesmo dispositivo, não
+    // só um subconjunto, e duas instâncias divergentes do executor de rede
+    // quebrariam essa garantia de composição única.
     private readonly TuyaLightCommandCoalescer _lightCommandCoalescer;
 
     public TuyaLocalControlService(
@@ -80,11 +79,11 @@ public sealed class TuyaLocalControlService : ITuyaLocalControlService
             logger,
             ipResolutionCircuitBreakerWindowForTests
         );
+        _networkExecutor = new TuyaNetworkOperationExecutor(_ipResolver, logger);
         _lightCommandCoalescer = new TuyaLightCommandCoalescer(
             protocolClientFactory,
             _lockCoordinator,
-            ResolveIpAndStatusAsync,
-            TryWithTimeoutAsync<IReadOnlyDictionary<int, object?>>,
+            _networkExecutor,
             logger,
             coalescingWindowForTests
         );
@@ -136,7 +135,7 @@ public sealed class TuyaLocalControlService : ITuyaLocalControlService
         }
 
         IReadOnlyDictionary<int, object?> status;
-        var statusResult = await TryWithTimeoutAsync(
+        var statusResult = await _networkExecutor.TryWithTimeoutAsync(
             ct =>
                 protocolClient.QueryStatusAsync(
                     ipAddress,
@@ -169,7 +168,7 @@ public sealed class TuyaLocalControlService : ITuyaLocalControlService
             ipAddress = rediscoveredIp;
             resolvedIp = rediscoveredIp;
 
-            statusResult = await TryWithTimeoutAsync(
+            statusResult = await _networkExecutor.TryWithTimeoutAsync(
                 ct =>
                     protocolClient.QueryStatusAsync(
                         ipAddress,
@@ -205,7 +204,7 @@ public sealed class TuyaLocalControlService : ITuyaLocalControlService
             );
         }
 
-        var setResult = await TryWithTimeoutAsync(
+        var setResult = await _networkExecutor.TryWithTimeoutAsync(
             ct =>
                 protocolClient.SetDpAsync(
                     ipAddress,
@@ -327,7 +326,11 @@ public sealed class TuyaLocalControlService : ITuyaLocalControlService
     {
         var protocolClient = protocolClientFactory.Resolve(connection.ProtocolVersion);
 
-        var resolved = await ResolveIpAndStatusAsync(connection, protocolClient, cancellationToken);
+        var resolved = await _networkExecutor.ResolveIpAndStatusAsync(
+            connection,
+            protocolClient,
+            cancellationToken
+        );
         if (resolved.IsFailure)
             return Result.Failure<TuyaWorkModeCommandOutcome>(resolved.Error);
 
@@ -344,7 +347,7 @@ public sealed class TuyaLocalControlService : ITuyaLocalControlService
             );
         }
 
-        var setResult = await TryWithTimeoutAsync(
+        var setResult = await _networkExecutor.TryWithTimeoutAsync(
             ct =>
                 protocolClient.SetDpsAsync(
                     ipAddress,
@@ -384,7 +387,11 @@ public sealed class TuyaLocalControlService : ITuyaLocalControlService
     {
         var protocolClient = protocolClientFactory.Resolve(connection.ProtocolVersion);
 
-        var resolved = await ResolveIpAndStatusAsync(connection, protocolClient, cancellationToken);
+        var resolved = await _networkExecutor.ResolveIpAndStatusAsync(
+            connection,
+            protocolClient,
+            cancellationToken
+        );
         if (resolved.IsFailure)
             return Result.Failure<string?>(resolved.Error);
 
@@ -425,7 +432,11 @@ public sealed class TuyaLocalControlService : ITuyaLocalControlService
     {
         var protocolClient = protocolClientFactory.Resolve(connection.ProtocolVersion);
 
-        var resolved = await ResolveIpAndStatusAsync(connection, protocolClient, cancellationToken);
+        var resolved = await _networkExecutor.ResolveIpAndStatusAsync(
+            connection,
+            protocolClient,
+            cancellationToken
+        );
         if (resolved.IsFailure)
             return Result.Failure<TuyaPollingOutcome>(resolved.Error);
 
@@ -518,181 +529,5 @@ public sealed class TuyaLocalControlService : ITuyaLocalControlService
                 resolvedDpString
             )
         );
-    }
-
-    private async Task<
-        Result<(string IpAddress, string? ResolvedIp, IReadOnlyDictionary<int, object?> Status)>
-    > ResolveIpAndStatusAsync(
-        TuyaDeviceConnectionInfo connection,
-        ITuyaProtocolClient protocolClient,
-        CancellationToken cancellationToken
-    )
-    {
-        var ipAddress = connection.IpAddress;
-        string? resolvedIp = null;
-
-        if (string.IsNullOrWhiteSpace(ipAddress))
-        {
-            ipAddress = await _ipResolver.TryResolveIpAsync(
-                connection.TuyaDeviceId,
-                cancellationToken
-            );
-            if (ipAddress is null)
-            {
-                return Result.Failure<(string, string?, IReadOnlyDictionary<int, object?>)>(
-                    new Error(
-                        "Device.Offline",
-                        "Não foi possível localizar o dispositivo Tuya na rede local."
-                    )
-                );
-            }
-            resolvedIp = ipAddress;
-        }
-
-        var statusResult = await TryWithTimeoutAsync(
-            ct =>
-                protocolClient.QueryStatusAsync(
-                    ipAddress,
-                    connection.TuyaDeviceId,
-                    connection.LocalKey,
-                    ct
-                ),
-            connection.TuyaDeviceId,
-            ipAddress,
-            cancellationToken
-        );
-
-        if (statusResult.IsFailure)
-        {
-            if (statusResult.Error.Code != "Device.Offline")
-            {
-                return Result.Failure<(string, string?, IReadOnlyDictionary<int, object?>)>(
-                    statusResult.Error
-                );
-            }
-
-            var rediscoveredIp = await _ipResolver.TryResolveIpAsync(
-                connection.TuyaDeviceId,
-                cancellationToken
-            );
-            if (rediscoveredIp is null || rediscoveredIp == ipAddress)
-            {
-                return Result.Failure<(string, string?, IReadOnlyDictionary<int, object?>)>(
-                    statusResult.Error
-                );
-            }
-
-            ipAddress = rediscoveredIp;
-            resolvedIp = rediscoveredIp;
-
-            statusResult = await TryWithTimeoutAsync(
-                ct =>
-                    protocolClient.QueryStatusAsync(
-                        ipAddress,
-                        connection.TuyaDeviceId,
-                        connection.LocalKey,
-                        ct
-                    ),
-                connection.TuyaDeviceId,
-                ipAddress,
-                cancellationToken
-            );
-
-            if (statusResult.IsFailure)
-            {
-                return Result.Failure<(string, string?, IReadOnlyDictionary<int, object?>)>(
-                    statusResult.Error
-                );
-            }
-        }
-
-        return Result.Success((ipAddress, resolvedIp, statusResult.Value));
-    }
-
-    private async Task<Result<T>> TryWithTimeoutAsync<T>(
-        Func<CancellationToken, Task<T>> operation,
-        string tuyaDeviceId,
-        string ipAddress,
-        CancellationToken cancellationToken
-    )
-    {
-        using var timeoutCts = new CancellationTokenSource(OperationTimeout);
-        using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(
-            cancellationToken,
-            timeoutCts.Token
-        );
-
-        try
-        {
-            var result = await operation(linkedCts.Token);
-            return Result.Success(result);
-        }
-        catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
-        {
-            logger.LogWarning(
-                "Timeout ao comunicar com dispositivo Tuya {DeviceId} em {IpAddress}",
-                tuyaDeviceId,
-                ipAddress
-            );
-            return Result.Failure<T>(
-                new Error("Device.Offline", "Dispositivo Tuya não respondeu (timeout).")
-            );
-        }
-        catch (SocketException ex)
-        {
-            logger.LogWarning(
-                ex,
-                "Falha de conexão com dispositivo Tuya {DeviceId} em {IpAddress}",
-                tuyaDeviceId,
-                ipAddress
-            );
-            return Result.Failure<T>(
-                new Error("Device.Offline", "Não foi possível conectar ao dispositivo Tuya.")
-            );
-        }
-        catch (CryptographicException ex)
-        {
-            logger.LogWarning(
-                ex,
-                "Falha ao decodificar resposta do dispositivo Tuya {DeviceId} — local_key provavelmente inválida",
-                tuyaDeviceId
-            );
-            return Result.Failure<T>(
-                new Error(
-                    "Device.InvalidLocalKey",
-                    "A local_key configurada não é válida. Se o dispositivo foi repareado no app Tuya, extraia a local_key novamente."
-                )
-            );
-        }
-        catch (IOException ex)
-        {
-            // Lançada por ReceiveFrameAsync/ReadExactAsync quando a leitura do
-            // stream retorna <= 0 — o dispositivo fechou a conexão TCP no meio
-            // da operação (ex: tomada desligada fisicamente durante a escrita),
-            // não um timeout nem um erro de socket na camada de conexão.
-            logger.LogWarning(
-                ex,
-                "Conexão com dispositivo Tuya {DeviceId} em {IpAddress} foi encerrada pelo outro lado no meio da operação",
-                tuyaDeviceId,
-                ipAddress
-            );
-            return Result.Failure<T>(
-                new Error(
-                    "Device.ConnectionClosed",
-                    "A conexão com o dispositivo Tuya foi encerrada antes da operação terminar."
-                )
-            );
-        }
-        catch (Exception ex)
-        {
-            logger.LogWarning(
-                ex,
-                "Falha inesperada ao comunicar com dispositivo Tuya {DeviceId}",
-                tuyaDeviceId
-            );
-            return Result.Failure<T>(
-                new Error("Device.CommunicationError", "Falha ao comunicar com o dispositivo Tuya.")
-            );
-        }
     }
 }
