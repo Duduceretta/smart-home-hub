@@ -13,7 +13,9 @@ public static class HubEndpoints
             .WithSummary("Hub SignalR de Telemetria e Status em Tempo Real")
             .WithDescription(
                 "Conexão WebSocket autenticada via Firebase JWT (parâmetro `access_token` na query string). "
-                    + "Eventos emitidos para o cliente: `DeviceStatusChanged` (ligar/desligar/queda) e `ReceiveTelemetryUpdate` (watts/temperatura)."
+                    + "Eventos emitidos para o cliente: `DeviceStatusChanged` (ligar/desligar/queda), `ReceiveTelemetryUpdate` (watts/temperatura), "
+                    + "`DeviceMediaChanged`/`SpotifyPlaybackChanged`, `AutomationExecutionResult` e `DeviceControlPreview`/`GroupControlPreview` (espelhamento de arraste de slider entre clientes). "
+                    + "Métodos invocáveis pelo cliente: `StartDiscovery`/`StopDiscovery` e `PreviewDeviceBrightness`/`PreviewDeviceColor`/`PreviewDeviceColorTemp`/`PreviewGroupBrightness` (ver architecture.md, seção SignalR / Hub)."
             );
     }
 }
