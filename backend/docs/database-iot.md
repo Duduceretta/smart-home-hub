@@ -147,3 +147,29 @@ O semáforo por dispositivo (`SemaphoreSlim` em `TuyaLocalControlService`) resol
 **Escopo**: só `SetBrightnessAsync`/`SetColorAsync`/`SetColorTempAsync` (o cenário concreto nomeado pela auditoria). `SetPowerStateAsync`/`SetWorkModeAsync`/`GetWorkModeAsync` continuam no caminho direto (semáforo sem coalescência) — ligar/desligar e trocar de modo não são operações tipicamente disparadas em rajada como um slider contínuo.
 
 **Achado crítico corrigido junto**: `ITuyaLocalControlService` estava registrado como `AddTransient` no DI — cada resolução (uma por requisição HTTP) criava uma instância nova, com `_deviceLocks`/`_pendingBatches` vazios. Isso significava que **nem o semáforo por dispositivo nem a coalescência tinham efeito real em produção** — cada requisição via seu próprio estado isolado, sem nunca competir ou fundir com outra. Corrigido para `AddSingleton` (dependências — `ITuyaProtocolClientFactory`, `ITuyaUdpDiscoveryScanner`, `ILogger`/`ILoggerFactory` — não guardam estado scoped, seguro capturar como singleton).
+
+---
+
+## 6. Resiliência MQTT — LWT individual, sessão persistente, NoDelay
+
+### 6.1. LWT individual de dispositivos MQTT nativos (Tasmota/ESPHome)
+
+Diferente do LWT do próprio backend (seção 2, `home/status/backend`, avisa quando o BACKEND cai), firmwares Tasmota/ESPHome podem publicar seu próprio LWT individual sozinhos, sinalizando a queda do DISPOSITIVO — detectável quase instantaneamente pelo broker, sem esperar o polling do `DeviceHealthCheckWorker` (~12s).
+
+**Convenção de tópico: `home/status/{externalId}`** — mesmo esquema já documentado na seção 1 (`home/telemetry/{externalId}`, `home/commands/{externalId}`), não o default de fábrica do Tasmota (`tele/%topic%/LWT`). **Nenhum hardware real estava provisionado no momento desta implementação** — só simulação via `MockTelemetryWorker`. Quando dispositivos Tasmota/ESPHome reais forem configurados, o FullTopic/config MQTT do firmware precisa publicar o LWT individual (payload texto puro `"Online"`/`"Offline"`, comparação case-insensitive) nesse tópico especificamente pra este caminho funcionar — sem isso, a detecção volta a depender só do polling.
+
+**Sem subscription adicional**: `home/#` (já assinado, QoS 1) cobre `home/status/{externalId}` — o roteamento acontece só no handler de mensagem recebida (`ApplicationMessageReceivedAsync`), que despacha `ProcessDeviceLwtCommand` pra tópicos `home/status/*` e `ProcessTelemetryCommand` pros demais.
+
+**Lógica de "marcar offline/online" reutilizada, não duplicada**: `DeviceConnectivityUpdater.ApplyConnectivityChange` (Application/Common/Devices) é chamado tanto pelo `DeviceHealthCheckWorker` (polling — rede de segurança, continua rodando sem mudança) quanto pelo `ProcessDeviceLwtCommand` (LWT — caminho adicional, mais rápido). Idempotente: repetir o mesmo sinal (LWT duplicado, ou já sincronizado por telemetria recente) não gera `SystemEvent` nem notificação SignalR duplicados.
+
+### 6.2. Sessão MQTT persistente
+
+`WithCleanStart(false)` + `WithSessionExpiryInterval(300)` (5 minutos) — o `ClientId` já era fixo (`"SmartHomeHub_Backend"`, nunca gerado por conexão), pré-requisito pra sessão persistente funcionar (o broker só reconhece "é o mesmo cliente de antes" se o ClientId bater). Em MQTT v5 (protocolo default do MQTTnet aqui), `CleanStart(false)` sozinho não basta — sem `SessionExpiryInterval > 0` o broker usa 0 e descarta a sessão no disconnect de qualquer forma. 300s cobre uma reconexão breve (restart da API, blip de rede) sem manter estado indefinidamente.
+
+Resubscrição em `home/#` no `ConnectedAsync` **não precisou mudar** — continua incondicional em toda conexão. Isso é seguro nos dois cenários: se o Mosquitto reconheceu a sessão e restaurou a subscription sozinho, o `SUBSCRIBE` enviado vira um no-op idempotente (MQTT não duplica entrega por resubscrever no mesmo tópico/QoS); se a sessão expirou ou é a primeira conexão, o `SUBSCRIBE` é necessário e acontece normalmente. Testado (`ConfigureEvents_AfterBriefReconnect_ShouldStillResubscribeToWildcardTopic`) simulando duas conexões seguidas.
+
+### 6.3. NoDelay (Nagle desligado)
+
+**Driver Tuya** (`TuyaSessionProtocolClient`): `tcpClient.NoDelay = true` logo após criar o `TcpClient`. Ganho real aqui — protocolo é request-response síncrono com pacotes pequenos (handshake + comando, dezenas a centenas de bytes); Nagle ligado atrasaria o envio esperando acumular mais dados ou o ACK anterior, até ~40ms de latência extra por escrita, sem nenhum benefício de throughput pra esse padrão de tráfego.
+
+**Cliente MQTT**: também aplicado (`MqttClientTcpOptions.NoDelay`, mutado depois do `.Build()` — a sobrecarga `WithTcpServer(Action<MqttClientTcpOptions>)` exigiria montar `RemoteEndpoint` manualmente e falhou em runtime numa tentativa anterior com `ArgumentException: No endpoint is set.`; mutar `ChannelOptions` após o `Build()` evita mexer na resolução de host/porta já testada da sobrecarga simples). Ganho menor aqui do que no Tuya — o canal MQTT já é de longa duração, não comando síncrono isolado — mas sem custo pra aplicar já que a opção existe pronta na lib.
