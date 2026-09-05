@@ -197,6 +197,7 @@ public static class DeviceEndpoints
                 }
             )
             .RequireAuthorization()
+            .RequireRateLimiting("DeviceMutationRateLimit")
             .WithTags("⚡ Dispositivos")
             .WithSummary("Ajusta o volume da TV")
             .WithDescription(
@@ -234,6 +235,7 @@ public static class DeviceEndpoints
                 }
             )
             .RequireAuthorization()
+            .RequireRateLimiting("DeviceMutationRateLimit")
             .WithTags("⚡ Dispositivos")
             .WithSummary("Ajusta o brilho de uma lâmpada Tuya local")
             .WithDescription(
@@ -268,6 +270,7 @@ public static class DeviceEndpoints
                 }
             )
             .RequireAuthorization()
+            .RequireRateLimiting("DeviceMutationRateLimit")
             .WithTags("⚡ Dispositivos")
             .WithSummary("Ajusta a cor de uma lâmpada Tuya local (RGB)")
             .WithDescription(
@@ -306,6 +309,7 @@ public static class DeviceEndpoints
                 }
             )
             .RequireAuthorization()
+            .RequireRateLimiting("DeviceMutationRateLimit")
             .WithTags("⚡ Dispositivos")
             .WithSummary("Ajusta a temperatura de cor (branco) de uma lâmpada Tuya local")
             .WithDescription(
@@ -340,6 +344,7 @@ public static class DeviceEndpoints
                 }
             )
             .RequireAuthorization()
+            .RequireRateLimiting("DeviceMutationRateLimit")
             .WithTags("⚡ Dispositivos")
             .WithSummary("Troca o modo (Branco/Cor) de uma lâmpada Tuya local")
             .WithDescription(
@@ -549,6 +554,7 @@ public static class DeviceEndpoints
                 }
             )
             .RequireAuthorization()
+            .RequireRateLimiting("DeviceMutationRateLimit")
             .WithTags("Devices")
             .WithSummary("Alterna o estado do dispositivo (Toggle)")
             .WithDescription(

@@ -27,6 +27,11 @@ try
     DotNetEnv.Env.TraversePath().Load();
 
     var builder = WebApplication.CreateBuilder(args);
+    builder.WebHost.ConfigureKestrel(options =>
+    {
+        // Limita o tamanho máximo do corpo da requisição para 2MB (a API não recebe uploads de arquivos)
+        options.Limits.MaxRequestBodySize = 2 * 1024 * 1024;
+    });
 
     builder.Host.UseSerilog();
 
@@ -71,6 +76,51 @@ try
                     .AllowAnyHeader()
                     .AllowCredentials();
             }
+        );
+    });
+
+    builder.Services.AddRateLimiter(options =>
+    {
+        options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+
+        // Limiter para endpoints de autenticação/login: 10 requisições por minuto por IP
+        options.AddPolicy(
+            "AuthRateLimit",
+            httpContext =>
+                System.Threading.RateLimiting.RateLimitPartition.GetFixedWindowLimiter(
+                    httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown-auth-ip",
+                    _ => new System.Threading.RateLimiting.FixedWindowRateLimiterOptions
+                    {
+                        PermitLimit = 10,
+                        Window = TimeSpan.FromMinutes(1),
+                        QueueProcessingOrder = System
+                            .Threading
+                            .RateLimiting
+                            .QueueProcessingOrder
+                            .OldestFirst,
+                        QueueLimit = 0,
+                    }
+                )
+        );
+
+        // Limiter para mutação de estado de hardware/dispositivos: 30 comandos por minuto por IP
+        options.AddPolicy(
+            "DeviceMutationRateLimit",
+            httpContext =>
+                System.Threading.RateLimiting.RateLimitPartition.GetFixedWindowLimiter(
+                    httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown-device-ip",
+                    _ => new System.Threading.RateLimiting.FixedWindowRateLimiterOptions
+                    {
+                        PermitLimit = 30,
+                        Window = TimeSpan.FromMinutes(1),
+                        QueueProcessingOrder = System
+                            .Threading
+                            .RateLimiting
+                            .QueueProcessingOrder
+                            .OldestFirst,
+                        QueueLimit = 0,
+                    }
+                )
         );
     });
 
@@ -149,6 +199,7 @@ try
     app.UseExceptionHandler();
     app.UseAuthentication();
     app.UseAuthorization();
+    app.UseRateLimiter();
     app.UseHangfireDashboard("/hangfire");
 
     app.MapHubEndpoints();

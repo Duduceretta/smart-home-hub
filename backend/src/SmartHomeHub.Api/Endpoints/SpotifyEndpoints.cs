@@ -42,6 +42,7 @@ public static class SpotifyEndpoints
                 }
             )
             .RequireAuthorization()
+            .RequireRateLimiting("AuthRateLimit")
             .WithTags("🎵 Spotify")
             .WithSummary("Gera a URL de autorização OAuth2 do Spotify")
             .Produces<object>(StatusCodes.Status200OK)
@@ -75,6 +76,7 @@ public static class SpotifyEndpoints
                     );
                 }
             )
+            .RequireRateLimiting("AuthRateLimit")
             .WithTags("🎵 Spotify")
             .WithSummary(
                 "Callback OAuth2 do Spotify (chamado pelo próprio Spotify, sem autenticação)"

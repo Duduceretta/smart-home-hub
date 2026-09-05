@@ -1,7 +1,7 @@
 using System.Security.Claims;
-using Microsoft.EntityFrameworkCore;
-using SmartHomeHub.Domain.Entities;
-using SmartHomeHub.Infrastructure.Persistence;
+using Mediator;
+using SmartHomeHub.Api.Extensions;
+using SmartHomeHub.Application.Features.Users.Commands.SyncUser;
 
 namespace SmartHomeHub.Api.Endpoints;
 
@@ -11,40 +11,46 @@ public static class UserEndpoints
     {
         app.MapPost(
                 "/api/users/sync",
-                async (AppDbContext db, ClaimsPrincipal userToken) =>
+                async (
+                    ClaimsPrincipal userToken,
+                    IMediator mediator,
+                    CancellationToken cancellationToken
+                ) =>
                 {
                     var firebaseUid = userToken.FindFirst("user_id")?.Value;
 
                     if (string.IsNullOrEmpty(firebaseUid))
                         return Results.Unauthorized();
 
-                    var userExists = await db.Users.FirstOrDefaultAsync(user =>
-                        user.ExternalAuthUid == firebaseUid
-                    );
+                    var email =
+                        userToken.FindFirst(ClaimTypes.Email)?.Value ?? "email-nao-informado";
 
-                    if (userExists != null)
-                        return Results.Ok(
-                            new { message = "Usuário já existe no banco.", userId = userExists.Id }
+                    var command = new SyncUserCommand(firebaseUid, email);
+                    var result = await mediator.Send(command, cancellationToken);
+
+                    if (result.IsFailure)
+                        return result.ToProblemDetails();
+
+                    return result.Value.WasCreated
+                        ? Results.Created(
+                            $"/api/users/{result.Value.UserId}",
+                            new
+                            {
+                                message = "Usuário sincronizado com sucesso!",
+                                userId = result.Value.UserId,
+                            }
+                        )
+                        : Results.Ok(
+                            new
+                            {
+                                message = "Usuário já existe no banco.",
+                                userId = result.Value.UserId,
+                            }
                         );
-
-                    var newUser = new User
-                    {
-                        ExternalAuthUid = firebaseUid,
-                        Email =
-                            userToken.FindFirst(ClaimTypes.Email)?.Value ?? "email-nao-informado",
-                        Name = "Usuário do Hub",
-                    };
-
-                    db.Users.Add(newUser);
-                    await db.SaveChangesAsync();
-
-                    return Results.Created(
-                        $"/api/users/{newUser.Id}",
-                        new { message = "Usuário sincronizado com sucesso!", userId = newUser.Id }
-                    );
                 }
             )
             .RequireAuthorization()
+            .RequireRateLimiting("AuthRateLimit")
             .WithTags("Users")
             .WithSummary("Sincroniza um usuário do Firebase com o banco local")
             .WithDescription(
