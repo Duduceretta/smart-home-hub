@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using Mediator;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -29,6 +30,18 @@ public sealed class MqttService(
     private static readonly TimeSpan StopTimeout = TimeSpan.FromSeconds(5);
 
     private const string BackendStatusTopic = "home/status/backend";
+    private const string CommandTopicPrefix = "home/commands/";
+
+    // Estado desejado mais recente por tópico de comando MQTT nativo
+    // (Tasmota/ESPHome), aplicando ao MQTT o mesmo princípio do padrão Device
+    // Shadow já usado no banco (Device + DeviceLiveState) e do
+    // last-value-wins do driver Tuya: não existe "comando #1, #2, #3" — só "o
+    // que o usuário quer que o dispositivo esteja fazendo agora", sobrescrito
+    // a cada novo comando. Entrada removida quando o publish é confirmado
+    // (reconciliado); mantida se o broker estiver fora, pra ser republicada na
+    // reconexão. Efêmero de propósito — não persiste em banco (ver
+    // database-iot.md, seção 6.5).
+    private readonly ConcurrentDictionary<string, string> _desiredCommands = new();
 
     private IMqttClient _client = null!;
     private MqttClientOptions _options = null!;
@@ -150,15 +163,32 @@ public sealed class MqttService(
         CancellationToken cancellationToken
     )
     {
+        // Só rastreia estado desejado pra comandos MQTT nativos
+        // (home/commands/{externalId}) — escopo deliberado, ver
+        // database-iot.md seção 6.5. Sobrescreve sempre, mesmo antes de
+        // tentar publicar: se o broker estiver fora, esse é o valor que
+        // sobrevive pra reconciliação na reconexão.
+        var isNativeCommand = topic.StartsWith(CommandTopicPrefix, StringComparison.Ordinal);
+        if (isNativeCommand)
+        {
+            _desiredCommands[topic] = payload;
+        }
+
         if (_client is { IsConnected: true })
         {
-            var message = new MqttApplicationMessageBuilder()
-                .WithTopic(topic)
-                .WithPayload(payload)
-                .WithQualityOfServiceLevel(MQTTnet.Protocol.MqttQualityOfServiceLevel.AtLeastOnce)
-                .Build();
+            var message = BuildCommandMessage(topic, payload);
 
             await _client.PublishAsync(message, cancellationToken);
+
+            if (isNativeCommand)
+            {
+                // Remoção condicional (chave E valor) — evita apagar um
+                // comando mais novo que sobrescreveu esse registro entre o
+                // início desse publish e a confirmação.
+                ((ICollection<KeyValuePair<string, string>>)_desiredCommands).Remove(
+                    new KeyValuePair<string, string>(topic, payload)
+                );
+            }
 
             if (logger.IsEnabled(LogLevel.Information))
             {
@@ -167,7 +197,53 @@ public sealed class MqttService(
         }
         else
         {
-            logger.LogWarning("Falha ao publicar. O cliente MQTT está offline.");
+            logger.LogWarning(
+                "Falha ao publicar. O cliente MQTT está offline. Estado desejado [{Topic}] mantido para reconciliação na reconexão.",
+                topic
+            );
+        }
+    }
+
+    private static MqttApplicationMessage BuildCommandMessage(string topic, string payload) =>
+        new MqttApplicationMessageBuilder()
+            .WithTopic(topic)
+            .WithPayload(payload)
+            .WithQualityOfServiceLevel(MQTTnet.Protocol.MqttQualityOfServiceLevel.AtLeastOnce)
+            .Build();
+
+    // Republica, na reconexão, o valor ATUAL de cada comando ainda não
+    // confirmado como entregue — nunca um histórico: se o registro foi
+    // sobrescrito N vezes com o broker fora, só o último valor existe no
+    // dicionário e é isso que é publicado.
+    private async Task ReconcileDesiredCommandsAsync(
+        IMqttClient client,
+        CancellationToken cancellationToken
+    )
+    {
+        foreach (var (topic, payload) in _desiredCommands.ToArray())
+        {
+            try
+            {
+                await client.PublishAsync(BuildCommandMessage(topic, payload), cancellationToken);
+
+                ((ICollection<KeyValuePair<string, string>>)_desiredCommands).Remove(
+                    new KeyValuePair<string, string>(topic, payload)
+                );
+
+                logger.LogInformation(
+                    "Comando pendente reconciliado após reconexão MQTT: [{Topic}] {Payload}",
+                    topic,
+                    payload
+                );
+            }
+            catch (Exception ex)
+            {
+                logger.LogWarning(
+                    ex,
+                    "Falha ao reconciliar comando pendente [{Topic}] após reconexão. Será retentado na próxima reconexão.",
+                    topic
+                );
+            }
         }
     }
 
@@ -239,6 +315,8 @@ public sealed class MqttService(
             await client.SubscribeAsync(subscribeOptions, CancellationToken.None);
 
             logger.LogInformation("Inscrito no tópico global 'home/#' com QoS 1");
+
+            await ReconcileDesiredCommandsAsync(client, CancellationToken.None);
         };
 
         client.DisconnectedAsync += e =>

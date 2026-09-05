@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Reflection;
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
@@ -176,6 +177,246 @@ public class MqttServiceTests
         // Assert — um shutdown em andamento deve conseguir interromper o publish,
         // não ser ignorado silenciosamente (CancellationToken.None antigo faria isso).
         await act.Should().ThrowAsync<OperationCanceledException>();
+    }
+
+    private static ConcurrentDictionary<string, string> GetDesiredCommands(MqttService sut) =>
+        (ConcurrentDictionary<string, string>)
+            typeof(MqttService)
+                .GetField("_desiredCommands", BindingFlags.NonPublic | BindingFlags.Instance)!
+                .GetValue(sut)!;
+
+    [Fact]
+    public async Task PublishAsync_WhenBrokerOffline_ShouldKeepDesiredCommandRegistered()
+    {
+        // Arrange — cenário 1: broker fora do ar, comando não pode ser
+        // descartado silenciosamente — o estado desejado sobrevive pra
+        // reconciliação na reconexão.
+        var sut = new MqttService(
+            Substitute.For<ILogger<MqttService>>(),
+            Substitute.For<IServiceScopeFactory>()
+        );
+
+        var fakeClient = Substitute.For<IMqttClient>();
+        fakeClient.IsConnected.Returns(false);
+
+        typeof(MqttService)
+            .GetField("_client", BindingFlags.NonPublic | BindingFlags.Instance)!
+            .SetValue(sut, fakeClient);
+
+        // Act
+        await sut.PublishAsync(
+            "home/commands/device-1",
+            "{\"action\":\"turn_on\"}",
+            CancellationToken.None
+        );
+
+        // Assert
+        GetDesiredCommands(sut)
+            .Should()
+            .ContainKey("home/commands/device-1")
+            .WhoseValue.Should()
+            .Be("{\"action\":\"turn_on\"}");
+
+        await fakeClient
+            .DidNotReceive()
+            .PublishAsync(Arg.Any<MqttApplicationMessage>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task PublishAsync_MultipleCommandsWhileOffline_ShouldOverwriteNotAccumulate()
+    {
+        // Arrange — cenário 2: liga, desliga, liga de novo com broker fora —
+        // só o último valor deve sobreviver, não uma fila dos três.
+        var sut = new MqttService(
+            Substitute.For<ILogger<MqttService>>(),
+            Substitute.For<IServiceScopeFactory>()
+        );
+
+        var fakeClient = Substitute.For<IMqttClient>();
+        fakeClient.IsConnected.Returns(false);
+
+        typeof(MqttService)
+            .GetField("_client", BindingFlags.NonPublic | BindingFlags.Instance)!
+            .SetValue(sut, fakeClient);
+
+        // Act
+        await sut.PublishAsync("home/commands/device-1", "on", CancellationToken.None);
+        await sut.PublishAsync("home/commands/device-1", "off", CancellationToken.None);
+        await sut.PublishAsync("home/commands/device-1", "on", CancellationToken.None);
+
+        // Assert
+        var desiredCommands = GetDesiredCommands(sut);
+        desiredCommands.Should().HaveCount(1);
+        desiredCommands["home/commands/device-1"].Should().Be("on");
+    }
+
+    [Fact]
+    public async Task ReconcileDesiredCommandsAsync_OnReconnect_ShouldRepublishPendingCommand()
+    {
+        // Arrange — cenário 3: reconexão republica o valor pendente sem
+        // intervenção do usuário.
+        var sut = new MqttService(
+            Substitute.For<ILogger<MqttService>>(),
+            Substitute.For<IServiceScopeFactory>()
+        );
+
+        var fakeClient = Substitute.For<IMqttClient>();
+        fakeClient.IsConnected.Returns(false);
+        typeof(MqttService)
+            .GetField("_client", BindingFlags.NonPublic | BindingFlags.Instance)!
+            .SetValue(sut, fakeClient);
+
+        await sut.PublishAsync("home/commands/device-1", "on", CancellationToken.None);
+
+        fakeClient
+            .SubscribeAsync(Arg.Any<MqttClientSubscribeOptions>(), Arg.Any<CancellationToken>())
+            .Returns(new MqttClientSubscribeResult(0, [], null, []));
+        fakeClient
+            .PublishAsync(Arg.Any<MqttApplicationMessage>(), Arg.Any<CancellationToken>())
+            .Returns(
+                new MqttClientPublishResult(null, MqttClientPublishReasonCode.Success, null, null)
+            );
+
+        Func<MqttClientConnectedEventArgs, Task>? connectedHandler = null;
+        fakeClient
+            .When(x => x.ConnectedAsync += Arg.Any<Func<MqttClientConnectedEventArgs, Task>>())
+            .Do(ci => connectedHandler = ci.Arg<Func<MqttClientConnectedEventArgs, Task>>());
+
+        typeof(MqttService)
+            .GetMethod("ConfigureEvents", BindingFlags.NonPublic | BindingFlags.Instance)!
+            .Invoke(sut, [fakeClient]);
+
+        // Act — simula reconexão do broker.
+        await connectedHandler!.Invoke(
+            new MqttClientConnectedEventArgs(new MqttClientConnectResult())
+        );
+
+        // Assert
+        await fakeClient
+            .Received(1)
+            .PublishAsync(
+                Arg.Is<MqttApplicationMessage>(m =>
+                    m.Topic == "home/commands/device-1" && m.ConvertPayloadToString() == "on"
+                ),
+                Arg.Any<CancellationToken>()
+            );
+
+        GetDesiredCommands(sut)
+            .Should()
+            .BeEmpty("comando reconciliado com sucesso não deve continuar pendente.");
+    }
+
+    [Fact]
+    public async Task ReconcileDesiredCommandsAsync_WithTwoDevices_ShouldNotMixPendingValues()
+    {
+        // Arrange — cenário 4: dois dispositivos diferentes, cada um reconcilia
+        // seu próprio valor mais recente, sem se misturar.
+        var sut = new MqttService(
+            Substitute.For<ILogger<MqttService>>(),
+            Substitute.For<IServiceScopeFactory>()
+        );
+
+        var fakeClient = Substitute.For<IMqttClient>();
+        fakeClient.IsConnected.Returns(false);
+        typeof(MqttService)
+            .GetField("_client", BindingFlags.NonPublic | BindingFlags.Instance)!
+            .SetValue(sut, fakeClient);
+
+        await sut.PublishAsync("home/commands/device-1", "on", CancellationToken.None);
+        await sut.PublishAsync("home/commands/device-2", "off", CancellationToken.None);
+
+        fakeClient
+            .SubscribeAsync(Arg.Any<MqttClientSubscribeOptions>(), Arg.Any<CancellationToken>())
+            .Returns(new MqttClientSubscribeResult(0, [], null, []));
+        fakeClient
+            .PublishAsync(Arg.Any<MqttApplicationMessage>(), Arg.Any<CancellationToken>())
+            .Returns(
+                new MqttClientPublishResult(null, MqttClientPublishReasonCode.Success, null, null)
+            );
+
+        Func<MqttClientConnectedEventArgs, Task>? connectedHandler = null;
+        fakeClient
+            .When(x => x.ConnectedAsync += Arg.Any<Func<MqttClientConnectedEventArgs, Task>>())
+            .Do(ci => connectedHandler = ci.Arg<Func<MqttClientConnectedEventArgs, Task>>());
+
+        typeof(MqttService)
+            .GetMethod("ConfigureEvents", BindingFlags.NonPublic | BindingFlags.Instance)!
+            .Invoke(sut, [fakeClient]);
+
+        // Act
+        await connectedHandler!.Invoke(
+            new MqttClientConnectedEventArgs(new MqttClientConnectResult())
+        );
+
+        // Assert
+        await fakeClient
+            .Received(1)
+            .PublishAsync(
+                Arg.Is<MqttApplicationMessage>(m =>
+                    m.Topic == "home/commands/device-1" && m.ConvertPayloadToString() == "on"
+                ),
+                Arg.Any<CancellationToken>()
+            );
+        await fakeClient
+            .Received(1)
+            .PublishAsync(
+                Arg.Is<MqttApplicationMessage>(m =>
+                    m.Topic == "home/commands/device-2" && m.ConvertPayloadToString() == "off"
+                ),
+                Arg.Any<CancellationToken>()
+            );
+
+        GetDesiredCommands(sut).Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task ReconcileDesiredCommandsAsync_AfterSuccessfulReconciliation_ShouldNotRepublishOnNextReconnect()
+    {
+        // Arrange — cenário 5: sem novo comando no meio, reconciliação já
+        // feita não deve republicar de novo numa reconexão futura.
+        var sut = new MqttService(
+            Substitute.For<ILogger<MqttService>>(),
+            Substitute.For<IServiceScopeFactory>()
+        );
+
+        var fakeClient = Substitute.For<IMqttClient>();
+        fakeClient.IsConnected.Returns(false);
+        typeof(MqttService)
+            .GetField("_client", BindingFlags.NonPublic | BindingFlags.Instance)!
+            .SetValue(sut, fakeClient);
+
+        await sut.PublishAsync("home/commands/device-1", "on", CancellationToken.None);
+
+        fakeClient
+            .SubscribeAsync(Arg.Any<MqttClientSubscribeOptions>(), Arg.Any<CancellationToken>())
+            .Returns(new MqttClientSubscribeResult(0, [], null, []));
+        fakeClient
+            .PublishAsync(Arg.Any<MqttApplicationMessage>(), Arg.Any<CancellationToken>())
+            .Returns(
+                new MqttClientPublishResult(null, MqttClientPublishReasonCode.Success, null, null)
+            );
+
+        Func<MqttClientConnectedEventArgs, Task>? connectedHandler = null;
+        fakeClient
+            .When(x => x.ConnectedAsync += Arg.Any<Func<MqttClientConnectedEventArgs, Task>>())
+            .Do(ci => connectedHandler = ci.Arg<Func<MqttClientConnectedEventArgs, Task>>());
+
+        typeof(MqttService)
+            .GetMethod("ConfigureEvents", BindingFlags.NonPublic | BindingFlags.Instance)!
+            .Invoke(sut, [fakeClient]);
+
+        // Act — primeira reconexão reconcilia; segunda reconexão sem novo comando.
+        await connectedHandler!.Invoke(
+            new MqttClientConnectedEventArgs(new MqttClientConnectResult())
+        );
+        await connectedHandler!.Invoke(
+            new MqttClientConnectedEventArgs(new MqttClientConnectResult())
+        );
+
+        // Assert — publish de comando (exclui o subscribe) só uma vez.
+        await fakeClient
+            .Received(1)
+            .PublishAsync(Arg.Any<MqttApplicationMessage>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
