@@ -16,7 +16,11 @@ public sealed class TuyaLocalControlService(
     TimeSpan? semaphoreAcquireTimeoutForTests = null,
     // Seam de teste: janela de coalescência menor, pra não deixar os testes de
     // rajada esperando dezenas de ms de verdade a mais que o necessário.
-    TimeSpan? coalescingWindowForTests = null
+    TimeSpan? coalescingWindowForTests = null,
+    // Seam de teste: janela do circuit breaker de resolução de IP menor, pra
+    // não deixar o teste de "janela expira e tenta de novo" esperando 10s de
+    // verdade. Produção usa o default.
+    TimeSpan? ipResolutionCircuitBreakerWindowForTests = null
 ) : ITuyaLocalControlService
 {
     // Chamada síncrona dentro do handler HTTP — sem limite próprio, uma lâmpada
@@ -36,6 +40,22 @@ public sealed class TuyaLocalControlService(
     private readonly TimeSpan _semaphoreAcquireTimeout =
         semaphoreAcquireTimeoutForTests ?? TimeSpan.FromSeconds(10);
     private readonly ConcurrentDictionary<string, SemaphoreSlim> _deviceLocks = new();
+
+    // Circuit breaker leve pra resolução de IP via broadcast UDP: um
+    // dispositivo genuinamente offline (não é IP obsoleto por DHCP, é o
+    // dispositivo mesmo fora do ar) faria TryResolveIpAsync esperar o
+    // IpResolutionTimeout inteiro em TODA tentativa de comando, sem nunca ter
+    // sucesso. Janela curta pra falhar rápido nas tentativas seguintes ao
+    // mesmo device sem repetir o broadcast redundante, mas curta o bastante
+    // pra não mascarar um device que voltou a ficar alcançável logo em
+    // seguida. Dicionário separado do _deviceLocks acima — mecanismo
+    // independente, não compete nem substitui a serialização por device já
+    // existente. Ver database-iot.md, seção "Driver Local Tuya (TCP)", pro
+    // racional completo da janela escolhida.
+    private readonly TimeSpan _ipResolutionCircuitBreakerWindow =
+        ipResolutionCircuitBreakerWindowForTests ?? TimeSpan.FromSeconds(10);
+    private readonly ConcurrentDictionary<string, DateTime> _ipResolutionCircuitBreakerOpenUntil =
+        new();
 
     // Coalescência de comandos de ajuste de luz (brilho/cor/temperatura) por
     // dispositivo: o semáforo acima já resolve a corrida de dados (leitura
@@ -1152,6 +1172,19 @@ public sealed class TuyaLocalControlService(
         CancellationToken cancellationToken
     )
     {
+        if (
+            _ipResolutionCircuitBreakerOpenUntil.TryGetValue(tuyaDeviceId, out var openUntil)
+            && DateTime.UtcNow < openUntil
+        )
+        {
+            logger.LogDebug(
+                "Circuit breaker de resolução de IP aberto pro dispositivo Tuya {DeviceId} — pulando broadcast UDP até {OpenUntil:o}.",
+                tuyaDeviceId,
+                openUntil
+            );
+            return null;
+        }
+
         using var timeoutCts = new CancellationTokenSource(IpResolutionTimeout);
         using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(
             cancellationToken,
@@ -1164,6 +1197,10 @@ public sealed class TuyaLocalControlService(
             {
                 if (discovered.ExternalId == tuyaDeviceId && discovered.IpAddress is not null)
                 {
+                    // Sucesso a qualquer momento limpa o breaker imediatamente — não
+                    // é um breaker permanente, só evita repetição redundante enquanto
+                    // o device continua genuinamente inalcançável.
+                    _ipResolutionCircuitBreakerOpenUntil.TryRemove(tuyaDeviceId, out _);
                     return discovered.IpAddress;
                 }
             }
@@ -1172,6 +1209,10 @@ public sealed class TuyaLocalControlService(
         {
             // Timeout esperado — nenhum broadcast do dispositivo alvo chegou a tempo.
         }
+
+        _ipResolutionCircuitBreakerOpenUntil[tuyaDeviceId] = DateTime.UtcNow.Add(
+            _ipResolutionCircuitBreakerWindow
+        );
 
         return null;
     }

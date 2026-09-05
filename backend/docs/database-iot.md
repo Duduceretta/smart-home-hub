@@ -148,6 +148,18 @@ O semáforo por dispositivo (`SemaphoreSlim` em `TuyaLocalControlService`) resol
 
 **Achado crítico corrigido junto**: `ITuyaLocalControlService` estava registrado como `AddTransient` no DI — cada resolução (uma por requisição HTTP) criava uma instância nova, com `_deviceLocks`/`_pendingBatches` vazios. Isso significava que **nem o semáforo por dispositivo nem a coalescência tinham efeito real em produção** — cada requisição via seu próprio estado isolado, sem nunca competir ou fundir com outra. Corrigido para `AddSingleton` (dependências — `ITuyaProtocolClientFactory`, `ITuyaUdpDiscoveryScanner`, `ILogger`/`ILoggerFactory` — não guardam estado scoped, seguro capturar como singleton).
 
+### 5.4. Circuit breaker leve para resolução de IP via broadcast UDP
+
+Quando um comando Tuya falha por IP desatualizado (DHCP mudou o IP do dispositivo), `TryResolveIpAsync` escuta broadcast UDP (portas 6666/6667) por até `IpResolutionTimeout` (3s) tentando descobrir o novo IP antes de retentar. Se o dispositivo estiver genuinamente offline — não é problema de IP, é o dispositivo mesmo fora do ar — esse broadcast se repetia a cada tentativa de comando, adicionando ~3s de espera desnecessária em toda chamada, sempre sem sucesso.
+
+**Mecanismo**: `ConcurrentDictionary<string, DateTime>` por `TuyaDeviceId` (`_ipResolutionCircuitBreakerOpenUntil`), separado do `_deviceLocks` do semáforo — mecanismo independente, não compete nem substitui a serialização/coalescência já existente. Uma falha de resolução (broadcast não encontrou o dispositivo) grava `DateTime.UtcNow + janela` pra aquele device; enquanto `DateTime.UtcNow < openUntil`, qualquer chamada seguinte a `TryResolveIpAsync` pro MESMO device retorna `null` imediatamente (sem broadcast), fazendo o caller falhar rápido com `Device.Offline`. Uma resolução bem-sucedida a qualquer momento remove a entrada do dicionário na hora (`TryRemove`), não espera a janela expirar.
+
+**Janela escolhida: 10s.** Racional:
+- Longa o suficiente pra realmente evitar a repetição redundante do caso comum (usuário/automação tentando o mesmo comando várias vezes seguidas contra um dispositivo desligado da tomada).
+- Curta o suficiente pra não mascarar por muito tempo um dispositivo que voltou a ficar alcançável (reconectou à rede, tomada religada) — 10s é bem menor que o intervalo de polling do `DeviceHealthCheckWorker` (~12s), então o próximo ciclo de verificação de saúde já teria uma chance de broadcast livre de qualquer forma.
+
+**Seam de teste**: construtor aceita `ipResolutionCircuitBreakerWindowForTests` (mesmo padrão dos outros seams do driver — `semaphoreAcquireTimeoutForTests`, `coalescingWindowForTests`), produção usa o default de 10s.
+
 ---
 
 ## 6. Resiliência MQTT — LWT individual, sessão persistente, NoDelay

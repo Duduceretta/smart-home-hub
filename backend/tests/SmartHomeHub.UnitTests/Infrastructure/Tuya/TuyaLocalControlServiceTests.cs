@@ -1,3 +1,5 @@
+using System.Collections.Concurrent;
+using System.Reflection;
 using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
@@ -902,6 +904,221 @@ public class TuyaLocalControlServiceTests
                 "timeout de aquisição do semáforo deve retornar erro diferenciado de "
                     + "'dispositivo não respondeu' (Device.Offline/CommunicationError)."
             );
+    }
+
+    [Fact]
+    public async Task TryResolveIpAsync_ResolutionFailsTwiceWithinWindow_ShouldOnlyBroadcastOnce()
+    {
+        // Arrange — device sem IP cacheado, broadcast nunca encontra o dispositivo.
+        var sut = new TuyaLocalControlService(
+            _protocolClientFactory,
+            _ipDiscoveryScanner,
+            Substitute.For<ILogger<TuyaLocalControlService>>(),
+            ipResolutionCircuitBreakerWindowForTests: TimeSpan.FromSeconds(10)
+        );
+
+        _ipDiscoveryScanner.ScanAsync(Arg.Any<CancellationToken>()).Returns(EmptyDiscoveryStream());
+
+        var connection = new TuyaDeviceConnectionInfo(
+            "tuya-device-abc",
+            "local-key-123",
+            IpAddress: null,
+            "20"
+        );
+
+        // Act
+        var firstResult = await sut.SetPowerStateAsync(connection, true, CancellationToken.None);
+        var secondResult = await sut.SetPowerStateAsync(connection, true, CancellationToken.None);
+
+        // Assert
+        firstResult.IsFailure.Should().BeTrue();
+        firstResult.Error.Code.Should().Be("Device.Offline");
+        secondResult.IsFailure.Should().BeTrue();
+        secondResult
+            .Error.Code.Should()
+            .Be(
+                "Device.Offline",
+                "circuit breaker deve continuar falhando rápido pro mesmo device dentro da janela."
+            );
+
+        // Segunda tentativa dentro da janela não deve repetir o broadcast UDP redundante.
+        _ipDiscoveryScanner.Received(1).ScanAsync(Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task TryResolveIpAsync_AfterWindowExpires_ShouldBroadcastAgain()
+    {
+        // Arrange — janela bem curta pra não deixar o teste esperando de verdade.
+        var sut = new TuyaLocalControlService(
+            _protocolClientFactory,
+            _ipDiscoveryScanner,
+            Substitute.For<ILogger<TuyaLocalControlService>>(),
+            ipResolutionCircuitBreakerWindowForTests: TimeSpan.FromMilliseconds(50)
+        );
+
+        _ipDiscoveryScanner.ScanAsync(Arg.Any<CancellationToken>()).Returns(EmptyDiscoveryStream());
+
+        var connection = new TuyaDeviceConnectionInfo(
+            "tuya-device-abc",
+            "local-key-123",
+            IpAddress: null,
+            "20"
+        );
+
+        // Act
+        await sut.SetPowerStateAsync(connection, true, CancellationToken.None);
+        await Task.Delay(TimeSpan.FromMilliseconds(150));
+        await sut.SetPowerStateAsync(connection, true, CancellationToken.None);
+
+        // Assert
+        // Após a janela expirar, a próxima falha deve voltar a tentar o broadcast UDP normalmente.
+        _ipDiscoveryScanner.Received(2).ScanAsync(Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task TryResolveIpAsync_SuccessfulResolution_ShouldClearCircuitBreakerImmediately()
+    {
+        // Arrange — semeia via reflection um breaker cuja janela JÁ EXPIROU
+        // (simula uma falha anterior cujos 10s já passaram), chamando
+        // TryResolveIpAsync diretamente. A implementação só teria motivo pra
+        // deixar essa entrada obsoleta no dicionário se não removesse
+        // explicitamente no sucesso — este teste garante que a remoção é
+        // ativa (TryRemove no código), não incidental.
+        var sut = new TuyaLocalControlService(
+            _protocolClientFactory,
+            _ipDiscoveryScanner,
+            Substitute.For<ILogger<TuyaLocalControlService>>(),
+            ipResolutionCircuitBreakerWindowForTests: TimeSpan.FromSeconds(10)
+        );
+
+        const string tuyaDeviceId = "tuya-device-abc";
+
+        var breakerField = typeof(TuyaLocalControlService).GetField(
+            "_ipResolutionCircuitBreakerOpenUntil",
+            BindingFlags.NonPublic | BindingFlags.Instance
+        )!;
+        var breakerDictionary = (ConcurrentDictionary<string, DateTime>)breakerField.GetValue(sut)!;
+        breakerDictionary[tuyaDeviceId] = DateTime.UtcNow.AddMilliseconds(-1);
+
+        _ipDiscoveryScanner
+            .ScanAsync(Arg.Any<CancellationToken>())
+            .Returns(
+                SingleDiscoveryStream(
+                    new DiscoveredDeviceDto(
+                        "temp-1",
+                        "Lâmpada",
+                        "Tuya",
+                        tuyaDeviceId,
+                        DeviceType.Switch,
+                        IntegrationType.TuyaLocal,
+                        "192.168.1.77",
+                        null,
+                        null,
+                        null
+                    )
+                )
+            );
+
+        var tryResolveIpAsync = typeof(TuyaLocalControlService).GetMethod(
+            "TryResolveIpAsync",
+            BindingFlags.NonPublic | BindingFlags.Instance
+        )!;
+
+        // Act
+        var task =
+            (Task<string?>)tryResolveIpAsync.Invoke(sut, [tuyaDeviceId, CancellationToken.None])!;
+        var resolvedIp = await task;
+
+        // Assert
+        resolvedIp.Should().Be("192.168.1.77");
+        breakerDictionary
+            .ContainsKey(tuyaDeviceId)
+            .Should()
+            .BeFalse(
+                "uma resolução bem-sucedida não pode deixar nenhuma entrada de breaker pra trás."
+            );
+    }
+
+    [Fact]
+    public async Task TryResolveIpAsync_CircuitBreakerOpenForOneDevice_ShouldNotAffectAnotherDevice()
+    {
+        // Arrange
+        var sut = new TuyaLocalControlService(
+            _protocolClientFactory,
+            _ipDiscoveryScanner,
+            Substitute.For<ILogger<TuyaLocalControlService>>(),
+            ipResolutionCircuitBreakerWindowForTests: TimeSpan.FromSeconds(10)
+        );
+
+        var offlineDevice = new TuyaDeviceConnectionInfo(
+            "tuya-device-offline",
+            "local-key-123",
+            IpAddress: null,
+            "20"
+        );
+        var otherDevice = new TuyaDeviceConnectionInfo(
+            "tuya-device-other",
+            "local-key-456",
+            IpAddress: null,
+            "20"
+        );
+
+        _ipDiscoveryScanner
+            .ScanAsync(Arg.Any<CancellationToken>())
+            .Returns(
+                _ => EmptyDiscoveryStream(),
+                _ =>
+                    SingleDiscoveryStream(
+                        new DiscoveredDeviceDto(
+                            "temp-2",
+                            "Outra lâmpada",
+                            "Tuya",
+                            "tuya-device-other",
+                            DeviceType.Switch,
+                            IntegrationType.TuyaLocal,
+                            "192.168.1.90",
+                            null,
+                            null,
+                            null
+                        )
+                    )
+            );
+
+        _protocolClient
+            .QueryStatusAsync(
+                "192.168.1.90",
+                "tuya-device-other",
+                "local-key-456",
+                Arg.Any<CancellationToken>()
+            )
+            .Returns(new Dictionary<int, object?> { [20] = false });
+
+        _protocolClient
+            .SetDpAsync(
+                "192.168.1.90",
+                "tuya-device-other",
+                "local-key-456",
+                20,
+                true,
+                Arg.Any<CancellationToken>()
+            )
+            .Returns(new Dictionary<int, object?> { [20] = true });
+
+        // Act — abre o breaker pro primeiro device.
+        var offlineResult = await sut.SetPowerStateAsync(
+            offlineDevice,
+            true,
+            CancellationToken.None
+        );
+
+        // Comando pra device DIFERENTE não deve ser afetado pelo breaker do primeiro.
+        var otherResult = await sut.SetPowerStateAsync(otherDevice, true, CancellationToken.None);
+
+        // Assert
+        offlineResult.IsFailure.Should().BeTrue();
+        otherResult
+            .IsSuccess.Should()
+            .BeTrue("breaker é por dispositivo — não pode bloquear comandos pra outro device.");
     }
 
     private static async IAsyncEnumerable<DiscoveredDeviceDto> EmptyDiscoveryStream()
