@@ -64,17 +64,28 @@ Isso transforma o aviso operacional anterior em uma **garantia física imposta p
 
 ---
 
-## 4. Processo Futuro: Revisão dos Índices de `SystemEvents`
+## 4. Auditoria e Revisão dos Índices de `SystemEvents`
 
-`SystemEvents` tem 6 índices compostos hoje, todos liderados por `UserId`: `(UserId, Timestamp DESC)`, `(UserId, DeviceId)`, `(UserId, RoomId)`, `(UserId, DeviceGroupId)`, `(UserId, Severity)`, `(UserId, Source)`. A auditoria de banco levantou uma hipótese de consolidação, mas **não deve ser aplicada às cegas** — precisa de dado real de uso primeiro. Esta seção documenta o processo, não uma ação a executar agora.
+`SystemEvents` é uma Hypertable (chunk mensal) append-only. Manter índices desnecessários penaliza diretamente a taxa de ingestão de eventos gerados por automações e polling.
 
-### 4.1. Quando revisar
+### 4.1. Remoção de índices compostos de 2 colunas redundantes
+Os índices compostos de 2 colunas listados abaixo foram removidos por serem 100% redundantes perante os índices de 3 colunas já existentes (que possuem o mesmo prefixo e adicionam ordenação temporal decrescente `Timestamp DESC`):
+- `IX_SystemEvents_UserId_DeviceId` (coberto por `IX_SystemEvents_UserId_DeviceId_Timestamp`)
+- `IX_SystemEvents_UserId_RoomId` (coberto por `IX_SystemEvents_UserId_RoomId_Timestamp`)
+- `IX_SystemEvents_UserId_DeviceGroupId` (coberto por `IX_SystemEvents_UserId_DeviceGroupId_Timestamp`)
 
-Rodar essa análise só depois de um período mínimo de **30 dias de uso contínuo em produção** — período curto demais não deixa o padrão de acesso real emergir (ex: um índice pode parecer "não usado" só porque ninguém abriu aquele filtro específico do dashboard na semana em que foi medido).
+### 4.2. Investigação dos índices monocoluna de FK
+Diferente dos índices compostos, os índices monocoluna gerados pela migration `AddEventHistoryFieldsToSystemEvent` não têm `UserId` como coluna líder. Foi realizada uma auditoria dupla (código + métricas reais no banco) para decidir a retenção ou remoção:
 
-### 4.2. Query de diagnóstico
+| Índice Monocoluna | Uso no Código | Métrica Real (`idx_scan`) | Decisão | Justificativa |
+|---|---|---|---|---|
+| `IX_SystemEvents_AutomationId` | **SIM** | **1.182 scans** | **MANTIDO** | Essencial para subqueries em `GetAutomationsQuery` e `GetAutomationByIdQuery` (`LastExecutedAt`, `HasFailedToday`). |
+| `IX_SystemEvents_DeviceId` | **SIM** | **66 scans** | **MANTIDO** | Utilizado por `GetDeviceActivityLogQuery` (`/api/devices/{id}/activity`) para varredura antes do join com `Users`. |
+| `IX_SystemEvents_RoomId` | **NÃO** | **0 scans** em todos os chunks | **REMOVIDO / CANDIDATO A DROP** | Toda consulta de histórico por cômodo filtra por `UserId` e é melhor atendida pelo índice triplo `(UserId, RoomId, Timestamp DESC)`. O `EXPLAIN` confirmou que a presença de `IX_SystemEvents_RoomId` causava indecisão de custo no planejador do Postgres, gerando sort em memória no chunk 13, que é eliminado sem esse índice. |
+| `IX_SystemEvents_DeviceGroupId` | **NÃO** | **0 scans** nos chunks | **REMOVIDO / CANDIDATO A DROP** | Consultas sempre passam por `UserId` e utilizam `(UserId, DeviceGroupId, Timestamp DESC)`. |
 
-Rodar contra o banco de produção (não contra dev/staging, que não reflete tráfego real):
+### 4.3. Processo para revisão contínua em produção
+Rodar periodicamente (a cada 30+ dias de tráfego real):
 
 ```sql
 SELECT
@@ -87,19 +98,6 @@ FROM pg_stat_user_indexes
 WHERE relname = 'SystemEvents'
 ORDER BY idx_scan ASC;
 ```
-
-- `idx_scan` baixo ou zero após 30+ dias de tráfego real = candidato a remoção — o índice está custando escrita (todo `INSERT` em `SystemEvents`, tabela append-only de alto volume, atualiza os 6 índices) sem retorno de leitura proporcional.
-- Cruzar com `pg_stat_user_indexes.relname` pra garantir que está olhando os índices da tabela certa, não de alguma hypertable-chunk interna com nome parecido.
-
-### 4.3. Plano condicional (só depois da medição acima)
-
-Se a medição confirmar a hipótese da auditoria (índices por `RoomId`/`DeviceGroupId`/`Source`, por exemplo, raramente usados), a consolidação proposta é:
-
-- Manter `(UserId, Timestamp DESC)` como índice composto principal — cobre o caminho de acesso mais comum (histórico ordenado por tempo, filtrado por usuário).
-- Trocar os índices de baixo uso por índices **parciais** nos filtros que a medição confirmar como efetivamente quentes — ex: `CREATE INDEX ... ON "SystemEvents" (UserId, Timestamp DESC) WHERE "Severity" = 'Alert'` pro dashboard de alertas, em vez de manter um índice composto genérico por `Severity` cobrindo todos os valores.
-- Objetivo: reduzir o custo de escrita (menos índices pra manter a cada `INSERT`) sem perder a velocidade de leitura nos filtros que o produto realmente usa.
-
-Esse plano só deve ser executado com os números da query acima em mãos — não como ação desta tarefa.
 
 ### 4.4. Pendência explícita: índice GIN trigram para busca textual (adiado)
 

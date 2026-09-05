@@ -81,9 +81,6 @@ public class SystemEventConfiguration : IEntityTypeConfiguration<SystemEvent>
             .HasIndex(events => new { events.UserId, events.Timestamp })
             .IsDescending(false, true);
 
-        builder.HasIndex(events => new { events.UserId, events.DeviceId });
-        builder.HasIndex(events => new { events.UserId, events.RoomId });
-        builder.HasIndex(events => new { events.UserId, events.DeviceGroupId });
         builder.HasIndex(events => new { events.UserId, events.Severity });
         builder.HasIndex(events => new { events.UserId, events.Source });
 
