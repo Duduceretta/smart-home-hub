@@ -46,7 +46,8 @@ public class DeviceConfiguration : IEntityTypeConfiguration<Device>
         builder
             .HasOne(device => device.Room)
             .WithMany(room => room.Devices)
-            .HasForeignKey(device => device.RoomId);
+            .HasForeignKey(device => device.RoomId)
+            .OnDelete(DeleteBehavior.SetNull);
 
         builder.HasQueryFilter(device => !device.IsDeleted);
     }

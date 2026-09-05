@@ -222,4 +222,66 @@ public class DeleteRoomTests(IntegrationTestWebAppFactory factory) : BaseIntegra
             .RoomId.Should()
             .BeNull("Como a sala foi deletada, o RoomId do dispositivo deve ficar nulo.");
     }
+
+    [Fact]
+    public async Task HardDeleteRoom_ViaDirectSql_ShouldSetDeviceRoomIdToNull_ViaDatabaseConstraint()
+    {
+        var userId = Guid.NewGuid();
+        var user = new User
+        {
+            Id = userId,
+            Name = "Direct SQL User",
+            Email = "directsql@smarthome.com",
+            ExternalAuthUid = "firebase-directsql-123",
+            IsDeleted = false,
+        };
+
+        var roomId = Guid.NewGuid();
+        var room = new Room
+        {
+            Id = roomId,
+            UserId = userId,
+            Name = "Quarto SQL Direto",
+            IsDeleted = false,
+        };
+
+        var deviceId = Guid.NewGuid();
+        var device = new Device
+        {
+            Id = deviceId,
+            UserId = userId,
+            RoomId = roomId,
+            Name = "Tomada SQL Direto",
+            Brand = "Sonoff",
+            ExternalId = "MAC-DIRECT-SQL-TEST",
+            Type = DeviceType.Switch,
+            IsDeleted = false,
+        };
+
+        DbContext.Users.Add(user);
+        DbContext.Rooms.Add(room);
+        DbContext.Devices.Add(device);
+        await DbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+
+        DbContext.ChangeTracker.Clear();
+
+        // Dispara DELETE físico direto na tabela Rooms via SQL, bypassando AppDbContext interceptors
+        await DbContext.Database.ExecuteSqlInterpolatedAsync(
+            $"DELETE FROM \"Rooms\" WHERE \"Id\" = {roomId};",
+            TestContext.Current.CancellationToken
+        );
+
+        var deviceAfterHardDelete = await DbContext
+            .Devices.AsNoTracking()
+            .IgnoreQueryFilters()
+            .FirstOrDefaultAsync(
+                d => d.Id == deviceId,
+                TestContext.Current.CancellationToken
+            );
+
+        deviceAfterHardDelete.Should().NotBeNull("O dispositivo físico não deve ter sido apagado.");
+        deviceAfterHardDelete!
+            .RoomId.Should()
+            .BeNull("A constraint física ON DELETE SET NULL do Postgres deve ter zerado o RoomId no hard-delete da Room.");
+    }
 }

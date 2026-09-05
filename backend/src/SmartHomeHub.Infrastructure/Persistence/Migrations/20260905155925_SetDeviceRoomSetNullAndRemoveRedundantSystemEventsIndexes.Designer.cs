@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using SmartHomeHub.Infrastructure.Persistence;
@@ -11,9 +12,11 @@ using SmartHomeHub.Infrastructure.Persistence;
 namespace SmartHomeHub.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260905155925_SetDeviceRoomSetNullAndRemoveRedundantSystemEventsIndexes")]
+    partial class SetDeviceRoomSetNullAndRemoveRedundantSystemEventsIndexes
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -95,7 +98,7 @@ namespace SmartHomeHub.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Automations", (string)null);
+                    b.ToTable("Automations");
                 });
 
             modelBuilder.Entity("SmartHomeHub.Domain.Entities.Device", b =>
@@ -153,7 +156,7 @@ namespace SmartHomeHub.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Devices", (string)null);
+                    b.ToTable("Devices");
                 });
 
             modelBuilder.Entity("SmartHomeHub.Domain.Entities.DeviceGroup", b =>
@@ -190,7 +193,7 @@ namespace SmartHomeHub.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("DeviceGroups", (string)null);
+                    b.ToTable("DeviceGroups");
                 });
 
             modelBuilder.Entity("SmartHomeHub.Domain.Entities.DeviceLiveState", b =>
@@ -250,7 +253,7 @@ namespace SmartHomeHub.Infrastructure.Persistence.Migrations
                     b.HasIndex("Timestamp")
                         .IsDescending();
 
-                    b.ToTable("DeviceTelemetryLogs", (string)null);
+                    b.ToTable("DeviceTelemetryLogs");
                 });
 
             modelBuilder.Entity("SmartHomeHub.Domain.Entities.IdempotencyRecord", b =>
@@ -266,7 +269,7 @@ namespace SmartHomeHub.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("CreatedAt");
 
-                    b.ToTable("IdempotencyRecords", (string)null);
+                    b.ToTable("IdempotencyRecords");
                 });
 
             modelBuilder.Entity("SmartHomeHub.Domain.Entities.Room", b =>
@@ -303,7 +306,7 @@ namespace SmartHomeHub.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Rooms", (string)null);
+                    b.ToTable("Rooms");
                 });
 
             modelBuilder.Entity("SmartHomeHub.Domain.Entities.SpotifyIntegration", b =>
@@ -342,7 +345,7 @@ namespace SmartHomeHub.Infrastructure.Persistence.Migrations
                     b.HasIndex("UserId")
                         .IsUnique();
 
-                    b.ToTable("SpotifyIntegrations", (string)null);
+                    b.ToTable("SpotifyIntegrations");
                 });
 
             modelBuilder.Entity("SmartHomeHub.Domain.Entities.SystemEvent", b =>
@@ -446,7 +449,7 @@ namespace SmartHomeHub.Infrastructure.Persistence.Migrations
                     b.HasIndex("UserId", "RoomId", "Timestamp")
                         .IsDescending(false, false, true);
 
-                    b.ToTable("SystemEvents", (string)null);
+                    b.ToTable("SystemEvents");
                 });
 
             modelBuilder.Entity("SmartHomeHub.Domain.Entities.User", b =>
@@ -487,7 +490,7 @@ namespace SmartHomeHub.Infrastructure.Persistence.Migrations
                     b.HasIndex("ExternalAuthUid")
                         .IsUnique();
 
-                    b.ToTable("Users", (string)null);
+                    b.ToTable("Users");
                 });
 
             modelBuilder.Entity("DeviceDeviceGroup", b =>
@@ -559,7 +562,7 @@ namespace SmartHomeHub.Infrastructure.Persistence.Migrations
 
                             b1.HasKey("DeviceId");
 
-                            b1.ToTable("Devices", (string)null);
+                            b1.ToTable("Devices");
 
                             b1
                                 .ToJson("Configuration")
@@ -607,7 +610,7 @@ namespace SmartHomeHub.Infrastructure.Persistence.Migrations
 
                             b1.HasKey("DeviceLiveStateDeviceId");
 
-                            b1.ToTable("DeviceLiveStates", (string)null);
+                            b1.ToTable("DeviceLiveStates");
 
                             b1
                                 .ToJson("Attributes")
