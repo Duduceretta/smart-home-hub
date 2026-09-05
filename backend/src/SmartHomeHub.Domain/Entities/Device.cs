@@ -11,7 +11,7 @@ namespace SmartHomeHub.Domain.Entities;
 /// bloqueadas pela constraint física do banco (<see cref="DeviceTelemetryLog"/>
 /// → Device é <c>DeleteBehavior.Restrict</c>), protegendo permanentemente o
 /// dataset histórico preservado para treinamento de ML futuro (ver
-/// <c>backend/docs/database-iot.md</c>, seção "Proteção física: hard-delete de
+/// <c>backend/docs/database.md</c>, seção "Proteção física: hard-delete de
 /// Device bloqueado por Restrict").
 /// </summary>
 public class Device : IAuditableEntity, ISoftDeletable

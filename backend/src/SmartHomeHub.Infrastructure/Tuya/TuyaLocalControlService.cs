@@ -66,7 +66,7 @@ public sealed class TuyaLocalControlService(
     // pra não mascarar um device que voltou a ficar alcançável logo em
     // seguida. Dicionário separado do _deviceLocks acima — mecanismo
     // independente, não compete nem substitui a serialização por device já
-    // existente. Ver database-iot.md, seção "Driver Local Tuya (TCP)", pro
+    // existente. Ver iot-drivers.md, seção "Driver Local Tuya (TCP)", pro
     // racional completo da janela escolhida.
     private readonly TimeSpan _ipResolutionCircuitBreakerWindow =
         ipResolutionCircuitBreakerWindowForTests ?? TimeSpan.FromSeconds(10);
@@ -81,7 +81,7 @@ public sealed class TuyaLocalControlService(
     // precisa de tempo de recuperação entre elas. A coalescência funde
     // comandos que chegam dentro da mesma janela curta num único ciclo de
     // Query+Set — acontece ANTES de adquirir o semáforo (agrupando o que será
-    // enviado), nunca compete com ele. Ver database-iot.md, seção "Driver
+    // enviado), nunca compete com ele. Ver iot-drivers.md, seção "Driver
     // Local Tuya (TCP)", pro racional completo da janela escolhida.
     private readonly TimeSpan _coalescingWindow =
         coalescingWindowForTests ?? TimeSpan.FromMilliseconds(75);

@@ -1,4 +1,4 @@
-# 📡 Engenharia de Dados e Comunicação IoT
+# 📡 Drivers e Protocolos IoT
 
 ## 1. Topologia MQTT e Comunicação com Hardware
 
@@ -17,122 +17,19 @@ Mudar o dispositivo de cômodo altera apenas a coluna `RoomId` no PostgreSQL. O 
 
 ---
 
-## 2. Banco de Dados de Séries Temporais (TimescaleDB)
+## 2. Driver Local Tuya (TCP)
 
-A tabela `DeviceTelemetryLogs` é convertida em uma *Hypertable* via `SELECT create_hypertable('"DeviceTelemetryLogs"', 'Timestamp')` numa migration do EF Core, indexada por `{DeviceId, Timestamp}`.
-
-**Compressão configurada, sem retenção/descarte (decisão deliberada).** A migration `AddTelemetryCompressionPolicy` habilita `timescaledb.compress` na hypertable (`compress_segmentby = '"DeviceId"'`, `compress_orderby = '"Timestamp" DESC'`). **Não há `add_retention_policy`**: o histórico bruto é mantido indefinidamente (só comprimido, nunca descartado), pensando em uso futuro para treinamento de modelos de ML sobre o histórico completo de telemetria.
-
-**Intervalo de compressão reduzido de 30 para 7 dias** (`ReduceTelemetryCompressionPolicyTo7Days`, `remove_compression_policy` + `add_compression_policy(..., INTERVAL '7 days')`). Motivo: sem retenção, o custo de armazenamento de chunks não comprimidos cresce linear com tempo×dispositivos×frequência de amostragem — comprimir mais cedo reduz esse custo sem apagar nenhum dado (histórico bruto continua 100% preservado, só passa a ficar armazenado em formato comprimido mais cedo) e sem afetar o dataset de ML. Só o intervalo mudou — `compress_segmentby`/`compress_orderby` e a ausência de retention permanecem intocados. Confirmado via `timescaledb_information.jobs` (`config: {"compress_after": "7 days"}`) e `timescaledb_information.chunks` (chunks com mais de 7 dias já comprimidos, `is_compressed = true`).
-
-> ⚠️ **Atenção ao `compress_segmentby`/`compress_orderby` com colunas PascalCase**: o valor é uma string SQL interpretada separadamente — um identificador sem aspas dentro dela (`'DeviceId'`) é normalizado para lowercase (`deviceid`) e não bate com a coluna real `"DeviceId"`, falhando com `column "deviceid" does not exist`. É necessário aspas duplas *dentro* da string: `'"DeviceId"'`.
-
-**Continuous Aggregate:** `device_telemetry_daily` (materialized view `WITH (timescaledb.continuous)`, mesma migration) pré-calcula bucket diário por `DeviceId` com `avg`/`max` de `PowerUsageWatts` e `avg` de `TemperatureCelsius`, com `add_continuous_aggregate_policy` (refresh diário, `start_offset '3 days'`, `end_offset '1 day'`). Mantém gráficos de consumo de longo prazo rápidos sem escanear a tabela bruta inteira, e serve de base pronta pra features de ML (tendência diária já pré-calculada).
-
----
-
-## 3. Exclusão Lógica de Recursos (Soft Delete)
-
-Nenhuma entidade principal (`User`, `Room`, `Device`, `DeviceGroup`) sofre remoção física via comando `DELETE` disparado pela aplicação.
-
-- **Motivo:** Manter a consistência de chaves estrangeiras com os logs históricos do TimescaleDB e com a trilha de auditoria (`SystemEvent`).
-- **Mecanismo:** A interface `ISoftDeletable` injeta os campos `IsDeleted` e `DeletedAt`. O `AppDbContext` intercepta deleções físicas disparadas pela aplicação e as converte em atualizações lógicas.
-- **Filtros Globais:** O Entity Framework Core oculta automaticamente registros deletados das queries de leitura (`HasQueryFilter`). Para ver itens removidos (ex: painel de administração), deve-se usar `.IgnoreQueryFilters()`.
-- **Índices Parciais:** Índices de unicidade (como o `ExternalId` dos dispositivos) utilizam o filtro nativo do Postgres — `builder.HasIndex(d => d.ExternalId).IsUnique().HasFilter("\"IsDeleted\" = false")` — permitindo que um hardware reaproveitado seja cadastrado novamente sem gerar conflito de unicidade com o registro antigo (soft-deletado).
-
-### Comportamento real de `DeleteBehavior` no schema físico
-
-Diferente do que uma versão anterior deste documento afirmava, o projeto **usa `DeleteBehavior` do EF Core extensivamente** no mapeamento das relações — não é proibido:
-
-- `DeleteBehavior.Cascade` — usado exclusivamente nas relações associativas puras (ex: tabela N:N `DeviceGroup_Devices`) e credenciais de sessão/integração 1:1 (`SpotifyIntegrations`).
-- `DeleteBehavior.SetNull` — usado em referências opcionais, onde o filho deve sobreviver à remoção do pai só perdendo a referência (ex: snapshots de eventos em `SystemEvents` para `DeviceId`, `RoomId`, `DeviceGroupId`, `AutomationId`).
-- `DeleteBehavior.Restrict` — usado para proteger dados críticos contra exclusão física acidental via SQL: `Rooms.UserId`, `Devices.UserId`, `DeviceGroups.UserId`, `Automations.UserId`, `SystemEvents.UserId` e `DeviceTelemetryLogs.DeviceId`.
-
-Como a aplicação nunca dispara `DELETE` físico de fato (o interceptor do `AppDbContext` converte tudo em soft delete antes de chegar ao banco), essas configurações de `DeleteBehavior` funcionam como uma segunda camada de proteção física no Postgres — bloqueando com `foreign_key_violation` qualquer tentativa indevida em migrações, scripts administrativos ou acessos externos ao banco.
-
-### Proteção física: hard-delete de Device bloqueado por Restrict
-
-Anteriormente, `DeviceTelemetryLog.DeviceId → Device` utilizava `DeleteBehavior.Cascade`. Embora a aplicação usasse soft-delete, qualquer script manual rodando `DELETE FROM "Devices"` fora do `AppDbContext` apagava em cascata todo o histórico de telemetria daquele dispositivo, destruindo o dataset preservado sem retenção para ML.
-
-Com a migration `RestrictRemainingCascades`, essa relação passou a ser estritamente **`DeleteBehavior.Restrict`**:
-
-> **Qualquer tentativa de `DELETE` físico direto em `Device` contendo telemetria associada é bloqueada pelo PostgreSQL com erro `foreign_key_violation` (código 23503).**
-
-Isso transforma o aviso operacional anterior em uma **garantia física imposta pelo schema do banco de dados**:
-
-- O histórico bruto de telemetria não pode ser destruído acidentalmente por um `DELETE` em `Devices`.
-- Se um expurgo físico de um dispositivo for estritamente exigido (ex: conformidade legal/GDPR), o operador é obrigado a decidir e exportar/arquivar `DeviceTelemetryLogs` daquele `DeviceId` explicitamente antes de conseguir remover o registro do dispositivo no Postgres.
-- A mesma política de `Restrict` é aplicada a `Automations.UserId` (protegendo regras de automação construídas pelo usuário) e `SystemEvents.UserId` (protegendo a trilha de auditoria e segurança da casa contra deleção em cascata).
-
----
-
-## 4. Auditoria e Revisão dos Índices de `SystemEvents`
-
-`SystemEvents` é uma Hypertable (chunk mensal) append-only. Manter índices desnecessários penaliza diretamente a taxa de ingestão de eventos gerados por automações e polling.
-
-### 4.1. Remoção de índices compostos de 2 colunas redundantes
-Os índices compostos de 2 colunas listados abaixo foram removidos por serem 100% redundantes perante os índices de 3 colunas já existentes (que possuem o mesmo prefixo e adicionam ordenação temporal decrescente `Timestamp DESC`):
-- `IX_SystemEvents_UserId_DeviceId` (coberto por `IX_SystemEvents_UserId_DeviceId_Timestamp`)
-- `IX_SystemEvents_UserId_RoomId` (coberto por `IX_SystemEvents_UserId_RoomId_Timestamp`)
-- `IX_SystemEvents_UserId_DeviceGroupId` (coberto por `IX_SystemEvents_UserId_DeviceGroupId_Timestamp`)
-
-### 4.2. Investigação dos índices monocoluna de FK
-Diferente dos índices compostos, os índices monocoluna gerados pela migration `AddEventHistoryFieldsToSystemEvent` não têm `UserId` como coluna líder. Foi realizada uma auditoria dupla (código + métricas reais no banco) para decidir a retenção ou remoção:
-
-| Índice Monocoluna | Uso no Código | Métrica Real (`idx_scan`) | Decisão | Justificativa |
-|---|---|---|---|---|
-| `IX_SystemEvents_AutomationId` | **SIM** | **1.182 scans** | **MANTIDO** | Essencial para subqueries em `GetAutomationsQuery` e `GetAutomationByIdQuery` (`LastExecutedAt`, `HasFailedToday`). |
-| `IX_SystemEvents_DeviceId` | **SIM** | **66 scans** | **MANTIDO** | Utilizado por `GetDeviceActivityLogQuery` (`/api/devices/{id}/activity`) para varredura antes do join com `Users`. |
-| `IX_SystemEvents_RoomId` | **NÃO** | **0 scans** em todos os chunks | **REMOVIDO / CANDIDATO A DROP** | Toda consulta de histórico por cômodo filtra por `UserId` e é melhor atendida pelo índice triplo `(UserId, RoomId, Timestamp DESC)`. O `EXPLAIN` confirmou que a presença de `IX_SystemEvents_RoomId` causava indecisão de custo no planejador do Postgres, gerando sort em memória no chunk 13, que é eliminado sem esse índice. |
-| `IX_SystemEvents_DeviceGroupId` | **NÃO** | **0 scans** nos chunks | **REMOVIDO / CANDIDATO A DROP** | Consultas sempre passam por `UserId` e utilizam `(UserId, DeviceGroupId, Timestamp DESC)`. |
-
-### 4.2.1. `DeviceTelemetryLogs` — remoção de índice de convenção EF redundante com o índice nativo da hypertable
-
-Diferente da cautela aplicada em 4.2 (métrica real acumulada antes de decidir), este caso é redundância **estrutural garantida**, não dependente de acumular mais tempo de uso: `DeviceTelemetryLogs` é hypertable com PK composta `(DeviceId, Timestamp)`, e o TimescaleDB cria e mantém sozinho um índice nativo na dimensão de tempo (`DeviceTelemetryLogs_Timestamp_idx`, sem prefixo `IX_`, gerenciado pela extensão) para suportar chunk exclusion. `DeviceTelemetryLogConfiguration.cs` também configurava explicitamente `IX_DeviceTelemetryLogs_Timestamp` — índice EF monocoluna cobrindo a **mesma** coluna que o índice nativo já cobre.
-
-Confirmado via `pg_stat_user_indexes`: `DeviceTelemetryLogs_Timestamp_idx` (nativo) tinha milhares de scans reais em múltiplos chunks; `IX_DeviceTelemetryLogs_Timestamp` (convenção EF) tinha **zero scans** em todos os chunks e na tabela mestre. Removido em `RemoveRedundantDeviceTelemetryLogsTimestampIndex` — a PK composta `(DeviceId, Timestamp)` não é afetada (`DropIndex` isolado, sem tocar em chave). Validado pós-migração via `pg_indexes`: só `DeviceTelemetryLogs_Timestamp_idx` e `PK_DeviceTelemetryLogs` restam na coluna `Timestamp`; `EXPLAIN` em queries filtradas por `Timestamp` (com e sem `DeviceId`) confirma Index Scan, sem Seq Scan.
-
-### 4.3. Processo para revisão contínua em produção
-Rodar periodicamente (a cada 30+ dias de tráfego real):
-
-```sql
-SELECT
-    indexrelname AS index_name,
-    idx_scan AS times_used,
-    idx_tup_read AS rows_read,
-    idx_tup_fetch AS rows_fetched,
-    pg_size_pretty(pg_relation_size(indexrelid)) AS index_size
-FROM pg_stat_user_indexes
-WHERE relname = 'SystemEvents'
-ORDER BY idx_scan ASC;
-```
-
-### 4.4. Pendência explícita: índice GIN trigram para busca textual (adiado)
-
-A primeira rodada da auditoria de banco (`backend/docs/database-audit.md`, Fase 3) propôs um índice GIN via `pg_trgm` para acelerar busca de texto livre em `SystemEvents` (campos `Description`/`DeviceName`), evitando *Seq Scan* em buscas do histórico de eventos:
-
-```sql
-CREATE EXTENSION IF NOT EXISTS pg_trgm;
-CREATE INDEX "IX_SystemEvents_Search_Gin" ON "SystemEvents" USING gin ("Description" gin_trgm_ops, "DeviceName" gin_trgm_ops);
-```
-
-**Deliberadamente adiado, não implementado.** Motivo: nenhuma feature hoje expõe busca de texto livre contra `SystemEvents.Description`/`DeviceName` no produto — criar o índice agora seria custo de escrita (mais um índice pra manter em tabela append-only de alto volume) sem uso real pra justificar. Reavaliar quando/se uma feature de busca textual no histórico de eventos for implementada — junto com essa feature, não antes, e usando o mesmo processo de medição da seção 4.1–4.2 pra confirmar que o padrão de busca realmente bate com `gin_trgm_ops` (correspondência parcial/fuzzy) antes de criar.
-
----
-
-## 5. Driver Local Tuya (TCP)
-
-### 5.1. Resolução de versão de protocolo — v3.1/3.2/3.3 convergem sem branch dedicado
+### 2.1. Resolução de versão de protocolo — v3.1/3.2/3.3 convergem sem branch dedicado
 
 `TuyaProtocolClientFactory.Resolve()` só tem branches explícitos para `"3.4"` e `"3.5"` (`TuyaSessionProtocolClient`, sessão própria com HMAC-SHA256+AES-ECB ou AES-GCM). Qualquer outra coisa — `null`, `"3.1"`, `"3.2"`, `"3.3"` — cai no mesmo `TuyaNetProtocolClient` (biblioteca terceira `com.clusterrr.TuyaNet`), que internamente sempre usa `TuyaProtocolVersion.V33` fixo, mesmo quando o dispositivo real fala v3.1.
 
 Isso é intencional, não uma lacuna: v3.1/v3.2/v3.3 compartilham o mesmo esquema de criptografia (AES-128-ECB, sem sessão/HMAC/GCM) e o mesmo formato de frame — não existe diferença de protocolo entre eles que justifique um branch próprio. Um dispositivo v3.1 real funciona corretamente sendo tratado como v3.3 porque, nesse range, a diferença de versão é só cosmética do lado do app oficial Tuya, não do wire protocol. Manutenção futura da factory não deve interpretar essa ausência de branch como bug a corrigir — só criar um branch dedicado se algum dispositivo real nesse range exigir tratamento distinto (o que não foi observado até hoje).
 
-### 5.2. Cache de sessão TCP persistente por dispositivo (v3.4 / v3.5)
+### 2.2. Cache de sessão TCP persistente por dispositivo (v3.4 / v3.5)
 
 Originalmente, o driver não mantinha conexão persistente — cada operação pública (`SetBrightnessAsync`, `SetColorAsync`, `SetPowerStateAsync`, etc.) abria uma conexão TCP nova tanto para o `QueryStatusAsync` quanto para o `SetDpsAsync` (**2 handshakes TCP completos por comando de usuário único**). O racional era simplicidade, com a condição explícita de revisitar a decisão se o polling periódico de estado fosse implementado.
 
-Com a implementação de `TuyaDeviceStatePollingWorker` (seção 5.6) consultando cada dispositivo a cada 12s, essa condição foi plenamente satisfeita: abrir TCP novo a cada 12s por dispositivo somado a 2 handshakes por escrita gerava sobrecarga mensurável em microcontroladores Tuya.
+Com a implementação de `TuyaDeviceStatePollingWorker` (seção 2.6) consultando cada dispositivo a cada 12s, essa condição foi plenamente satisfeita: abrir TCP novo a cada 12s por dispositivo somado a 2 handshakes por escrita gerava sobrecarga mensurável em microcontroladores Tuya.
 
 **Decisão implementada (`TuyaSessionProtocolClient`)**:
 1. **Escopo estrito a v3.4 e v3.5**: a persistência de sessão foi implementada exclusivamente em `TuyaSessionProtocolClient`, onde o handshake de 3 vias (START → RESP → FINISH) deriva uma chave de sessão simétrica (`sessionKey`) que sobrevive por múltiplos comandos. Dispositivos legados v3.1/v3.2/v3.3 continuam intocados em `TuyaNetProtocolClient` (conexão efêmera por comando).
@@ -141,7 +38,7 @@ Com a implementação de `TuyaDeviceStatePollingWorker` (seção 5.6) consultand
 4. **Reconexão transparente com retry único**: se uma operação sobre uma conexão em cache falhar por queda de socket (RST enviado pelo dispositivo, socket fechado por inatividade remota, timeout ou `IOException`), a sessão corrompida é descartada imediatamente e o client abre uma nova conexão TCP com handshake fresco de forma 100% transparente para o chamador, sem retornar erro desnecessário à UI ou aos workers.
 5. **TTL de sessão e limpeza automática (60s)**: sessões inativas por mais de 60s (~5x o ciclo de 12s do worker de polling) são invalidadas e fechadas (`PruneExpiredSessions`), cobrindo graciosamente dispositivos desligados da tomada ou removidos logicamente (soft-deleted). Mudanças de IP (reatribuição via DHCP) também invalidam a sessão antiga na hora, abrindo socket imediatamente para o novo endereço descoberto.
 
-### 5.3. Coalescência de comandos de ajuste de luz (brilho/cor/temperatura)
+### 2.3. Coalescência de comandos de ajuste de luz (brilho/cor/temperatura)
 
 O semáforo por dispositivo (`SemaphoreSlim` em `TuyaLocalControlService`) resolve a corrida de dados (leitura de status obsoleta entre comandos concorrentes no mesmo device), mas sozinho ainda **serializa** — uma rajada de N comandos pro mesmo dispositivo (slider de brilho sendo arrastado, ou uma automação ajustando brilho+cor+temperatura de uma vez) continuava pagando N ciclos completos de handshake TCP sequenciais contra um microcontrolador físico que só aguenta 1-2 conexões concorrentes e precisa de tempo de recuperação entre elas.
 
@@ -159,7 +56,7 @@ O semáforo por dispositivo (`SemaphoreSlim` em `TuyaLocalControlService`) resol
 
 **Achado crítico corrigido junto**: `ITuyaLocalControlService` estava registrado como `AddTransient` no DI — cada resolução (uma por requisição HTTP) criava uma instância nova, com `_deviceLocks`/`_pendingBatches` vazios. Isso significava que **nem o semáforo por dispositivo nem a coalescência tinham efeito real em produção** — cada requisição via seu próprio estado isolado, sem nunca competir ou fundir com outra. Corrigido para `AddSingleton` (dependências — `ITuyaProtocolClientFactory`, `ITuyaUdpDiscoveryScanner`, `ILogger`/`ILoggerFactory` — não guardam estado scoped, seguro capturar como singleton).
 
-### 5.4. Circuit breaker leve para resolução de IP via broadcast UDP
+### 2.4. Circuit breaker leve para resolução de IP via broadcast UDP
 
 Quando um comando Tuya falha por IP desatualizado (DHCP mudou o IP do dispositivo), `TryResolveIpAsync` escuta broadcast UDP (portas 6666/6667) por até `IpResolutionTimeout` (3s) tentando descobrir o novo IP antes de retentar. Se o dispositivo estiver genuinamente offline — não é problema de IP, é o dispositivo mesmo fora do ar — esse broadcast se repetia a cada tentativa de comando, adicionando ~3s de espera desnecessária em toda chamada, sempre sem sucesso.
 
@@ -171,7 +68,7 @@ Quando um comando Tuya falha por IP desatualizado (DHCP mudou o IP do dispositiv
 
 **Seam de teste**: construtor aceita `ipResolutionCircuitBreakerWindowForTests` (mesmo padrão dos outros seams do driver — `semaphoreAcquireTimeoutForTests`, `coalescingWindowForTests`), produção usa o default de 10s.
 
-### 5.5. Investigação: push espontâneo via sessão TCP local (v3.4/v3.5) — confirmado só para mudanças via app/nuvem, NÃO ocorre para interruptor físico
+### 2.5. Investigação: push espontâneo via sessão TCP local (v3.4/v3.5) — confirmado só para mudanças via app/nuvem, NÃO ocorre para interruptor físico
 
 **Pergunta original**: com uma sessão TCP autenticada (handshake de 3 vias completo, session key derivada) mantida **aberta** em vez de fechada após o comando, o dispositivo empurra sozinho um frame de status quando o estado muda por fora (interruptor físico, app SmartLife) — sem nenhum polling nosso? Esse é o mecanismo que bibliotecas do ecossistema Tuya-local (localtuya, tinytuya) usam pra atualização "quase instantânea" sem depender da nuvem Tuya. Diferente da via já descartada (broadcast UDP nas portas 6666/6667 não carrega `dps` — payload idêntico entre estados on/off, confirmado empiricamente; não repetir esse teste).
 
@@ -200,13 +97,13 @@ Quando um comando Tuya falha por IP desatualizado (DHCP mudou o IP do dispositiv
 3. Dado (1) e (2), **o custo de manter uma sessão TCP persistente por dispositivo Tuya** (gerenciamento de reconexão, uma sessão a mais por device rodando indefinidamente, possível reinício de sessão após comandos via app conforme Resultado 3) **não parece compensar** o ganho — que é só latência de UI pra um subconjunto de mudanças que o polling de 12s já cobre com atraso pequeno. **Não recomendado implementar em produção com a evidência atual.**
 4. Se o interesse for reduzir a latência do caso comum (interruptor físico), a via correta continua sendo reduzir o intervalo de polling do `DeviceHealthCheckWorker` ou investigar se o dispositivo aceita ser configurado para reportar por outro canal (ex: LWT MQTT, se o firmware suportar — não é o caso do hardware Tuya nativo, que não fala MQTT, ver seção 1) — não a sessão TCP persistente.
 
-### 5.6. `TuyaDeviceStatePollingWorker` — sincronização de estado externo via polling puro
+### 2.6. `TuyaDeviceStatePollingWorker` — sincronização de estado externo via polling puro
 
-Implementação da recomendação da seção 5.5: `TuyaDeviceStatePollingWorker` (`BackgroundService`, mesmo padrão do `DeviceStatePollingWorker`/`DeviceHealthCheckWorker` já existentes) consulta `QueryStatusAsync` de todo dispositivo `IntegrationType.TuyaLocal` cadastrado, periodicamente, detectando mudanças de estado feitas por fora (interruptor físico, app SmartLife) que nenhum mecanismo existente cobria. Adicional, não substitui nada — o `DeviceHealthCheckWorker` continua rodando como rede de segurança de conectividade.
+Implementação da recomendação da seção 2.5: `TuyaDeviceStatePollingWorker` (`BackgroundService`, mesmo padrão do `DeviceStatePollingWorker`/`DeviceHealthCheckWorker` já existentes) consulta `QueryStatusAsync` de todo dispositivo `IntegrationType.TuyaLocal` cadastrado, periodicamente, detectando mudanças de estado feitas por fora (interruptor físico, app SmartLife) que nenhum mecanismo existente cobria. Adicional, não substitui nada — o `DeviceHealthCheckWorker` continua rodando como rede de segurança de conectividade.
 
 **Cobre TODOS os atributos relevantes, não só power** — brilho, cor e temperatura de cor também são sincronizados, não só liga/desliga. Motivo: o interruptor físico só afeta power, mas o app SmartLife pode mudar qualquer atributo de uma lâmpada por fora (arrastar o brilho, trocar a cor), sem passar por nenhum comando nosso — a primeira versão deste worker (só power) deixava essas mudanças completamente fora do radar.
 
-**Intervalo escolhido: 12s** — mesmo valor do `DeviceHealthCheckWorker` e do `DeviceStatePollingWorker` de TV/Spotify, deliberadamente, não coincidência. Fica dentro da janela 10-15s pedida: rápido o bastante pra uma mudança externa parecer "quase instantânea" na UI sem o usuário perceber atraso incômodo, mas não agressivo a ponto de virar handshake TCP completo (3 vias) + `QueryStatusAsync` por dispositivo Tuya rápido demais pra um microcontrolador frágil — o mesmo motivo que já levou a seção 5.3 a investir em coalescência de escrita. Usar o mesmo valor dos outros workers também evita introduzir um terceiro intervalo diferente pra decorar/justificar separadamente no sistema.
+**Intervalo escolhido: 12s** — mesmo valor do `DeviceHealthCheckWorker` e do `DeviceStatePollingWorker` de TV/Spotify, deliberadamente, não coincidência. Fica dentro da janela 10-15s pedida: rápido o bastante pra uma mudança externa parecer "quase instantânea" na UI sem o usuário perceber atraso incômodo, mas não agressivo a ponto de virar handshake TCP completo (3 vias) + `QueryStatusAsync` por dispositivo Tuya rápido demais pra um microcontrolador frágil — o mesmo motivo que já levou a seção 2.3 a investir em coalescência de escrita. Usar o mesmo valor dos outros workers também evita introduzir um terceiro intervalo diferente pra decorar/justificar separadamente no sistema.
 
 **Timeout de aquisição do semáforo é DIFERENTE do caminho de escrita — e curto de propósito.** `GetStateForPollingAsync` (`ITuyaLocalControlService` — renomeado de `GetPowerStateForPollingAsync` quando o worker passou a cobrir todos os atributos, não só power) adquire o MESMO `SemaphoreSlim` por `TuyaDeviceId` que `SetPowerStateAsync`/`SetBrightnessAsync`/etc. já usam (`TuyaLocalControlService._deviceLocks`) — nunca compete por um socket diferente, nunca duplica o mecanismo de serialização. A diferença é o timeout de aquisição: escrita usa os 10s de `_semaphoreAcquireTimeout` (aceitável esperar mais, é uma ação direta do usuário); polling usa `_pollingSemaphoreAcquireTimeout`, um campo separado, default **2s**. Racional do valor: tem que ser "poucos segundos ou menos" (bem menor que 10s) o bastante pra nunca fazer uma consulta de rotina competir de verdade com um comando real, mas não tão perto de zero a ponto de descartar aquisições que resolveriam quase imediatamente (ex: uma escrita que estava terminando de qualquer forma). Se o timeout estourar, o método devolve `Device.Busy` — o worker interpreta esse código especificamente como "pula este dispositivo neste ciclo, sem marcar offline", nunca como falha de rede real. Não fazer o polling esperar o timeout de escrita (10s) seria inverter a prioridade que a tarefa exige: o comando do usuário nunca pode ficar atrás de uma leitura de rotina.
 
@@ -218,9 +115,9 @@ Implementação da recomendação da seção 5.5: `TuyaDeviceStatePollingWorker`
 
 **Falha de consulta reaproveita `DeviceConnectivityUpdater.ApplyConnectivityChange`** — a mesma função já compartilhada entre `DeviceHealthCheckWorker` (polling de rede) e `ProcessDeviceLwtCommand` (LWT individual) — nunca uma terceira implementação da mesma lógica de "marcar offline". A única exceção é `Device.Busy` (semáforo ocupado por escrita em andamento): esse código nunca chega em `ApplyConnectivityChange`, é tratado como "pula o ciclo", já que o dispositivo não está necessariamente offline — só ocupado.
 
-**Circuit breaker de resolução de IP (seção 5.4) é respeitado automaticamente, sem código extra no worker** — `GetStateForPollingAsync` passa pelo mesmo `ResolveIpAndStatusAsync`/`TryResolveIpAsync` internos de todo outro método de `TuyaLocalControlService`; um dispositivo que já falhou resolução de IP dentro da janela de 10s não dispara um broadcast UDP novo a cada ciclo de polling, exatamente como já acontecia pro caminho de escrita.
+**Circuit breaker de resolução de IP (seção 2.4) é respeitado automaticamente, sem código extra no worker** — `GetStateForPollingAsync` passa pelo mesmo `ResolveIpAndStatusAsync`/`TryResolveIpAsync` internos de todo outro método de `TuyaLocalControlService`; um dispositivo que já falhou resolução de IP dentro da janela de 10s não dispara um broadcast UDP novo a cada ciclo de polling, exatamente como já acontecia pro caminho de escrita.
 
-### 5.7. `DeviceHealthCheckWorker` — filtro parcial em SQL após a tipagem de `Configuration` (`IntegrationType NOT IN (...)`)
+### 2.7. `DeviceHealthCheckWorker` — filtro parcial em SQL após a tipagem de `Configuration` (`IntegrationType NOT IN (...)`)
 
 Antes da tipagem de `Device.Configuration` por protocolo (ver `backend/docs/architecture.md`, seção 1.5), o `DeviceHealthCheckWorker` filtrava `Configuration.IpAddress != null` direto no `Where()` SQL — tradução possível porque `Configuration` era um Owned Type via `ToJson()`. Depois da refatoração, `Configuration` virou uma propriedade escalar convertida (`ValueConverter<IDeviceConfiguration, string>`), e o EF Core não traduz mais acesso a campos de `Configuration` dentro de um `Where()` — a query passou a trazer **todos** os dispositivos (qualquer `Type`, qualquer `IntegrationType`) a cada ciclo de 12s, filtrando tudo em memória (`IsNetworkProbeable()` + `IpAddress != null`).
 
@@ -235,9 +132,9 @@ Antes da tipagem de `Device.Configuration` por protocolo (ver `backend/docs/arch
 
 ---
 
-## 6. Resiliência MQTT — LWT individual, sessão persistente, NoDelay
+## 3. Resiliência MQTT — LWT individual, sessão persistente, NoDelay
 
-### 6.1. LWT individual de dispositivos MQTT nativos (Tasmota/ESPHome)
+### 3.1. LWT individual de dispositivos MQTT nativos (Tasmota/ESPHome)
 
 Diferente do LWT do próprio backend (seção 2, `home/status/backend`, avisa quando o BACKEND cai), firmwares Tasmota/ESPHome podem publicar seu próprio LWT individual sozinhos, sinalizando a queda do DISPOSITIVO — detectável quase instantaneamente pelo broker, sem esperar o polling do `DeviceHealthCheckWorker` (~12s).
 
@@ -247,19 +144,19 @@ Diferente do LWT do próprio backend (seção 2, `home/status/backend`, avisa qu
 
 **Lógica de "marcar offline/online" reutilizada, não duplicada**: `DeviceConnectivityUpdater.ApplyConnectivityChange` (Application/Common/Devices) é chamado tanto pelo `DeviceHealthCheckWorker` (polling — rede de segurança, continua rodando sem mudança) quanto pelo `ProcessDeviceLwtCommand` (LWT — caminho adicional, mais rápido). Idempotente: repetir o mesmo sinal (LWT duplicado, ou já sincronizado por telemetria recente) não gera `SystemEvent` nem notificação SignalR duplicados.
 
-### 6.2. Sessão MQTT persistente
+### 3.2. Sessão MQTT persistente
 
 `WithCleanStart(false)` + `WithSessionExpiryInterval(300)` (5 minutos) — o `ClientId` já era fixo (`"SmartHomeHub_Backend"`, nunca gerado por conexão), pré-requisito pra sessão persistente funcionar (o broker só reconhece "é o mesmo cliente de antes" se o ClientId bater). Em MQTT v5 (protocolo default do MQTTnet aqui), `CleanStart(false)` sozinho não basta — sem `SessionExpiryInterval > 0` o broker usa 0 e descarta a sessão no disconnect de qualquer forma. 300s cobre uma reconexão breve (restart da API, blip de rede) sem manter estado indefinidamente.
 
 Resubscrição em `home/#` no `ConnectedAsync` **não precisou mudar** — continua incondicional em toda conexão. Isso é seguro nos dois cenários: se o Mosquitto reconheceu a sessão e restaurou a subscription sozinho, o `SUBSCRIBE` enviado vira um no-op idempotente (MQTT não duplica entrega por resubscrever no mesmo tópico/QoS); se a sessão expirou ou é a primeira conexão, o `SUBSCRIBE` é necessário e acontece normalmente. Testado (`ConfigureEvents_AfterBriefReconnect_ShouldStillResubscribeToWildcardTopic`) simulando duas conexões seguidas.
 
-### 6.3. NoDelay (Nagle desligado)
+### 3.3. NoDelay (Nagle desligado)
 
 **Driver Tuya** (`TuyaSessionProtocolClient`): `tcpClient.NoDelay = true` logo após criar o `TcpClient`. Ganho real aqui — protocolo é request-response síncrono com pacotes pequenos (handshake + comando, dezenas a centenas de bytes); Nagle ligado atrasaria o envio esperando acumular mais dados ou o ACK anterior, até ~40ms de latência extra por escrita, sem nenhum benefício de throughput pra esse padrão de tráfego.
 
 **Cliente MQTT**: também aplicado (`MqttClientTcpOptions.NoDelay`, mutado depois do `.Build()` — a sobrecarga `WithTcpServer(Action<MqttClientTcpOptions>)` exigiria montar `RemoteEndpoint` manualmente e falhou em runtime numa tentativa anterior com `ArgumentException: No endpoint is set.`; mutar `ChannelOptions` após o `Build()` evita mexer na resolução de host/porta já testada da sobrecarga simples). Ganho menor aqui do que no Tuya — o canal MQTT já é de longa duração, não comando síncrono isolado — mas sem custo pra aplicar já que a opção existe pronta na lib.
 
-### 6.4. Desligamento gracioso do supervisor de conexão
+### 3.4. Desligamento gracioso do supervisor de conexão
 
 O loop de supervisão (`MaintainConnectionAsync`, retry de conexão + resubscrição em `home/#`) era disparado em `StartAsync` via `_ = Task.Run(...)` fire-and-forget — sem guardar a `Task` nem vincular ao ciclo de vida do `MqttListenerWorker`. Não existia um `StopAsync` que esperasse o supervisor terminar de fato: ao desligar a API, o processo podia morrer com o supervisor no meio de uma tentativa de reconexão, sem nunca chamar `DisconnectAsync()` de forma limpa — o que significava que o LWT do backend (`home/status/backend`, retain: true) nunca era limpo/atualizado corretamente no broker antes do encerramento normal do processo (só o Will disparava, comportamento de crash, não de shutdown ordenado).
 
@@ -269,14 +166,14 @@ O loop de supervisão (`MaintainConnectionAsync`, retry de conexão + resubscri�
 
 **Exceções continuam logadas**: `RunSupervisedAsync` já captura e loga (nível `Critical`) qualquer exceção não prevista dentro de `MaintainConnectionAsync` internamente, antes de decidir reiniciar o loop ou sair (quando `OperationCanceledException` bate com o cancelamento em andamento). Isso significa que `_maintainConnectionTask` nunca completa com uma exceção não observada — o `await` em `StopAsync` não corre risco de "engolir" um erro que não tivesse sido logado antes.
 
-### 6.5. Reconciliação de estado desejado (não fila de comandos) na queda do Mosquitto
+### 3.5. Reconciliação de estado desejado (não fila de comandos) na queda do Mosquitto
 
-**Problema**: antes desta mudança, se `PublishAsync` falhasse por o broker estar fora do ar (supervisor em retry de 5s, seção 6.2), o comando MQTT (`home/commands/{externalId}`) era descartado silenciosamente — sem nenhuma tentativa de reenvio quando o broker voltasse.
+**Problema**: antes desta mudança, se `PublishAsync` falhasse por o broker estar fora do ar (supervisor em retry de 5s, seção 3.2), o comando MQTT (`home/commands/{externalId}`) era descartado silenciosamente — sem nenhuma tentativa de reenvio quando o broker voltasse.
 
 **Decisão tomada: NÃO é fila de comandos com TTL.** Uma fila (enfileirar cada comando perdido e reenviar em ordem na reconexão) foi rejeitada — risco real de reenviar um comando desatualizado que briga com uma decisão mais recente do usuário (ex: broker cai, usuário liga a lâmpada, muda de ideia e desliga; uma fila reenviaria "ligar" depois "desligar" na reconexão, ou pior, só o primeiro se truncada, nos dois casos errado).
 
 **Solução: reconciliação de ESTADO DESEJADO**, o mesmo princípio já usado em dois lugares do sistema:
-- **Device Shadow no banco** (`Device` + `DeviceLiveState`, ver seções 1-5): existe um único registro de "o que o dispositivo deveria estar fazendo agora", não um histórico de comandos.
+- **Device Shadow no banco** (`Device` + `DeviceLiveState`, ver seções 1 e 2): existe um único registro de "o que o dispositivo deveria estar fazendo agora", não um histórico de comandos.
 - **Coalescência do driver Tuya** (last-value-wins): comandos rápidos em sequência pro mesmo dispositivo colapsam no último valor antes de ir pro hardware.
 
 Aplicado agora à falta de conectividade MQTT: não existe "comando pendente #1, #2, #3" — existe um único valor por dispositivo, "o que o usuário quer que esse dispositivo esteja fazendo agora" (`_desiredCommands`, um `ConcurrentDictionary<string, string>` em `MqttService`, chaveado pelo tópico `home/commands/{externalId}`), sobrescrito a cada novo comando de escrita. Ao reconectar, publica-se esse valor atual, nunca um histórico — se o registro foi sobrescrito 5 vezes enquanto o broker estava fora, só o último valor existe e é isso que é republicado.

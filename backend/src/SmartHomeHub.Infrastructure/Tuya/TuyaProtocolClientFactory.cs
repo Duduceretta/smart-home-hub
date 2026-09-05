@@ -27,7 +27,7 @@ public sealed class TuyaProtocolClientFactory(
     /// lacuna: v3.1/v3.2/v3.3 compartilham o mesmo esquema de criptografia
     /// (AES-128-ECB sem sessão/HMAC/GCM) e o mesmo formato de frame — não há
     /// diferença de wire protocol nesse range que justifique um branch próprio.
-    /// Ver <c>backend/docs/database-iot.md</c>, seção "Driver Local Tuya (TCP)",
+    /// Ver <c>backend/docs/iot-drivers.md</c>, seção "Driver Local Tuya (TCP)",
     /// para o racional completo antes de "corrigir" isso numa auditoria futura.
     /// </summary>
     public ITuyaProtocolClient Resolve(string? protocolVersion)

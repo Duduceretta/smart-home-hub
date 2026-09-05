@@ -11,7 +11,8 @@ Monólito modular em C# (.NET 10), desenhado com **Clean Architecture**, **CQRS*
 ## 📚 Documentação Aprofundada
 
 - [**🏛️ Diretrizes Arquiteturais e Padrões de Código**](./docs/architecture.md) — CQRS, NRTs, Pipeline Behavior, tratamento de erros
-- [**📡 Engenharia de Dados e Comunicação IoT**](./docs/database-iot.md) — MQTT, TimescaleDB, Soft Delete, índices
+- [**🗄️ Banco de Dados e Modelagem de Dados**](./docs/database.md) — TimescaleDB, Soft Delete, índices
+- [**📡 Drivers e Protocolos IoT**](./docs/iot-drivers.md) — MQTT, Driver Tuya, resiliência
 - [**🏆 Estratégia de Testes (Troféu de Testes)**](./docs/testing-strategy.md) — Testcontainers, padrão AAA, cenários de regressão
 
 ---

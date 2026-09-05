@@ -12,7 +12,7 @@ namespace SmartHomeHub.Application.Features.Telemetry.Commands.ProcessDeviceLwt;
 // hardware real estava provisionado no momento desta implementação — quando
 // dispositivos Tasmota/ESPHome reais forem configurados, o FullTopic/config
 // MQTT precisa publicar o LWT individual nesse tópico pra este caminho
-// funcionar (ver database-iot.md, seção sobre LWT individual).
+// funcionar (ver iot-drivers.md, seção sobre LWT individual).
 public record ProcessDeviceLwtCommand(string Topic, string Payload) : ICommand<Result>;
 
 public class ProcessDeviceLwtCommandHandler(

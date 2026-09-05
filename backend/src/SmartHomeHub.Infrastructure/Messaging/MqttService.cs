@@ -40,7 +40,7 @@ public sealed class MqttService(
     // a cada novo comando. Entrada removida quando o publish é confirmado
     // (reconciliado); mantida se o broker estiver fora, pra ser republicada na
     // reconexão. Efêmero de propósito — não persiste em banco (ver
-    // database-iot.md, seção 6.5).
+    // iot-drivers.md, seção 3.5).
     private readonly ConcurrentDictionary<string, string> _desiredCommands = new();
 
     private IMqttClient _client = null!;
@@ -165,7 +165,7 @@ public sealed class MqttService(
     {
         // Só rastreia estado desejado pra comandos MQTT nativos
         // (home/commands/{externalId}) — escopo deliberado, ver
-        // database-iot.md seção 6.5. Sobrescreve sempre, mesmo antes de
+        // iot-drivers.md seção 3.5. Sobrescreve sempre, mesmo antes de
         // tentar publicar: se o broker estiver fora, esse é o valor que
         // sobrevive pra reconciliação na reconexão.
         var isNativeCommand = topic.StartsWith(CommandTopicPrefix, StringComparison.Ordinal);

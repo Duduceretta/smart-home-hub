@@ -17,7 +17,7 @@ namespace SmartHomeHub.Infrastructure.BackgroundJobs;
 // Investigado e descartado antes de chegar neste desenho: UDP broadcast não
 // carrega `dps` (payload idêntico entre estados), e push espontâneo via
 // sessão TCP persistente não cobre o caso mais comum (interruptor físico) —
-// ver backend/docs/database-iot.md, seção "Driver Local Tuya (TCP)",
+// ver backend/docs/iot-drivers.md, seção "Driver Local Tuya (TCP)",
 // investigação de push local. Polling puro reaproveitando QueryStatusAsync é
 // a única via local que sobrou. Este worker é ADICIONAL ao
 // DeviceHealthCheckWorker (continua sendo a rede de segurança de

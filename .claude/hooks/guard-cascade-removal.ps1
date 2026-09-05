@@ -10,7 +10,7 @@ $stillHasCascade = $new -match "DeleteBehavior\.(Cascade|SetNull|Restrict)"
 $hasJustification = $new -match "cascade-removal-ok"
 
 if ($hadCascade -and -not $stillHasCascade -and -not $hasJustification) {
-    [Console]::Error.WriteLine("Bloqueado: essa edicao remove um DeleteBehavior.Cascade/SetNull/Restrict existente. Isso e uma configuracao fisica real do schema (ver backend/docs/database-iot.md), nao e proibida por padrao. Se a remocao for mesmo intencional, inclua um comentario '// cascade-removal-ok: <motivo>' na edicao.")
+    [Console]::Error.WriteLine("Bloqueado: essa edicao remove um DeleteBehavior.Cascade/SetNull/Restrict existente. Isso e uma configuracao fisica real do schema (ver backend/docs/database.md), nao e proibida por padrao. Se a remocao for mesmo intencional, inclua um comentario '// cascade-removal-ok: <motivo>' na edicao.")
     exit 2
 }
 

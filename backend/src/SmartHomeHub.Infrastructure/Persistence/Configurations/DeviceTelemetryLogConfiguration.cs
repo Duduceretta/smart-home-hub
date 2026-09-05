@@ -41,6 +41,6 @@ public class DeviceTelemetryLogConfiguration : IEntityTypeConfiguration<DeviceTe
         // pg_stat_user_indexes (zero scans em todos os chunks e na tabela
         // mestre, enquanto o índice nativo tinha milhares) e removida em
         // RemoveRedundantDeviceTelemetryLogsTimestampIndex (ver
-        // backend/docs/database-iot.md, seção 4).
+        // backend/docs/database.md, seção 3).
     }
 }

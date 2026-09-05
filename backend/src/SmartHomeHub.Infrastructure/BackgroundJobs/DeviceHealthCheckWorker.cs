@@ -58,7 +58,7 @@ public sealed class DeviceHealthCheckWorker(
         // depende só de IntegrationType (nunca de Configuration) não precisa
         // esperar isso — filtrada aqui no SQL via NonProbeableIntegrationTypes,
         // reduzindo o volume trazido do banco antes do filtro residual em
-        // memória (ver backend/docs/database-iot.md).
+        // memória (ver backend/docs/iot-drivers.md).
         var candidates = await dbContext
             .Devices.Include(device => device.User)
             .Include(device => device.Room)

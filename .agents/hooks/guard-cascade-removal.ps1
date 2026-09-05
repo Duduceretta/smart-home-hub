@@ -24,7 +24,7 @@ $hasJustification = $newText -match "cascade-removal-ok"
 if ($hadCascade -and -not $stillHasCascade -and -not $hasJustification) {
     $output = @{
         decision = "deny"
-        reason = "Essa edicao remove um DeleteBehavior.Cascade/SetNull/Restrict existente sem justificativa. Nao e proibido por padrao (ver backend/docs/database-iot.md). Se for intencional, inclua um comentario // cascade-removal-ok: <motivo> na edicao."
+        reason = "Essa edicao remove um DeleteBehavior.Cascade/SetNull/Restrict existente sem justificativa. Nao e proibido por padrao (ver backend/docs/database.md). Se for intencional, inclua um comentario // cascade-removal-ok: <motivo> na edicao."
     }
 }
 else {
