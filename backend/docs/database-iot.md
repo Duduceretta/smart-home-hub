@@ -244,3 +244,25 @@ O loop de supervisão (`MaintainConnectionAsync`, retry de conexão + resubscri�
 **Timeout escolhido: 5s.** Folga generosa sobre o tempo normal de uma iteração do loop (ping/connect + o `Task.Delay` de retry de 5s), sem arriscar travar o shutdown do processo indefinidamente caso o supervisor nunca observe o cancelamento por algum motivo inesperado (ex: preso numa chamada de rede sem `CancellationToken` interno). Se o timeout estourar, loga `Warning` e prossegue com o shutdown de qualquer forma — não trava a aplicação por causa de um supervisor pendurado.
 
 **Exceções continuam logadas**: `RunSupervisedAsync` já captura e loga (nível `Critical`) qualquer exceção não prevista dentro de `MaintainConnectionAsync` internamente, antes de decidir reiniciar o loop ou sair (quando `OperationCanceledException` bate com o cancelamento em andamento). Isso significa que `_maintainConnectionTask` nunca completa com uma exceção não observada — o `await` em `StopAsync` não corre risco de "engolir" um erro que não tivesse sido logado antes.
+
+### 6.5. Reconciliação de estado desejado (não fila de comandos) na queda do Mosquitto
+
+**Problema**: antes desta mudança, se `PublishAsync` falhasse por o broker estar fora do ar (supervisor em retry de 5s, seção 6.2), o comando MQTT (`home/commands/{externalId}`) era descartado silenciosamente — sem nenhuma tentativa de reenvio quando o broker voltasse.
+
+**Decisão tomada: NÃO é fila de comandos com TTL.** Uma fila (enfileirar cada comando perdido e reenviar em ordem na reconexão) foi rejeitada — risco real de reenviar um comando desatualizado que briga com uma decisão mais recente do usuário (ex: broker cai, usuário liga a lâmpada, muda de ideia e desliga; uma fila reenviaria "ligar" depois "desligar" na reconexão, ou pior, só o primeiro se truncada, nos dois casos errado).
+
+**Solução: reconciliação de ESTADO DESEJADO**, o mesmo princípio já usado em dois lugares do sistema:
+- **Device Shadow no banco** (`Device` + `DeviceLiveState`, ver seções 1-5): existe um único registro de "o que o dispositivo deveria estar fazendo agora", não um histórico de comandos.
+- **Coalescência do driver Tuya** (last-value-wins): comandos rápidos em sequência pro mesmo dispositivo colapsam no último valor antes de ir pro hardware.
+
+Aplicado agora à falta de conectividade MQTT: não existe "comando pendente #1, #2, #3" — existe um único valor por dispositivo, "o que o usuário quer que esse dispositivo esteja fazendo agora" (`_desiredCommands`, um `ConcurrentDictionary<string, string>` em `MqttService`, chaveado pelo tópico `home/commands/{externalId}`), sobrescrito a cada novo comando de escrita. Ao reconectar, publica-se esse valor atual, nunca um histórico — se o registro foi sobrescrito 5 vezes enquanto o broker estava fora, só o último valor existe e é isso que é republicado.
+
+**Mecanismo**:
+1. `PublishAsync` grava sempre em `_desiredCommands[topic] = payload` antes de tentar publicar — só pra tópicos com prefixo `home/commands/` (escopo deliberado: não altera nada do driver Tuya local, que não usa MQTT e já tem sua própria coalescência).
+2. Caminho feliz (broker disponível): publica normalmente e remove a entrada de `_desiredCommands` (via `ICollection<KeyValuePair<...>>.Remove` com chave **e** valor, não só a chave — evita apagar um comando mais novo que sobrescreveu o registro entre o início desse publish e a confirmação).
+3. Broker indisponível: a entrada permanece (já escrita no passo 1); loga aviso de que o comando não foi entregue mas será reconciliado na reconexão — sem exception, sem fila.
+4. Na reconexão (`ConnectedAsync`, mesmo ponto onde já resubscreve em `home/#`), `ReconcileDesiredCommandsAsync` itera uma cópia (`.ToArray()`) de `_desiredCommands` e republica o valor atual de cada entrada ainda pendente. Sucesso remove a entrada (mesmo mecanismo de remoção condicional do passo 2); falha mantém pra próxima reconexão.
+
+**Efêmero de propósito, não persiste em banco**: `_desiredCommands` vive só em memória do processo. Se o backend reiniciar, o registro se perde — aceitável, o usuário pode reenviar o comando, e `DeviceLiveState` no banco continua sendo a fonte de verdade de estado; isso é só sobre entrega de comando MQTT, não sobre o estado que o sistema acredita que o dispositivo está.
+
+Testado (`MqttServiceTests`): broker offline mantém o registro sem descartar; múltiplos comandos pro mesmo dispositivo com broker fora colapsam no último valor (não acumulam); reconexão republica automaticamente sem intervenção do usuário; dois dispositivos diferentes reconciliam cada um seu próprio valor sem se misturar; reconciliação bem-sucedida não republica de novo numa reconexão futura sem novo comando no meio.
