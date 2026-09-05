@@ -59,14 +59,4 @@ public static class MapsterConfiguration
             .NewConfig()
             .Map(dest => dest.AutomationCount, src => 0);
     }
-
-    private static string GetCategoryFromType(DeviceType type) =>
-        type switch
-        {
-            DeviceType.Light => "Iluminação",
-            DeviceType.Thermostat => "Climatização",
-            DeviceType.Camera or DeviceType.Lock or DeviceType.Alarm => "Segurança",
-            DeviceType.Television => "Eletrodomésticos",
-            _ => "Outros",
-        };
 }

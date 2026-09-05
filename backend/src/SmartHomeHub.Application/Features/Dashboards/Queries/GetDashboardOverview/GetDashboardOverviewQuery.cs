@@ -105,7 +105,7 @@ public sealed class GetDashboardOverviewQueryHandler(IAppDbContext dbContext)
         );
         var endOfDayUtc = startOfDayUtc.AddDays(1);
 
-        const int bucketMinutes = 5;
+        const int bucketMinutes = TelemetryBucketing.DefaultBucketMinutes;
         var yesterdayStartUtc = startOfDayUtc.AddDays(-1);
 
         // Energia de hoje, temperatura de hoje e temperatura de ontem antes

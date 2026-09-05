@@ -29,6 +29,11 @@ public sealed class AutomationExecutionWorker(
             {
                 await ProcessEventAsync(@event, stoppingToken);
             }
+            catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
+            {
+                // Encerramento limpo solicitado durante o processamento do evento
+                break;
+            }
             catch (Exception ex)
             {
                 logger.LogError(
