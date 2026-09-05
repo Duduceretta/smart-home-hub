@@ -52,12 +52,22 @@ public sealed class DeviceHealthCheckWorker(
 
         // Configuration.IpAddress não é traduzível pro SQL (propriedade
         // escalar convertida via ValueConverter para jsonb, não mais um
-        // Owned Type via ToJson — ver backend/docs/architecture.md) — o
-        // filtro precisa acontecer em memória, depois de materializar.
+        // Owned Type via ToJson — ver backend/docs/architecture.md) — essa
+        // parte do filtro só pode acontecer em memória, depois de
+        // materializar (abaixo). Mas a parcela de IsNetworkProbeable() que
+        // depende só de IntegrationType (nunca de Configuration) não precisa
+        // esperar isso — filtrada aqui no SQL via NonProbeableIntegrationTypes,
+        // reduzindo o volume trazido do banco antes do filtro residual em
+        // memória (ver backend/docs/database-iot.md).
         var candidates = await dbContext
             .Devices.Include(device => device.User)
             .Include(device => device.Room)
             .Include(device => device.LiveState)
+            .Where(device =>
+                !IntegrationTypeExtensions.NonProbeableIntegrationTypes.Contains(
+                    device.IntegrationType
+                )
+            )
             .ToListAsync(cancellationToken);
 
         var probeable = candidates

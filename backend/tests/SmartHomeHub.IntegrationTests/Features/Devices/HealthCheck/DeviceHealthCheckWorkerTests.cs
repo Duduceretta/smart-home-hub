@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
+using SmartHomeHub.Application.Common.Extensions;
 using SmartHomeHub.Application.Common.Interfaces;
 using SmartHomeHub.Domain.Entities;
 using SmartHomeHub.Domain.Enums;
@@ -150,5 +151,60 @@ public class DeviceHealthCheckWorkerTests(IntegrationTestWebAppFactory factory)
         await CreateWorker().RunHealthCheckCycleAsync(TestContext.Current.CancellationToken);
 
         _probeService.CallCount.Should().Be(0);
+    }
+
+    // IntegrationType estruturalmente probeable (TuyaLocal não está em
+    // NonProbeableIntegrationTypes, então passa pelo Where() SQL), mas sem
+    // Configuration.IpAddress configurado ainda — precisa continuar excluído
+    // pelo filtro residual em memória (o único que enxerga Configuration).
+    [Fact]
+    public async Task RunHealthCheckCycle_ForProbeableIntegrationWithoutIpAddress_ShouldSkipProbe()
+    {
+        Reset();
+
+        var user = await SeedUserAsync();
+        var device = new Device
+        {
+            UserId = user.Id,
+            Name = "Lâmpada Tuya Sem IP",
+            Brand = "Tuya",
+            ExternalId = "TUYA-NO-IP-001",
+            Type = DeviceType.Light,
+            IntegrationType = IntegrationType.TuyaLocal,
+            Configuration = new TuyaDeviceConfiguration { LocalKey = "local-key-123" },
+            LiveState = new DeviceLiveState { IsOnline = false },
+        };
+        DbContext.Devices.Add(device);
+        await DbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+
+        await CreateWorker().RunHealthCheckCycleAsync(TestContext.Current.CancellationToken);
+
+        _probeService.CallCount.Should().Be(0);
+    }
+
+    // Prova que a exclusão de IntegrationType estruturalmente não-probeable
+    // (NativeMqtt/EspHomeMqtt/TuyaBridge/Zigbee) acontece no SQL — não só em
+    // memória — reproduzindo a mesma query usada por RunHealthCheckCycleAsync
+    // e inspecionando o texto gerado, sem precisar instrumentar o worker.
+    [Fact]
+    public void HealthCheckQuery_ShouldFilterNonProbeableIntegrationTypesInSql()
+    {
+        var sql = DbContext
+            .Devices.Where(device =>
+                !IntegrationTypeExtensions.NonProbeableIntegrationTypes.Contains(
+                    device.IntegrationType
+                )
+            )
+            .ToQueryString();
+
+        // "Configuration" aparece no SELECT (é coluna mapeada normal), mas
+        // isso não é o que a otimização evita — o que importa é o WHERE só
+        // referenciar IntegrationType, sem nenhum operador JSON sobre
+        // Configuration (o que seria a tradução antiga, hoje impossível).
+        sql.Should().Contain("WHERE");
+        sql.Should().MatchRegex(@"WHERE[\s\S]*""IntegrationType""[\s\S]*NOT IN");
+
+        var whereClause = sql[sql.IndexOf("WHERE", StringComparison.Ordinal)..];
+        whereClause.Should().NotContain("Configuration");
     }
 }

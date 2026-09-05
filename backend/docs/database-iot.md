@@ -207,6 +207,19 @@ Implementação da recomendação da seção 5.5: `TuyaDeviceStatePollingWorker`
 
 **Circuit breaker de resolução de IP (seção 5.4) é respeitado automaticamente, sem código extra no worker** — `GetStateForPollingAsync` passa pelo mesmo `ResolveIpAndStatusAsync`/`TryResolveIpAsync` internos de todo outro método de `TuyaLocalControlService`; um dispositivo que já falhou resolução de IP dentro da janela de 10s não dispara um broadcast UDP novo a cada ciclo de polling, exatamente como já acontecia pro caminho de escrita.
 
+### 5.7. `DeviceHealthCheckWorker` — filtro parcial em SQL após a tipagem de `Configuration` (`IntegrationType NOT IN (...)`)
+
+Antes da tipagem de `Device.Configuration` por protocolo (ver `backend/docs/architecture.md`, seção 1.5), o `DeviceHealthCheckWorker` filtrava `Configuration.IpAddress != null` direto no `Where()` SQL — tradução possível porque `Configuration` era um Owned Type via `ToJson()`. Depois da refatoração, `Configuration` virou uma propriedade escalar convertida (`ValueConverter<IDeviceConfiguration, string>`), e o EF Core não traduz mais acesso a campos de `Configuration` dentro de um `Where()` — a query passou a trazer **todos** os dispositivos (qualquer `Type`, qualquer `IntegrationType`) a cada ciclo de 12s, filtrando tudo em memória (`IsNetworkProbeable()` + `IpAddress != null`).
+
+**Otimização parcial, não total**: só a parcela do filtro que depende exclusivamente de `IntegrationType` — nunca de `Configuration` — volta pro SQL. `IsNetworkProbeable()` (`Application/Common/Extensions/IntegrationTypeExtensions`) sempre foi uma função pura de `IntegrationType`, então sua negação virou um array estático, `NonProbeableIntegrationTypes` (`[NativeMqtt, EspHomeMqtt, TuyaBridge, Zigbee]`), reaproveitado em dois lugares a partir da MESMA fonte (nunca duplicado, testado em `IntegrationTypeExtensionsTests.NonProbeableIntegrationTypes_ShouldMatchIsNetworkProbeableNegationForEveryValue`):
+
+1. `IsNetworkProbeable()` em memória: `!NonProbeableIntegrationTypes.Contains(type)`.
+2. `Where(device => !NonProbeableIntegrationTypes.Contains(device.IntegrationType))` no SQL do worker — comparação de array de enum contra coluna traduz normalmente pra `NOT IN (...)` (confirmado via `ToQueryString()` em `DeviceHealthCheckWorkerTests.HealthCheckQuery_ShouldFilterNonProbeableIntegrationTypesInSql`: `WHERE NOT (d."IsDeleted") AND d."IntegrationType" NOT IN (1, 9, 2, 5)`).
+
+**Por que não dá pra eliminar o filtro em memória completamente**: nenhum valor de `IntegrationType` restante (`TuyaLocal`, `GoogleCast`, `LgWebOs`, `AndroidTvAdb`, `MdnsZeroconf`, `SsdpUpnp`) é probeable "de graça" — todos ainda dependem de `Configuration.IpAddress != null` pra decidir se há endereço pra sondar (um `TuyaLocal` recém-cadastrado sem IP resolvido ainda, por exemplo). Esse pedaço genuinamente não é traduzível (mesma limitação da seção 1.5 de `architecture.md`) e continua em memória, depois do `ToListAsync()` — o `Where()` SQL só elimina os `IntegrationType` que são **estruturalmente** não-probeable independente de qualquer valor de `Configuration`, reduzindo o volume que chega até o filtro residual, sem arriscar excluir um dispositivo que ainda precisa ser avaliado.
+
+**Resultado**: dispositivos `NativeMqtt`/`EspHomeMqtt`/`TuyaBridge`/`Zigbee` (que nunca passavam no filtro em memória de qualquer forma) nem chegam a ser carregados do banco — reduz o volume trazido a cada ciclo de 12s proporcionalmente à fração de dispositivos MQTT/nuvem/Zigbee cadastrados, sem mudar nenhum comportamento funcional (mesmos dispositivos são sondados, mesmas notificações disparam).
+
 ---
 
 ## 6. Resiliência MQTT — LWT individual, sessão persistente, NoDelay

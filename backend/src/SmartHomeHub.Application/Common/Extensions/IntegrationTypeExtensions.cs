@@ -6,15 +6,21 @@ public static class IntegrationTypeExtensions
 {
     // MQTT/LWT (NativeMqtt, EspHomeMqtt) e integrações via nuvem (TuyaBridge, Zigbee)
     // gerenciam o próprio ciclo de vida de conectividade — probe ativo é redundante.
+    // Decisão depende só de IntegrationType (nunca de Configuration), por isso
+    // também é seguro traduzir pra SQL — ver DeviceHealthCheckWorker, que usa
+    // este mesmo array num Where() pra não trazer do banco dispositivos que
+    // cairiam fora aqui de qualquer forma. Fonte única: nunca duplicar esta
+    // lista em outro lugar.
+    public static readonly IntegrationType[] NonProbeableIntegrationTypes =
+    [
+        IntegrationType.NativeMqtt,
+        IntegrationType.EspHomeMqtt,
+        IntegrationType.TuyaBridge,
+        IntegrationType.Zigbee,
+    ];
+
     public static bool IsNetworkProbeable(this IntegrationType type) =>
-        type switch
-        {
-            IntegrationType.NativeMqtt
-            or IntegrationType.EspHomeMqtt
-            or IntegrationType.TuyaBridge
-            or IntegrationType.Zigbee => false,
-            _ => true,
-        };
+        !NonProbeableIntegrationTypes.Contains(type);
 
     public static IReadOnlyList<int> GetProbeCandidatePorts(this IntegrationType type) =>
         type switch

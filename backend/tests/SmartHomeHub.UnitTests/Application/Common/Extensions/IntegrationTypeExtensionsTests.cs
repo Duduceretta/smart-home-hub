@@ -78,6 +78,21 @@ public class IntegrationTypeExtensionsTests
         type.GetProbeCandidatePorts().Should().BeEmpty();
     }
 
+    // Fonte usada tanto por IsNetworkProbeable() em memória quanto pelo
+    // Where() SQL de DeviceHealthCheckWorker (via Contains, traduzível) —
+    // trava que as duas leituras nunca divergem.
+    [Fact]
+    public void NonProbeableIntegrationTypes_ShouldMatchIsNetworkProbeableNegationForEveryValue()
+    {
+        foreach (var type in Enum.GetValues<IntegrationType>())
+        {
+            var isListedAsNonProbeable =
+                IntegrationTypeExtensions.NonProbeableIntegrationTypes.Contains(type);
+
+            isListedAsNonProbeable.Should().Be(!type.IsNetworkProbeable());
+        }
+    }
+
     [Theory]
     [InlineData(IntegrationType.GoogleCast)]
     [InlineData(IntegrationType.AndroidTvAdb)]
