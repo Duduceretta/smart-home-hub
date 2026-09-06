@@ -110,6 +110,50 @@ export async function mockAutomationsApi(
 		},
 	);
 
+	// Mock individual automation operations (PUT, etc.)
+	await page.route(`${API_ORIGIN}/api/automations/*`, async (route) => {
+		const method = route.request().method();
+		const url = route.request().url();
+
+		if (
+			url.includes("/counts") ||
+			url.includes("/history") ||
+			url.includes("/executions")
+		) {
+			await route.fallback();
+			return;
+		}
+
+		if (method === "PUT") {
+			const id = url.split("/api/automations/")[1]?.split("?")[0];
+			const payload = route.request().postDataJSON() as {
+				name: string;
+				isActive?: boolean;
+				rulePayload: string;
+			};
+			const auto = state.automations.find((a) => a.id === id);
+			if (auto) {
+				auto.name = payload.name;
+				if (payload.isActive !== undefined) auto.isActive = payload.isActive;
+				auto.rulePayload = payload.rulePayload;
+				auto.updatedAt = new Date().toISOString();
+			}
+
+			await route.fulfill({
+				status: 200,
+				contentType: "application/json",
+				body: JSON.stringify({
+					id: auto ? auto.id : id,
+					name: auto ? auto.name : payload.name,
+					isActive: auto ? auto.isActive : (payload.isActive ?? true),
+				}),
+			});
+			return;
+		}
+
+		await route.fallback();
+	});
+
 	// Mock list and create
 	await page.route(`${API_ORIGIN}/api/automations*`, async (route) => {
 		const method = route.request().method();

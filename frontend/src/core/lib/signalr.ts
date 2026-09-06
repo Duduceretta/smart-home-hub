@@ -25,36 +25,87 @@ const BASE_API_URL: string =
 
 const HUB_URL = `${BASE_API_URL.replace(/\/api$/, "")}/hubs/telemetry`;
 
+type SignalRHandler = (...args: unknown[]) => void;
+const testEventHandlers = new Map<string, Set<SignalRHandler>>();
+
+export function registerSignalRTestHandler(
+	event: string,
+	handler: SignalRHandler,
+): () => void {
+	if (!testEventHandlers.has(event)) testEventHandlers.set(event, new Set());
+	testEventHandlers.get(event)?.add(handler);
+	return () => {
+		testEventHandlers.get(event)?.delete(handler);
+	};
+}
+
+if (typeof window !== "undefined" && import.meta.env.DEV) {
+	(
+		window as unknown as {
+			__simulateSignalREvent?: (event: string, ...args: unknown[]) => void;
+		}
+	).__simulateSignalREvent = (event: string, ...args: unknown[]) => {
+		testEventHandlers.get(event)?.forEach((handler) => {
+			handler(...args);
+		});
+	};
+}
+
 export function createSignalRConnection(): HubConnection {
-	return (
-		new HubConnectionBuilder()
-			.withUrl(HUB_URL, {
-				accessTokenFactory: async () => {
-					const currentUser = auth.currentUser;
-					if (!currentUser) return "";
-					return await currentUser.getIdToken();
-				},
-			})
-			// Array fixo de delays desiste de reconectar de vez após a última
-			// tentativa (dispara onclose e nunca mais tenta) — uma queda
-			// silenciosa da conexão (rede instável, aba em segundo plano) matava
-			// o real-time pro resto da sessão, sem sinal nenhum pro usuário: REST
-			// (toggle, etc.) continua funcionando normalmente porque não depende
-			// do WebSocket, só os eventos via SignalR (DeviceStatusChanged,
-			// SpotifyPlaybackChanged...) paravam de chegar. Política customizada
-			// nunca retorna null, então tenta pra sempre, com backoff limitado a
-			// 30s depois da 5ª tentativa.
-			.withAutomaticReconnect({
-				nextRetryDelayInMilliseconds: (retryContext) => {
-					const delays = [0, 2000, 5000, 10000, 30000];
-					return delays[
-						Math.min(retryContext.previousRetryCount, delays.length - 1)
-					];
-				},
-			})
-			.configureLogging(
-				import.meta.env.DEV ? LogLevel.Information : LogLevel.None,
-			)
-			.build()
-	);
+	const connection = new HubConnectionBuilder()
+		.withUrl(HUB_URL, {
+			accessTokenFactory: async () => {
+				const currentUser = auth.currentUser;
+				if (!currentUser) return "";
+				return await currentUser.getIdToken();
+			},
+		})
+		// Array fixo de delays desiste de reconectar de vez após a última
+		// tentativa (dispara onclose e nunca mais tenta) — uma queda
+		// silenciosa da conexão (rede instável, aba em segundo plano) matava
+		// o real-time pro resto da sessão, sem sinal nenhum pro usuário: REST
+		// (toggle, etc.) continua funcionando normalmente porque não depende
+		// do WebSocket, só os eventos via SignalR (DeviceStatusChanged,
+		// SpotifyPlaybackChanged...) paravam de chegar. Política customizada
+		// nunca retorna null, então tenta pra sempre, com backoff limitado a
+		// 30s depois da 5ª tentativa.
+		.withAutomaticReconnect({
+			nextRetryDelayInMilliseconds: (retryContext) => {
+				const delays = [0, 2000, 5000, 10000, 30000];
+				return delays[
+					Math.min(retryContext.previousRetryCount, delays.length - 1)
+				];
+			},
+		})
+		.configureLogging(
+			import.meta.env.DEV ? LogLevel.Information : LogLevel.None,
+		)
+		.build();
+
+	if (import.meta.env.DEV) {
+		const originalOn = connection.on.bind(connection);
+		const originalOff = connection.off.bind(connection);
+
+		connection.on = ((
+			methodName: string,
+			newMethod: (...args: unknown[]) => void,
+		) => {
+			registerSignalRTestHandler(methodName, newMethod);
+			// biome-ignore lint/suspicious/noExplicitAny: HubConnection internal delegate
+			originalOn(methodName, newMethod as any);
+		}) as typeof connection.on;
+
+		connection.off = ((
+			methodName: string,
+			method?: (...args: unknown[]) => void,
+		) => {
+			if (method) {
+				testEventHandlers.get(methodName)?.delete(method);
+			}
+			// biome-ignore lint/suspicious/noExplicitAny: HubConnection internal delegate
+			originalOff(methodName, method as any);
+		}) as typeof connection.off;
+	}
+
+	return connection;
 }

@@ -78,6 +78,14 @@ export async function mockDevicesApi(
 	const state = { devices: [...initialDevices] };
 	let sequence = 0;
 
+	await page.route(`${API_ORIGIN}/api/devices/discovery/*`, async (route) => {
+		await route.fulfill({
+			status: 200,
+			contentType: "application/json",
+			body: JSON.stringify({ message: "Descoberta iniciada com sucesso!" }),
+		});
+	});
+
 	await page.route(`${API_ORIGIN}/api/devices/*/toggle`, async (route) => {
 		const match = route
 			.request()
@@ -98,7 +106,7 @@ export async function mockDevicesApi(
 	await page.route(`${API_ORIGIN}/api/devices/*`, async (route) => {
 		const method = route.request().method();
 		const url = route.request().url();
-		if (url.includes("/toggle")) {
+		if (url.includes("/toggle") || url.includes("/discovery/")) {
 			await route.fallback();
 			return;
 		}
@@ -130,6 +138,10 @@ export async function mockDevicesApi(
 
 	await page.route(`${API_ORIGIN}/api/devices*`, async (route) => {
 		const method = route.request().method();
+		if (route.request().url().includes("/discovery/")) {
+			await route.fallback();
+			return;
+		}
 
 		if (method === "GET") {
 			await route.fulfill({
