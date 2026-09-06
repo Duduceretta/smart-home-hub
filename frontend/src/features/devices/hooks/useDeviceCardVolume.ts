@@ -39,22 +39,36 @@ export function useDeviceCardVolume(device: Device): UseDeviceCardVolumeReturn {
 	// dados já em cache (ex: voltando do Dashboard pra Devices).
 	const userDraggedVolumeRef = useRef(false);
 
+	// Lido via ref dentro do efeito de sincronização, nunca como dependência
+	// reativa dele — mesmo padrão de `useSyncedDeviceControl` (brilho/cor).
+	// Achado um bug real aqui: com `isDraggingVolume` nas deps, soltar o
+	// arraste (true -> false) reexecutava o efeito contra o `media` ainda
+	// desatualizado e revertia o valor recém-arrastado pro antigo do
+	// servidor ANTES do debounce de 300ms conseguir enviar o valor certo.
+	const isDraggingVolumeRef = useRef(isDraggingVolume);
+	useEffect(() => {
+		isDraggingVolumeRef.current = isDraggingVolume;
+	}, [isDraggingVolume]);
+
 	// Sincroniza do servidor só enquanto o usuário não está arrastando —
 	// mesma cautela do slider de brilho, evita "puxar" o dedo do usuário.
 	useEffect(() => {
-		if (media && !isDraggingVolume) {
-			setLocalVolume(media.volumePercent);
-		}
-	}, [media, isDraggingVolume]);
+		if (isDraggingVolumeRef.current || !media) return;
+		setLocalVolume(media.volumePercent);
+	}, [media]);
 
 	const debouncedVolume = useDebouncedValue(localVolume, 300);
 
 	useEffect(() => {
-		if (isAdbControllable && userDraggedVolumeRef.current) {
+		if (
+			isAdbControllable &&
+			userDraggedVolumeRef.current &&
+			debouncedVolume === localVolume
+		) {
 			userDraggedVolumeRef.current = false;
 			setVolume({ deviceId: device.id, volume: debouncedVolume });
 		}
-	}, [debouncedVolume, isAdbControllable, device.id, setVolume]);
+	}, [debouncedVolume, localVolume, isAdbControllable, device.id, setVolume]);
 
 	const volumeDisabled = !isOnline || !isAdbControllable;
 
