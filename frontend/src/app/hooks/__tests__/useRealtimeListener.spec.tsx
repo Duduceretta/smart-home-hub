@@ -4,11 +4,13 @@ import type { User } from "firebase/auth";
 import type React from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { useAuthStore } from "@/features/auth/store/useAuthStore";
+import { automationsKeys } from "@/features/automations/hooks/automations.keys";
 import { dashboardKeys } from "@/features/dashboard/hooks/dashboard.keys";
 import { deviceGroupsKeys } from "@/features/device-groups/hooks/device-groups.keys";
 import type { DeviceGroup } from "@/features/device-groups/types/device-groups.types";
 import { devicesKeys } from "@/features/devices/hooks/devices.keys";
 import type { Device } from "@/features/devices/types/devices.types";
+import { integrationsKeys } from "@/features/integrations/hooks/integrations.keys";
 import { roomsKeys } from "@/features/rooms/hooks/rooms.keys";
 import { useRealtimeListener } from "../useRealtimeListener";
 
@@ -341,6 +343,209 @@ describe("useRealtimeListener — ReceiveTelemetryUpdate", () => {
 		});
 		expect(invalidateSpy).toHaveBeenCalledWith({
 			queryKey: roomsKeys.climate("r-2"),
+		});
+	});
+});
+
+describe("useRealtimeListener — lifecycle & other SignalR events", () => {
+	let queryClient: QueryClient;
+
+	beforeEach(() => {
+		queryClient = new QueryClient({
+			defaultOptions: { queries: { retry: false, gcTime: Infinity } },
+		});
+		useAuthStore.setState({ user: mockUser, isLoading: false });
+		vi.clearAllMocks();
+	});
+
+	afterEach(() => {
+		vi.restoreAllMocks();
+	});
+
+	const wrapper = ({ children }: { children: React.ReactNode }) => (
+		<QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+	);
+
+	it("ConnectionLifecycle_OnReconnected_ShouldReconcileAllStaleStateQueries", () => {
+		const invalidateSpy = vi.spyOn(queryClient, "invalidateQueries");
+		renderHook(() => useRealtimeListener(), { wrapper });
+
+		expect(mockConnection.onreconnected).toHaveBeenCalled();
+		const reconnectedCallback = mockConnection.onreconnected.mock.calls[0][0];
+
+		reconnectedCallback();
+
+		expect(invalidateSpy).toHaveBeenCalledWith({
+			queryKey: devicesKeys.lists(),
+		});
+		expect(invalidateSpy).toHaveBeenCalledWith({
+			queryKey: devicesKeys.medias(),
+		});
+		expect(invalidateSpy).toHaveBeenCalledWith({
+			queryKey: integrationsKeys.spotifyPlayback(),
+		});
+		expect(invalidateSpy).toHaveBeenCalledWith({
+			queryKey: dashboardKeys.overview(),
+		});
+		expect(invalidateSpy).toHaveBeenCalledWith({
+			queryKey: dashboardKeys.activityLogs(),
+		});
+		expect(invalidateSpy).toHaveBeenCalledWith({
+			queryKey: automationsKeys.all,
+		});
+		expect(invalidateSpy).toHaveBeenCalledWith({
+			queryKey: dashboardKeys.automationsSummary(),
+		});
+	});
+
+	it("ConnectionLifecycle_OnReconnectingAndOnClose_ShouldRegisterCallbacksWithoutThrowing", () => {
+		renderHook(() => useRealtimeListener(), { wrapper });
+
+		expect(mockConnection.onreconnecting).toHaveBeenCalled();
+		expect(mockConnection.onclose).toHaveBeenCalled();
+
+		const reconnectingCb = mockConnection.onreconnecting.mock.calls[0][0];
+		const closeCb = mockConnection.onclose.mock.calls[0][0];
+
+		expect(() => reconnectingCb(new Error("Net error"))).not.toThrow();
+		expect(() => closeCb(new Error("Closed"))).not.toThrow();
+	});
+
+	it("ConnectionLifecycle_StartFailure_ShouldCatchGracefully", async () => {
+		mockConnection.start.mockRejectedValueOnce(new Error("Connection failed"));
+
+		expect(() =>
+			renderHook(() => useRealtimeListener(), { wrapper }),
+		).not.toThrow();
+	});
+
+	it("DeviceStatusChanged_ShouldUpdateCachedListAndInvalidateDetailsAndOverview", () => {
+		queryClient.setQueryData(devicesKeys.lists(), {
+			items: [baseDevice],
+			page: 1,
+			pageSize: 20,
+			totalCount: 1,
+			totalPages: 1,
+			hasNextPage: false,
+			hasPreviousPage: false,
+		});
+
+		const invalidateSpy = vi.spyOn(queryClient, "invalidateQueries");
+		renderHook(() => useRealtimeListener(), { wrapper });
+
+		const handler = getRegisteredHandler("DeviceStatusChanged");
+		expect(handler).toBeDefined();
+
+		handler?.({ deviceId: "d-1", isOn: false, isOnline: false });
+
+		const listData = queryClient.getQueryData<{ items: Device[] }>(
+			devicesKeys.lists(),
+		);
+		expect(listData?.items[0].isOn).toBe(false);
+		expect(listData?.items[0].isOnline).toBe(false);
+
+		expect(invalidateSpy).toHaveBeenCalledWith({
+			queryKey: devicesKeys.detail("d-1"),
+		});
+		expect(invalidateSpy).toHaveBeenCalledWith({
+			queryKey: dashboardKeys.overview(),
+		});
+		expect(invalidateSpy).toHaveBeenCalledWith({
+			queryKey: dashboardKeys.activityLogs(),
+		});
+	});
+
+	it("DeviceMediaChanged_ShouldUpdateMediaCacheAndInvalidateLogsWhenTitleChanges", () => {
+		queryClient.setQueryData(devicesKeys.media("d-1"), {
+			volumePercent: 20,
+			isPlaying: false,
+			title: "Old Song",
+			artist: "Artist",
+		});
+
+		const invalidateSpy = vi.spyOn(queryClient, "invalidateQueries");
+		renderHook(() => useRealtimeListener(), { wrapper });
+
+		const handler = getRegisteredHandler("DeviceMediaChanged");
+		expect(handler).toBeDefined();
+
+		handler?.({
+			deviceId: "d-1",
+			volumePercent: 50,
+			isPlaying: true,
+			title: "New Song",
+			artist: "New Artist",
+		});
+
+		const updated = queryClient.getQueryData(devicesKeys.media("d-1"));
+		expect(updated).toEqual({
+			volumePercent: 50,
+			isPlaying: true,
+			title: "New Song",
+			artist: "New Artist",
+		});
+		expect(invalidateSpy).toHaveBeenCalledWith({
+			queryKey: dashboardKeys.activityLogs(),
+		});
+	});
+
+	it("SpotifyPlaybackChanged_ShouldUpdatePlaybackCacheAndInvalidateLogsOnTitleChange", () => {
+		queryClient.setQueryData(integrationsKeys.spotifyPlayback(), {
+			volumePercent: 40,
+			isPlaying: false,
+			title: "Track A",
+			artist: "Band A",
+		});
+
+		const invalidateSpy = vi.spyOn(queryClient, "invalidateQueries");
+		renderHook(() => useRealtimeListener(), { wrapper });
+
+		const handler = getRegisteredHandler("SpotifyPlaybackChanged");
+		expect(handler).toBeDefined();
+
+		handler?.({
+			volumePercent: 60,
+			isPlaying: true,
+			title: "Track B",
+			artist: "Band B",
+		});
+
+		expect(
+			queryClient.getQueryData(integrationsKeys.spotifyPlayback()),
+		).toEqual({
+			volumePercent: 60,
+			isPlaying: true,
+			title: "Track B",
+			artist: "Band B",
+		});
+		expect(invalidateSpy).toHaveBeenCalledWith({
+			queryKey: dashboardKeys.activityLogs(),
+		});
+	});
+
+	it("AutomationExecutionResult_ShouldInvalidateAutomationsAndDashboard", () => {
+		const invalidateSpy = vi.spyOn(queryClient, "invalidateQueries");
+		renderHook(() => useRealtimeListener(), { wrapper });
+
+		const handler = getRegisteredHandler("AutomationExecutionResult");
+		expect(handler).toBeDefined();
+
+		handler?.({
+			automationId: "auto-1",
+			deviceId: "d-1",
+			success: true,
+			errorMessage: null,
+			traceId: "trace-123",
+		});
+
+		expect(invalidateSpy).toHaveBeenCalledWith({
+			queryKey: automationsKeys.all,
+		});
+		expect(invalidateSpy).toHaveBeenCalledWith({
+			queryKey: dashboardKeys.activityLogs(),
+		});
+		expect(invalidateSpy).toHaveBeenCalledWith({
+			queryKey: dashboardKeys.automationsSummary(),
 		});
 	});
 });
