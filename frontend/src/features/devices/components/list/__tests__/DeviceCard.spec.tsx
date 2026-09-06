@@ -455,9 +455,9 @@ describe("DeviceCard Integration Tests", () => {
 		}
 	});
 
-	it("DeviceCard_ThermostatOnlineClickControls_ShouldAdjustTemperatureAndSwitchMode", async () => {
-		// Arrange — +/-/mode buttons carry no accessible name; scope the query
-		// to the temperature section and rely on click order (+, -, fan mode).
+	it("DeviceCard_ThermostatOnline_ShouldDisableMockControlsAndNotRespondToClicks", async () => {
+		// Arrange — +/- and mode controls are visually disabled (mocked / "Em breve")
+		// and must not change state or temperature when clicked.
 		const user = userEvent.setup();
 		const mockDevice = createDeviceMock({
 			type: DeviceTypeEnum.Thermostat,
@@ -470,19 +470,19 @@ describe("DeviceCard Integration Tests", () => {
 		const [increaseButton, decreaseButton, , fanModeButton] =
 			within(temperatureSection).getAllByRole("button");
 
-		// Act
-		await user.click(increaseButton);
+		// Assert — all climate control buttons are disabled
+		expect(increaseButton).toBeDisabled();
+		expect(decreaseButton).toBeDisabled();
+		expect(fanModeButton).toBeDisabled();
+
+		// Act — attempt clicks on disabled buttons
 		await user.click(increaseButton);
 		await user.click(decreaseButton);
-
-		// Assert — 22 (default) + 1 + 1 - 1 = 23
-		expect(screen.getByText("23")).toBeInTheDocument();
-
-		// Act — switches from the default "cool" mode to "fan"
 		await user.click(fanModeButton);
 
-		// Assert
-		expect(fanModeButton.className).toContain("bg-cool");
+		// Assert — temperature remains at default 22 and mode does not switch to fan
+		expect(screen.getByText("22")).toBeInTheDocument();
+		expect(fanModeButton.className).not.toContain("bg-cool");
 	});
 
 	it("DeviceCard_TelevisionWithMediaPlaying_ShouldShowNowPlayingInfoAndReproducingBadge", async () => {

@@ -1,19 +1,5 @@
-import {
-	Disc3,
-	Minus,
-	MoreVertical,
-	Pause,
-	Pencil,
-	Play,
-	Plus,
-	SkipBack,
-	SkipForward,
-	Snowflake,
-	Trash2,
-	Volume2,
-	Wind,
-} from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { MoreVertical, Pencil, Trash2 } from "lucide-react";
+import { useState } from "react";
 import { Trans, useTranslation } from "react-i18next";
 import { useConfirm } from "@/core/components/providers/ConfirmDialogProvider";
 import {
@@ -22,23 +8,22 @@ import {
 	DropdownMenuItem,
 	DropdownMenuTrigger,
 } from "@/core/components/ui/dropdown-menu";
-import { useDebouncedValue } from "@/core/hooks/useDebouncedValue";
-import { useSyncedDeviceControl } from "@/core/hooks/useSyncedDeviceControl";
 import { DEVICE_CONFIG } from "../../constants/devices.constants";
 import { useDeleteDevice } from "../../hooks/useDeleteDevice";
-import { useDeviceMedia } from "../../hooks/useDeviceMedia";
-import { useSetDeviceBrightness } from "../../hooks/useSetDeviceBrightness";
-import { useSetDeviceVolume } from "../../hooks/useSetDeviceVolume";
+import { useDeviceCardVolume } from "../../hooks/useDeviceCardVolume";
 import { useToggleDevice } from "../../hooks/useToggleDevice";
 import { useDevicesUIStore } from "../../store/devices-ui.store";
 import {
 	type Device,
 	DeviceTypeEnum,
 	INTEGRATION_TYPE_LABEL_KEYS,
-	IntegrationTypeEnum,
 	isActuatorDevice,
 } from "../../types/devices.types";
 import { DeviceTelemetrySheet } from "../detail/DeviceTelemetrySheet";
+import { DeviceCardClimateControl } from "./DeviceCardClimateControl";
+import { DeviceCardLightControl } from "./DeviceCardLightControl";
+import { DeviceCardSocketControl } from "./DeviceCardSocketControl";
+import { DeviceCardTvControl } from "./DeviceCardTvControl";
 
 interface DeviceCardProps {
 	device: Device;
@@ -49,40 +34,12 @@ export const DeviceCard: React.FC<DeviceCardProps> = ({ device }) => {
 	const confirm = useConfirm();
 	const [isTelemetryModalOpen, setIsTelemetryModalOpen] = useState(false);
 
-	// Estados locais para controles interativos embutidos.
-	// Temperatura/modo do AC seguem mock puro de propósito (sem endpoint de
-	// temperatura-alvo no back-end hoje — fora de escopo aqui, ver
-	// ClimateControlPanel.tsx).
-	const [temperature, setTemperature] = useState(22);
-	const [climateMode, setClimateMode] = useState<"cool" | "fan">("cool");
-
 	const { mutate: toggleDevice, isPending: isToggling } = useToggleDevice();
 	const { mutate: deleteDevice, isPending: isDeleting } = useDeleteDevice();
 	const openEditModal = useDevicesUIStore((s) => s.openEditModal);
 
-	// Brilho (DP22) — mesmo padrão já usado em LightControlPanel.tsx: sincroniza
-	// com device.brightness (guardado contra sobrescrita durante arraste ativo
-	// via useSyncedDeviceControl) e reaproveita a mesma mutation de commit.
-	const {
-		value: brightness,
-		setValue: setBrightness,
-		isInteracting: isDraggingBrightness,
-		setIsInteracting: setIsDraggingBrightness,
-		lastCommittedRef: lastCommittedBrightnessRef,
-	} = useSyncedDeviceControl(device.brightness, 50);
-	const { mutate: commitBrightness_ } = useSetDeviceBrightness();
-
-	const commitBrightness = (value: number) => {
-		commitBrightness_(
-			{ deviceId: device.id, brightnessPercent: value },
-			{
-				onSuccess: () => {
-					lastCommittedBrightnessRef.current = value;
-				},
-				onError: () => setBrightness(lastCommittedBrightnessRef.current),
-			},
-		);
-	};
+	// Estado de reprodução em TV via ADB
+	const { isPlaying } = useDeviceCardVolume(device);
 
 	const handleDeleteClick = async () => {
 		const confirmed = await confirm({
@@ -115,49 +72,9 @@ export const DeviceCard: React.FC<DeviceCardProps> = ({ device }) => {
 	const isLight = device.type === DeviceTypeEnum.Light;
 	const isSocket = device.type === DeviceTypeEnum.Switch;
 
-	// TV e Climatização ocupam 2 colunas no grid no desktop
 	const isWide = isTv || isAc;
 	const isOnline = device.isOnline;
 	const isOn = device.isOn && isOnline;
-
-	// Volume/mídia real via ADB — só suportado por TVs GoogleCast/AndroidTvAdb
-	// (LgWebOs usa protocolo WebOS SSAP, fora de escopo).
-	const isAdbControllable =
-		device.integrationType === IntegrationTypeEnum.GoogleCast ||
-		device.integrationType === IntegrationTypeEnum.AndroidTvAdb;
-
-	const { data: media } = useDeviceMedia(device.id, {
-		enabled: isTv && isAdbControllable && isOnline,
-	});
-	// Estado real de reprodução (via ADB) — não confundir com `isOn` (TV
-	// ligada só indica energia, não que algo está tocando na tela).
-	const isPlaying = Boolean(media?.isPlaying);
-	const { mutate: setVolume } = useSetDeviceVolume();
-
-	const [localVolume, setLocalVolume] = useState(0);
-	const [isDraggingVolume, setIsDraggingVolume] = useState(false);
-	// Só true entre um arraste do usuário e o envio debounced correspondente —
-	// evita que a sincronização vinda do servidor (abaixo) seja confundida com
-	// uma mudança do usuário e dispare um envio espúrio ao montar o card com
-	// dados já em cache (ex: voltando do Dashboard pra Devices).
-	const userDraggedVolumeRef = useRef(false);
-
-	// Sincroniza do servidor só enquanto o usuário não está arrastando —
-	// mesma cautela do slider de brilho, evita "puxar" o dedo do usuário.
-	useEffect(() => {
-		if (media && !isDraggingVolume) {
-			setLocalVolume(media.volumePercent);
-		}
-	}, [media, isDraggingVolume]);
-
-	const debouncedVolume = useDebouncedValue(localVolume, 300);
-
-	useEffect(() => {
-		if (isAdbControllable && userDraggedVolumeRef.current) {
-			userDraggedVolumeRef.current = false;
-			setVolume({ deviceId: device.id, volume: debouncedVolume });
-		}
-	}, [debouncedVolume, isAdbControllable, device.id, setVolume]);
 
 	const handleToggle = (e: React.MouseEvent) => {
 		e.stopPropagation();
@@ -169,287 +86,23 @@ export const DeviceCard: React.FC<DeviceCardProps> = ({ device }) => {
 		setIsTelemetryModalOpen(true);
 	};
 
-	// Renderiza o corpo do card conforme o tipo de dispositivo
 	const renderCardBody = () => {
-		// 1. Lâmpada (Slider de Brilho)
 		if (isLight) {
-			return (
-				<div className="flex flex-col gap-2 mt-auto pt-2">
-					<div className="flex items-center justify-between text-xs text-muted-foreground">
-						<span>{t("card.brightness", "Brilho")}</span>
-						<span className="font-semibold text-foreground">
-							{isOn ? `${brightness}%` : "0%"}
-						</span>
-					</div>
-					<button
-						type="button"
-						disabled={!isOnline}
-						aria-label={t("card.brightness", "Brilho")}
-						className="relative z-20 block w-full h-2 rounded-full bg-surface-low overflow-visible cursor-pointer group/slider disabled:cursor-not-allowed touch-none"
-						onPointerDown={(e) => {
-							e.stopPropagation();
-							if (!isOnline) return;
-							e.currentTarget.setPointerCapture(e.pointerId);
-							setIsDraggingBrightness(true);
-							const rect = e.currentTarget.getBoundingClientRect();
-							const pct = Math.round(
-								((e.clientX - rect.left) / rect.width) * 100,
-							);
-							setBrightness(Math.max(0, Math.min(100, pct)));
-						}}
-						onPointerMove={(e) => {
-							if (!isOnline || e.buttons !== 1) return;
-							const rect = e.currentTarget.getBoundingClientRect();
-							const pct = Math.round(
-								((e.clientX - rect.left) / rect.width) * 100,
-							);
-							setBrightness(Math.max(0, Math.min(100, pct)));
-						}}
-						onPointerUp={(e) => {
-							if (e.currentTarget.hasPointerCapture(e.pointerId)) {
-								e.currentTarget.releasePointerCapture(e.pointerId);
-							}
-							setIsDraggingBrightness(false);
-							commitBrightness(brightness);
-						}}
-					>
-						<div
-							className={`h-full bg-warm rounded-full relative ${isDraggingBrightness ? "" : "transition-all"}`}
-							style={{ width: isOn ? `${brightness}%` : "0%" }}
-						>
-							<div
-								className={`absolute right-0 top-1/2 -translate-y-1/2 w-3 h-3 bg-warm-foreground rounded-full shadow-sm transition-opacity ${
-									isDraggingBrightness
-										? "opacity-100"
-										: "opacity-0 group-hover/slider:opacity-100"
-								}`}
-							/>
-						</div>
-					</button>
-				</div>
-			);
+			return <DeviceCardLightControl device={device} />;
 		}
 
-		// 3. Tomada (Consumo W + Tensão)
 		if (isSocket) {
-			return (
-				<div className="flex flex-col gap-2 mt-auto">
-					<div className="flex items-center justify-between text-xs">
-						<span className="text-muted-foreground">
-							{t("card.powerUsage", "Consumo")}
-						</span>
-						<div className="flex items-baseline gap-1">
-							<span className="text-xl font-semibold text-foreground tracking-tight">
-								{isOn ? 120 : 0}
-							</span>
-							<span className="text-xs font-medium text-primary">W</span>
-						</div>
-					</div>
-					<div className="flex items-center justify-between text-xs border-t border-border-subtle/20 pt-2">
-						<span className="text-muted-foreground">
-							{t("card.voltage", "Tensão")}
-						</span>
-						<span className="font-semibold text-foreground">127V</span>
-					</div>
-				</div>
-			);
+			return <DeviceCardSocketControl device={device} />;
 		}
 
-		// 4. Smart TV (Now Playing + Controles de Mídia + Volume)
 		if (isTv) {
-			const hasMedia = isOnline && isAdbControllable && Boolean(media?.title);
-			const volumeDisabled = !isOnline || !isAdbControllable;
-
-			return (
-				<div className="flex-1 flex flex-col justify-end gap-4 mt-3">
-					<div className="flex items-center gap-4 bg-surface-low rounded-lg p-2 border border-border-subtle">
-						<div className="w-10 h-10 rounded bg-surface-container flex items-center justify-center overflow-hidden shrink-0">
-							<div className="w-full h-full bg-linear-to-tr from-indigo-950 to-zinc-800 flex items-center justify-center">
-								<Disc3 className="w-5 h-5 text-muted-foreground opacity-60" />
-							</div>
-						</div>
-						<div className="flex flex-col flex-1 min-w-0">
-							<span className="text-xs font-semibold text-foreground truncate">
-								{hasMedia
-									? media?.title
-									: t("card.noPlayback", "Sem Reprodução")}
-							</span>
-							<span className="text-xs text-muted-foreground truncate">
-								{!isOnline
-									? t("card.deviceOffline", "Dispositivo offline")
-									: hasMedia
-										? media?.artist
-										: undefined}
-							</span>
-						</div>
-						{/* Controles de transporte refletem o estado real (isPlaying) mas
-						não disparam ação — play/pause/skip fica fora de escopo por ora. */}
-						<div className="flex items-center gap-1 relative z-20">
-							<button
-								type="button"
-								disabled
-								className="w-7 h-7 rounded-full bg-surface-container flex items-center justify-center text-foreground disabled:cursor-not-allowed disabled:opacity-40"
-							>
-								<SkipBack className="w-3.5 h-3.5" />
-							</button>
-							<button
-								type="button"
-								disabled
-								className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-sm disabled:cursor-not-allowed disabled:opacity-40"
-							>
-								{isPlaying ? (
-									<Pause className="w-4 h-4 fill-current" />
-								) : (
-									<Play className="w-4 h-4 fill-current ml-0.5" />
-								)}
-							</button>
-							<button
-								type="button"
-								disabled
-								className="w-7 h-7 rounded-full bg-surface-container flex items-center justify-center text-foreground disabled:cursor-not-allowed disabled:opacity-40"
-							>
-								<SkipForward className="w-3.5 h-3.5" />
-							</button>
-						</div>
-					</div>
-
-					<div className="flex items-center gap-2 relative z-20">
-						<Volume2 className="w-4 h-4 text-muted-foreground" />
-						<button
-							type="button"
-							disabled={volumeDisabled}
-							aria-label={t("card.volume", "Volume")}
-							className="relative z-20 block flex-1 h-1.5 rounded-full bg-surface-low overflow-visible cursor-pointer group/slider disabled:cursor-not-allowed touch-none"
-							onPointerDown={(e) => {
-								e.stopPropagation();
-								if (volumeDisabled) return;
-								e.currentTarget.setPointerCapture(e.pointerId);
-								setIsDraggingVolume(true);
-								const rect = e.currentTarget.getBoundingClientRect();
-								const pct = Math.round(
-									((e.clientX - rect.left) / rect.width) * 100,
-								);
-								userDraggedVolumeRef.current = true;
-								setLocalVolume(Math.max(0, Math.min(100, pct)));
-							}}
-							onPointerMove={(e) => {
-								if (volumeDisabled || e.buttons !== 1) return;
-								const rect = e.currentTarget.getBoundingClientRect();
-								const pct = Math.round(
-									((e.clientX - rect.left) / rect.width) * 100,
-								);
-								userDraggedVolumeRef.current = true;
-								setLocalVolume(Math.max(0, Math.min(100, pct)));
-							}}
-							onPointerUp={(e) => {
-								if (e.currentTarget.hasPointerCapture(e.pointerId)) {
-									e.currentTarget.releasePointerCapture(e.pointerId);
-								}
-								setIsDraggingVolume(false);
-							}}
-						>
-							<div
-								className={`h-full bg-primary rounded-full relative ${isDraggingVolume ? "" : "transition-all"}`}
-								style={{ width: `${volumeDisabled ? 0 : localVolume}%` }}
-							>
-								<div
-									className={`absolute right-0 top-1/2 -translate-y-1/2 w-3 h-3 bg-primary-foreground rounded-full shadow-sm transition-opacity ${
-										isDraggingVolume
-											? "opacity-100"
-											: "opacity-0 group-hover/slider:opacity-100"
-									}`}
-								/>
-							</div>
-						</button>
-					</div>
-				</div>
-			);
+			return <DeviceCardTvControl device={device} />;
 		}
 
-		// 5. Ar-Condicionado (Temperatura + Botões + Modos)
 		if (isAc) {
-			return (
-				<div className="flex-1 flex items-center justify-between mt-3">
-					<div className="flex flex-col">
-						<span className="text-xs font-medium tracking-wider text-muted-foreground uppercase mb-0.5">
-							{t("card.targetTemperature", "TEMPERATURA ALVO")}
-						</span>
-						<div className="flex items-start">
-							<span className="text-3xl font-semibold tracking-tight text-foreground">
-								{temperature}
-							</span>
-							<span className="text-sm font-semibold text-cool mt-0.5 ml-0.5">
-								°C
-							</span>
-						</div>
-					</div>
-					<div className="flex gap-2 relative z-20">
-						<div className="flex flex-col gap-2">
-							<button
-								type="button"
-								disabled={!isOnline}
-								onClick={(e) => {
-									e.stopPropagation();
-									if (!isOnline) return;
-									setTemperature((t) => Math.min(30, t + 1));
-								}}
-								className="w-9 h-9 rounded-full bg-surface-low border border-border-subtle flex items-center justify-center text-foreground hover:bg-surface-highest transition-colors disabled:cursor-not-allowed disabled:hover:bg-surface-low"
-							>
-								<Plus className="w-4 h-4" />
-							</button>
-							<button
-								type="button"
-								disabled={!isOnline}
-								onClick={(e) => {
-									e.stopPropagation();
-									if (!isOnline) return;
-									setTemperature((t) => Math.max(16, t - 1));
-								}}
-								className="w-9 h-9 rounded-full bg-surface-low border border-border-subtle flex items-center justify-center text-foreground hover:bg-surface-highest transition-colors disabled:cursor-not-allowed disabled:hover:bg-surface-low"
-							>
-								<Minus className="w-4 h-4" />
-							</button>
-						</div>
-						<div className="flex flex-col gap-2">
-							<button
-								type="button"
-								disabled={!isOnline}
-								onClick={(e) => {
-									e.stopPropagation();
-									if (!isOnline) return;
-									setClimateMode("cool");
-								}}
-								className={`w-9 h-9 rounded-full flex items-center justify-center transition-all disabled:cursor-not-allowed ${
-									climateMode === "cool"
-										? "bg-cool text-cool-foreground shadow-sm scale-105"
-										: "bg-surface-low border border-border-subtle text-muted-foreground hover:bg-surface-highest"
-								}`}
-							>
-								<Snowflake className="w-4 h-4" />
-							</button>
-							<button
-								type="button"
-								disabled={!isOnline}
-								onClick={(e) => {
-									e.stopPropagation();
-									if (!isOnline) return;
-									setClimateMode("fan");
-								}}
-								className={`w-9 h-9 rounded-full flex items-center justify-center transition-all disabled:cursor-not-allowed ${
-									climateMode === "fan"
-										? "bg-cool text-cool-foreground shadow-sm scale-105"
-										: "bg-surface-low border border-border-subtle text-muted-foreground hover:bg-surface-highest"
-								}`}
-							>
-								<Wind className="w-4 h-4" />
-							</button>
-						</div>
-					</div>
-				</div>
-			);
+			return <DeviceCardClimateControl device={device} />;
 		}
 
-		// 6. Genérico / Outros
 		return (
 			<div className="flex items-center justify-between text-xs mt-auto pt-3 border-t border-border-subtle/20">
 				<span className="text-muted-foreground">
@@ -471,21 +124,18 @@ export const DeviceCard: React.FC<DeviceCardProps> = ({ device }) => {
 					isWide ? "col-span-1 md:col-span-2" : "col-span-1"
 				} ${
 					!isOnline
-						? "bg-linear-to-br from-surface-low to-surface-low/70 opacity-50 grayscale-[0.4] hover:-translate-y-0"
+						? "bg-linear-to-br from-surface-low to-surface-low/70 opacity-50 grayscale-[0.4] hover:translate-y-0"
 						: isOn
 							? "bg-surface-high shadow-sm ring-1 ring-border-subtle/30"
 							: "bg-linear-to-br from-surface-low to-surface-low/80"
 				}`}
 			>
-				{/* Glow / Gradiente suave quando ativo */}
 				{isOn && (
 					<div className="absolute inset-0 bg-linear-to-br from-primary/10 to-transparent pointer-events-none" />
 				)}
 
-				{/* Topo do Card (Split-Interaction) */}
 				<div className="relative z-10 flex items-start justify-between gap-4">
 					<div className="flex items-center gap-4 min-w-0">
-						{/* Ícone Redondo que vira o Switch Real */}
 						{showToggle ? (
 							<button
 								type="button"
@@ -514,7 +164,6 @@ export const DeviceCard: React.FC<DeviceCardProps> = ({ device }) => {
 							</div>
 						)}
 
-						{/* Stretched Link (Nome abre telemetria) */}
 						<div className="flex flex-col min-w-0">
 							<button
 								type="button"
@@ -536,7 +185,6 @@ export const DeviceCard: React.FC<DeviceCardProps> = ({ device }) => {
 						</div>
 					</div>
 
-					{/* Indicador "Reproduzindo"/"Offline" e Menu ⋮ */}
 					<div className="relative z-20 flex items-center gap-1">
 						{!isOnline ? (
 							<div className="flex items-center gap-1 mr-1">
@@ -596,7 +244,6 @@ export const DeviceCard: React.FC<DeviceCardProps> = ({ device }) => {
 					</div>
 				</div>
 
-				{/* Conteúdo Dinâmico do Card */}
 				<div className="relative z-10">{renderCardBody()}</div>
 			</div>
 
