@@ -23,12 +23,13 @@ const IGNORE_COMMENT = "design-token-lint-ignore";
 
 // Paletas Tailwind brutas com equivalente semântico no design system
 // (confirmado contra src/app/styles/index.css e uso real no código:
-// zinc/indigo/slate = superfícies e cores de tema; red = --alert).
+// zinc/indigo/slate = superfícies e cores de tema; red = --alert;
+// white/black literais = --foreground/--background/--destructive-foreground).
 const RAW_COLOR_PALETTES = ["zinc", "indigo", "slate", "red"];
 const RAW_COLOR_PREFIXES = ["bg", "text", "border"];
 
 const rawTailwindClassRegex = new RegExp(
-	`\\b(?:${RAW_COLOR_PREFIXES.join("|")})-(?:${RAW_COLOR_PALETTES.join("|")})-\\d{2,3}\\b`,
+	`\\b(?:${RAW_COLOR_PREFIXES.join("|")})-(?:(?:${RAW_COLOR_PALETTES.join("|")})-\\d{2,3}|(?:white|black)(?!\\/))\\b`,
 );
 
 const rawHexColorRegex = /#[0-9a-fA-F]{3,8}\b/;

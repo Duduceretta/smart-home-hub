@@ -110,7 +110,7 @@ export function ConfirmDialogProvider({
 									className={cn(
 										"inline-flex h-8 items-center justify-center gap-1.5 rounded-lg px-3.5 text-xs font-semibold transition-all cursor-pointer shadow-xs",
 										isDestructive
-											? "border border-destructive/40 bg-destructive/15 text-destructive hover:border-destructive hover:bg-destructive hover:text-white"
+											? "border border-destructive/40 bg-destructive/15 text-destructive hover:border-destructive hover:bg-destructive hover:text-destructive-foreground"
 											: "border border-border bg-surface-high text-foreground hover:border-foreground/40 hover:bg-surface-highest",
 									)}
 								>

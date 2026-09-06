@@ -139,6 +139,7 @@ export function ColorWheel({
 			}}
 		>
 			<div
+				// design-token-lint-ignore: borda branca de contraste no indicador de posição sobre o seletor HSV
 				className="pointer-events-none absolute h-5 w-5 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white shadow-md"
 				style={{
 					left: thumbX,

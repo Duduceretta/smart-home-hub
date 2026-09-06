@@ -95,7 +95,7 @@ export const SheetLayout: React.FC<SheetLayoutProps> = ({
 					{/* Cabeçalho */}
 					<div className="flex shrink-0 items-start justify-between border-b border-border-subtle p-6">
 						<div>
-							<h2 className="text-lg font-bold tracking-tight text-white">
+							<h2 className="text-lg font-semibold tracking-tight text-foreground">
 								{title}
 							</h2>
 							{description && (
@@ -107,7 +107,7 @@ export const SheetLayout: React.FC<SheetLayoutProps> = ({
 						<button
 							type="button"
 							onClick={onClose}
-							className="rounded-md p-1 text-muted-foreground transition-colors hover:bg-surface-high hover:text-white cursor-pointer"
+							className="rounded-md p-1 text-muted-foreground transition-colors hover:bg-surface-high hover:text-foreground cursor-pointer"
 						>
 							<X className="h-5 w-5" />
 						</button>
