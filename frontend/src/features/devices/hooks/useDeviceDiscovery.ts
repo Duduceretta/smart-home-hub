@@ -1,9 +1,9 @@
 import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
+import { useCurrentUser } from "@/core/hooks/useCurrentUser";
 import { createSignalRConnection } from "@/core/lib/signalr";
 import { Logger } from "@/core/logger/app.logger";
-import { useAuthStore } from "@/features/auth/store/useAuthStore";
 import {
 	startDeviceDiscoveryRequest,
 	stopDeviceDiscoveryRequest,
@@ -26,7 +26,7 @@ export function useDeviceDiscovery(): void {
 	const scanTrigger = useDevicesUIStore((s) => s.scanTrigger);
 	const setIsScanning = useDevicesUIStore((s) => s.setIsScanning);
 	const addDiscoveredDevice = useDevicesUIStore((s) => s.addDiscoveredDevice);
-	const user = useAuthStore((s) => s.user);
+	const { user } = useCurrentUser();
 
 	// biome-ignore lint/correctness/useExhaustiveDependencies: scanTrigger is intentionally unread in the body — it only forces this effect to re-run for "Rescan"/"Add Another".
 	useEffect(() => {

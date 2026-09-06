@@ -1,9 +1,9 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef } from "react";
+import { useCurrentUser } from "@/core/hooks/useCurrentUser";
 import { createSignalRConnection } from "@/core/lib/signalr";
 import { Logger } from "@/core/logger/app.logger";
 import type { PagedResponse } from "@/core/types/pagination.types";
-import { useAuthStore } from "@/features/auth/store/useAuthStore";
 import { getEventHistory } from "../api/history.api";
 import { useHistoryUIStore } from "../store/history-ui.store";
 import type { GetHistoryParams, HistoryEvent } from "../types/history.types";
@@ -44,8 +44,7 @@ export function useEventStream(
 	queryParams: GetHistoryParams,
 	containerRef?: React.RefObject<HTMLElement | null>,
 ): void {
-	const user = useAuthStore((s) => s.user);
-	const isLoading = useAuthStore((s) => s.isLoading);
+	const { user, isLoading } = useCurrentUser();
 	const queryClient = useQueryClient();
 	const setPendingEvents = useHistoryUIStore((s) => s.setPendingEvents);
 	const clearPendingEvents = useHistoryUIStore((s) => s.clearPendingEvents);
