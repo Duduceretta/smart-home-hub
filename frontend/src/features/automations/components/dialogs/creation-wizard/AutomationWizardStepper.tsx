@@ -1,15 +1,32 @@
 import { Check } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { cn } from "@/core/utils";
 import type { WizardStepNumber } from "../../../types/automation-wizard.types";
 
 const SEGMENTS: {
+	key: "trigger" | "actions" | "review";
 	label: string;
 	description: string;
 	steps: WizardStepNumber[];
 }[] = [
-	{ label: "Gatilho", description: "Quando disparar", steps: [1, 2] },
-	{ label: "Ações", description: "O que acontece", steps: [3] },
-	{ label: "Revisão", description: "Confirme e salve", steps: [4] },
+	{
+		key: "trigger",
+		label: "Gatilho",
+		description: "Quando disparar",
+		steps: [1, 2],
+	},
+	{
+		key: "actions",
+		label: "Ações",
+		description: "O que acontece",
+		steps: [3],
+	},
+	{
+		key: "review",
+		label: "Revisão",
+		description: "Confirme e salve",
+		steps: [4],
+	},
 ];
 
 interface AutomationWizardStepperProps {
@@ -26,6 +43,8 @@ interface AutomationWizardStepperProps {
 export function AutomationWizardStepper({
 	currentStep,
 }: AutomationWizardStepperProps) {
+	const { t } = useTranslation("automations");
+
 	return (
 		<div>
 			{/* Mobile (<sm): Stepper horizontal compacto */}
@@ -34,10 +53,11 @@ export function AutomationWizardStepper({
 					const maxStep = Math.max(...segment.steps);
 					const isActive = segment.steps.includes(currentStep);
 					const isCompleted = currentStep > maxStep;
+					const label = t(`wizard.stepper.${segment.key}.label`, segment.label);
 
 					return (
 						<div
-							key={segment.label}
+							key={segment.key}
 							className="flex flex-1 items-center gap-1.5 min-w-0"
 						>
 							<span
@@ -60,7 +80,7 @@ export function AutomationWizardStepper({
 										: "text-muted-foreground",
 								)}
 							>
-								{segment.label}
+								{label}
 							</span>
 							{index < SEGMENTS.length - 1 && (
 								<div
@@ -82,9 +102,14 @@ export function AutomationWizardStepper({
 					const isActive = segment.steps.includes(currentStep);
 					const isCompleted = currentStep > maxStep;
 					const isLast = index === SEGMENTS.length - 1;
+					const label = t(`wizard.stepper.${segment.key}.label`, segment.label);
+					const description = t(
+						`wizard.stepper.${segment.key}.description`,
+						segment.description,
+					);
 
 					return (
-						<li key={segment.label} className="flex gap-4">
+						<li key={segment.key} className="flex gap-4">
 							<div className="flex flex-col items-center">
 								<span
 									className={cn(
@@ -116,10 +141,10 @@ export function AutomationWizardStepper({
 											: "text-muted-foreground",
 									)}
 								>
-									{segment.label}
+									{label}
 								</p>
 								<p className="mt-0.5 text-sm text-muted-foreground">
-									{segment.description}
+									{description}
 								</p>
 							</div>
 						</li>

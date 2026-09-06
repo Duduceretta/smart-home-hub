@@ -100,5 +100,163 @@
 			"on": "On",
 			"off": "Off"
 		}
+	},
+	"comparisons": {
+		">": "greater than",
+		">=": "greater than or equal to",
+		"<": "less than",
+		"<=": "less than or equal to",
+		"==": "equal to",
+		"!=": "different from"
+	},
+	"wizard": {
+		"stepper": {
+			"trigger": {
+				"label": "Trigger",
+				"description": "When to trigger"
+			},
+			"actions": {
+				"label": "Actions",
+				"description": "What happens"
+			},
+			"review": {
+				"label": "Review",
+				"description": "Confirm and save"
+			}
+		},
+		"dialog": {
+			"title": "New Automation",
+			"description": "Configure a trigger and the actions it fires.",
+			"next": "Next",
+			"back": "Back",
+			"discardTitle": "Discard this automation?",
+			"discardDescription": "Entered progress will be lost.",
+			"discardConfirm": "Discard"
+		},
+		"triggerSource": {
+			"title": "What is the trigger source?",
+			"subtitle": "Choose what makes this automation start running.",
+			"comingSoon": "Coming soon",
+			"sources": {
+				"sensor": {
+					"label": "Sensor",
+					"description": "Reacts to a sensor reading, such as temperature or power usage."
+				},
+				"device": {
+					"label": "Device",
+					"description": "Fires when a device changes state — turns on, off, or opens."
+				},
+				"location": {
+					"label": "Location",
+					"description": "Entering or leaving an area (geofencing)."
+				},
+				"schedule": {
+					"label": "Schedule",
+					"description": "Fires at a set time, on specific days of the week."
+				}
+			}
+		},
+		"triggerConfig": {
+			"loading": "Loading...",
+			"selectDevicePlaceholder": "Select a device",
+			"sensor": {
+				"title": "Configure the sensor",
+				"subtitle": "Choose the device and condition that triggers the automation.",
+				"deviceLabel": "Device",
+				"metricLabel": "Metric",
+				"conditionLabel": "Condition",
+				"valueLabel": "Value",
+				"valuePlaceholder": "E.g.: 28",
+				"preview": "When {{device}} has {{metric}} {{comparison}} {{value}}"
+			},
+			"device": {
+				"title": "Configure the device",
+				"subtitle": "Choose the device and which state change triggers the automation.",
+				"deviceLabel": "Device",
+				"statusLabel": "Status changes to",
+				"on": "On",
+				"off": "Off",
+				"preview": "When {{device}} changes to {{state}}"
+			},
+			"schedule": {
+				"title": "Configure the schedule",
+				"subtitle": "Choose the time and days of the week the automation should run.",
+				"timeLabel": "Time",
+				"weekdaysLabel": "Days of the week",
+				"everyDay": "Every day",
+				"preview": "{{days}} at {{time}}"
+			},
+			"metrics": {
+				"temperature": "Temperature (°C)",
+				"powerUsageWatts": "Power usage (W)"
+			},
+			"metricsPreview": {
+				"temperature": "temperature",
+				"powerUsageWatts": "power usage"
+			},
+			"weekdays": {
+				"0": { "label": "Sunday", "short": "S" },
+				"1": { "label": "Monday", "short": "M" },
+				"2": { "label": "Tuesday", "short": "T" },
+				"3": { "label": "Wednesday", "short": "W" },
+				"4": { "label": "Thursday", "short": "T" },
+				"5": { "label": "Friday", "short": "F" },
+				"6": { "label": "Saturday", "short": "S" }
+			}
+		},
+		"actionsStep": {
+			"title": "What should happen?",
+			"subtitle": "Add one or more actions this automation runs.",
+			"addAction": "Add Action",
+			"deviceLabel": "Device",
+			"selectDevicePlaceholder": "Select a device",
+			"loading": "Loading...",
+			"stateLabel": "Desired state",
+			"on": "Turn on",
+			"off": "Turn off",
+			"cancel": "Cancel",
+			"saveAction": "Save action",
+			"add": "Add",
+			"deviceRemoved": "Removed device",
+			"editActionAria": "Edit action {{device}}",
+			"removeActionAria": "Remove action {{device}}"
+		},
+		"reviewStep": {
+			"title": "All set?",
+			"subtitle": "Review the settings and give the automation a name.",
+			"nameLabel": "Automation name",
+			"namePlaceholder": "E.g.: Turn everything off at night",
+			"triggerSection": "Trigger",
+			"actionsSection": "Actions",
+			"edit": "Edit",
+			"activateTitle": "Activate immediately",
+			"activateDescription": "If turned off, the automation will be saved but paused.",
+			"activateAria": "Activate automation immediately",
+			"back": "Back",
+			"submit": "Save Automation",
+			"deviceRemoved": "removed device",
+			"triggerNotConfigured": "Trigger not configured",
+			"actionOn": "Turn on",
+			"actionOff": "Turn off"
+		}
+	},
+	"editModal": {
+		"title": "Edit Automation",
+		"description": "Adjust the trigger, actions, or status of this automation.",
+		"discardTitle": "Discard changes?",
+		"discardDescription": "Changes made to this automation have not been saved yet and will be lost.",
+		"discardConfirm": "Discard",
+		"nameSection": "Automation name",
+		"namePlaceholder": "E.g.: Turn everything off at night",
+		"triggerSection": "Trigger",
+		"triggerFixedNotice": "Trigger type cannot be changed once created.",
+		"triggerParseError": "Could not interpret the trigger configuration of this automation.",
+		"actionsSection": "Actions",
+		"statusSection": "Status",
+		"activeTitle": "Active",
+		"activeDescription": "If turned off, the automation will be saved but paused.",
+		"activeAria": "Active automation",
+		"cancel": "Cancel",
+		"save": "Save Changes"
 	}
 }

@@ -1,5 +1,6 @@
 import { Zap } from "lucide-react";
 import { useEffect, useRef } from "react";
+import { useTranslation } from "react-i18next";
 import { useConfirm } from "@/core/components/providers/ConfirmDialogProvider";
 import { Button } from "@/core/components/ui/button";
 import {
@@ -30,6 +31,7 @@ import { TriggerSourceStep } from "./TriggerSourceStep";
  * do design system em vez das cores hex fixas daquele wizard mais antigo.
  */
 export function AutomationCreationWizard() {
+	const { t } = useTranslation("automations");
 	const isOpen = useAutomationsUIStore((s) => s.isCreateWizardOpen);
 	const closeCreateWizard = useAutomationsUIStore((s) => s.closeCreateWizard);
 
@@ -58,9 +60,9 @@ export function AutomationCreationWizard() {
 	const handleClose = async () => {
 		if (hasProgress) {
 			const confirmed = await confirm({
-				title: "Descartar essa automação?",
-				description: "O progresso preenchido será perdido.",
-				confirmLabel: "Descartar",
+				title: t("wizard.dialog.discardTitle"),
+				description: t("wizard.dialog.discardDescription"),
+				confirmLabel: t("wizard.dialog.discardConfirm"),
 			});
 			if (!confirmed) return;
 		}
@@ -101,10 +103,10 @@ export function AutomationCreationWizard() {
 								</span>
 								<DialogHeader className="gap-1 text-left">
 									<DialogTitle className="text-base sm:text-lg">
-										Nova Automação
+										{t("wizard.dialog.title")}
 									</DialogTitle>
 									<DialogDescription className="text-xs">
-										Configure um gatilho e as ações que ele dispara.
+										{t("wizard.dialog.description")}
 									</DialogDescription>
 								</DialogHeader>
 							</div>
@@ -139,7 +141,7 @@ export function AutomationCreationWizard() {
 												}
 												onClick={() => wizard.goToStep(2)}
 											>
-												Próximo
+												{t("wizard.dialog.next")}
 											</Button>
 										</div>
 									</>
@@ -159,7 +161,7 @@ export function AutomationCreationWizard() {
 												className="h-11 sm:h-9"
 												onClick={() => wizard.goToStep(1)}
 											>
-												Voltar
+												{t("wizard.dialog.back")}
 											</Button>
 											<Button
 												type="button"
@@ -167,7 +169,7 @@ export function AutomationCreationWizard() {
 												disabled={!isTriggerConfigValid}
 												onClick={() => wizard.goToStep(3)}
 											>
-												Próximo
+												{t("wizard.dialog.next")}
 											</Button>
 										</div>
 									</>
@@ -187,7 +189,7 @@ export function AutomationCreationWizard() {
 												className="h-11 sm:h-9"
 												onClick={() => wizard.goToStep(2)}
 											>
-												Voltar
+												{t("wizard.dialog.back")}
 											</Button>
 											<Button
 												type="button"
@@ -195,7 +197,7 @@ export function AutomationCreationWizard() {
 												disabled={!isActionsStepValid}
 												onClick={() => wizard.goToStep(4)}
 											>
-												Próximo
+												{t("wizard.dialog.next")}
 											</Button>
 										</div>
 									</>

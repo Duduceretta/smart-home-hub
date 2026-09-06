@@ -1,5 +1,6 @@
 import { Pencil, Plus, Trash2, Zap } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/core/components/ui/button";
 import { Label } from "@/core/components/ui/label";
 import {
@@ -40,6 +41,7 @@ export function ActionsStep({
 	devices,
 	isLoadingDevices,
 }: ActionsStepProps) {
+	const { t } = useTranslation("automations");
 	const { state, addOrUpdateAction, editAction, removeAction } = form;
 	const [isAdding, setIsAdding] = useState(false);
 	const [draft, setDraft] = useState<ActionDraft>(EMPTY_DRAFT);
@@ -75,16 +77,17 @@ export function ActionsStep({
 	};
 
 	const deviceName = (deviceId: string) =>
-		devices.find((d) => d.id === deviceId)?.name ?? "Dispositivo removido";
+		devices.find((d) => d.id === deviceId)?.name ??
+		t("wizard.actionsStep.deviceRemoved");
 
 	return (
 		<div className="flex flex-1 flex-col gap-4">
 			<div>
 				<h2 className="text-lg font-medium text-foreground">
-					O que deve acontecer?
+					{t("wizard.actionsStep.title")}
 				</h2>
 				<p className="mt-0.5 text-sm text-muted-foreground">
-					Adicione uma ou mais ações que essa automação executa.
+					{t("wizard.actionsStep.subtitle")}
 				</p>
 			</div>
 
@@ -100,7 +103,9 @@ export function ActionsStep({
 							</span>
 							<div className="min-w-0 flex-1">
 								<p className="truncate text-sm font-medium text-foreground">
-									{action.desiredState ? "Ligar" : "Desligar"}{" "}
+									{action.desiredState
+										? t("wizard.actionsStep.on")
+										: t("wizard.actionsStep.off")}{" "}
 									{deviceName(action.deviceId)}
 								</p>
 							</div>
@@ -110,7 +115,9 @@ export function ActionsStep({
 								size="icon"
 								className="h-11 w-11 sm:h-8 sm:w-8"
 								onClick={() => editAction(action.id)}
-								aria-label={`Editar ação ${deviceName(action.deviceId)}`}
+								aria-label={t("wizard.actionsStep.editActionAria", {
+									device: deviceName(action.deviceId),
+								})}
 							>
 								<Pencil className="h-3.5 w-3.5" />
 							</Button>
@@ -120,7 +127,9 @@ export function ActionsStep({
 								size="icon"
 								className="h-11 w-11 sm:h-8 sm:w-8"
 								onClick={() => removeAction(action.id)}
-								aria-label={`Remover ação ${deviceName(action.deviceId)}`}
+								aria-label={t("wizard.actionsStep.removeActionAria", {
+									device: deviceName(action.deviceId),
+								})}
 							>
 								<Trash2 className="h-3.5 w-3.5" />
 							</Button>
@@ -132,7 +141,7 @@ export function ActionsStep({
 			{isAdding ? (
 				<div className="flex flex-col gap-4 rounded-lg border border-border-subtle bg-surface-high p-4">
 					<div className="flex flex-col gap-1.5">
-						<Label>Dispositivo</Label>
+						<Label>{t("wizard.actionsStep.deviceLabel")}</Label>
 						<Select
 							value={draft.deviceId || undefined}
 							onValueChange={(deviceId) =>
@@ -146,8 +155,8 @@ export function ActionsStep({
 								<SelectValue
 									placeholder={
 										isLoadingDevices
-											? "Carregando..."
-											: "Selecione um dispositivo"
+											? t("wizard.actionsStep.loading")
+											: t("wizard.actionsStep.selectDevicePlaceholder")
 									}
 								/>
 							</SelectTrigger>
@@ -162,7 +171,7 @@ export function ActionsStep({
 					</div>
 
 					<div className="flex flex-col gap-1.5">
-						<Label>Estado desejado</Label>
+						<Label>{t("wizard.actionsStep.stateLabel")}</Label>
 						<div className="grid grid-cols-2 gap-2">
 							<button
 								type="button"
@@ -177,7 +186,7 @@ export function ActionsStep({
 										: "border-border-subtle bg-surface-low text-muted-foreground hover:text-foreground",
 								)}
 							>
-								Ligar
+								{t("wizard.actionsStep.on")}
 							</button>
 							<button
 								type="button"
@@ -192,7 +201,7 @@ export function ActionsStep({
 										: "border-border-subtle bg-surface-low text-muted-foreground hover:text-foreground",
 								)}
 							>
-								Desligar
+								{t("wizard.actionsStep.off")}
 							</button>
 						</div>
 					</div>
@@ -205,7 +214,7 @@ export function ActionsStep({
 							className="h-11 sm:h-9"
 							onClick={closeForm}
 						>
-							Cancelar
+							{t("wizard.actionsStep.cancel")}
 						</Button>
 						<Button
 							type="button"
@@ -214,7 +223,9 @@ export function ActionsStep({
 							disabled={!draft.deviceId}
 							onClick={handleSave}
 						>
-							{state.editingActionId ? "Salvar ação" : "Adicionar"}
+							{state.editingActionId
+								? t("wizard.actionsStep.saveAction")
+								: t("wizard.actionsStep.add")}
 						</Button>
 					</div>
 				</div>
@@ -227,7 +238,7 @@ export function ActionsStep({
 					className="h-11 sm:h-9 w-full sm:w-fit"
 				>
 					<Plus className="h-3.5 w-3.5" />
-					Adicionar Ação
+					{t("wizard.actionsStep.addAction")}
 				</Button>
 			)}
 		</div>

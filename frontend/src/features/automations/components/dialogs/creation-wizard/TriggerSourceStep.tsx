@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { cn } from "@/core/utils";
 import { TRIGGER_SOURCE_OPTIONS } from "../../../constants/automations.constants";
 import type { TriggerSource } from "../../../types/automation-wizard.types";
@@ -17,14 +18,16 @@ export function TriggerSourceStep({
 	selected,
 	onSelect,
 }: TriggerSourceStepProps) {
+	const { t } = useTranslation("automations");
+
 	return (
 		<div className="flex flex-1 flex-col gap-4">
 			<div>
 				<h2 className="text-lg font-medium text-foreground">
-					Qual a origem do gatilho?
+					{t("wizard.triggerSource.title")}
 				</h2>
 				<p className="mt-0.5 text-sm text-muted-foreground">
-					Escolha o que faz essa automação começar a agir.
+					{t("wizard.triggerSource.subtitle")}
 				</p>
 			</div>
 
@@ -63,16 +66,22 @@ export function TriggerSourceStep({
 								</span>
 								{option.comingSoon && (
 									<span className="rounded-full border border-border-subtle px-2 py-1 text-xs font-medium uppercase tracking-wider text-muted-foreground">
-										Em breve
+										{t("wizard.triggerSource.comingSoon")}
 									</span>
 								)}
 							</div>
 							<div>
 								<p className="text-sm font-medium text-foreground">
-									{option.label}
+									{t(
+										`wizard.triggerSource.sources.${option.value}.label`,
+										option.label,
+									)}
 								</p>
 								<p className="mt-0.5 text-sm text-muted-foreground">
-									{option.description}
+									{t(
+										`wizard.triggerSource.sources.${option.value}.description`,
+										option.description,
+									)}
 								</p>
 							</div>
 						</button>

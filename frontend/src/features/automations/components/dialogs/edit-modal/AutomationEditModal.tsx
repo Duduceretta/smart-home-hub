@@ -1,5 +1,6 @@
 import { Loader2, Pencil } from "lucide-react";
 import { useEffect, useRef } from "react";
+import { useTranslation } from "react-i18next";
 import { FormGlobalError } from "@/core/components/forms/FormGlobalError";
 import { FormSection } from "@/core/components/forms/FormSection";
 import { useConfirm } from "@/core/components/providers/ConfirmDialogProvider";
@@ -38,6 +39,7 @@ import { TriggerConfigStep } from "../automation-form/TriggerConfigStep";
  * não expor essa troca aqui (crie uma nova automação nesse caso).
  */
 export function AutomationEditModal() {
+	const { t } = useTranslation("automations");
 	const editingAutomation = useAutomationsUIStore((s) => s.editingAutomation);
 	const closeEditModal = useAutomationsUIStore((s) => s.closeEditModal);
 	const isOpen = Boolean(editingAutomation);
@@ -57,10 +59,9 @@ export function AutomationEditModal() {
 	const handleClose = async () => {
 		if (form.hasChanges) {
 			const confirmed = await confirm({
-				title: "Descartar alterações?",
-				description:
-					"As alterações feitas nessa automação ainda não foram salvas e serão perdidas.",
-				confirmLabel: "Descartar",
+				title: t("editModal.discardTitle"),
+				description: t("editModal.discardDescription"),
+				confirmLabel: t("editModal.discardConfirm"),
 			});
 			if (!confirmed) return;
 		}
@@ -108,10 +109,10 @@ export function AutomationEditModal() {
 						</span>
 						<DialogHeader className="gap-1 text-left">
 							<DialogTitle className="text-base sm:text-lg">
-								Editar Automação
+								{t("editModal.title")}
 							</DialogTitle>
 							<DialogDescription className="text-xs">
-								Ajuste o gatilho, as ações ou o status dessa automação.
+								{t("editModal.description")}
 							</DialogDescription>
 						</DialogHeader>
 					</div>
@@ -121,20 +122,20 @@ export function AutomationEditModal() {
 							<div className="flex flex-col gap-6">
 								<FormGlobalError error={updateAutomation.error?.message} />
 
-								<FormSection title="Nome da automação">
+								<FormSection title={t("editModal.nameSection")}>
 									<input
 										id="automation-name"
 										ref={nameInputRef}
 										type="text"
 										value={form.state.name}
 										onChange={(event) => form.setName(event.target.value)}
-										placeholder="Ex: Desligar tudo à noite"
+										placeholder={t("editModal.namePlaceholder")}
 										maxLength={150}
 										className="h-11 sm:h-8 w-full rounded-lg border border-border-subtle bg-surface-high px-3 text-sm text-foreground outline-none transition-colors focus:border-primary/50 focus:ring-1 focus:ring-primary/50"
 									/>
 								</FormSection>
 
-								<FormSection title="Gatilho">
+								<FormSection title={t("editModal.triggerSection")}>
 									{/* Tipo fixo — só exibição, sem interação (ver docblock do
 								componente pra motivo). */}
 									{triggerSourceOption && TriggerIcon && (
@@ -144,11 +145,13 @@ export function AutomationEditModal() {
 											</span>
 											<div className="min-w-0">
 												<p className="text-sm font-medium text-foreground">
-													{triggerSourceOption.label}
+													{t(
+														`wizard.triggerSource.sources.${form.state.triggerSource}.label`,
+														triggerSourceOption.label,
+													)}
 												</p>
 												<p className="text-sm text-muted-foreground">
-													O tipo de gatilho não pode ser alterado depois de
-													criado.
+													{t("editModal.triggerFixedNotice")}
 												</p>
 											</div>
 										</div>
@@ -162,13 +165,12 @@ export function AutomationEditModal() {
 										/>
 									) : (
 										<p className="rounded-lg border border-dashed border-alert/40 bg-alert/10 p-4 text-xs text-alert-foreground">
-											Não foi possível interpretar a configuração de gatilho
-											dessa automação.
+											{t("editModal.triggerParseError")}
 										</p>
 									)}
 								</FormSection>
 
-								<FormSection title="Ações">
+								<FormSection title={t("editModal.actionsSection")}>
 									<ActionsStep
 										form={form}
 										devices={devices}
@@ -176,21 +178,21 @@ export function AutomationEditModal() {
 									/>
 								</FormSection>
 
-								<FormSection title="Status">
+								<FormSection title={t("editModal.statusSection")}>
 									<div className="flex items-center justify-between rounded-lg border border-border-subtle bg-surface-high p-4">
 										<div>
 											<p className="text-sm font-medium text-foreground">
-												Ativa
+												{t("editModal.activeTitle")}
 											</p>
 											<p className="text-sm text-muted-foreground">
-												Se desligado, a automação fica salva mas pausada.
+												{t("editModal.activeDescription")}
 											</p>
 										</div>
 										<div className="flex h-11 items-center shrink-0">
 											<Switch
 												checked={form.state.activateImmediately}
 												onCheckedChange={form.setActivateImmediately}
-												aria-label="Automação ativa"
+												aria-label={t("editModal.activeAria")}
 											/>
 										</div>
 									</div>
@@ -208,7 +210,7 @@ export function AutomationEditModal() {
 							onClick={handleClose}
 							disabled={updateAutomation.isPending}
 						>
-							Cancelar
+							{t("editModal.cancel")}
 						</Button>
 						<Button
 							type="button"
@@ -219,7 +221,7 @@ export function AutomationEditModal() {
 							{updateAutomation.isPending && (
 								<Loader2 className="h-3.5 w-3.5 animate-spin" />
 							)}
-							Salvar Alterações
+							{t("editModal.save")}
 						</Button>
 					</div>
 				</div>

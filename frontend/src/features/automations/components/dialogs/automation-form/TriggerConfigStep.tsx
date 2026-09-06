@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { Label } from "@/core/components/ui/label";
 import {
 	Select,
@@ -14,14 +15,7 @@ import {
 import type { AutomationFormController } from "../../../types/automation-wizard.types";
 import type { PickerDevice } from "../../../types/automations.types";
 
-const COMPARISON_OPTIONS: { value: string; label: string }[] = [
-	{ value: ">", label: "maior que" },
-	{ value: ">=", label: "maior ou igual a" },
-	{ value: "<", label: "menor que" },
-	{ value: "<=", label: "menor ou igual a" },
-	{ value: "==", label: "igual a" },
-	{ value: "!=", label: "diferente de" },
-];
+export const COMPARISON_OPERATORS = [">", ">=", "<", "<=", "==", "!="] as const;
 
 interface TriggerConfigStepProps {
 	form: AutomationFormController;
@@ -35,17 +29,19 @@ function DeviceSelect({
 	value,
 	onChange,
 	placeholder,
+	loadingText,
 }: {
 	devices: PickerDevice[];
 	isLoading: boolean;
 	value: string;
 	onChange: (deviceId: string) => void;
 	placeholder: string;
+	loadingText: string;
 }) {
 	return (
 		<Select value={value || undefined} onValueChange={onChange}>
 			<SelectTrigger className="h-11 sm:h-9 w-full" disabled={isLoading}>
-				<SelectValue placeholder={isLoading ? "Carregando..." : placeholder} />
+				<SelectValue placeholder={isLoading ? loadingText : placeholder} />
 			</SelectTrigger>
 			<SelectContent>
 				{devices.map((device) => (
@@ -71,6 +67,7 @@ export function TriggerConfigStep({
 	devices,
 	isLoadingDevices,
 }: TriggerConfigStepProps) {
+	const { t } = useTranslation("automations");
 	const {
 		state,
 		updateSensorConfig,
@@ -79,29 +76,35 @@ export function TriggerConfigStep({
 		toggleWeekday,
 	} = form;
 
+	const comparisonOptions = COMPARISON_OPERATORS.map((value) => ({
+		value,
+		label: t(`comparisons.${value}`),
+	}));
+
 	if (state.triggerSource === "sensor") {
 		const { sensorConfig } = state;
 		return (
 			<div className="flex flex-1 flex-col gap-4">
 				<SectionHeader
-					title="Configure o sensor"
-					subtitle="Escolha o dispositivo e a condição que dispara a automação."
+					title={t("wizard.triggerConfig.sensor.title")}
+					subtitle={t("wizard.triggerConfig.sensor.subtitle")}
 				/>
 
 				<div className="flex flex-col gap-1.5">
-					<Label>Dispositivo</Label>
+					<Label>{t("wizard.triggerConfig.sensor.deviceLabel")}</Label>
 					<DeviceSelect
 						devices={devices}
 						isLoading={isLoadingDevices}
 						value={sensorConfig.deviceId}
 						onChange={(deviceId) => updateSensorConfig({ deviceId })}
-						placeholder="Selecione um dispositivo"
+						placeholder={t("wizard.triggerConfig.selectDevicePlaceholder")}
+						loadingText={t("wizard.triggerConfig.loading")}
 					/>
 				</div>
 
 				<div className="grid grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-4">
 					<div className="flex flex-col gap-1.5">
-						<Label>Métrica</Label>
+						<Label>{t("wizard.triggerConfig.sensor.metricLabel")}</Label>
 						<Select
 							value={sensorConfig.metric}
 							onValueChange={(value) =>
@@ -114,9 +117,16 @@ export function TriggerConfigStep({
 								<SelectValue />
 							</SelectTrigger>
 							<SelectContent>
-								{Object.entries(SENSOR_METRIC_LABELS).map(([value, label]) => (
-									<SelectItem key={value} value={value}>
-										{label}
+								{(
+									Object.keys(
+										SENSOR_METRIC_LABELS,
+									) as (keyof typeof SENSOR_METRIC_LABELS)[]
+								).map((metric) => (
+									<SelectItem key={metric} value={metric}>
+										{t(
+											`wizard.triggerConfig.metrics.${metric}`,
+											SENSOR_METRIC_LABELS[metric],
+										)}
 									</SelectItem>
 								))}
 							</SelectContent>
@@ -124,7 +134,7 @@ export function TriggerConfigStep({
 					</div>
 
 					<div className="flex flex-col gap-1.5">
-						<Label>Condição</Label>
+						<Label>{t("wizard.triggerConfig.sensor.conditionLabel")}</Label>
 						<Select
 							value={sensorConfig.comparison}
 							onValueChange={(value) =>
@@ -137,7 +147,7 @@ export function TriggerConfigStep({
 								<SelectValue />
 							</SelectTrigger>
 							<SelectContent>
-								{COMPARISON_OPTIONS.map((option) => (
+								{comparisonOptions.map((option) => (
 									<SelectItem key={option.value} value={option.value}>
 										{option.label}
 									</SelectItem>
@@ -147,7 +157,9 @@ export function TriggerConfigStep({
 					</div>
 
 					<div className="flex flex-col gap-1.5">
-						<Label htmlFor="sensor-value">Valor</Label>
+						<Label htmlFor="sensor-value">
+							{t("wizard.triggerConfig.sensor.valueLabel")}
+						</Label>
 						<input
 							id="sensor-value"
 							type="number"
@@ -155,7 +167,7 @@ export function TriggerConfigStep({
 							onChange={(event) =>
 								updateSensorConfig({ value: event.target.value })
 							}
-							placeholder="Ex: 28"
+							placeholder={t("wizard.triggerConfig.sensor.valuePlaceholder")}
 							className="h-11 sm:h-9 w-full rounded-lg border border-border-subtle bg-surface-high px-3 text-sm text-foreground outline-none transition-colors focus:border-primary/50 focus:ring-1 focus:ring-primary/50"
 						/>
 					</div>
@@ -163,14 +175,16 @@ export function TriggerConfigStep({
 
 				{sensorConfig.deviceId && sensorConfig.value && (
 					<ConfigPreview>
-						Quando {devices.find((d) => d.id === sensorConfig.deviceId)?.name}{" "}
-						tiver {SENSOR_METRIC_LABELS[sensorConfig.metric].toLowerCase()}{" "}
-						{
-							COMPARISON_OPTIONS.find(
-								(c) => c.value === sensorConfig.comparison,
-							)?.label
-						}{" "}
-						{sensorConfig.value}
+						{t("wizard.triggerConfig.sensor.preview", {
+							device:
+								devices.find((d) => d.id === sensorConfig.deviceId)?.name ?? "",
+							metric: t(
+								`wizard.triggerConfig.metricsPreview.${sensorConfig.metric}`,
+								SENSOR_METRIC_LABELS[sensorConfig.metric].toLowerCase(),
+							),
+							comparison: t(`comparisons.${sensorConfig.comparison}`),
+							value: sensorConfig.value,
+						})}
 					</ConfigPreview>
 				)}
 			</div>
@@ -182,23 +196,24 @@ export function TriggerConfigStep({
 		return (
 			<div className="flex flex-1 flex-col gap-4">
 				<SectionHeader
-					title="Configure o dispositivo"
-					subtitle="Escolha o dispositivo e qual mudança de estado dispara a automação."
+					title={t("wizard.triggerConfig.device.title")}
+					subtitle={t("wizard.triggerConfig.device.subtitle")}
 				/>
 
 				<div className="flex flex-col gap-1.5">
-					<Label>Dispositivo</Label>
+					<Label>{t("wizard.triggerConfig.device.deviceLabel")}</Label>
 					<DeviceSelect
 						devices={devices}
 						isLoading={isLoadingDevices}
 						value={deviceConfig.deviceId}
 						onChange={(deviceId) => updateDeviceConfig({ deviceId })}
-						placeholder="Selecione um dispositivo"
+						placeholder={t("wizard.triggerConfig.selectDevicePlaceholder")}
+						loadingText={t("wizard.triggerConfig.loading")}
 					/>
 				</div>
 
 				<div className="flex flex-col gap-1.5">
-					<Label>Status muda para</Label>
+					<Label>{t("wizard.triggerConfig.device.statusLabel")}</Label>
 					<div className="grid grid-cols-2 gap-2">
 						<button
 							type="button"
@@ -211,7 +226,7 @@ export function TriggerConfigStep({
 									: "border-border-subtle bg-surface-high text-muted-foreground hover:text-foreground",
 							)}
 						>
-							Ligado
+							{t("wizard.triggerConfig.device.on")}
 						</button>
 						<button
 							type="button"
@@ -224,15 +239,20 @@ export function TriggerConfigStep({
 									: "border-border-subtle bg-surface-high text-muted-foreground hover:text-foreground",
 							)}
 						>
-							Desligado
+							{t("wizard.triggerConfig.device.off")}
 						</button>
 					</div>
 				</div>
 
 				{deviceConfig.deviceId && (
 					<ConfigPreview>
-						Quando {devices.find((d) => d.id === deviceConfig.deviceId)?.name}{" "}
-						mudar para {deviceConfig.desiredIsOn ? "Ligado" : "Desligado"}
+						{t("wizard.triggerConfig.device.preview", {
+							device:
+								devices.find((d) => d.id === deviceConfig.deviceId)?.name ?? "",
+							state: deviceConfig.desiredIsOn
+								? t("wizard.triggerConfig.device.on")
+								: t("wizard.triggerConfig.device.off"),
+						})}
 					</ConfigPreview>
 				)}
 			</div>
@@ -244,12 +264,14 @@ export function TriggerConfigStep({
 	return (
 		<div className="flex flex-1 flex-col gap-4">
 			<SectionHeader
-				title="Configure o horário"
-				subtitle="Escolha o horário e os dias da semana em que a automação deve rodar."
+				title={t("wizard.triggerConfig.schedule.title")}
+				subtitle={t("wizard.triggerConfig.schedule.subtitle")}
 			/>
 
 			<div className="flex flex-col gap-1.5">
-				<Label htmlFor="schedule-time">Horário</Label>
+				<Label htmlFor="schedule-time">
+					{t("wizard.triggerConfig.schedule.timeLabel")}
+				</Label>
 				<input
 					id="schedule-time"
 					type="time"
@@ -262,7 +284,7 @@ export function TriggerConfigStep({
 			</div>
 
 			<div className="flex flex-col gap-1.5">
-				<Label>Dias da semana</Label>
+				<Label>{t("wizard.triggerConfig.schedule.weekdaysLabel")}</Label>
 				<div className="flex flex-wrap gap-2">
 					{WEEKDAY_OPTIONS.map((day) => {
 						const isSelected = scheduleConfig.weekdays.includes(day.value);
@@ -271,7 +293,10 @@ export function TriggerConfigStep({
 								key={day.value}
 								type="button"
 								aria-pressed={isSelected}
-								title={day.label}
+								title={t(
+									`wizard.triggerConfig.weekdays.${day.value}.label`,
+									day.label,
+								)}
 								onClick={() => toggleWeekday(day.value)}
 								className={cn(
 									"flex h-11 w-11 sm:h-8 sm:w-8 items-center justify-center rounded-full text-xs font-medium transition-colors cursor-pointer",
@@ -280,7 +305,10 @@ export function TriggerConfigStep({
 										: "bg-surface-high text-muted-foreground hover:text-foreground",
 								)}
 							>
-								{day.short}
+								{t(
+									`wizard.triggerConfig.weekdays.${day.value}.short`,
+									day.short,
+								)}
 							</button>
 						);
 					})}
@@ -289,12 +317,20 @@ export function TriggerConfigStep({
 
 			{scheduleConfig.time && scheduleConfig.weekdays.length > 0 && (
 				<ConfigPreview>
-					{scheduleConfig.weekdays.length === 7
-						? "Todos os dias"
-						: scheduleConfig.weekdays
-								.map((d) => WEEKDAY_OPTIONS[d].label)
-								.join(", ")}{" "}
-					às {scheduleConfig.time}
+					{t("wizard.triggerConfig.schedule.preview", {
+						days:
+							scheduleConfig.weekdays.length === 7
+								? t("wizard.triggerConfig.schedule.everyDay")
+								: scheduleConfig.weekdays
+										.map((d) =>
+											t(
+												`wizard.triggerConfig.weekdays.${d}.label`,
+												WEEKDAY_OPTIONS[d].label,
+											),
+										)
+										.join(", "),
+						time: scheduleConfig.time,
+					})}
 				</ConfigPreview>
 			)}
 		</div>

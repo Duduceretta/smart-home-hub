@@ -1,5 +1,6 @@
 import { HttpResponse, http } from "msw";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import i18n from "@/core/i18n";
 import { useAutomationsUIStore } from "@/features/automations/store/automations-ui.store";
 import type { CreateAutomationPayload } from "@/features/automations/types/automations.types";
 import {
@@ -54,14 +55,19 @@ function setupMswHandlers() {
 describe("AutomationCreationWizard Integration Tests", {
 	timeout: 15000,
 }, () => {
-	beforeEach(() => {
+	beforeEach(async () => {
 		vi.restoreAllMocks();
+		await i18n.changeLanguage("pt-BR");
 		useAutomationsUIStore.setState({
 			isCreateWizardOpen: false,
 			editingAutomation: null,
 			selectedId: null,
 		});
 		setupMswHandlers();
+	});
+
+	afterEach(async () => {
+		await i18n.changeLanguage("pt-BR");
 	});
 
 	it("AutomationCreationWizard_CompleteScheduleJourney_ShouldSubmitPayloadAndCloseModal", async () => {
@@ -699,5 +705,145 @@ describe("AutomationCreationWizard Integration Tests", {
 		await waitFor(() => {
 			expect(useAutomationsUIStore.getState().isCreateWizardOpen).toBe(false);
 		});
+	});
+
+	it("AutomationCreationWizard_LanguageSwitchToEnglish_RendersAllStepsInEnglishWithoutResidualPortuguese", async () => {
+		// Arrange
+		await i18n.changeLanguage("en-US");
+		const user = userEvent.setup({ delay: null });
+		useAutomationsUIStore.getState().openCreateWizard();
+		renderWithProviders(<AutomationCreationWizard />);
+
+		// Assert - Step 1: Trigger Source in English
+		expect(
+			await screen.findByRole("heading", {
+				name: "What is the trigger source?",
+			}),
+		).toBeInTheDocument();
+		expect(
+			screen.getByText("Choose what makes this automation start running."),
+		).toBeInTheDocument();
+		expect(screen.getByText("New Automation")).toBeInTheDocument();
+		expect(
+			screen.getByText("Configure a trigger and the actions it fires."),
+		).toBeInTheDocument();
+		expect(screen.getByText("Coming soon")).toBeInTheDocument();
+
+		const nextButtonStep1 = screen.getByRole("button", { name: "Next" });
+		expect(nextButtonStep1).toBeDisabled();
+
+		// Act - Select Sensor and advance
+		await user.click(screen.getByRole("button", { name: /Sensor/i }));
+		expect(nextButtonStep1).toBeEnabled();
+		await user.click(nextButtonStep1);
+
+		// Assert - Step 2: Trigger Config (Sensor) in English
+		expect(
+			await screen.findByRole("heading", { name: "Configure the sensor" }),
+		).toBeInTheDocument();
+		expect(
+			screen.getByText(
+				"Choose the device and condition that triggers the automation.",
+			),
+		).toBeInTheDocument();
+		expect(screen.getByText("Device")).toBeInTheDocument();
+		expect(screen.getByText("Metric")).toBeInTheDocument();
+		expect(screen.getByText("Condition")).toBeInTheDocument();
+		expect(screen.getByLabelText("Value")).toBeInTheDocument();
+
+		// Select device, condition, and enter value
+		const [deviceSelect, , conditionSelect] = screen.getAllByRole("combobox");
+		await user.click(deviceSelect);
+		await user.click(
+			await screen.findByRole("option", { name: "Sensor de Temperatura" }),
+		);
+
+		await user.click(conditionSelect);
+		await user.click(
+			await screen.findByRole("option", {
+				name: "greater than or equal to",
+			}),
+		);
+
+		await user.type(screen.getByLabelText("Value"), "28");
+
+		// Assert English Preview in Step 2
+		expect(
+			screen.getByText(
+				"When Sensor de Temperatura has temperature greater than or equal to 28",
+			),
+		).toBeInTheDocument();
+
+		const nextButtonStep2 = screen.getByRole("button", { name: "Next" });
+		expect(nextButtonStep2).toBeEnabled();
+		await user.click(nextButtonStep2);
+
+		// Assert - Step 3: Actions in English
+		expect(
+			await screen.findByRole("heading", { name: "What should happen?" }),
+		).toBeInTheDocument();
+		expect(
+			screen.getByText("Add one or more actions this automation runs."),
+		).toBeInTheDocument();
+
+		const addActionButton = screen.getByRole("button", { name: "Add Action" });
+		await user.click(addActionButton);
+
+		expect(screen.getByText("Desired state")).toBeInTheDocument();
+		expect(screen.getByRole("button", { name: "Turn on" })).toBeInTheDocument();
+		expect(
+			screen.getByRole("button", { name: "Turn off" }),
+		).toBeInTheDocument();
+		expect(screen.getByRole("button", { name: "Cancel" })).toBeInTheDocument();
+
+		// Pick device and add action
+		await user.click(screen.getByRole("combobox"));
+		await user.click(
+			await screen.findByRole("option", { name: "Ar Condicionado" }),
+		);
+		await user.click(screen.getByRole("button", { name: "Add" }));
+
+		expect(
+			await screen.findByText("Turn on Ar Condicionado"),
+		).toBeInTheDocument();
+
+		const nextButtonStep3 = screen.getByRole("button", { name: "Next" });
+		expect(nextButtonStep3).toBeEnabled();
+		await user.click(nextButtonStep3);
+
+		// Assert - Step 4: Review in English
+		expect(
+			await screen.findByRole("heading", { name: "All set?" }),
+		).toBeInTheDocument();
+		expect(
+			screen.getByText("Review the settings and give the automation a name."),
+		).toBeInTheDocument();
+		expect(screen.getByLabelText("Automation name")).toBeInTheDocument();
+		expect(screen.getAllByText("Trigger").length).toBeGreaterThanOrEqual(1);
+		expect(screen.getAllByText("Actions").length).toBeGreaterThanOrEqual(1);
+		expect(screen.getByText("Activate immediately")).toBeInTheDocument();
+		expect(
+			screen.getByText(
+				"When Sensor de Temperatura has temperature greater than or equal to 28",
+			),
+		).toBeInTheDocument();
+		expect(screen.getByText("Turn on Ar Condicionado")).toBeInTheDocument();
+
+		const saveButton = screen.getByRole("button", { name: "Save Automation" });
+		expect(saveButton).toBeDisabled();
+
+		await user.type(
+			screen.getByLabelText("Automation name"),
+			"Auto Cooling Routine",
+		);
+		expect(saveButton).toBeEnabled();
+
+		// Ensure no residual Portuguese UI elements exist on screen
+		expect(screen.queryByText("Próximo")).not.toBeInTheDocument();
+		expect(screen.queryByText("Voltar")).not.toBeInTheDocument();
+		expect(screen.queryByText("Salvar Automação")).not.toBeInTheDocument();
+		expect(screen.queryByText("Configure o sensor")).not.toBeInTheDocument();
+		expect(screen.queryByText("O que deve acontecer?")).not.toBeInTheDocument();
+		expect(screen.queryByText("Tudo pronto?")).not.toBeInTheDocument();
 	});
 });

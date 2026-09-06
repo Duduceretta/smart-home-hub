@@ -100,5 +100,163 @@
 			"on": "Ligado",
 			"off": "Desligado"
 		}
+	},
+	"comparisons": {
+		">": "maior que",
+		">=": "maior ou igual a",
+		"<": "menor que",
+		"<=": "menor ou igual a",
+		"==": "igual a",
+		"!=": "diferente de"
+	},
+	"wizard": {
+		"stepper": {
+			"trigger": {
+				"label": "Gatilho",
+				"description": "Quando disparar"
+			},
+			"actions": {
+				"label": "Ações",
+				"description": "O que acontece"
+			},
+			"review": {
+				"label": "Revisão",
+				"description": "Confirme e salve"
+			}
+		},
+		"dialog": {
+			"title": "Nova Automação",
+			"description": "Configure um gatilho e as ações que ele dispara.",
+			"next": "Próximo",
+			"back": "Voltar",
+			"discardTitle": "Descartar essa automação?",
+			"discardDescription": "O progresso preenchido será perdido.",
+			"discardConfirm": "Descartar"
+		},
+		"triggerSource": {
+			"title": "Qual a origem do gatilho?",
+			"subtitle": "Escolha o que faz essa automação começar a agir.",
+			"comingSoon": "Em breve",
+			"sources": {
+				"sensor": {
+					"label": "Sensor",
+					"description": "Reage a uma leitura de sensor, como temperatura ou consumo de energia."
+				},
+				"device": {
+					"label": "Dispositivo",
+					"description": "Dispara quando um dispositivo muda de estado — liga, desliga ou abre."
+				},
+				"location": {
+					"label": "Localização",
+					"description": "Entrada ou saída de uma área (geofencing)."
+				},
+				"schedule": {
+					"label": "Horário",
+					"description": "Dispara num horário fixo, em dias específicos da semana."
+				}
+			}
+		},
+		"triggerConfig": {
+			"loading": "Carregando...",
+			"selectDevicePlaceholder": "Selecione um dispositivo",
+			"sensor": {
+				"title": "Configure o sensor",
+				"subtitle": "Escolha o dispositivo e a condição que dispara a automação.",
+				"deviceLabel": "Dispositivo",
+				"metricLabel": "Métrica",
+				"conditionLabel": "Condição",
+				"valueLabel": "Valor",
+				"valuePlaceholder": "Ex: 28",
+				"preview": "Quando {{device}} tiver {{metric}} {{comparison}} {{value}}"
+			},
+			"device": {
+				"title": "Configure o dispositivo",
+				"subtitle": "Escolha o dispositivo e qual mudança de estado dispara a automação.",
+				"deviceLabel": "Dispositivo",
+				"statusLabel": "Status muda para",
+				"on": "Ligado",
+				"off": "Desligado",
+				"preview": "Quando {{device}} mudar para {{state}}"
+			},
+			"schedule": {
+				"title": "Configure o horário",
+				"subtitle": "Escolha o horário e os dias da semana em que a automação deve rodar.",
+				"timeLabel": "Horário",
+				"weekdaysLabel": "Dias da semana",
+				"everyDay": "Todos os dias",
+				"preview": "{{days}} às {{time}}"
+			},
+			"metrics": {
+				"temperature": "Temperatura (°C)",
+				"powerUsageWatts": "Consumo (W)"
+			},
+			"metricsPreview": {
+				"temperature": "temperatura",
+				"powerUsageWatts": "consumo"
+			},
+			"weekdays": {
+				"0": { "label": "Domingo", "short": "D" },
+				"1": { "label": "Segunda", "short": "S" },
+				"2": { "label": "Terça", "short": "T" },
+				"3": { "label": "Quarta", "short": "Q" },
+				"4": { "label": "Quinta", "short": "Q" },
+				"5": { "label": "Sexta", "short": "S" },
+				"6": { "label": "Sábado", "short": "S" }
+			}
+		},
+		"actionsStep": {
+			"title": "O que deve acontecer?",
+			"subtitle": "Adicione uma ou mais ações que essa automação executa.",
+			"addAction": "Adicionar Ação",
+			"deviceLabel": "Dispositivo",
+			"selectDevicePlaceholder": "Selecione um dispositivo",
+			"loading": "Carregando...",
+			"stateLabel": "Estado desejado",
+			"on": "Ligar",
+			"off": "Desligar",
+			"cancel": "Cancelar",
+			"saveAction": "Salvar ação",
+			"add": "Adicionar",
+			"deviceRemoved": "Dispositivo removido",
+			"editActionAria": "Editar ação {{device}}",
+			"removeActionAria": "Remover ação {{device}}"
+		},
+		"reviewStep": {
+			"title": "Tudo pronto?",
+			"subtitle": "Revise as configurações e dê um nome pra automação.",
+			"nameLabel": "Nome da automação",
+			"namePlaceholder": "Ex: Desligar tudo à noite",
+			"triggerSection": "Gatilho",
+			"actionsSection": "Ações",
+			"edit": "Editar",
+			"activateTitle": "Ativar imediatamente",
+			"activateDescription": "Se desligado, a automação fica salva mas pausada.",
+			"activateAria": "Ativar automação imediatamente",
+			"back": "Voltar",
+			"submit": "Salvar Automação",
+			"deviceRemoved": "dispositivo removido",
+			"triggerNotConfigured": "Gatilho não configurado",
+			"actionOn": "Ligar",
+			"actionOff": "Desligar"
+		}
+	},
+	"editModal": {
+		"title": "Editar Automação",
+		"description": "Ajuste o gatilho, as ações ou o status dessa automação.",
+		"discardTitle": "Descartar alterações?",
+		"discardDescription": "As alterações feitas nessa automação ainda não foram salvas e serão perdidas.",
+		"discardConfirm": "Descartar",
+		"nameSection": "Nome da automação",
+		"namePlaceholder": "Ex: Desligar tudo à noite",
+		"triggerSection": "Gatilho",
+		"triggerFixedNotice": "O tipo de gatilho não pode ser alterado depois de criado.",
+		"triggerParseError": "Não foi possível interpretar a configuração de gatilho dessa automação.",
+		"actionsSection": "Ações",
+		"statusSection": "Status",
+		"activeTitle": "Ativa",
+		"activeDescription": "Se desligado, a automação fica salva mas pausada.",
+		"activeAria": "Automação ativa",
+		"cancel": "Cancelar",
+		"save": "Salvar Alterações"
 	}
 }
