@@ -1,4 +1,4 @@
-import { DeviceTypeEnum } from "@/features/devices/types/devices.types";
+import { DeviceTypeEnum } from "@/core/types/device-type.enum";
 
 /** Quantas "unidades de coluna" da grade 2 colunas o DeviceCard ocupa — precisa bater com o isWide de DeviceCard.tsx. */
 export const ROW_CAPACITY_UNITS = 2;

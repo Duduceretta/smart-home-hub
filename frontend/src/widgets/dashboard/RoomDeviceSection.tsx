@@ -6,16 +6,16 @@ import {
 	Collapsible,
 	CollapsibleContent,
 } from "@/core/components/ui/collapsible";
+import { ROOM_ICON_MAP } from "@/core/constants/room-icons";
 import { cn } from "@/core/utils";
 import { UNASSIGNED_ROOM_KEY } from "@/features/dashboard/constants/dashboard.constants";
+import { formatEnergy } from "@/features/dashboard/lib/formatEnergy";
+import { useDashboardPreviewStore } from "@/features/dashboard/store/dashboard-preview.store";
 import { DeviceCard } from "@/features/devices/components/list/DeviceCard";
 import { useDevicesUIStore } from "@/features/devices/store/devices-ui.store";
 import type { Device } from "@/features/devices/types/devices.types";
-import { ROOM_ICON_MAP } from "@/features/rooms/constants/rooms.constants";
-import { isWideDevice } from "../lib/deviceRowUnits";
-import { formatEnergy } from "../lib/formatEnergy";
-import { useDashboardPreviewStore } from "../store/dashboard-preview.store";
 import { EditRoomPreviewModal } from "./EditRoomPreviewModal";
+import { isWideDevice } from "./lib/deviceRowUnits";
 
 /**
  * Seleciona só o que cabe em UMA linha da grade de 2 colunas, sem preferência

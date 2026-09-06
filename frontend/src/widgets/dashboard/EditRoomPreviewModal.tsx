@@ -9,10 +9,10 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from "@/core/components/ui/dialog";
+import { DEVICE_CONFIG } from "@/core/constants/device-config";
 import { cn } from "@/core/utils";
-import { DEVICE_CONFIG } from "@/features/devices/constants/devices.constants";
 import type { Device } from "@/features/devices/types/devices.types";
-import { deviceUnitWidth, ROW_CAPACITY_UNITS } from "../lib/deviceRowUnits";
+import { deviceUnitWidth, ROW_CAPACITY_UNITS } from "./lib/deviceRowUnits";
 
 interface EditRoomPreviewModalProps {
 	isOpen: boolean;

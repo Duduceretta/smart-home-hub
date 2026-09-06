@@ -1,30 +1,30 @@
 import { ChevronsDownUp, ChevronsUpDown } from "lucide-react";
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
+import { ActiveAutomationsCard } from "@/features/dashboard/components/ActiveAutomationsCard";
+import { ActivityLogTimeline } from "@/features/dashboard/components/ActivityLogTimeline";
+import { CameraFeedCard } from "@/features/dashboard/components/CameraFeedCard";
+import { DashboardErrorState } from "@/features/dashboard/components/DashboardErrorState";
+import { DashboardTopBar } from "@/features/dashboard/components/DashboardTopBar";
+import { DeviceTypeFilterChips } from "@/features/dashboard/components/DeviceTypeFilterChips";
+import { EnergyLoadWidget } from "@/features/dashboard/components/EnergyLoadWidget";
+import { RoomDeviceSectionSkeleton } from "@/features/dashboard/components/RoomDeviceSectionSkeleton";
+import { ScenesBar } from "@/features/dashboard/components/ScenesBar";
+import { StatusHubSummary } from "@/features/dashboard/components/StatusHubSummary";
 import {
 	CHIP_TO_TYPES,
 	type ChipKey,
 	UNASSIGNED_ROOM_KEY,
 } from "@/features/dashboard/constants/dashboard.constants";
+import { useDashboardOverview } from "@/features/dashboard/hooks/useDashboardOverview";
+import { useDashboardPreviewStore } from "@/features/dashboard/store/dashboard-preview.store";
+import { useDashboardUIStore } from "@/features/dashboard/store/dashboard-ui.store";
 import { EditDeviceModal } from "@/features/devices/components/dialogs/EditDeviceModal";
 import { useDevices } from "@/features/devices/hooks/useDevices";
 import type { Device } from "@/features/devices/types/devices.types";
 import { SpotifyNowPlayingCard } from "@/features/integrations/components/SpotifyNowPlayingCard";
 import { useRooms } from "@/features/rooms/hooks/useRooms";
-import { useDashboardOverview } from "../hooks/useDashboardOverview";
-import { useDashboardPreviewStore } from "../store/dashboard-preview.store";
-import { useDashboardUIStore } from "../store/dashboard-ui.store";
-import { ActiveAutomationsCard } from "./ActiveAutomationsCard";
-import { ActivityLogTimeline } from "./ActivityLogTimeline";
-import { CameraFeedCard } from "./CameraFeedCard";
-import { DashboardErrorState } from "./DashboardErrorState";
-import { DashboardTopBar } from "./DashboardTopBar";
-import { DeviceTypeFilterChips } from "./DeviceTypeFilterChips";
-import { EnergyLoadWidget } from "./EnergyLoadWidget";
 import { RoomDeviceSection } from "./RoomDeviceSection";
-import { RoomDeviceSectionSkeleton } from "./RoomDeviceSectionSkeleton";
-import { ScenesBar } from "./ScenesBar";
-import { StatusHubSummary } from "./StatusHubSummary";
 
 const DEVICES_PAGE_SIZE = 200;
 
