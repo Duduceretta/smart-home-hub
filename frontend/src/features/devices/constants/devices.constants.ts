@@ -5,29 +5,6 @@ import { IntegrationTypeEnum } from "../types/devices.types";
 
 export { DEVICE_CONFIG };
 
-export const DEVICE_CATEGORIES = [
-	"Todos",
-	"Iluminação",
-	"Climatização",
-	"Segurança",
-	"Eletrodomésticos",
-] as const;
-
-export type DeviceCategory = (typeof DEVICE_CATEGORIES)[number];
-
-/**
- * Maps each category filter value (also used as the API's `category` query
- * param, kept stable across locales) to its i18n key under the `devices`
- * namespace's `categories` object, for translated display labels.
- */
-export const CATEGORY_LABEL_KEYS = {
-	Todos: "categories.all",
-	Iluminação: "categories.lighting",
-	Climatização: "categories.climate",
-	Segurança: "categories.security",
-	Eletrodomésticos: "categories.appliances",
-} as const satisfies Record<DeviceCategory, string>;
-
 export const INTEGRATION_ICON: Record<
 	IntegrationTypeEnum,
 	ComponentType<{ className?: string }>

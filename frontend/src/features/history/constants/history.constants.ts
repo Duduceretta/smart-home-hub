@@ -1,9 +1,7 @@
 import {
 	Activity,
-	AlertCircle,
 	AlertTriangle,
 	Cpu,
-	Info,
 	Layers,
 	Music,
 	Power,
@@ -41,16 +39,6 @@ export const EVENT_TYPE_ICON: Record<string, ElementType> = {
 	DeviceMedia: Music,
 	Spotify: Music,
 	Default: Activity,
-};
-
-/**
- * Icons mapped to event severities.
- */
-export const EVENT_SEVERITY_ICON: Record<string, ElementType> = {
-	Info: Info,
-	Warning: AlertTriangle,
-	Error: AlertCircle,
-	Critical: AlertCircle,
 };
 
 /**

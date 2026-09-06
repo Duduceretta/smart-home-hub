@@ -90,8 +90,6 @@ export interface PickerDevice {
 // TimeTrigger/DeviceStateTrigger, que não têm [JsonPropertyName] explícito
 // no C# (ficariam PascalCase por padrão, mas o case não importa na prática).
 
-export type TriggerType = "time" | "device_state";
-
 export interface TimeTrigger {
 	type: "time";
 	id: string;
