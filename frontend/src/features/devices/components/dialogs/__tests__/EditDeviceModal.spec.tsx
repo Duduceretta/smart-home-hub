@@ -141,8 +141,12 @@ describe("EditDeviceModal Integration Tests", () => {
 			).toHaveTextContent("Iluminação");
 		});
 
+		// Cola em vez de digitar caractere a caractere — reflete como um UUID
+		// de 36 caracteres chega no campo na prática (copiar/colar do
+		// dispositivo/gateway), e evita 36 handleChange/re-render sequenciais
+		// que deixavam este teste sensível a contenção de CPU na suíte cheia.
 		await user.clear(externalIdInput);
-		await user.type(externalIdInput, uuid);
+		await user.paste(uuid);
 
 		await user.click(screen.getByRole("button", { name: "Salvar Alterações" }));
 
