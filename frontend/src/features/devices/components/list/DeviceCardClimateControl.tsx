@@ -13,7 +13,7 @@ export function DeviceCardClimateControl({
 
 	// Valores de exibição fixos para pré-visualização (mock/em breve).
 	const temperature = 22;
-	const climateMode = "cool";
+	const climateMode: string = "cool";
 
 	return (
 		<div className="flex-1 flex items-center justify-between mt-3">

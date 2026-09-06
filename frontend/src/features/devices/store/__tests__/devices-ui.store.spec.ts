@@ -1,5 +1,9 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import type { Device, DiscoveredDevice } from "../../types/devices.types";
+import type {
+	CreateDevicePayload,
+	Device,
+	DiscoveredDevice,
+} from "../../types/devices.types";
 import { useDevicesUIStore } from "../devices-ui.store";
 
 describe("devices-ui.store Unit Tests", () => {
@@ -105,12 +109,17 @@ describe("devices-ui.store Unit Tests", () => {
 	it("discoveryModalActions_ShouldManageDiscoveryLifecycle", () => {
 		const store = useDevicesUIStore.getState();
 		const discovered1: DiscoveredDevice = {
+			temporaryId: "temp-1",
 			externalId: "ext-1",
 			ipAddress: "192.168.1.50",
 			macAddress: "AA:BB:CC:DD:EE:01",
 			name: "New Bulb",
+			brand: "Philips",
+			type: 1,
 			integrationType: 1,
-			model: "Model-X",
+			signalStrength: null,
+			additionalProperties: null,
+			upnpServices: null,
 		};
 
 		store.openDiscoveryModal();
@@ -130,10 +139,16 @@ describe("devices-ui.store Unit Tests", () => {
 		// Deduplication by fallback key
 		const discovered2: DiscoveredDevice = {
 			temporaryId: "temp-99",
+			externalId: "ext-2",
 			ipAddress: "192.168.1.51",
 			macAddress: "AA:BB:CC:DD:EE:02",
 			name: "Sensor",
+			brand: "Tuya",
+			type: 2,
 			integrationType: 2,
+			signalStrength: null,
+			additionalProperties: null,
+			upnpServices: null,
 		};
 		store.addDiscoveredDevice(discovered2);
 		expect(useDevicesUIStore.getState().discoveredDevices).toHaveLength(2);
@@ -149,9 +164,11 @@ describe("devices-ui.store Unit Tests", () => {
 		expect(useDevicesUIStore.getState().discoveryStep).toBe("configure");
 
 		// Set pending payload
-		const payload = {
+		const payload: CreateDevicePayload = {
 			name: "Bulb Configured",
-			room: "Sala",
+			brand: "Philips",
+			externalId: "ext-1",
+			roomId: "room-1",
 			integrationType: 1,
 			type: 1,
 		};

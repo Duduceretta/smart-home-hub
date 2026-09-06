@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { renderWithProviders, screen, userEvent } from "@/testing/test-utils";
-import type { AutomationView } from "../../types/automations.types";
+import type { AutomationView } from "@/features/automations/types/automations.types";
 import { AutomationCard } from "../AutomationCard";
 
 describe("AutomationCard Integration Tests", () => {
