@@ -1,5 +1,10 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import {
+	DASHBOARD_QUERY_ROOT,
+	DEVICES_QUERY_ROOT,
+	ROOMS_QUERY_ROOT,
+} from "@/core/constants/query-key-roots";
 import type { AppError } from "@/core/errors/app.errors";
 import { Logger } from "@/core/logger/app.logger";
 import { toggleDeviceGroupDeviceRequest } from "../api/device-groups.api";
@@ -12,8 +17,11 @@ interface ToggleContext {
 
 /**
  * Toggles a single device inside a device group.
- * Applies optimistic update + rollback on `deviceGroupsKeys.lists()`,
- * and invalidates ["devices", "list"] to maintain global sync across features.
+ * Applies optimistic update + rollback on `deviceGroupsKeys.lists()`, and
+ * invalidates the `devices`/`dashboard`/`rooms` cache roots (from
+ * `core/constants/query-key-roots.ts`, never those features' own `.keys.ts`
+ * — FSD forbids importing across features) to keep every screen that shows
+ * this device's on/off state in sync.
  */
 export function useToggleDeviceGroupDevice() {
 	const queryClient = useQueryClient();
@@ -60,8 +68,9 @@ export function useToggleDeviceGroupDevice() {
 
 		onSettled: () => {
 			queryClient.invalidateQueries({ queryKey: deviceGroupsKeys.lists() });
-			queryClient.invalidateQueries({ queryKey: ["devices", "list"] });
-			queryClient.invalidateQueries({ queryKey: ["dashboard", "rooms"] });
+			queryClient.invalidateQueries({ queryKey: DEVICES_QUERY_ROOT });
+			queryClient.invalidateQueries({ queryKey: DASHBOARD_QUERY_ROOT });
+			queryClient.invalidateQueries({ queryKey: ROOMS_QUERY_ROOT });
 		},
 	});
 }

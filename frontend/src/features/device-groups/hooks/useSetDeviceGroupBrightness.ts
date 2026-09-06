@@ -1,4 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { DEVICES_QUERY_ROOT } from "@/core/constants/query-key-roots";
 import { setDeviceGroupBrightnessRequest } from "../api/device-groups.api";
 import { deviceGroupsKeys } from "./device-groups.keys";
 
@@ -19,7 +20,7 @@ export function useSetDeviceGroupBrightness() {
 			setDeviceGroupBrightnessRequest(groupId, brightnessPercent),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: deviceGroupsKeys.lists() });
-			queryClient.invalidateQueries({ queryKey: ["devices", "list"] });
+			queryClient.invalidateQueries({ queryKey: DEVICES_QUERY_ROOT });
 		},
 	});
 }

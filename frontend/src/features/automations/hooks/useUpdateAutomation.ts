@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { DASHBOARD_QUERY_ROOT } from "@/core/constants/query-key-roots";
 import { Logger } from "@/core/logger/app.logger";
 import { updateAutomationRequest } from "../api/automations.api";
 import type { UpdateAutomationPayload } from "../types/automations.types";
@@ -28,9 +29,7 @@ export function useUpdateAutomation() {
 			queryClient.invalidateQueries({
 				queryKey: automationsKeys.filterCounts(),
 			});
-			queryClient.invalidateQueries({
-				queryKey: ["dashboard", "automations-summary"],
-			});
+			queryClient.invalidateQueries({ queryKey: DASHBOARD_QUERY_ROOT });
 			toast.success("Automação atualizada com sucesso!");
 		},
 		onError: (error: Error) => {

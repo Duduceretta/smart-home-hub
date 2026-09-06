@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { AUTOMATIONS_QUERY_ROOT } from "@/core/constants/query-key-roots";
 import { Logger } from "@/core/logger/app.logger";
 import { updateDashboardAutomationStatus } from "../api/dashboard.api";
 import { dashboardKeys } from "./dashboard.keys";
@@ -71,7 +72,7 @@ export function useToggleDashboardAutomation() {
 				queryKey: dashboardKeys.automationsSummary(),
 			});
 			queryClient.invalidateQueries({
-				queryKey: ["automations"],
+				queryKey: AUTOMATIONS_QUERY_ROOT,
 			});
 		},
 	});

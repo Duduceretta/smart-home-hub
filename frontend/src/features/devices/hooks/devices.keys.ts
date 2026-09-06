@@ -1,3 +1,4 @@
+import { DEVICES_QUERY_ROOT } from "@/core/constants/query-key-roots";
 import type { StatusFilterType } from "../types/devices.types";
 
 /**
@@ -19,7 +20,7 @@ export interface DevicesListFilters {
  * Uses immutable const tuples for strict typing and hierarchical invalidation.
  */
 export const devicesKeys = {
-	all: ["devices"] as const,
+	all: DEVICES_QUERY_ROOT,
 	lists: () => [...devicesKeys.all, "list"] as const,
 	list: (filters: DevicesListFilters = {}) =>
 		[...devicesKeys.lists(), { filters }] as const,

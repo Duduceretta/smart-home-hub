@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { DASHBOARD_QUERY_ROOT } from "@/core/constants/query-key-roots";
 import { Logger } from "@/core/logger/app.logger";
 import { deleteAutomationRequest } from "../api/automations.api";
 import { automationsKeys } from "./automations.keys";
@@ -18,9 +19,7 @@ export function useDeleteAutomation() {
 			queryClient.invalidateQueries({
 				queryKey: automationsKeys.filterCounts(),
 			});
-			queryClient.invalidateQueries({
-				queryKey: ["dashboard", "automations-summary"],
-			});
+			queryClient.invalidateQueries({ queryKey: DASHBOARD_QUERY_ROOT });
 			toast.success("Automação removida com sucesso!");
 		},
 		onError: (error: Error) => {

@@ -1,5 +1,7 @@
+import { DASHBOARD_QUERY_ROOT } from "@/core/constants/query-key-roots";
+
 export const dashboardKeys = {
-	all: ["dashboard"] as const,
+	all: DASHBOARD_QUERY_ROOT,
 	overview: () => [...dashboardKeys.all, "overview"] as const,
 	activityLogs: () => [...dashboardKeys.all, "activity-log"] as const,
 	activityLog: (page: number, pageSize: number) =>

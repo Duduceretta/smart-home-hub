@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { DASHBOARD_QUERY_ROOT } from "@/core/constants/query-key-roots";
 import { Logger } from "@/core/logger/app.logger";
 import { createAutomationRequest } from "../api/automations.api";
 import type { CreateAutomationPayload } from "../types/automations.types";
@@ -20,9 +21,7 @@ export function useCreateAutomation() {
 			queryClient.invalidateQueries({
 				queryKey: automationsKeys.filterCounts(),
 			});
-			queryClient.invalidateQueries({
-				queryKey: ["dashboard", "automations-summary"],
-			});
+			queryClient.invalidateQueries({ queryKey: DASHBOARD_QUERY_ROOT });
 			toast.success(data.message || "Automação criada com sucesso!");
 		},
 		onError: (error: Error) => {

@@ -5,6 +5,11 @@ import type React from "react";
 import { toast } from "sonner";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
+	DASHBOARD_QUERY_ROOT,
+	DEVICES_QUERY_ROOT,
+	ROOMS_QUERY_ROOT,
+} from "@/core/constants/query-key-roots";
+import {
 	createDeviceGroupMock,
 	createDeviceInGroupMock,
 } from "@/testing/mocks/device-groups.mock";
@@ -77,10 +82,13 @@ describe("useToggleDeviceGroupDevice Integration Tests", () => {
 			queryKey: deviceGroupsKeys.lists(),
 		});
 		expect(invalidateSpy).toHaveBeenCalledWith({
-			queryKey: ["devices", "list"],
+			queryKey: DEVICES_QUERY_ROOT,
 		});
 		expect(invalidateSpy).toHaveBeenCalledWith({
-			queryKey: ["dashboard", "rooms"],
+			queryKey: DASHBOARD_QUERY_ROOT,
+		});
+		expect(invalidateSpy).toHaveBeenCalledWith({
+			queryKey: ROOMS_QUERY_ROOT,
 		});
 	});
 

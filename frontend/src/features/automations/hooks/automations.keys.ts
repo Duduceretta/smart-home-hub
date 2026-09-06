@@ -1,3 +1,5 @@
+import { AUTOMATIONS_QUERY_ROOT } from "@/core/constants/query-key-roots";
+
 /**
  * Filtros aceitos por `GET /automations`, resolvidos server-side —
  * `status`/`triggerKind`/`isDraft` espelham os parâmetros de
@@ -17,7 +19,7 @@ export interface AutomationsListFilters {
  * Uses immutable const tuples for strict typing and hierarchical invalidation.
  */
 export const automationsKeys = {
-	all: ["automations"] as const,
+	all: AUTOMATIONS_QUERY_ROOT,
 	lists: () => [...automationsKeys.all, "list"] as const,
 	list: (filters: AutomationsListFilters = {}) =>
 		[...automationsKeys.lists(), { filters }] as const,

@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { DEVICES_QUERY_ROOT } from "@/core/constants/query-key-roots";
 import type { AppError } from "@/core/errors/app.errors";
 import { Logger } from "@/core/logger/app.logger";
 import { toggleRoomDeviceRequest } from "../api/rooms.api";
@@ -13,11 +14,11 @@ interface ToggleContext {
 /**
  * Toggles a device's on/off state from the `RoomDetailPanel` device grid.
  * Optimistic update + rollback on `roomsKeys.pickerDevices()`, mirroring
- * `useToggleDevice` in the `devices` feature. Also invalidates the Devices
- * feature's own device-list cache key by its literal value (["devices",
- * "list"]) instead of importing `devicesKeys` — same device toggled from two
- * screens must not leave either one's cache stale, without breaking FSD
- * isolation by importing across features.
+ * `useToggleDevice` in the `devices` feature. Also invalidates
+ * `DEVICES_QUERY_ROOT` (`core/constants/query-key-roots.ts`) instead of
+ * importing `devicesKeys` — same device toggled from two screens must not
+ * leave either one's cache stale, without breaking FSD isolation by
+ * importing across features.
  */
 export function useToggleRoomDevice() {
 	const queryClient = useQueryClient();
@@ -57,7 +58,7 @@ export function useToggleRoomDevice() {
 
 		onSettled: () => {
 			queryClient.invalidateQueries({ queryKey: roomsKeys.pickerDevices() });
-			queryClient.invalidateQueries({ queryKey: ["devices", "list"] });
+			queryClient.invalidateQueries({ queryKey: DEVICES_QUERY_ROOT });
 		},
 	});
 }
