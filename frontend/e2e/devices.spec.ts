@@ -25,7 +25,7 @@ test.describe("E2E: Gerenciamento de Dispositivos", () => {
 		await goToDevicesPage(page);
 
 		// Assert
-		await expect(page.getByText("Nenhum dispositivo cadastrado")).toBeVisible();
+		await expect(page.getByText("Nenhum dispositivo encontrado")).toBeVisible();
 	});
 
 	test("CreateDeviceSheet_PreenchimentoValidoDosCamposObrigatorios_DeveExibirNovoCardNaGrade", async ({
@@ -71,7 +71,9 @@ test.describe("E2E: Gerenciamento de Dispositivos", () => {
 		await page.getByRole("button", { name: "Concluir" }).click();
 
 		await expect(page.getByText("Adicionar Novo Dispositivo")).toBeHidden();
-		await expect(page.getByText("Interruptor da Cozinha")).toBeVisible();
+		await expect(
+			page.getByRole("heading", { name: "Interruptor da Cozinha" }),
+		).toBeVisible();
 	});
 
 	test("DeviceCard_AlternarEstadoDoDispositivoExistente_DeveAtualizarSwitchVisualmente", async ({
@@ -97,9 +99,11 @@ test.describe("E2E: Gerenciamento de Dispositivos", () => {
 		await loginAsTestUser(page);
 		await goToDevicesPage(page);
 
-		const toggleSwitch = page.getByRole("switch", {
-			name: "Alternar estado de Luminária de Piso",
-		});
+		const toggleSwitch = page
+			.locator("[data-device-item]")
+			.getByRole("switch", {
+				name: "Alternar estado de Luminária de Piso",
+			});
 		await expect(toggleSwitch).toHaveAttribute("aria-checked", "false");
 
 		// Act
@@ -133,21 +137,20 @@ test.describe("E2E: Gerenciamento de Dispositivos", () => {
 		await goToDevicesPage(page);
 
 		const deviceNameButton = page.getByRole("button", {
-			name: "Sensor de Presença",
+			name: /Sensor de Presença/i,
 		});
 		await expect(deviceNameButton).toBeVisible();
 
-		// Act
-		await page
-			.getByRole("button", { name: "Mais opções do dispositivo" })
-			.click();
-		await page.getByRole("menuitem", { name: "Excluir" }).click();
+		// Act — seleciona o dispositivo e clica no botão de excluir no painel de detalhes
+		await deviceNameButton.click();
+
+		await page.getByRole("button", { name: "Excluir" }).click();
 
 		const confirmDialog = page.getByRole("alertdialog");
 		await confirmDialog.getByRole("button", { name: "Excluir" }).click();
 
 		// Assert
 		await expect(deviceNameButton).toBeHidden();
-		await expect(page.getByText("Nenhum dispositivo cadastrado")).toBeVisible();
+		await expect(page.getByText("Nenhum dispositivo encontrado")).toBeVisible();
 	});
 });

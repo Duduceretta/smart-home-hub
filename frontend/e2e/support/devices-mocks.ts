@@ -96,15 +96,36 @@ export async function mockDevicesApi(
 	});
 
 	await page.route(`${API_ORIGIN}/api/devices/*`, async (route) => {
-		if (route.request().method() !== "DELETE") {
+		const method = route.request().method();
+		const url = route.request().url();
+		if (url.includes("/toggle")) {
 			await route.fallback();
 			return;
 		}
 
-		const id = route.request().url().split("/api/devices/")[1];
-		state.devices = state.devices.filter((d) => d.id !== id);
+		const id = url.split("/api/devices/")[1]?.split("?")[0];
 
-		await route.fulfill({ status: 204 });
+		if (method === "GET") {
+			const device = state.devices.find((d) => d.id === id);
+			if (device) {
+				await route.fulfill({
+					status: 200,
+					contentType: "application/json",
+					body: JSON.stringify(device),
+				});
+				return;
+			}
+			await route.fulfill({ status: 404 });
+			return;
+		}
+
+		if (method === "DELETE") {
+			state.devices = state.devices.filter((d) => d.id !== id);
+			await route.fulfill({ status: 204 });
+			return;
+		}
+
+		await route.fallback();
 	});
 
 	await page.route(`${API_ORIGIN}/api/devices*`, async (route) => {
