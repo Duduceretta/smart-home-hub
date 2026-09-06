@@ -1,6 +1,6 @@
 import { Home, LogOut, Moon, PlaySquare } from "lucide-react";
 import type { ComponentType } from "react";
-import { DeviceTypeEnum } from "@/features/devices/types/devices.types";
+import { DeviceTypeEnum } from "@/core/types/device-type.enum";
 
 /**
  * Chaves de tradução sob `scenesBar.*` no namespace `dashboard` — igual ao

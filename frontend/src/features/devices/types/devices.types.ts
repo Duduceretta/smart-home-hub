@@ -1,19 +1,10 @@
-/**
- * DeviceType mapping matching C# backend enum integers.
- */
-export const DeviceTypeEnum = {
-	Light: 1,
-	Switch: 2,
-	Sensor: 3,
-	Thermostat: 4,
-	Camera: 5,
-	Lock: 6,
-	Alarm: 7,
-	Television: 8,
-} as const;
+import { DeviceTypeEnum } from "@/core/types/device-type.enum";
 
-export type DeviceTypeEnum =
-	(typeof DeviceTypeEnum)[keyof typeof DeviceTypeEnum];
+/**
+ * Re-exported from `core/` (cross-feature vocabulary — `dashboard` consumes
+ * it directly) so nothing inside this feature had to change import paths.
+ */
+export { DeviceTypeEnum };
 
 /**
  * Maps each device type to its i18n key (under the `devices` namespace's
