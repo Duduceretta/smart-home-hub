@@ -115,4 +115,32 @@ describe("useConnectSpotify Integration Tests", () => {
 		);
 		expect(assignedHref).toBe("");
 	});
+
+	it("useConnectSpotify_UntrustedUrl_ShowsErrorToastAndDoesNotRedirect", async () => {
+		// Arrange
+		const toastErrorSpy = vi.spyOn(toast, "error");
+		server.use(
+			http.get("*/api/integrations/spotify/login", () => {
+				return HttpResponse.json(
+					{ authorizeUrl: "https://malicious-phishing.com/oauth" },
+					{ status: 200 },
+				);
+			}),
+		);
+
+		const { result } = renderHook(() => useConnectSpotify(), {
+			wrapper: createWrapper(),
+		});
+
+		// Act
+		result.current.mutate();
+
+		// Assert
+		await waitFor(() => {
+			expect(result.current.isSuccess).toBe(true);
+		});
+
+		expect(toastErrorSpy).toHaveBeenCalled();
+		expect(assignedHref).toBe("");
+	});
 });
