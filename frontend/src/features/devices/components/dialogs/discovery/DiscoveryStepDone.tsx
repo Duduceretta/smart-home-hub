@@ -8,7 +8,7 @@ import {
 import type { ComponentType } from "react";
 import { useTranslation } from "react-i18next";
 import { FormGlobalError } from "@/core/components/forms/FormGlobalError";
-import { useRooms } from "@/features/rooms/hooks/useRooms";
+import { useRoomLookup } from "@/core/hooks/useRoomLookup";
 import { useCreateDevice } from "../../../hooks/useCreateDevice";
 import { useDevicesUIStore } from "../../../store/devices-ui.store";
 import {
@@ -56,7 +56,7 @@ export const DiscoveryStepDone: React.FC = () => {
 	);
 	const resetDiscovery = useDevicesUIStore((s) => s.resetDiscovery);
 	const closeDiscoveryModal = useDevicesUIStore((s) => s.closeDiscoveryModal);
-	const { data: rooms = [] } = useRooms();
+	const { data: rooms = [] } = useRoomLookup();
 	const {
 		mutate: createDevice,
 		isPending,

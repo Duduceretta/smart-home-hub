@@ -28,9 +28,9 @@ import {
 	DialogTitle,
 } from "@/core/components/ui/dialog";
 import { Tabs, TabsList, TabsTrigger } from "@/core/components/ui/tabs";
+import { useRoomLookup } from "@/core/hooks/useRoomLookup";
 import { cn } from "@/core/utils";
 import { formatIpAddress, formatMacAddress } from "@/core/utils/formatters";
-import { useRooms } from "@/features/rooms/hooks/useRooms";
 import { INTEGRATION_FIELD_VISIBILITY } from "../../constants/devices.constants";
 import { useDeleteDevice } from "../../hooks/useDeleteDevice";
 import { useDevice } from "../../hooks/useDevice";
@@ -66,7 +66,7 @@ export const EditDeviceModal: React.FC = () => {
 		error: updateError,
 	} = useUpdateDevice();
 	const { mutate: deleteDevice, isPending: isDeleting } = useDeleteDevice();
-	const { data: rooms = [], isLoading: isLoadingRooms } = useRooms();
+	const { data: rooms = [], isLoading: isLoadingRooms } = useRoomLookup();
 
 	const {
 		register,

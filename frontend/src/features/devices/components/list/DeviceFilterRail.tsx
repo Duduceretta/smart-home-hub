@@ -8,9 +8,9 @@ import {
 import type { ComponentType } from "react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { ROOM_ICON_MAP } from "@/core/constants/room-icons";
+import { useRoomLookup } from "@/core/hooks/useRoomLookup";
 import { cn } from "@/core/utils";
-import { ROOM_ICON_MAP } from "@/features/rooms/constants/rooms.constants";
-import { useRooms } from "@/features/rooms/hooks/useRooms";
 import { useDevices } from "../../hooks/useDevices";
 import { useDevicesUIStore } from "../../store/devices-ui.store";
 import { DeviceTypeEnum } from "../../types/devices.types";
@@ -46,7 +46,7 @@ export function DeviceFilterRail() {
 	const [pinned, setPinned] = useState(false);
 	const expanded = hovered || pinned;
 
-	const { data: rooms = [] } = useRooms();
+	const { data: rooms = [] } = useRoomLookup();
 	const { data: devicesData } = useDevices({ pageSize: 200 });
 	const devices = devicesData?.items ?? [];
 

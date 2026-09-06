@@ -17,9 +17,9 @@ import { useTranslation } from "react-i18next";
 import { FormInput } from "@/core/components/forms/FormInput";
 import { FormSelect } from "@/core/components/forms/FormSelect";
 import { Tabs, TabsList, TabsTrigger } from "@/core/components/ui/tabs";
+import { useRoomLookup } from "@/core/hooks/useRoomLookup";
 import { cn } from "@/core/utils";
 import { formatIpAddress, formatMacAddress } from "@/core/utils/formatters";
-import { useRooms } from "@/features/rooms/hooks/useRooms";
 import { INTEGRATION_FIELD_VISIBILITY } from "../../../constants/devices.constants";
 import { useDevicesUIStore } from "../../../store/devices-ui.store";
 import {
@@ -82,7 +82,7 @@ export const DiscoveryStepConfigure: React.FC = () => {
 	const setPendingDevicePayload = useDevicesUIStore(
 		(s) => s.setPendingDevicePayload,
 	);
-	const { data: rooms = [], isLoading: isLoadingRooms } = useRooms();
+	const { data: rooms = [], isLoading: isLoadingRooms } = useRoomLookup();
 	const [isAdvancedOpen, setIsAdvancedOpen] = useState(false);
 
 	const {

@@ -1,3 +1,5 @@
+import { ROOMS_QUERY_ROOT } from "@/core/constants/query-key-roots";
+
 export interface RoomsListFilters {
 	query?: string;
 }
@@ -5,9 +7,11 @@ export interface RoomsListFilters {
 /**
  * Factory for deterministic TanStack Query cache keys.
  * Uses immutable const tuples for strict typing and hierarchical invalidation.
+ * `all` shares its root with `core/hooks/useRoomLookup.ts` (see that file) so
+ * a room create/rename/delete invalidates both without extra plumbing.
  */
 export const roomsKeys = {
-	all: ["rooms"] as const,
+	all: ROOMS_QUERY_ROOT,
 	lists: () => [...roomsKeys.all, "list"] as const,
 	list: (filters: RoomsListFilters = {}) =>
 		[...roomsKeys.lists(), { filters }] as const,

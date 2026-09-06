@@ -5,11 +5,13 @@ import {
 	Briefcase,
 	Car,
 	CookingPot,
-	Home,
 	Trees,
 	Tv,
 } from "lucide-react";
 import type { ComponentType } from "react";
+import { ROOM_ICON_MAP } from "@/core/constants/room-icons";
+
+export { ROOM_ICON_MAP };
 
 export type RoomIconLabelKey =
 	| "icons.livingRoom"
@@ -42,22 +44,3 @@ export const ROOM_ICON_OPTIONS: RoomIconOption[] = [
 	{ id: "garden", labelKey: "icons.garden", icon: Trees },
 	{ id: "office", labelKey: "icons.office", icon: Briefcase },
 ];
-
-/**
- * Map for quick O(1) icon lookup by ID string.
- * Used primarily in RoomCard for rendering.
- */
-export const ROOM_ICON_MAP: Record<
-	string,
-	ComponentType<{ className?: string }>
-> = {
-	chair: Armchair,
-	bed: Bed,
-	restaurant: CookingPot,
-	tv: Tv,
-	garage: Car,
-	bathtub: Bath,
-	garden: Trees,
-	office: Briefcase,
-	default: Home,
-};
