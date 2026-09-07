@@ -44,6 +44,22 @@ beforeEach(() => {
 		selectedEvent: null,
 		expandedEventIds: [],
 	});
+
+	// Baseline: stats sempre bem-sucedido por padrão, exceto nos testes que
+	// especificamente exercitam o error state do HistoryKpiCards — evita que
+	// o fetch de stats (não mockado aqui) falhe silenciosamente em toda
+	// suíte e faça o card de KPI cair em estado de erro sem relação com o
+	// que cada teste realmente exercita.
+	server.use(
+		http.get("*/api/history/stats", () =>
+			HttpResponse.json({
+				totalEvents: 0,
+				automationCount: 0,
+				alertCount: 0,
+				groupActionCount: 0,
+			}),
+		),
+	);
 });
 
 describe("HistoryView Integration Tests", () => {
@@ -270,6 +286,56 @@ describe("HistoryView Integration Tests", () => {
 			await screen.findByText("Evento após refresh 2"),
 		).toBeInTheDocument();
 		expect(requestCount).toBe(2);
+	});
+
+	it("HistoryView_BackgroundRefetchFailsWithCache_ShouldKeepTimelineAndShowStaleIndicator", async () => {
+		// Arrange — 1ª carga bem-sucedida, popula o cache
+		const event = createHistoryEventMock({
+			id: "ev-stale-1",
+			description: "Evento em cache",
+		});
+		mockHistoryResponse([event], 1);
+		const { queryClient } = renderHistoryView();
+		await screen.findByText("Evento em cache");
+
+		// Act — refetch em background falha
+		server.use(
+			http.get("*/api/history", () =>
+				HttpResponse.json({ title: "Erro" }, { status: 500 }),
+			),
+		);
+		await queryClient.refetchQueries();
+
+		// Assert — timeline permanece na tela, com indicador discreto no título
+		expect(
+			await screen.findByTitle(/dados desatualizados/i, {}, { timeout: 3000 }),
+		).toBeInTheDocument();
+		expect(screen.getByText("Evento em cache")).toBeInTheDocument();
+		expect(
+			screen.queryByText("Erro ao carregar o histórico"),
+		).not.toBeInTheDocument();
+	});
+
+	it("HistoryView_FetchFailsWithNoCache_ShouldRenderNeutralFallbackNotDestructive", async () => {
+		// Arrange
+		server.use(
+			http.get("*/api/history", () =>
+				HttpResponse.json({ title: "Erro" }, { status: 500 }),
+			),
+		);
+
+		// Act
+		const { container } = renderHistoryView();
+
+		// Assert — fallback neutro (nunca destructive/red)
+		const alert = await screen.findByRole("alert");
+		expect(alert).toBeInTheDocument();
+		expect(
+			container.querySelector(".border-destructive"),
+		).not.toBeInTheDocument();
+		expect(
+			container.querySelector(".bg-destructive\\/5"),
+		).not.toBeInTheDocument();
 	});
 
 	it("HistoryView_WithReturnToState_ShouldRenderReturnButton", async () => {

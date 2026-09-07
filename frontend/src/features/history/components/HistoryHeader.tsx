@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useLocation, useNavigate } from "react-router-dom";
+import { StaleDataIndicator } from "@/core/components/feedback/StaleDataIndicator";
 import { Button } from "@/core/components/ui/button";
 import {
 	DropdownMenu,
@@ -28,6 +29,7 @@ interface HistoryHeaderProps {
 	expandedCount: number;
 	onRefresh: () => void;
 	onToggleExpandAll: () => void;
+	showStaleIndicator?: boolean;
 }
 
 /**
@@ -40,6 +42,7 @@ export function HistoryHeader({
 	expandedCount,
 	onRefresh,
 	onToggleExpandAll,
+	showStaleIndicator = false,
 }: HistoryHeaderProps) {
 	const { t } = useTranslation("history");
 	const location = useLocation();
@@ -64,8 +67,9 @@ export function HistoryHeader({
 							: t("actions.return", "Voltar")}
 					</button>
 				)}
-				<h1 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
+				<h1 className="flex items-center gap-2 text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
 					{t("title", "Histórico de Eventos")}
+					{showStaleIndicator && <StaleDataIndicator />}
 				</h1>
 				<p className="text-sm text-muted-foreground">
 					{t(

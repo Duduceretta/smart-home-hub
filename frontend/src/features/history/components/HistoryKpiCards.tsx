@@ -1,12 +1,16 @@
 import { Activity, AlertTriangle, Layers, Zap } from "lucide-react";
 import type { ElementType } from "react";
 import { useTranslation } from "react-i18next";
+import { CardErrorFallback } from "@/core/components/feedback/CardErrorFallback";
+import { StaleDataIndicator } from "@/core/components/feedback/StaleDataIndicator";
 import { cn } from "@/core/utils";
 import type { HistoryKpiMetrics } from "../types/history.types";
 
 interface HistoryKpiCardsProps {
 	stats: HistoryKpiMetrics | undefined;
 	isLoading: boolean;
+	isError?: boolean;
+	onRetry?: () => void;
 }
 
 interface KpiItemProps {
@@ -16,6 +20,7 @@ interface KpiItemProps {
 	accentClass: string;
 	iconBgClass: string;
 	isLoading: boolean;
+	showStaleIndicator?: boolean;
 }
 
 function KpiItem({
@@ -25,6 +30,7 @@ function KpiItem({
 	accentClass,
 	iconBgClass,
 	isLoading,
+	showStaleIndicator = false,
 }: KpiItemProps) {
 	return (
 		<div className="flex items-center gap-3.5 rounded-2xl border border-border-subtle bg-surface-low p-4 transition-colors hover:border-border">
@@ -37,8 +43,9 @@ function KpiItem({
 				<Icon className={cn("h-5 w-5", accentClass)} />
 			</div>
 			<div className="flex min-w-0 flex-col gap-0.5">
-				<span className="truncate text-xs font-medium uppercase tracking-wider text-muted-foreground">
+				<span className="flex items-center gap-1 truncate text-xs font-medium uppercase tracking-wider text-muted-foreground">
 					{label}
+					{showStaleIndicator && <StaleDataIndicator />}
 				</span>
 				{isLoading ? (
 					<span className="h-7 w-10 animate-pulse rounded-md bg-surface-high" />
@@ -62,13 +69,38 @@ function KpiItem({
  * Displays total count, automation executions, alerts/errors, and device group actions —
  * aggregated server-side over the whole filtered period (not just the loaded page of events).
  */
-export function HistoryKpiCards({ stats, isLoading }: HistoryKpiCardsProps) {
+export function HistoryKpiCards({
+	stats,
+	isLoading,
+	isError = false,
+	onRetry,
+}: HistoryKpiCardsProps) {
 	const { t } = useTranslation("history");
+
+	if (isError && !stats) {
+		return (
+			<div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+				{[0, 1, 2, 3].map((i) => (
+					<CardErrorFallback
+						key={i}
+						className="h-18 sm:h-24"
+						message={t(
+							"kpis.errorLoad",
+							"Não foi possível carregar os indicadores.",
+						)}
+						retryLabel={t("timeline.retry", "Tentar novamente")}
+						onRetry={() => onRetry?.()}
+					/>
+				))}
+			</div>
+		);
+	}
 
 	const total = stats?.totalEvents ?? 0;
 	const automationCount = stats?.automationCount ?? 0;
 	const alertCount = stats?.alertCount ?? 0;
 	const groupActionCount = stats?.groupActionCount ?? 0;
+	const showStaleIndicator = isError && Boolean(stats);
 
 	return (
 		<div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
@@ -79,6 +111,7 @@ export function HistoryKpiCards({ stats, isLoading }: HistoryKpiCardsProps) {
 				accentClass="text-foreground"
 				iconBgClass="bg-surface-high text-foreground"
 				isLoading={isLoading}
+				showStaleIndicator={showStaleIndicator}
 			/>
 			<KpiItem
 				icon={Zap}
@@ -87,6 +120,7 @@ export function HistoryKpiCards({ stats, isLoading }: HistoryKpiCardsProps) {
 				accentClass="text-primary"
 				iconBgClass="bg-primary/10 text-primary"
 				isLoading={isLoading}
+				showStaleIndicator={showStaleIndicator}
 			/>
 			<KpiItem
 				icon={AlertTriangle}
@@ -101,6 +135,7 @@ export function HistoryKpiCards({ stats, isLoading }: HistoryKpiCardsProps) {
 						: "bg-surface-high text-muted-foreground"
 				}
 				isLoading={isLoading}
+				showStaleIndicator={showStaleIndicator}
 			/>
 			<KpiItem
 				icon={Layers}
@@ -109,6 +144,7 @@ export function HistoryKpiCards({ stats, isLoading }: HistoryKpiCardsProps) {
 				accentClass="text-warm"
 				iconBgClass="bg-warm/10 text-warm"
 				isLoading={isLoading}
+				showStaleIndicator={showStaleIndicator}
 			/>
 		</div>
 	);

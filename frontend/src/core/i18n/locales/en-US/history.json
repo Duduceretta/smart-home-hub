@@ -26,7 +26,8 @@
 		"automations": "Automation Runs",
 		"alertsAndErrors": "Alerts & Errors",
 		"groupActions": "Group Actions",
-		"inPeriod": "in selected timeframe"
+		"inPeriod": "in selected timeframe",
+		"errorLoad": "Could not load KPI metrics."
 	},
 	"filters": {
 		"searchPlaceholder": "Search event by description, device or room (Ctrl+K)...",

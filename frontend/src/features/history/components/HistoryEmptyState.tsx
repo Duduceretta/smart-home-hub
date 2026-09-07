@@ -20,8 +20,11 @@ export function HistoryEmptyState({
 
 	if (isError) {
 		return (
-			<div className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-destructive/30 bg-destructive/5 p-12 text-center">
-				<div className="flex h-12 w-12 items-center justify-center rounded-full bg-destructive/10 text-destructive">
+			<div
+				role="alert"
+				className="flex min-h-52 flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-border-subtle bg-surface-low/50 p-12 text-center"
+			>
+				<div className="flex h-12 w-12 items-center justify-center rounded-full bg-surface-high text-muted-foreground">
 					<Inbox className="h-6 w-6" />
 				</div>
 				<div className="flex flex-col gap-1">

@@ -26,7 +26,8 @@
 		"automations": "Execuções de Automação",
 		"alertsAndErrors": "Alertas e Erros",
 		"groupActions": "Ações de Grupos",
-		"inPeriod": "no período selecionado"
+		"inPeriod": "no período selecionado",
+		"errorLoad": "Não foi possível carregar os indicadores."
 	},
 	"filters": {
 		"searchPlaceholder": "Buscar evento por descrição, dispositivo ou cômodo (Ctrl+K)...",

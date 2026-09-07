@@ -109,6 +109,7 @@ export function HistoryView() {
 	const {
 		data: stats,
 		isLoading: isStatsLoading,
+		isError: isStatsError,
 		refetch: refetchStats,
 	} = useEventHistoryStats(statsParams);
 
@@ -143,10 +144,16 @@ export function HistoryView() {
 				expandedCount={expandedEventIds.length}
 				onRefresh={handleRefresh}
 				onToggleExpandAll={handleToggleExpandAll}
+				showStaleIndicator={isError && Boolean(data)}
 			/>
 
 			{/* KPI Summary Cards */}
-			<HistoryKpiCards stats={stats} isLoading={isStatsLoading} />
+			<HistoryKpiCards
+				stats={stats}
+				isLoading={isStatsLoading}
+				isError={isStatsError}
+				onRetry={refetchStats}
+			/>
 
 			{/* Filter Controls Bar */}
 			<HistoryFiltersBar />
@@ -154,7 +161,7 @@ export function HistoryView() {
 			{/* Main Audit Content (100% Server-Side Driven) */}
 			{isLoading ? (
 				<HistorySkeleton />
-			) : isError ? (
+			) : isError && !data ? (
 				<HistoryEmptyState isError onRetry={handleRefresh} />
 			) : events.length === 0 ? (
 				<HistoryEmptyState />
