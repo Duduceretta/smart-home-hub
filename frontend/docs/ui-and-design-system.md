@@ -208,3 +208,41 @@ Sem `React.lazy()`, não há necessidade de `<Suspense>` — o guard de `isLoadi
 - Usar exclusivamente `bg-surface-low`/`bg-surface-container`/`bg-surface-high` + `animate-pulse`. Sem hex cru, sem opacidade arbitrária — `frontend/scripts/lint-tokens.mjs` bloqueia desvio.
 - Como os tokens de superfície são aliases (seção 1 deste documento), o skeleton herda automaticamente contraste correto nos 5 presets de tema (`zinc`, `indigo`, `slate-cyan`, `github-dimmed`, `contrast-safe-graphite`) sem precisar de override — não introduzir cor fixa que quebraria isso num preset alternativo.
 - Nó em loading precisa de `role="status"` e `aria-busy="true"` no container do skeleton (não em cada bloco pulsante individual), acompanhado obrigatoriamente de `<span className="sr-only">Texto descritivo...</span>` para leitor de tela anunciar o carregamento de forma limpa em vez de narrar múltiplos retângulos vazios.
+
+## 12. Resiliência e Error States
+
+Todo estado de erro de dado assíncrono (`useQuery`/`useMutation` do TanStack Query) segue este padrão — auditado contra Rooms, Devices, Automações, Grupos, Histórico e Dashboard, que hoje concentram o desvio mais grave: cascata de caixas vermelhas duplicadas na mesma falha de rede (Dashboard chega a 5 simultâneas) e, em `DeviceListPanel.tsx`, uma falha de API mascarada como "lista vazia" por ausência total de tratamento.
+
+### 12.1. Filosofia — Degradação Graciosa, não Pânico
+Um erro de rede num painel operacional não é uma emergência visual. A UI deve comunicar "não deu pra atualizar isso agora" sem competir por atenção com alertas vermelhos grandes — reservar vermelho/`destructive` pra ações destrutivas reais (excluir) e falhas sistêmicas confirmadas, nunca pra "essa query específica ainda não respondeu".
+
+**Stale-While-Revalidate é mandatório quando há cache válido**: se o TanStack Query ainda tem `data` de um fetch anterior bem-sucedido, uma falha de *refetch* em background nunca deve substituir esse conteúdo pelo fallback de erro — mostrar os dados desatualizados com um indicador sutil (`text-warm`, ícone pequeno, ex: `<AlertCircle className="h-3 w-3 text-warm" />` com tooltip "Dados desatualizados") em vez de destruir o que já estava na tela. Hoje nenhum componente do projeto faz isso — todos os ~15 pontos de erro auditados substituem o conteúdo inteiro mesmo com cache disponível.
+
+### 12.2. Hierarquia de Tratamento: Local vs. Sistêmico
+Nunca tratar "essa query falhou" e "a API está fora do ar" da mesma forma — são causas raiz diferentes e merecem UI diferente:
+
+- **Nível Local (uma query, um card)**: fallback compacto, neutro, dentro do próprio espaço do card — nunca vermelho. Ver 12.3.
+- **Nível Sistêmico (múltiplas queries falhando simultaneamente, ou erro de rede/5xx confirmado)**: quando 2+ queries independentes na mesma tela falham ao mesmo tempo (sintoma de outage, não de um endpoint específico com bug), a tela deve suprimir os fallbacks locais individuais e mostrar **um único banner consolidado no topo** com ação única "Tentar novamente" que dispara o retry de todas as queries afetadas de uma vez — nunca N botões de retry independentes na mesma viewport pro mesmo evento de falha. Este é o gap mais urgente do Dashboard hoje (seção A.2 da auditoria): não existe essa camada de decisão, cada card decide sozinho que vai mostrar seu próprio alerta.
+
+### 12.3. Fallback Local — Regras de Estilo
+Baseado no padrão que já existe (e funciona bem) em `DeviceEnergyChart.tsx`/`RoomEnergyChart.tsx`/`RoomClimateSection.tsx`/`DeviceLinkedAutomations.tsx`/`RoomLinkedAutomations.tsx`/`DeviceGroupLinkedAutomations.tsx` — a diferença é parar de duplicar esse bloco 6 vezes e extrair componente:
+
+```tsx
+<CardErrorFallback
+  message={t("energy.errorLoad")}
+  onRetry={refetch}
+/>
+```
+- Container: `border-dashed border-border-subtle bg-surface-low/50` (nunca `border-destructive`/`bg-destructive`) — a exceção é o banner sistêmico da seção 12.2, onde `border-destructive`/`text-destructive` é apropriado porque ali a severidade é real e confirmada.
+- Botão de retry: `variant="ghost"` ou `variant="link"`, nunca um botão com borda pesada/cor de destaque — é uma ação secundária de recuperação, não uma CTA primária.
+- Texto: uma linha só, `text-xs text-muted-foreground` — sem título + subtítulo + parágrafo (o padrão do `DashboardErrorState` atual, com `text-sm font-semibold` + `text-xs` + botão, é verboso demais pro espaço de um card).
+
+### 12.4. Zero CLS — Paridade com o Skeleton
+**Regra mandatória**: o fallback de erro de um componente deve ocupar exatamente a mesma altura/grid/border-radius do seu Skeleton (seção 11) — os dois são "a mesma caixa vazia", só muda o conteúdo interno (pulso vs. mensagem+retry). Um componente cujo skeleton é um grid de 4 cards não pode virar uma caixa única centralizada no estado de erro (violação encontrada em `StatusHubSummary.tsx`) — o erro, nesse caso, ocupa **cada célula do grid individualmente**, ou (se a falha for da mesma query que alimenta todas as células) vira um caso de banner sistêmico da seção 12.2 em vez de erro local por célula.
+
+Acessibilidade mandatória: o container do fallback leva `role="alert"` (não `role="status"` — é usado no skeleton, ver seção 11.5 — erro é conteúdo que interrompe, não um estado transitório) e a mensagem de erro deve ser texto real (nunca só ícone), pra leitor de tela anunciar o problema sem depender de contexto visual.
+
+### 12.5. Guia Estrutural FSD — Co-location vs. Compartilhado
+- **Co-located** (`export function XErrorFallback()` no mesmo arquivo): fallback com layout exclusivo daquele card, < 30 linhas, que não se repete em nenhum outro lugar do projeto.
+- **`core/components/feedback/CardErrorFallback.tsx`** (novo, proposto): fallback compacto genérico parametrizável (`message`, `onRetry`, `className`) — substitui as 6 duplicações da seção 12.3, e é o candidato natural pra qualquer novo card com erro local daqui pra frente. Mora em `core/` (não `shared/`) por ser agnóstico de domínio, na mesma linha de `core/components/ui/`.
+- **`features/dashboard/components/DashboardErrorState.tsx`** (existente): mantém-se como está **apenas** se for redesenhado pro tom neutro da seção 12.3 — hoje usa `border-destructive`/`bg-destructive`/`AlertTriangle` vermelho, o oposto do padrão que esta seção define. Recomendação: descontinuar em favor do `CardErrorFallback` genérico + a lógica de consolidação sistêmica da seção 12.2 pro caso específico do Dashboard.
