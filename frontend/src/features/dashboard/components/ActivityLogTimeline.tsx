@@ -9,12 +9,11 @@ import {
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { ActivityTimelineRow } from "@/core/components/activity/ActivityTimelineRow";
+import { CardErrorFallback } from "@/core/components/feedback/CardErrorFallback";
+import { ACTIVITY_LOG_VISIBLE_ENTRIES_LIMIT } from "../constants/dashboard.constants";
 import { useActivityLog } from "../hooks/useActivityLog";
 import { getRelativeTime } from "../lib/relativeTime";
 import type { ActivityEventType } from "../types/dashboard.types";
-import { DashboardErrorState } from "./DashboardErrorState";
-
-const VISIBLE_ENTRIES_LIMIT = 6;
 
 const EVENT_STYLE: Record<
 	ActivityEventType,
@@ -65,12 +64,37 @@ function ActivityTimelineRowSkeleton() {
 	);
 }
 
-export function ActivityLogTimeline() {
+/** Reaproveitada tanto no loading real quanto na supressão de falha
+ * sistêmica — sem `role="status"`/`aria-busy` nesse segundo caso, já que
+ * não é literalmente um fetch em andamento, só um placeholder na mesma
+ * dimensão enquanto o banner consolidado do topo aguarda o retry. */
+function ActivityTimelineSkeletonRows() {
+	return (
+		<>
+			<div className="absolute bottom-2 left-2.75 top-2 w-px bg-border-subtle" />
+			{SKELETON_ROW_IDS.map((id) => (
+				<ActivityTimelineRowSkeleton key={id} />
+			))}
+		</>
+	);
+}
+
+interface ActivityLogTimelineProps {
+	/** true durante falha sistêmica (2+ queries do Dashboard falhando ao
+	 * mesmo tempo) — suprime o fallback local (mensagem + retry próprio) em
+	 * favor do banner consolidado no topo da tela, mantendo só um
+	 * placeholder neutro na mesma dimensão. */
+	suppressErrorUI?: boolean;
+}
+
+export function ActivityLogTimeline({
+	suppressErrorUI = false,
+}: ActivityLogTimelineProps) {
 	const { t, i18n } = useTranslation("dashboard");
 	const navigate = useNavigate();
 	const { data, isLoading, isError, refetch } = useActivityLog(
 		1,
-		VISIBLE_ENTRIES_LIMIT,
+		ACTIVITY_LOG_VISIBLE_ENTRIES_LIMIT,
 	);
 	const entries = data?.items ?? [];
 
@@ -85,29 +109,29 @@ export function ActivityLogTimeline() {
 
 			<div className="min-h-80">
 				{isError ? (
-					<div className="flex h-80 items-center justify-center">
-						<DashboardErrorState
-							title={t(
-								"activityLog.errorTitle",
-								"Não foi possível carregar a linha do tempo",
-							)}
-							subtitle={t(
-								"activityLog.errorSubtitle",
-								"Verifique sua conexão e tente novamente.",
-							)}
-							onRetry={() => refetch()}
-						/>
-					</div>
+					suppressErrorUI ? (
+						<div className="relative flex h-80 flex-col justify-center gap-5 animate-pulse">
+							<ActivityTimelineSkeletonRows />
+						</div>
+					) : (
+						<div className="flex h-80 items-center justify-center">
+							<CardErrorFallback
+								message={t(
+									"activityLog.errorTitle",
+									"Não foi possível carregar a linha do tempo",
+								)}
+								retryLabel={t("common:actions.retry", "Tentar novamente")}
+								onRetry={() => refetch()}
+							/>
+						</div>
+					)
 				) : isLoading ? (
 					<div
 						role="status"
 						aria-busy="true"
 						className="relative flex h-80 flex-col justify-center gap-5 animate-pulse"
 					>
-						<div className="absolute bottom-2 left-2.75 top-2 w-px bg-border-subtle" />
-						{SKELETON_ROW_IDS.map((id) => (
-							<ActivityTimelineRowSkeleton key={id} />
-						))}
+						<ActivityTimelineSkeletonRows />
 					</div>
 				) : entries.length === 0 ? (
 					<div className="flex h-80 flex-col items-center justify-center gap-2 text-center">

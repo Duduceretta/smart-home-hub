@@ -63,9 +63,19 @@ function mockEmptyActivityLog() {
 function useDefaultHandlers({
 	rooms = [room],
 	devices = [lamp, unassignedSensor],
+	automations = [],
+	overview = "success",
+	activityLog = "success",
 }: {
 	rooms?: MockRoom[] | "error";
 	devices?: ReturnType<typeof createDeviceMock>[] | "error";
+	/** `/api/automations` (consumida por `useRecentAutomations`, dentro de
+	 * `ActiveAutomationsCard`) — precisa de baseline de sucesso explícito,
+	 * senão vira uma 2ª query falhando e qualquer teste de erro isolado
+	 * (1 query) vira sistêmico (2+ queries) sem querer. */
+	automations?: unknown[] | "error";
+	overview?: "success" | "error";
+	activityLog?: "success" | "error";
 } = {}) {
 	server.use(
 		http.get("*/api/rooms", () =>
@@ -79,13 +89,22 @@ function useDefaultHandlers({
 				: HttpResponse.json(mockPagedDevices(devices)),
 		),
 		http.get("*/api/dashboard/overview", () =>
-			HttpResponse.json(createDashboardOverviewMock()),
+			overview === "error"
+				? HttpResponse.json({ title: "Erro" }, { status: 500 })
+				: HttpResponse.json(createDashboardOverviewMock()),
 		),
 		http.get("*/api/dashboard/activity-log", () =>
-			HttpResponse.json(mockEmptyActivityLog()),
+			activityLog === "error"
+				? HttpResponse.json({ title: "Erro" }, { status: 500 })
+				: HttpResponse.json(mockEmptyActivityLog()),
 		),
 		http.get("*/api/integrations/spotify/status", () =>
 			HttpResponse.json({ connected: false }),
+		),
+		http.get("*/api/automations", () =>
+			automations === "error"
+				? HttpResponse.json({ title: "Erro" }, { status: 500 })
+				: HttpResponse.json({ items: automations, totalPages: 1 }),
 		),
 	);
 }
@@ -169,7 +188,7 @@ describe("DashboardView Integration Tests", () => {
 	});
 
 	it("DashboardView_RoomsFetchFails_ShouldRenderErrorStateWithRetry", async () => {
-		// Arrange
+		// Arrange — só 1 query falhando (rooms) — deve ser tratado como LOCAL
 		useDefaultHandlers({ rooms: "error" });
 
 		// Act
@@ -183,10 +202,13 @@ describe("DashboardView Integration Tests", () => {
 				{ timeout: 3000 },
 			),
 		).toBeInTheDocument();
+		expect(
+			screen.queryByText(/não foi possível conectar ao servidor/i),
+		).not.toBeInTheDocument();
 	});
 
 	it("DashboardView_DevicesFetchFails_ShouldRenderErrorStateWithRetry", async () => {
-		// Arrange
+		// Arrange — só 1 query falhando (devices) — deve ser tratado como LOCAL
 		useDefaultHandlers({ devices: "error" });
 
 		// Act
@@ -200,6 +222,135 @@ describe("DashboardView Integration Tests", () => {
 				{ timeout: 3000 },
 			),
 		).toBeInTheDocument();
+		expect(
+			screen.queryByText(/não foi possível conectar ao servidor/i),
+		).not.toBeInTheDocument();
+	});
+
+	it("DashboardView_TwoQueriesFail_ShouldShowSystemicBannerAndSuppressLocalFallbacks", async () => {
+		// Arrange — rooms E automations falhando ao mesmo tempo (2 queries
+		// independentes) — sintoma de outage, deve consolidar num banner só
+		// em vez de 2 fallbacks locais fragmentados.
+		let roomsRequestCount = 0;
+		let automationsRequestCount = 0;
+		server.use(
+			http.get("*/api/rooms", () => {
+				roomsRequestCount += 1;
+				return HttpResponse.json({ title: "Erro" }, { status: 500 });
+			}),
+			http.get("*/api/devices", () =>
+				HttpResponse.json(mockPagedDevices([lamp, unassignedSensor])),
+			),
+			http.get("*/api/dashboard/overview", () =>
+				HttpResponse.json(createDashboardOverviewMock()),
+			),
+			http.get("*/api/dashboard/activity-log", () =>
+				HttpResponse.json(mockEmptyActivityLog()),
+			),
+			http.get("*/api/integrations/spotify/status", () =>
+				HttpResponse.json({ connected: false }),
+			),
+			http.get("*/api/automations", () => {
+				automationsRequestCount += 1;
+				return HttpResponse.json({ title: "Erro" }, { status: 500 });
+			}),
+		);
+		const user = userEvent.setup();
+
+		// Act
+		renderDashboard();
+
+		// Assert — banner consolidado aparece
+		expect(
+			await screen.findByText(
+				/não foi possível conectar ao servidor/i,
+				{},
+				{ timeout: 3000 },
+			),
+		).toBeInTheDocument();
+
+		// Assert — fallbacks locais individuais NÃO aparecem (supressos)
+		expect(
+			screen.queryByText(
+				/não foi possível carregar os ambientes e dispositivos/i,
+			),
+		).not.toBeInTheDocument();
+		expect(
+			screen.queryByText(/não foi possível carregar as automações/i),
+		).not.toBeInTheDocument();
+
+		// Só existe 1 botão de retry na tela (o do banner)
+		const retryButtons = screen.getAllByRole("button", {
+			name: /tentar novamente/i,
+		});
+		expect(retryButtons).toHaveLength(1);
+
+		const roomsRequestsBeforeRetry = roomsRequestCount;
+		const automationsRequestsBeforeRetry = automationsRequestCount;
+
+		// Act — clica no retry único do banner
+		await user.click(retryButtons[0]);
+
+		// Assert — dispara refetch de AMBAS as queries afetadas
+		await waitFor(() => {
+			expect(roomsRequestCount).toBeGreaterThan(roomsRequestsBeforeRetry);
+		});
+		expect(automationsRequestCount).toBeGreaterThan(
+			automationsRequestsBeforeRetry,
+		);
+	});
+
+	it("DashboardView_SystemicFailureRecovers_ShouldRemoveBannerAndRestoreContentWithoutReload", async () => {
+		// Arrange — rooms e automations falham na 1ª chamada, sucesso a partir da 2ª
+		let roomsCallCount = 0;
+		let automationsCallCount = 0;
+		server.use(
+			// useRooms tem `retry: 1` — falha nas 2 primeiras chamadas (a
+			// inicial + o retry automático do próprio TanStack Query) e só
+			// sucede a partir da 3ª (o clique manual no banner).
+			http.get("*/api/rooms", () => {
+				roomsCallCount += 1;
+				return roomsCallCount <= 2
+					? HttpResponse.json({ title: "Erro" }, { status: 500 })
+					: HttpResponse.json([room]);
+			}),
+			http.get("*/api/devices", () =>
+				HttpResponse.json(mockPagedDevices([lamp, unassignedSensor])),
+			),
+			http.get("*/api/dashboard/overview", () =>
+				HttpResponse.json(createDashboardOverviewMock()),
+			),
+			http.get("*/api/dashboard/activity-log", () =>
+				HttpResponse.json(mockEmptyActivityLog()),
+			),
+			http.get("*/api/integrations/spotify/status", () =>
+				HttpResponse.json({ connected: false }),
+			),
+			http.get("*/api/automations", () => {
+				automationsCallCount += 1;
+				return automationsCallCount === 1
+					? HttpResponse.json({ title: "Erro" }, { status: 500 })
+					: HttpResponse.json({ items: [], totalPages: 1 });
+			}),
+		);
+		const user = userEvent.setup();
+
+		// Act
+		renderDashboard();
+		await screen.findByText(
+			/não foi possível conectar ao servidor/i,
+			{},
+			{ timeout: 3000 },
+		);
+		await user.click(screen.getByRole("button", { name: /tentar novamente/i }));
+
+		// Assert — banner some e conteúdo real volta, sem reload de página
+		await waitFor(() => {
+			expect(
+				screen.queryByText(/não foi possível conectar ao servidor/i),
+			).not.toBeInTheDocument();
+		});
+		expect(await screen.findByText("Sala de Estar")).toBeInTheDocument();
 	});
 
 	it("DashboardView_ClickCollapseAll_ShouldHideEveryRoomSectionDeviceList", async () => {

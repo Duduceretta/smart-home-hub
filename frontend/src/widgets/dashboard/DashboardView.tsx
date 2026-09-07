@@ -1,22 +1,27 @@
 import { ChevronsDownUp, ChevronsUpDown } from "lucide-react";
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
+import { CardErrorFallback } from "@/core/components/feedback/CardErrorFallback";
+import { useSystemicFailureDetector } from "@/core/hooks/useSystemicFailureDetector";
 import { ActiveAutomationsCard } from "@/features/dashboard/components/ActiveAutomationsCard";
 import { ActivityLogTimeline } from "@/features/dashboard/components/ActivityLogTimeline";
 import { CameraFeedCard } from "@/features/dashboard/components/CameraFeedCard";
-import { DashboardErrorState } from "@/features/dashboard/components/DashboardErrorState";
 import { DashboardTopBar } from "@/features/dashboard/components/DashboardTopBar";
 import { DeviceTypeFilterChips } from "@/features/dashboard/components/DeviceTypeFilterChips";
 import { EnergyLoadWidget } from "@/features/dashboard/components/EnergyLoadWidget";
 import { RoomDeviceSectionSkeleton } from "@/features/dashboard/components/RoomDeviceSectionSkeleton";
 import { ScenesBar } from "@/features/dashboard/components/ScenesBar";
 import { StatusHubSummary } from "@/features/dashboard/components/StatusHubSummary";
+import { SystemicFailureBanner } from "@/features/dashboard/components/SystemicFailureBanner";
 import {
+	ACTIVITY_LOG_VISIBLE_ENTRIES_LIMIT,
 	CHIP_TO_TYPES,
 	type ChipKey,
 	UNASSIGNED_ROOM_KEY,
 } from "@/features/dashboard/constants/dashboard.constants";
+import { useActivityLog } from "@/features/dashboard/hooks/useActivityLog";
 import { useDashboardOverview } from "@/features/dashboard/hooks/useDashboardOverview";
+import { useRecentAutomations } from "@/features/dashboard/hooks/useRecentAutomations";
 import { useDashboardPreviewStore } from "@/features/dashboard/store/dashboard-preview.store";
 import { useDashboardUIStore } from "@/features/dashboard/store/dashboard-ui.store";
 import { EditDeviceModal } from "@/features/devices/components/dialogs/EditDeviceModal";
@@ -48,12 +53,38 @@ export const DashboardView: React.FC = () => {
 		pageSize: DEVICES_PAGE_SIZE,
 	});
 
-	const { data: overviewData } = useDashboardOverview();
+	const {
+		data: overviewData,
+		isError: isOverviewError,
+		refetch: refetchOverview,
+	} = useDashboardOverview();
+	const {
+		isError: isAutomationsSummaryError,
+		refetch: refetchAutomationsSummary,
+	} = useRecentAutomations();
+	const { isError: isActivityLogError, refetch: refetchActivityLog } =
+		useActivityLog(1, ACTIVITY_LOG_VISIBLE_ENTRIES_LIMIT);
 
 	const devices = devicesPage?.items ?? [];
 	const rooms = roomsData ?? [];
 	const isLoading = isRoomsLoading || isDevicesLoading;
 	const isError = isRoomsError || isDevicesError;
+
+	/**
+	 * Detector de falha sistêmica (seção 12.2 de `ui-and-design-system.md`):
+	 * as 5 áreas do Dashboard (KPIs, gráfico de energia, seção de cômodos,
+	 * automações recentes, linha do tempo) consomem, no total, estas 5
+	 * queries independentes. 2+ falhando ao mesmo tempo é sintoma de outage
+	 * de rede/backend, não de bug isolado num endpoint — nesse caso um
+	 * único banner consolidado substitui os 5 alertas fragmentados.
+	 */
+	const { isSystemic, retryAll } = useSystemicFailureDetector([
+		{ isError: isOverviewError, refetch: refetchOverview },
+		{ isError: isRoomsError, refetch: refetchRooms },
+		{ isError: isDevicesError, refetch: refetchDevices },
+		{ isError: isAutomationsSummaryError, refetch: refetchAutomationsSummary },
+		{ isError: isActivityLogError, refetch: refetchActivityLog },
+	]);
 
 	const energyUsageByRoomKey = useMemo(() => {
 		const map: Record<string, { value: number; isEstimated: boolean }> = {};
@@ -133,6 +164,8 @@ export const DashboardView: React.FC = () => {
 		<div className="flex flex-col gap-6 motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-2 motion-safe:duration-300">
 			<DashboardTopBar />
 
+			{isSystemic && <SystemicFailureBanner onRetryAll={retryAll} />}
+
 			<div className="flex flex-col gap-4">
 				<ScenesBar />
 				<DeviceTypeFilterChips
@@ -145,9 +178,9 @@ export const DashboardView: React.FC = () => {
 			<div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-12">
 				{/* Coluna Principal (Esquerda - 8 colunas) */}
 				<div className="flex flex-col gap-6 self-stretch lg:col-span-8">
-					<StatusHubSummary />
+					<StatusHubSummary suppressErrorUI={isSystemic} />
 
-					<EnergyLoadWidget />
+					<EnergyLoadWidget suppressErrorUI={isSystemic} />
 
 					{!isLoading && roomSections.length > 0 && (
 						<button
@@ -174,20 +207,24 @@ export const DashboardView: React.FC = () => {
 							<RoomDeviceSectionSkeleton />
 						</>
 					) : isError ? (
-						<DashboardErrorState
-							title={t(
-								"roomSection.errorTitle",
-								"Não foi possível carregar os ambientes e dispositivos",
-							)}
-							subtitle={t(
-								"roomSection.errorSubtitle",
-								"Verifique sua conexão e tente novamente.",
-							)}
-							onRetry={() => {
-								refetchRooms();
-								refetchDevices();
-							}}
-						/>
+						isSystemic ? (
+							<>
+								<RoomDeviceSectionSkeleton />
+								<RoomDeviceSectionSkeleton />
+							</>
+						) : (
+							<CardErrorFallback
+								message={t(
+									"roomSection.errorTitle",
+									"Não foi possível carregar os ambientes e dispositivos",
+								)}
+								retryLabel={t("common:actions.retry", "Tentar novamente")}
+								onRetry={() => {
+									refetchRooms();
+									refetchDevices();
+								}}
+							/>
+						)
 					) : (
 						roomSections.map((section) => (
 							<RoomDeviceSection
@@ -204,14 +241,14 @@ export const DashboardView: React.FC = () => {
 						))
 					)}
 
-					<ActiveAutomationsCard />
+					<ActiveAutomationsCard suppressErrorUI={isSystemic} />
 				</div>
 
 				{/* Coluna Lateral de Monitoramento (Direita - 4 colunas) */}
 				<div className="sticky top-6 flex flex-col gap-6 lg:col-span-4">
 					<CameraFeedCard />
 					<SpotifyNowPlayingCard />
-					<ActivityLogTimeline />
+					<ActivityLogTimeline suppressErrorUI={isSystemic} />
 				</div>
 			</div>
 

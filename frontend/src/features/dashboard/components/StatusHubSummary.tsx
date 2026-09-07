@@ -1,41 +1,56 @@
 import { ShieldAlert, Thermometer, Wifi, Zap } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { CardErrorFallback } from "@/core/components/feedback/CardErrorFallback";
 import { useDashboardOverview } from "../hooks/useDashboardOverview";
 import { formatEnergy } from "../lib/formatEnergy";
-import { DashboardErrorState } from "./DashboardErrorState";
 
-export function StatusHubSummary() {
+interface StatusHubSummaryProps {
+	/** true durante falha sistêmica (2+ queries do Dashboard falhando ao
+	 * mesmo tempo) — suprime o fallback local em favor do banner
+	 * consolidado no topo, mantendo só o skeleton estático na mesma
+	 * dimensão do grid de 4 KPIs. */
+	suppressErrorUI?: boolean;
+}
+
+function StatusHubSummarySkeleton() {
+	return (
+		<div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 animate-pulse">
+			{["energy", "devices", "temperature", "alerts"].map((metricKey) => (
+				<div
+					key={`skeleton-${metricKey}`}
+					className="flex h-24 flex-col justify-between rounded-xl border border-border-subtle bg-surface-container p-4"
+				>
+					<div className="h-3 w-20 rounded-md bg-surface-high" />
+					<div className="h-6 w-16 rounded-md bg-surface-high" />
+				</div>
+			))}
+		</div>
+	);
+}
+
+export function StatusHubSummary({
+	suppressErrorUI = false,
+}: StatusHubSummaryProps) {
 	const { t } = useTranslation("dashboard");
 	const { data, isLoading, isError, refetch } = useDashboardOverview();
 
 	if (isLoading) {
-		return (
-			<div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 animate-pulse">
-				{["energy", "devices", "temperature", "alerts"].map((metricKey) => (
-					<div
-						key={`skeleton-${metricKey}`}
-						className="flex h-24 flex-col justify-between rounded-xl border border-border-subtle bg-surface-container p-4"
-					>
-						<div className="h-3 w-20 rounded-md bg-surface-high" />
-						<div className="h-6 w-16 rounded-md bg-surface-high" />
-					</div>
-				))}
-			</div>
-		);
+		return <StatusHubSummarySkeleton />;
 	}
 
 	if (isError || !data) {
+		if (suppressErrorUI) {
+			return <StatusHubSummarySkeleton />;
+		}
 		return (
-			<DashboardErrorState
-				title={t(
+			<CardErrorFallback
+				message={t(
 					"metrics.errorTitle",
 					"Não foi possível carregar os indicadores",
 				)}
-				subtitle={t(
-					"metrics.errorSubtitle",
-					"Verifique sua conexão e tente novamente.",
-				)}
+				retryLabel={t("common:actions.retry", "Tentar novamente")}
 				onRetry={() => refetch()}
+				className="min-h-24"
 			/>
 		);
 	}

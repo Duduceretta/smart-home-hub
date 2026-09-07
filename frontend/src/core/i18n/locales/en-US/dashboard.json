@@ -87,5 +87,8 @@
 		"returnToDashboard": "Dashboard",
 		"errorTitle": "Could not load timeline",
 		"errorSubtitle": "Check your connection and try again."
+	},
+	"systemicFailure": {
+		"title": "Could not connect to the server"
 	}
 }

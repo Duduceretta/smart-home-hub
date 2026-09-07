@@ -2,6 +2,7 @@ import { ChevronRight, Pencil, Plus, Radio } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
+import { CardErrorFallback } from "@/core/components/feedback/CardErrorFallback";
 import { Switch } from "@/core/components/ui/switch";
 import { cn } from "@/core/utils";
 import { useRecentAutomations } from "../hooks/useRecentAutomations";
@@ -9,7 +10,6 @@ import { useToggleDashboardAutomation } from "../hooks/useToggleDashboardAutomat
 import { getRelativeTime } from "../lib/relativeTime";
 import { useDashboardPreviewStore } from "../store/dashboard-preview.store";
 import type { DashboardAutomationSummary } from "../types/dashboard.types";
-import { DashboardErrorState } from "./DashboardErrorState";
 import { EditAutomationsPreviewModal } from "./EditAutomationsPreviewModal";
 
 const VISIBLE_COUNT = 3;
@@ -56,7 +56,17 @@ function AutomationEmptySlot({ onClick }: { onClick: () => void }) {
 	);
 }
 
-export function ActiveAutomationsCard() {
+interface ActiveAutomationsCardProps {
+	/** true durante falha sistêmica (2+ queries do Dashboard falhando ao
+	 * mesmo tempo) — suprime o fallback local em favor do banner
+	 * consolidado no topo, mantendo só o skeleton estático na mesma
+	 * dimensão das 3 linhas. */
+	suppressErrorUI?: boolean;
+}
+
+export function ActiveAutomationsCard({
+	suppressErrorUI = false,
+}: ActiveAutomationsCardProps) {
 	const { t, i18n } = useTranslation("dashboard");
 	const navigate = useNavigate();
 	const { data, isLoading, isError, refetch } = useRecentAutomations();
@@ -133,11 +143,19 @@ export function ActiveAutomationsCard() {
 					<AutomationSkeletonRow />
 				</div>
 			) : isError ? (
-				<DashboardErrorState
-					title={t("automations.errorTitle")}
-					subtitle={t("automations.errorSubtitle")}
-					onRetry={() => refetch()}
-				/>
+				suppressErrorUI ? (
+					<div className="flex flex-col gap-2">
+						<AutomationSkeletonRow />
+						<AutomationSkeletonRow />
+						<AutomationSkeletonRow />
+					</div>
+				) : (
+					<CardErrorFallback
+						message={t("automations.errorTitle")}
+						retryLabel={t("common:actions.retry", "Tentar novamente")}
+						onRetry={() => refetch()}
+					/>
+				)
 			) : automations.length === 0 ? (
 				<div className="flex flex-1 flex-col items-center justify-center gap-2 py-4 text-center">
 					<div className="flex h-10 w-10 items-center justify-center rounded-full bg-surface-high text-muted-foreground">

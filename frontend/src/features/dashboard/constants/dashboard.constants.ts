@@ -58,3 +58,13 @@ export const CHIP_TO_TYPES: Record<ChipKey, DeviceTypeEnum[] | null> = {
 	climate: [DeviceTypeEnum.Thermostat, DeviceTypeEnum.Sensor],
 	media: [DeviceTypeEnum.Television],
 };
+
+/**
+ * Tamanho de página do log de atividades recentes exibido no Dashboard —
+ * compartilhado entre `ActivityLogTimeline` (renderiza a lista) e
+ * `DashboardView` (chama o mesmo `useActivityLog` só pra ler `isError`/
+ * `refetch` pro detector de falha sistêmica; precisa ser exatamente o
+ * mesmo `pageSize` pra cair na mesma queryKey do TanStack Query e
+ * reaproveitar o cache em vez de disparar uma segunda requisição).
+ */
+export const ACTIVITY_LOG_VISIBLE_ENTRIES_LIMIT = 6;

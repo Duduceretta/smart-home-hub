@@ -87,5 +87,8 @@
 		"returnToDashboard": "Início",
 		"errorTitle": "Não foi possível carregar a linha do tempo",
 		"errorSubtitle": "Verifique sua conexão e tente novamente."
+	},
+	"systemicFailure": {
+		"title": "Não foi possível conectar ao servidor"
 	}
 }

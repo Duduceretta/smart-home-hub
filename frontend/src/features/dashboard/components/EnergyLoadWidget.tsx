@@ -10,9 +10,9 @@ import {
 	XAxis,
 	YAxis,
 } from "recharts";
+import { CardErrorFallback } from "@/core/components/feedback/CardErrorFallback";
 import { useDashboardOverview } from "../hooks/useDashboardOverview";
 import { formatEnergy, formatPower } from "../lib/formatEnergy";
-import { DashboardErrorState } from "./DashboardErrorState";
 
 /** Abaixo de 640px (sm) o eixo X não cabe 8 rótulos "HH:MM" sem espremer —
  * reduz pra 4 ticks visíveis nesse recorte. */
@@ -32,32 +32,46 @@ function useIsNarrowViewport() {
 	return isNarrow;
 }
 
-export function EnergyLoadWidget() {
+interface EnergyLoadWidgetProps {
+	/** true durante falha sistêmica (2+ queries do Dashboard falhando ao
+	 * mesmo tempo) — suprime o fallback local em favor do banner
+	 * consolidado no topo, mantendo só o skeleton estático na mesma
+	 * dimensão do card. */
+	suppressErrorUI?: boolean;
+}
+
+function EnergyLoadWidgetSkeleton() {
+	return (
+		<div className="flex flex-col rounded-xl border border-border-subtle bg-surface-container p-4 animate-pulse">
+			<div className="mb-6 h-4 w-48 rounded-md bg-surface-high" />
+			<div className="min-h-62.5 w-full flex-1 rounded-xl bg-surface-low/50" />
+		</div>
+	);
+}
+
+export function EnergyLoadWidget({
+	suppressErrorUI = false,
+}: EnergyLoadWidgetProps) {
 	const { t, i18n } = useTranslation("dashboard");
 	const { data, isLoading, isError, refetch } = useDashboardOverview();
 	const isNarrowViewport = useIsNarrowViewport();
 
 	if (isLoading) {
-		return (
-			<div className="flex flex-col rounded-xl border border-border-subtle bg-surface-container p-4 animate-pulse">
-				<div className="mb-6 h-4 w-48 rounded-md bg-surface-high" />
-				<div className="min-h-62.5 w-full flex-1 rounded-xl bg-surface-low/50" />
-			</div>
-		);
+		return <EnergyLoadWidgetSkeleton />;
 	}
 
 	if (isError || !data) {
+		if (suppressErrorUI) {
+			return <EnergyLoadWidgetSkeleton />;
+		}
 		return (
 			<div className="flex h-62.5 flex-col justify-center rounded-xl border border-border-subtle bg-surface-container p-4">
-				<DashboardErrorState
-					title={t(
+				<CardErrorFallback
+					message={t(
 						"energyChart.errorTitle",
 						"Não foi possível carregar o gráfico de consumo",
 					)}
-					subtitle={t(
-						"energyChart.errorSubtitle",
-						"Verifique sua conexão e tente novamente.",
-					)}
+					retryLabel={t("common:actions.retry", "Tentar novamente")}
 					onRetry={() => refetch()}
 				/>
 			</div>
