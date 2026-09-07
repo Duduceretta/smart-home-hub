@@ -127,6 +127,7 @@
 	"devicePicker": {
 		"searchPlaceholder": "Buscar dispositivo...",
 		"errorLoad": "Não foi possível carregar os dispositivos.",
+		"retry": "Tentar de novo",
 		"empty": "Nenhum dispositivo encontrado.",
 		"selectedCount_one": "{{count}} selecionado",
 		"selectedCount_other": "{{count}} selecionados"

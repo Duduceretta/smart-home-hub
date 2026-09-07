@@ -43,6 +43,40 @@ describe("RoomDeviceAssignmentPicker Integration Tests", () => {
 		).toBeInTheDocument();
 	});
 
+	it("RoomDeviceAssignmentPicker_FetchFails_RetryButtonRestoresList", async () => {
+		let requestCount = 0;
+		server.use(
+			http.get("*/api/devices", () => {
+				requestCount += 1;
+				// useAssignableDevices tem retry:1 explícito — falha na tentativa
+				// inicial E no retry automático interno, só sucede na 3ª chamada
+				// (o clique manual em "Tentar de novo"), senão o retry automático
+				// se recupera silenciosamente antes do teste observar o erro.
+				if (requestCount <= 2) {
+					return HttpResponse.json({ title: "Erro" }, { status: 500 });
+				}
+				return HttpResponse.json(
+					[createRoomPickerDeviceMock({ id: "d1", name: "Lâmpada Sala" })],
+					{ status: 200 },
+				);
+			}),
+		);
+		const user = userEvent.setup();
+
+		renderWithProviders(
+			<RoomDeviceAssignmentPicker selectedIds={[]} onChange={vi.fn()} />,
+		);
+
+		await screen.findByText(
+			/Não foi possível carregar os dispositivos/i,
+			{},
+			{ timeout: 3000 },
+		);
+		await user.click(screen.getByRole("button", { name: "Tentar de novo" }));
+
+		expect(await screen.findByText("Lâmpada Sala")).toBeInTheDocument();
+	});
+
 	it("RoomDeviceAssignmentPicker_NoDevicesReturned_RendersEmptyMessage", async () => {
 		server.use(
 			http.get("*/api/devices", () => HttpResponse.json([], { status: 200 })),

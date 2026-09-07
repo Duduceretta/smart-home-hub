@@ -127,6 +127,7 @@
 	"devicePicker": {
 		"searchPlaceholder": "Search device...",
 		"errorLoad": "Could not load devices.",
+		"retry": "Try again",
 		"empty": "No devices found.",
 		"selectedCount_one": "{{count}} selected",
 		"selectedCount_other": "{{count}} selected"

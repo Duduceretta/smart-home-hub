@@ -146,6 +146,37 @@ describe("DeviceGroupMultiSelect Integration Tests", () => {
 		expect(screen.queryByText("Lâmpada Sala")).not.toBeInTheDocument();
 	});
 
+	it("DeviceGroupMultiSelect_FetchFailsThenRetry_ShouldRestoreDeviceList", async () => {
+		// Arrange — usePickerDevices tem retry:1 explícito: falha na tentativa
+		// inicial e no retry automático interno, só sucede na 3ª chamada (clique
+		// manual em "Tentar de novo").
+		let requestCount = 0;
+		server.use(
+			http.get("*/api/devices", () => {
+				requestCount += 1;
+				if (requestCount <= 2) {
+					return HttpResponse.json({ title: "Erro" }, { status: 500 });
+				}
+				return HttpResponse.json([
+					createPickerDeviceMock({ id: "dev-1", name: "Lâmpada Sala" }),
+				]);
+			}),
+		);
+		const user = userEvent.setup();
+
+		// Act
+		renderWithProviders(<ControlledMultiSelect />);
+		await screen.findByText(
+			"Erro ao carregar os dispositivos disponíveis.",
+			{},
+			{ timeout: 3000 },
+		);
+		await user.click(screen.getByRole("button", { name: "Tentar de novo" }));
+
+		// Assert
+		expect(await screen.findByText("Lâmpada Sala")).toBeInTheDocument();
+	});
+
 	it("DeviceGroupMultiSelect_NoDevicesAvailable_ShouldRenderEmptyStateWithoutCrashing", async () => {
 		// Arrange
 		mockPickerDevices([]);

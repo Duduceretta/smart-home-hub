@@ -108,6 +108,7 @@
 	"picker": {
 		"searchPlaceholder": "Search device by name or brand...",
 		"errorLoading": "Error loading available devices.",
+		"retry": "Try again",
 		"emptySearch": "No device found.",
 		"selectedCount_one": "{{count}} selected",
 		"selectedCount_other": "{{count}} selected"

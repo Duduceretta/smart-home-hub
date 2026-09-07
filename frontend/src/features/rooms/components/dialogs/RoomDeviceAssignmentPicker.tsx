@@ -1,6 +1,7 @@
 import { Search } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { CardErrorFallback } from "@/core/components/feedback/CardErrorFallback";
 import { Input } from "@/core/components/ui/input";
 import { cn } from "@/core/utils";
 import { useAssignableDevices } from "../../hooks/useAssignableDevices";
@@ -32,7 +33,12 @@ export function RoomDeviceAssignmentPicker({
 }: RoomDeviceAssignmentPickerProps) {
 	const { t } = useTranslation("rooms");
 	const [searchTerm, setSearchTerm] = useState("");
-	const { data: devices = [], isLoading, isError } = useAssignableDevices();
+	const {
+		data: devices = [],
+		isLoading,
+		isError,
+		refetch,
+	} = useAssignableDevices();
 
 	const filteredDevices = useMemo(() => {
 		if (!searchTerm.trim()) return devices;
@@ -81,12 +87,15 @@ export function RoomDeviceAssignmentPicker({
 					)}
 
 					{isError && (
-						<p className="px-3 py-4 text-center text-xs font-medium text-destructive">
-							{t(
+						<CardErrorFallback
+							className="m-2 max-h-56"
+							message={t(
 								"devicePicker.errorLoad",
 								"Não foi possível carregar os dispositivos.",
 							)}
-						</p>
+							retryLabel={t("devicePicker.retry", "Tentar de novo")}
+							onRetry={() => refetch()}
+						/>
 					)}
 
 					{!isLoading && !isError && filteredDevices.length === 0 && (

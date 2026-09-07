@@ -1,6 +1,7 @@
 import { Search } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { CardErrorFallback } from "@/core/components/feedback/CardErrorFallback";
 import { cn } from "@/core/utils";
 import { usePickerDevices } from "../hooks/usePickerDevices";
 
@@ -30,7 +31,12 @@ export function DeviceGroupMultiSelect({
 }: DeviceGroupMultiSelectProps) {
 	const { t } = useTranslation("device-groups");
 	const [searchTerm, setSearchTerm] = useState("");
-	const { data: devices = [], isLoading, isError } = usePickerDevices();
+	const {
+		data: devices = [],
+		isLoading,
+		isError,
+		refetch,
+	} = usePickerDevices();
 
 	const filteredDevices = useMemo(() => {
 		if (!searchTerm.trim()) return devices;
@@ -101,12 +107,15 @@ export function DeviceGroupMultiSelect({
 					)}
 
 					{isError && (
-						<p className="px-3 py-4 text-center text-xs text-destructive">
-							{t(
+						<CardErrorFallback
+							className="m-2 max-h-56"
+							message={t(
 								"picker.errorLoading",
 								"Erro ao carregar os dispositivos disponíveis.",
 							)}
-						</p>
+							retryLabel={t("picker.retry", "Tentar de novo")}
+							onRetry={() => refetch()}
+						/>
 					)}
 
 					{!isLoading && !isError && filteredDevices.length === 0 && (
