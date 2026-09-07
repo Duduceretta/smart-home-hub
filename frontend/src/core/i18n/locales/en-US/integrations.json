@@ -20,7 +20,10 @@
 			"pause": "Pause",
 			"play": "Play",
 			"nextTrack": "Next track",
-			"volume": "Volume"
+			"volume": "Volume",
+			"errorLoad": "Could not load Spotify status.",
+			"errorLoadPlayback": "Could not load current playback.",
+			"retry": "Try again"
 		},
 		"errors": {
 			"connectFailed": "Couldn't connect to Spotify",

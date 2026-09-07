@@ -8,6 +8,8 @@ import {
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { CardErrorFallback } from "@/core/components/feedback/CardErrorFallback";
+import { StaleDataIndicator } from "@/core/components/feedback/StaleDataIndicator";
 import { useDebouncedValue } from "@/core/hooks/useDebouncedValue";
 import { cn } from "@/core/utils";
 import { useConnectSpotify } from "../hooks/useConnectSpotify";
@@ -50,8 +52,18 @@ export function SpotifyNowPlayingSkeleton() {
 
 export const SpotifyNowPlayingCard: React.FC = () => {
 	const { t } = useTranslation("integrations");
-	const { data: status, isLoading: isLoadingStatus } = useSpotifyStatus();
-	const { data: playback, isLoading: isLoadingPlayback } = useSpotifyPlayback({
+	const {
+		data: status,
+		isLoading: isLoadingStatus,
+		isError: isStatusError,
+		refetch: refetchStatus,
+	} = useSpotifyStatus();
+	const {
+		data: playback,
+		isLoading: isLoadingPlayback,
+		isError: isPlaybackError,
+		refetch: refetchPlayback,
+	} = useSpotifyPlayback({
 		enabled: Boolean(status?.connected),
 	});
 	const { mutate: setVolume } = useSetSpotifyVolume();
@@ -91,6 +103,24 @@ export const SpotifyNowPlayingCard: React.FC = () => {
 		return <SpotifyNowPlayingSkeleton />;
 	}
 
+	// Falha de rede ao consultar status/playback NUNCA pode ser interpretada
+	// como "usuário desconectou o Spotify" — isso dispararia reconexão OAuth
+	// desnecessária. Sem cache nenhum, mostra fallback neutro com retry em vez
+	// do card de "desconectado" (que oferece reconectar) ou "nada tocando".
+	if (isStatusError && !status) {
+		return (
+			<CardErrorFallback
+				className="flex-col gap-2 rounded-xl p-4"
+				message={t(
+					"spotify.nowPlayingCard.errorLoad",
+					"Não foi possível carregar o status do Spotify.",
+				)}
+				retryLabel={t("spotify.nowPlayingCard.retry", "Tentar de novo")}
+				onRetry={() => refetchStatus()}
+			/>
+		);
+	}
+
 	if (!status?.connected) {
 		return (
 			<div className="flex flex-col items-center gap-4 rounded-xl border border-border-subtle bg-surface-container p-4 text-center transition-all duration-200 hover:border-border">
@@ -118,6 +148,24 @@ export const SpotifyNowPlayingCard: React.FC = () => {
 		);
 	}
 
+	// Idem acima: falha ao buscar o playback (com status.connected confirmado
+	// por cache ou fetch anterior) não pode virar "nada tocando" — mostra
+	// fallback neutro com retry específico do playback em vez de sugerir que a
+	// integração parou.
+	if (isPlaybackError && !playback) {
+		return (
+			<CardErrorFallback
+				className="flex-col gap-2 rounded-xl p-4"
+				message={t(
+					"spotify.nowPlayingCard.errorLoadPlayback",
+					"Não foi possível carregar a reprodução atual.",
+				)}
+				retryLabel={t("spotify.nowPlayingCard.retry", "Tentar de novo")}
+				onRetry={() => refetchPlayback()}
+			/>
+		);
+	}
+
 	if (!playback?.title) {
 		return (
 			<div className="flex flex-col items-center gap-2 rounded-xl border border-border-subtle bg-surface-container p-4 text-center transition-all duration-200 hover:border-border">
@@ -135,7 +183,10 @@ export const SpotifyNowPlayingCard: React.FC = () => {
 	}
 
 	return (
-		<div className="flex flex-col gap-4 rounded-xl border border-border-subtle bg-surface-container p-4 transition-all duration-200 hover:border-border">
+		<div className="relative flex flex-col gap-4 rounded-xl border border-border-subtle bg-surface-container p-4 transition-all duration-200 hover:border-border">
+			{(isStatusError || isPlaybackError) && (
+				<StaleDataIndicator className="absolute right-3 top-3" />
+			)}
 			{/* Faixa e Capa */}
 			<div className="flex items-center gap-3.5">
 				<div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-border-subtle bg-surface-high">

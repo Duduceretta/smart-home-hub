@@ -20,7 +20,10 @@
 			"pause": "Pausar",
 			"play": "Reproduzir",
 			"nextTrack": "Próxima faixa",
-			"volume": "Volume"
+			"volume": "Volume",
+			"errorLoad": "Não foi possível carregar o status do Spotify.",
+			"errorLoadPlayback": "Não foi possível carregar a reprodução atual.",
+			"retry": "Tentar de novo"
 		},
 		"errors": {
 			"connectFailed": "Não foi possível conectar ao Spotify",

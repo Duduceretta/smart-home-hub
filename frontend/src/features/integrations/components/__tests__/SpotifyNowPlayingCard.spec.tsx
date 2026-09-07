@@ -332,6 +332,121 @@ describe("SpotifyNowPlayingCard Integration Tests", () => {
 		fireEvent.pointerUp(slider, { pointerId: 1 });
 	});
 
+	it("SpotifyNowPlayingCard_StatusFetchFailsWithNoCache_ShowsNeutralFallbackNeverDisconnectedUI", async () => {
+		// Arrange — falha de rede não pode ser confundida com "usuário
+		// desconectou o Spotify" (isso ofereceria reconectar OAuth indevidamente).
+		let loginCalled = false;
+		server.use(
+			http.get("*/api/integrations/spotify/status", () =>
+				HttpResponse.json({ title: "Erro" }, { status: 500 }),
+			),
+			http.get("*/api/integrations/spotify/login", () => {
+				loginCalled = true;
+				return HttpResponse.json(
+					{ authorizeUrl: "https://accounts.spotify.com/authorize" },
+					{ status: 200 },
+				);
+			}),
+		);
+
+		// Act
+		renderWithProviders(<SpotifyNowPlayingCard />);
+
+		// Assert
+		expect(await screen.findByRole("alert")).toBeInTheDocument();
+		expect(screen.queryByText(/Spotify desconectado/i)).not.toBeInTheDocument();
+		expect(
+			screen.queryByRole("button", { name: /Conectar Spotify/i }),
+		).not.toBeInTheDocument();
+		expect(loginCalled).toBe(false);
+	});
+
+	it("SpotifyNowPlayingCard_PlaybackFetchFailsWithNoCacheButConnected_ShowsNeutralFallbackNeverNothingPlaying", async () => {
+		// Arrange — falha isolada do playback (status ok, conectado) não pode
+		// virar "nada tocando" nem oferecer reconexão OAuth.
+		let loginCalled = false;
+		server.use(
+			http.get("*/api/integrations/spotify/status", () => {
+				const status: SpotifyStatus = {
+					connected: true,
+					displayName: "Eduardo",
+				};
+				return HttpResponse.json(status, { status: 200 });
+			}),
+			http.get("*/api/integrations/spotify/playback", () =>
+				HttpResponse.json({ title: "Erro" }, { status: 500 }),
+			),
+			http.get("*/api/integrations/spotify/login", () => {
+				loginCalled = true;
+				return HttpResponse.json(
+					{ authorizeUrl: "https://accounts.spotify.com/authorize" },
+					{ status: 200 },
+				);
+			}),
+		);
+
+		// Act
+		renderWithProviders(<SpotifyNowPlayingCard />);
+
+		// Assert — nunca "nada tocando" nem card de desconectado nesse cenário,
+		// e nenhuma tentativa de reconexão OAuth disparada
+		expect(await screen.findByRole("alert")).toBeInTheDocument();
+		expect(
+			screen.queryByText(/Nada tocando no momento/i),
+		).not.toBeInTheDocument();
+		expect(screen.queryByText(/Spotify desconectado/i)).not.toBeInTheDocument();
+		expect(
+			screen.queryByRole("button", { name: /Conectar Spotify/i }),
+		).not.toBeInTheDocument();
+		expect(loginCalled).toBe(false);
+	});
+
+	it("SpotifyNowPlayingCard_BackgroundRefetchFailsWithCache_ShouldKeepPlayerAndShowStaleIndicatorWithoutTouchingConnectionState", async () => {
+		// Arrange — 1ª carga bem-sucedida, popula cache de status e playback
+		server.use(
+			http.get("*/api/integrations/spotify/status", () => {
+				const status: SpotifyStatus = {
+					connected: true,
+					displayName: "Eduardo",
+				};
+				return HttpResponse.json(status, { status: 200 });
+			}),
+			http.get("*/api/integrations/spotify/playback", () =>
+				HttpResponse.json(activePlayback, { status: 200 }),
+			),
+		);
+		const { queryClient } = renderWithProviders(<SpotifyNowPlayingCard />);
+		await screen.findByText("Hotel California");
+
+		// Act — refetch em background falha (status e playback)
+		let loginCalled = false;
+		server.use(
+			http.get("*/api/integrations/spotify/status", () =>
+				HttpResponse.json({ title: "Erro" }, { status: 500 }),
+			),
+			http.get("*/api/integrations/spotify/playback", () =>
+				HttpResponse.json({ title: "Erro" }, { status: 500 }),
+			),
+			http.get("*/api/integrations/spotify/login", () => {
+				loginCalled = true;
+				return HttpResponse.json(
+					{ authorizeUrl: "https://accounts.spotify.com/authorize" },
+					{ status: 200 },
+				);
+			}),
+		);
+		await queryClient.refetchQueries();
+
+		// Assert — player em cache continua na tela, com indicador discreto;
+		// nenhuma mutação de estado de conexão OAuth foi disparada.
+		expect(
+			await screen.findByTitle(/dados desatualizados/i, {}, { timeout: 3000 }),
+		).toBeInTheDocument();
+		expect(screen.getByText("Hotel California")).toBeInTheDocument();
+		expect(screen.queryByText(/Spotify desconectado/i)).not.toBeInTheDocument();
+		expect(loginCalled).toBe(false);
+	});
+
 	it("SpotifyNowPlayingCard_WhenLoading_RendersSkeletonWithRoleStatusAndAriaBusy", async () => {
 		server.use(
 			http.get("*/api/integrations/spotify/status", () => {
