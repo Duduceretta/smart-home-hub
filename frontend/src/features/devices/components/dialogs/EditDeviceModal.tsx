@@ -3,6 +3,7 @@ import { Loader2, Sliders, Trash2, TriangleAlert } from "lucide-react";
 import { useEffect, useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import { Trans, useTranslation } from "react-i18next";
+import { StaleDataIndicator } from "@/core/components/feedback/StaleDataIndicator";
 import { FormGlobalError } from "@/core/components/forms/FormGlobalError";
 import { useConfirm } from "@/core/components/providers/ConfirmDialogProvider";
 import {
@@ -257,7 +258,7 @@ export const EditDeviceModal: React.FC = () => {
 			>
 				{isLoadingDevice ? (
 					<EditDeviceModalSkeleton />
-				) : isDeviceError ? (
+				) : isDeviceError && !device ? (
 					<EditDeviceModalErrorFallback
 						onRetry={() => refetchDevice()}
 						onClose={closeEditModal}
@@ -278,8 +279,9 @@ export const EditDeviceModal: React.FC = () => {
 								</span>
 
 								<DialogHeader className="flex-1 gap-1 text-left">
-									<DialogTitle className="text-lg font-bold tracking-tight text-foreground">
+									<DialogTitle className="flex items-center gap-1.5 text-lg font-bold tracking-tight text-foreground">
 										{t("form.edit.title")}
+										{isDeviceError && <StaleDataIndicator />}
 									</DialogTitle>
 									<DialogDescription className="text-xs leading-relaxed text-muted-foreground">
 										{t("form.edit.description")}

@@ -2,6 +2,7 @@ import { Bot, Clock, Radio } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { CardErrorFallback } from "@/core/components/feedback/CardErrorFallback";
+import { StaleDataIndicator } from "@/core/components/feedback/StaleDataIndicator";
 import { cn } from "@/core/utils";
 import { useRoomAutomations } from "../../hooks/useRoomAutomations";
 import type { RoomAutomationTriggerKind } from "../../types/rooms.types";
@@ -40,11 +41,12 @@ export function RoomLinkedAutomations({ roomId }: RoomLinkedAutomationsProps) {
 	const { t } = useTranslation("rooms");
 	const navigate = useNavigate();
 	const {
-		data: automations = [],
+		data: automationsData,
 		isLoading,
 		isError,
 		refetch,
 	} = useRoomAutomations(roomId);
+	const automations = automationsData ?? [];
 
 	return (
 		<div className="flex flex-col gap-2">
@@ -52,8 +54,9 @@ export function RoomLinkedAutomations({ roomId }: RoomLinkedAutomationsProps) {
 			pronto pra receber um link "Ver todas"/contador quando a lista crescer,
 			sem precisar de refatoração futura. */}
 			<div className="flex items-center justify-between">
-				<h3 className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+				<h3 className="flex items-center gap-1.5 text-xs font-medium uppercase tracking-wider text-muted-foreground">
 					{t("automations.title", "Automações deste Ambiente")}
+					{isError && automationsData && <StaleDataIndicator />}
 				</h3>
 			</div>
 
@@ -66,7 +69,7 @@ export function RoomLinkedAutomations({ roomId }: RoomLinkedAutomationsProps) {
 						/>
 					))}
 				</div>
-			) : isError ? (
+			) : isError && !automationsData ? (
 				<CardErrorFallback
 					message={t(
 						"automations.errorLoad",

@@ -1,6 +1,7 @@
 import { Droplets, Thermometer } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { CardErrorFallback } from "@/core/components/feedback/CardErrorFallback";
+import { StaleDataIndicator } from "@/core/components/feedback/StaleDataIndicator";
 import { useRoomClimate } from "../../hooks/useRoomClimate";
 import { RoomKpiCard } from "./RoomKpiCard";
 
@@ -30,7 +31,7 @@ export function RoomClimateSection({ roomId }: RoomClimateSectionProps) {
 		);
 	}
 
-	if (isError) {
+	if (isError && !data) {
 		return (
 			<CardErrorFallback
 				message={t(
@@ -46,7 +47,8 @@ export function RoomClimateSection({ roomId }: RoomClimateSectionProps) {
 	if (!data?.hasClimateSensor) return null;
 
 	return (
-		<div className="grid grid-cols-[repeat(auto-fit,minmax(140px,1fr))] gap-4">
+		<div className="relative grid grid-cols-[repeat(auto-fit,minmax(140px,1fr))] gap-4">
+			{isError && <StaleDataIndicator className="absolute -top-1 -right-1" />}
 			<RoomKpiCard
 				icon={Thermometer}
 				label={t("climate.temperature", "Temperatura")}

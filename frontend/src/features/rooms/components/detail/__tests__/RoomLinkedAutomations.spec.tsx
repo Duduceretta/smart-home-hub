@@ -108,4 +108,31 @@ describe("RoomLinkedAutomations Integration Tests", () => {
 
 		expect(requestCount).toBeGreaterThan(requestsBeforeRetry);
 	});
+
+	it("RoomLinkedAutomations_BackgroundRefetchFailsWithCache_ShouldKeepListAndShowStaleIndicator", async () => {
+		// Arrange — 1ª carga bem-sucedida, popula o cache
+		server.use(
+			http.get("*/api/rooms/:id/automations", () =>
+				HttpResponse.json([
+					createRoomLinkedAutomationMock({ name: "Ligar luzes ao anoitecer" }),
+				]),
+			),
+		);
+		const { queryClient } = renderComponent();
+		await screen.findByText("Ligar luzes ao anoitecer");
+
+		// Act — refetch em background falha
+		server.use(
+			http.get("*/api/rooms/:id/automations", () =>
+				HttpResponse.json({ title: "Erro" }, { status: 500 }),
+			),
+		);
+		await queryClient.refetchQueries();
+
+		// Assert — lista continua na tela, com indicador discreto no título
+		expect(
+			await screen.findByTitle(/dados desatualizados/i, {}, { timeout: 3000 }),
+		).toBeInTheDocument();
+		expect(screen.getByText("Ligar luzes ao anoitecer")).toBeInTheDocument();
+	});
 });

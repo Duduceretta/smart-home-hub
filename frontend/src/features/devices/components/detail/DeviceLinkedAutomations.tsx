@@ -2,6 +2,7 @@ import { Bot, Clock, Radio } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { CardErrorFallback } from "@/core/components/feedback/CardErrorFallback";
+import { StaleDataIndicator } from "@/core/components/feedback/StaleDataIndicator";
 import { cn } from "@/core/utils";
 import { useDeviceAutomations } from "../../hooks/useDeviceAutomations";
 import type { DeviceAutomationTriggerKind } from "../../types/devices.types";
@@ -42,17 +43,19 @@ export function DeviceLinkedAutomations({
 	const { t } = useTranslation("devices");
 	const navigate = useNavigate();
 	const {
-		data: automations = [],
+		data: automationsData,
 		isLoading,
 		isError,
 		refetch,
 	} = useDeviceAutomations(deviceId);
+	const automations = automationsData ?? [];
 
 	return (
 		<div className="flex flex-col gap-2">
 			<div className="flex items-center justify-between">
-				<h3 className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+				<h3 className="flex items-center gap-1.5 text-xs font-medium uppercase tracking-wider text-muted-foreground">
 					{t("automations.title", "Automações que usam este dispositivo")}
+					{isError && automationsData && <StaleDataIndicator />}
 				</h3>
 			</div>
 
@@ -65,7 +68,7 @@ export function DeviceLinkedAutomations({
 						/>
 					))}
 				</div>
-			) : isError ? (
+			) : isError && !automationsData ? (
 				<CardErrorFallback
 					message={t(
 						"automations.errorLoad",

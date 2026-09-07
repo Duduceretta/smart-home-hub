@@ -187,4 +187,30 @@ describe("EditDeviceModal Integration Tests", () => {
 			expect(deleteCalled).toBe(true);
 		});
 	});
+
+	it("EditDeviceModal_BackgroundRefetchFailsWithCache_ShouldKeepFormAndShowStaleIndicator", async () => {
+		// Arrange — modal abre e carrega o dispositivo com sucesso, populando
+		// o cache; um refetch em background falhando não pode apagar edições
+		// em andamento no formulário.
+		const { queryClient } = renderWithProviders(<EditDeviceModal />);
+		useDevicesUIStore.getState().openEditModal(mockDevice);
+		await screen.findByLabelText(/Nome do Dispositivo/i);
+
+		// Act — refetch em background falha
+		server.use(
+			http.get("*/api/devices/:id", () =>
+				HttpResponse.json({ title: "Erro" }, { status: 500 }),
+			),
+		);
+		await queryClient.refetchQueries();
+
+		// Assert — formulário continua na tela, com indicador discreto no
+		// título, nunca o fallback de erro completo
+		expect(
+			await screen.findByTitle(/dados desatualizados/i, {}, { timeout: 3000 }),
+		).toBeInTheDocument();
+		expect(screen.getByLabelText(/Nome do Dispositivo/i)).toHaveValue(
+			mockDevice.name,
+		);
+	});
 });

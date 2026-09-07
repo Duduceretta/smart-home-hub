@@ -109,4 +109,36 @@ describe("RoomClimateSection Integration Tests", () => {
 
 		expect(requestCount).toBeGreaterThan(requestsBeforeRetry);
 	});
+
+	it("RoomClimateSection_BackgroundRefetchFailsWithCache_ShouldKeepKpisAndShowStaleIndicator", async () => {
+		// Arrange — 1ª carga bem-sucedida, popula o cache
+		server.use(
+			http.get("*/api/rooms/:id/climate", () =>
+				HttpResponse.json(
+					createRoomClimateMock({
+						temperatureCelsius: 23,
+						humidityPercent: 55,
+					}),
+				),
+			),
+		);
+		const { queryClient } = renderWithProviders(
+			<RoomClimateSection roomId="room-01" />,
+		);
+		await screen.findByText("23°C");
+
+		// Act — refetch em background falha
+		server.use(
+			http.get("*/api/rooms/:id/climate", () =>
+				HttpResponse.json({ title: "Erro" }, { status: 500 }),
+			),
+		);
+		await queryClient.refetchQueries();
+
+		// Assert — KPIs continuam na tela, com indicador discreto sobreposto
+		expect(
+			await screen.findByTitle(/dados desatualizados/i, {}, { timeout: 3000 }),
+		).toBeInTheDocument();
+		expect(screen.getByText("23°C")).toBeInTheDocument();
+	});
 });

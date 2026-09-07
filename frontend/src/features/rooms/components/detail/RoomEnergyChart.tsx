@@ -11,6 +11,7 @@ import {
 	YAxis,
 } from "recharts";
 import { CardErrorFallback } from "@/core/components/feedback/CardErrorFallback";
+import { StaleDataIndicator } from "@/core/components/feedback/StaleDataIndicator";
 import { useRoomEnergy } from "../../hooks/useRoomEnergy";
 import {
 	formatRoomEnergy,
@@ -74,8 +75,9 @@ export function RoomEnergyChart({ roomId }: RoomEnergyChartProps) {
 	return (
 		<div className="flex flex-col gap-3 rounded-lg border border-border-subtle bg-surface-container p-4">
 			<div className="flex items-center justify-between">
-				<h3 className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+				<h3 className="flex items-center gap-1.5 text-xs font-medium uppercase tracking-wider text-muted-foreground">
 					{t("energy.title", "Consumo de Energia")}
+					{isError && data && <StaleDataIndicator />}
 				</h3>
 				<div className="flex items-center gap-1">
 					<Calendar className="mr-1 h-3 w-3 text-muted-foreground" />
@@ -98,7 +100,7 @@ export function RoomEnergyChart({ roomId }: RoomEnergyChartProps) {
 
 			{isLoading ? (
 				<div className="h-40 w-full animate-pulse rounded-lg bg-surface-high/60" />
-			) : isError ? (
+			) : isError && !data ? (
 				<CardErrorFallback
 					message={t(
 						"energy.errorLoad",
