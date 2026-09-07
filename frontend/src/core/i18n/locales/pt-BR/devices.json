@@ -126,7 +126,9 @@
 		"createFirstDevice": "Cadastrar Primeiro Dispositivo",
 		"pageIndicator": "Página {{page}} de {{totalPages}}",
 		"previousPage": "Página anterior",
-		"nextPage": "Próxima página"
+		"nextPage": "Próxima página",
+		"errorLoad": "Não foi possível carregar os dispositivos.",
+		"retry": "Tentar de novo"
 	},
 	"card": {
 		"noRoom": "Sem cômodo",
@@ -214,6 +216,8 @@
 			"title": "Editar Dispositivo",
 			"description": "Altere as informações cadastrais ou mude o cômodo do dispositivo.",
 			"loading": "Carregando especificações...",
+			"errorTitle": "Não foi possível carregar o dispositivo",
+			"errorDescription": "Verifique sua conexão e tente novamente.",
 			"saveButton": "Salvar Alterações",
 			"deleteButton": "Excluir Dispositivo",
 			"advancedSettings": "Configurações Técnicas"

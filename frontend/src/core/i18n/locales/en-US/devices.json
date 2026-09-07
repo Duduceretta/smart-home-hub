@@ -126,7 +126,9 @@
 		"createFirstDevice": "Register First Device",
 		"pageIndicator": "Page {{page}} of {{totalPages}}",
 		"previousPage": "Previous page",
-		"nextPage": "Next page"
+		"nextPage": "Next page",
+		"errorLoad": "Could not load devices.",
+		"retry": "Try again"
 	},
 	"card": {
 		"noRoom": "No room",
@@ -214,6 +216,8 @@
 			"title": "Edit Device",
 			"description": "Change the registration details or the device's room.",
 			"loading": "Loading specifications...",
+			"errorTitle": "Could not load the device",
+			"errorDescription": "Check your connection and try again.",
 			"saveButton": "Save Changes",
 			"deleteButton": "Delete Device",
 			"advancedSettings": "Technical Settings"

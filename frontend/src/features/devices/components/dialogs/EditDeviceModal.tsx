@@ -1,5 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader2, Sliders, Trash2 } from "lucide-react";
+import { Loader2, Sliders, Trash2, TriangleAlert } from "lucide-react";
 import { useEffect, useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import { Trans, useTranslation } from "react-i18next";
@@ -79,6 +79,57 @@ function EditDeviceModalSkeleton() {
 }
 
 /**
+ * Fallback local (neutro, `border-dashed`, sem vermelho) pra quando
+ * `useDevice` falha de verdade — distinto do skeleton, que antes cobria
+ * silenciosamente esse caso e deixava o modal preso em "carregando" pra
+ * sempre (`isLoadingDevice` vira `false`, mas `device` nunca chega a existir).
+ */
+function EditDeviceModalErrorFallback({
+	onRetry,
+	onClose,
+}: {
+	onRetry: () => void;
+	onClose: () => void;
+}) {
+	const { t } = useTranslation(["devices", "common"]);
+
+	return (
+		<div
+			role="alert"
+			className="flex h-72 flex-col items-center justify-center gap-3 p-6 text-center"
+		>
+			<div className="flex h-10 w-10 items-center justify-center rounded-full border border-dashed border-border-subtle bg-surface-low/50 text-muted-foreground">
+				<TriangleAlert className="h-5 w-5" />
+			</div>
+			<div className="flex flex-col gap-1">
+				<p className="text-sm font-medium text-foreground">
+					{t("form.edit.errorTitle")}
+				</p>
+				<p className="max-w-xs text-xs text-muted-foreground">
+					{t("form.edit.errorDescription")}
+				</p>
+			</div>
+			<div className="flex items-center gap-2.5">
+				<button
+					type="button"
+					onClick={onClose}
+					className="h-8.5 rounded-lg border border-border-subtle bg-surface-container px-3.5 text-xs font-medium text-muted-foreground transition-all hover:border-border hover:bg-surface-high hover:text-foreground cursor-pointer shadow-xs"
+				>
+					{t("common:actions.cancel")}
+				</button>
+				<button
+					type="button"
+					onClick={onRetry}
+					className="inline-flex h-8.5 items-center gap-2 rounded-lg border border-border bg-surface-high px-4 text-xs font-semibold text-foreground transition-all hover:border-foreground/30 hover:bg-surface-highest cursor-pointer shadow-xs active:scale-[0.98]"
+				>
+					{t("common:actions.retry")}
+				</button>
+			</div>
+		</div>
+	);
+}
+
+/**
  * Orchestrates the Edit Device dialog: form lifecycle (reset on device
  * load/close), the shared `useForm` instance handed down to
  * `EditDeviceGeneralTab`/`EditDeviceAdvancedSection` via `FormProvider`,
@@ -95,9 +146,12 @@ export const EditDeviceModal: React.FC = () => {
 	const [isAdvancedOpen, setIsAdvancedOpen] = useState(false);
 	const confirm = useConfirm();
 
-	const { data: device, isLoading: isLoadingDevice } = useDevice(
-		editingDevice?.id ?? "",
-	);
+	const {
+		data: device,
+		isLoading: isLoadingDevice,
+		isError: isDeviceError,
+		refetch: refetchDevice,
+	} = useDevice(editingDevice?.id ?? "");
 	const {
 		mutate: updateDevice,
 		isPending: isUpdating,
@@ -201,7 +255,14 @@ export const EditDeviceModal: React.FC = () => {
 					"max-sm:fixed max-sm:inset-0 max-sm:top-0 max-sm:left-0 max-sm:flex max-sm:h-dvh max-sm:max-w-none max-sm:w-full max-sm:translate-x-0 max-sm:translate-y-0 max-sm:flex-col max-sm:rounded-none",
 				)}
 			>
-				{isLoadingDevice || !device ? (
+				{isLoadingDevice ? (
+					<EditDeviceModalSkeleton />
+				) : isDeviceError ? (
+					<EditDeviceModalErrorFallback
+						onRetry={() => refetchDevice()}
+						onClose={closeEditModal}
+					/>
+				) : !device ? (
 					<EditDeviceModalSkeleton />
 				) : (
 					<FormProvider {...formMethods}>
