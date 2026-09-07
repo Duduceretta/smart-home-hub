@@ -107,6 +107,15 @@ describe("RoomsView Integration Tests", () => {
 				{ timeout: 3000 },
 			),
 		).toBeInTheDocument();
+
+		// Assert — mesma paridade dimensional do skeleton (h-full, rounded-xl)
+		// e tom neutro (nunca destructive/vermelho)
+		const alert = screen.getByRole("alert");
+		expect(alert).toHaveClass("h-full");
+		expect(alert).toHaveClass("rounded-xl");
+		expect(alert).toHaveClass("border-dashed");
+		expect(alert.className).not.toMatch(/destructive/);
+
 		const requestsBeforeRetry = requestCount;
 
 		await user.click(screen.getByRole("button", { name: "Tentar novamente" }));
@@ -115,6 +124,35 @@ describe("RoomsView Integration Tests", () => {
 		await waitFor(() =>
 			expect(requestCount).toBeGreaterThan(requestsBeforeRetry),
 		);
+	});
+
+	it("RoomsView_RetrySucceeds_ShouldRestoreNormalContent", async () => {
+		// Arrange — useRooms tem `retry: 1` — falha nas 2 primeiras chamadas
+		// (inicial + retry automático) e só sucede a partir da 3ª (clique manual)
+		let requestCount = 0;
+		server.use(
+			http.get("*/api/rooms", () => {
+				requestCount += 1;
+				return requestCount <= 2
+					? HttpResponse.json({ title: "Erro" }, { status: 500 })
+					: HttpResponse.json([createRoomMock({ name: "Sala de Estar" })]);
+			}),
+		);
+		mockAssignableDevices();
+		const user = userEvent.setup();
+
+		// Act
+		renderRoomsView();
+		await screen.findByText(
+			"Não foi possível carregar os ambientes.",
+			{},
+			{ timeout: 3000 },
+		);
+		await user.click(screen.getByRole("button", { name: "Tentar novamente" }));
+
+		// Assert — conteúdo normal volta, sem reload de página
+		expect(await screen.findByText("Sala de Estar")).toBeInTheDocument();
+		expect(screen.queryByRole("alert")).not.toBeInTheDocument();
 	});
 
 	it("RoomsView_NoRoomsRegistered_ShouldRenderEmptyStateWithCreateButton", async () => {

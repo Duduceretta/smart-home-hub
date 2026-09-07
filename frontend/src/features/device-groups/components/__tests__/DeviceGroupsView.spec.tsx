@@ -89,6 +89,15 @@ describe("DeviceGroupsView Integration Tests", () => {
 				{ timeout: 3000 },
 			),
 		).toBeInTheDocument();
+
+		// Assert — mesma paridade dimensional do skeleton (h-full, rounded-xl)
+		// e tom neutro (nunca destructive/vermelho)
+		const alert = screen.getByRole("alert");
+		expect(alert).toHaveClass("h-full");
+		expect(alert).toHaveClass("rounded-xl");
+		expect(alert).toHaveClass("border-dashed");
+		expect(alert.className).not.toMatch(/destructive/);
+
 		const requestsBeforeRetry = requestCount;
 
 		await user.click(screen.getByRole("button", { name: "Tentar novamente" }));
@@ -97,6 +106,38 @@ describe("DeviceGroupsView Integration Tests", () => {
 		await waitFor(() =>
 			expect(requestCount).toBeGreaterThan(requestsBeforeRetry),
 		);
+	});
+
+	it("DeviceGroupsView_RetrySucceeds_ShouldRestoreNormalContent", async () => {
+		// Arrange — useDeviceGroups tem `retry: 1` — falha nas 2 primeiras
+		// chamadas (inicial + retry automático) e só sucede a partir da 3ª
+		// (clique manual)
+		let requestCount = 0;
+		server.use(
+			http.get("*/api/device-groups", () => {
+				requestCount += 1;
+				return requestCount <= 2
+					? HttpResponse.json({ title: "Erro" }, { status: 500 })
+					: HttpResponse.json([
+							createDeviceGroupMock({ name: "Luzes da Sala" }),
+						]);
+			}),
+		);
+		mockPickerDevices();
+		const user = userEvent.setup();
+
+		// Act
+		renderDeviceGroupsView();
+		await screen.findByText(
+			"Não foi possível carregar os grupos de dispositivos.",
+			{},
+			{ timeout: 3000 },
+		);
+		await user.click(screen.getByRole("button", { name: "Tentar novamente" }));
+
+		// Assert — conteúdo normal volta, sem reload de página
+		expect(await screen.findByText("Luzes da Sala")).toBeInTheDocument();
+		expect(screen.queryByRole("alert")).not.toBeInTheDocument();
 	});
 
 	it("DeviceGroupsView_NoGroupsRegistered_ShouldRenderEmptyStateWithCreateButton", async () => {

@@ -8,6 +8,9 @@
 	"toolbar": {
 		"searchPlaceholder": "Buscar automação por nome..."
 	},
+	"page": {
+		"errorLoad": "Não foi possível carregar as automações."
+	},
 	"grid": {
 		"errorTitle": "Erro ao carregar as automações.",
 		"errorSubtitle": "Verifique sua conexão ou se o serviço de API C# está em execução.",

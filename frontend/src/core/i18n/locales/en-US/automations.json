@@ -8,6 +8,9 @@
 	"toolbar": {
 		"searchPlaceholder": "Search automation by name..."
 	},
+	"page": {
+		"errorLoad": "Could not load automations."
+	},
 	"grid": {
 		"errorTitle": "Error loading automations.",
 		"errorSubtitle": "Check your connection or whether the C# API service is running.",

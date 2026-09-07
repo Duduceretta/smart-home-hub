@@ -1,7 +1,8 @@
-import { AlertTriangle, ArrowLeft } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
+import { CardErrorFallback } from "@/core/components/feedback/CardErrorFallback";
 import { useDebouncedValue } from "@/core/hooks/useDebouncedValue";
 import { useMediaQuery } from "@/core/hooks/useMediaQuery";
 import { cn } from "@/core/utils";
@@ -312,18 +313,16 @@ export function AutomationsView() {
 				</div>
 
 				{isAutomationsError ? (
-					<div className="flex flex-1 flex-col items-center justify-center gap-2 rounded-xl border border-destructive/30 bg-destructive/10 p-6 text-center">
-						<AlertTriangle className="h-6 w-6 text-destructive" />
-						<p className="text-sm font-medium text-destructive">
-							Não foi possível carregar as automações.
-						</p>
-						<button
-							type="button"
-							onClick={() => refetchAutomations()}
-							className="mt-2 rounded-md border border-border-subtle bg-surface-container px-3 py-1.5 text-xs font-semibold uppercase tracking-wider text-foreground transition-all hover:border-border hover:bg-surface-high cursor-pointer shadow-xs"
-						>
-							Tentar novamente
-						</button>
+					<div className="min-h-0 flex-1">
+						<CardErrorFallback
+							message={t(
+								"page.errorLoad",
+								"Não foi possível carregar as automações.",
+							)}
+							retryLabel={t("common:actions.retry", "Tentar novamente")}
+							onRetry={() => refetchAutomations()}
+							className="h-full flex-col justify-center gap-3 rounded-xl bg-surface-low/50 p-6 text-center text-sm"
+						/>
 					</div>
 				) : isLoadingAutomations ? (
 					<div className="min-h-0 flex-1">

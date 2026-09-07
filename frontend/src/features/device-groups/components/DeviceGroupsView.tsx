@@ -1,7 +1,8 @@
-import { AlertTriangle, Boxes, Plus, Trash2 } from "lucide-react";
+import { Boxes, Plus, Trash2 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useLocation, useSearchParams } from "react-router-dom";
+import { CardErrorFallback } from "@/core/components/feedback/CardErrorFallback";
 import { useConfirm } from "@/core/components/providers/ConfirmDialogProvider";
 import { useMediaQuery } from "@/core/hooks/useMediaQuery";
 import { cn } from "@/core/utils";
@@ -165,21 +166,16 @@ export function DeviceGroupsView() {
 				</div>
 
 				{isGroupsError ? (
-					<div className="flex flex-1 flex-col items-center justify-center gap-2 rounded-xl border border-destructive/30 bg-destructive/10 p-6 text-center">
-						<AlertTriangle className="h-6 w-6 text-destructive" />
-						<p className="text-sm font-medium text-destructive">
-							{t(
+					<div className="min-h-0 flex-1">
+						<CardErrorFallback
+							message={t(
 								"grid.errorTitle",
 								"Não foi possível carregar os grupos de dispositivos.",
 							)}
-						</p>
-						<button
-							type="button"
-							onClick={() => refetchGroups()}
-							className="mt-2 rounded-md border border-border-subtle bg-surface-container px-3 py-1.5 text-xs font-medium uppercase tracking-wider text-foreground transition-colors hover:bg-surface-high hover:border-primary/40 cursor-pointer"
-						>
-							{t("page.retry", "Tentar novamente")}
-						</button>
+							retryLabel={t("page.retry", "Tentar novamente")}
+							onRetry={() => refetchGroups()}
+							className="h-full flex-col justify-center gap-3 rounded-xl bg-surface-low/50 p-6 text-center text-sm"
+						/>
 					</div>
 				) : isLoadingGroups ? (
 					<div className="min-h-0 flex-1">

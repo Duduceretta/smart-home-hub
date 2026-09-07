@@ -1,6 +1,11 @@
-import { ShieldAlert, Thermometer, Wifi, Zap } from "lucide-react";
+import {
+	ShieldAlert,
+	Thermometer,
+	TriangleAlert,
+	Wifi,
+	Zap,
+} from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { CardErrorFallback } from "@/core/components/feedback/CardErrorFallback";
 import { useDashboardOverview } from "../hooks/useDashboardOverview";
 import { formatEnergy } from "../lib/formatEnergy";
 
@@ -12,16 +17,63 @@ interface StatusHubSummaryProps {
 	suppressErrorUI?: boolean;
 }
 
+const METRIC_KEYS = ["energy", "devices", "temperature", "alerts"];
+
 function StatusHubSummarySkeleton() {
 	return (
 		<div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 animate-pulse">
-			{["energy", "devices", "temperature", "alerts"].map((metricKey) => (
+			{METRIC_KEYS.map((metricKey) => (
 				<div
 					key={`skeleton-${metricKey}`}
 					className="flex h-24 flex-col justify-between rounded-xl border border-border-subtle bg-surface-container p-4"
 				>
 					<div className="h-3 w-20 rounded-md bg-surface-high" />
 					<div className="h-6 w-16 rounded-md bg-surface-high" />
+				</div>
+			))}
+		</div>
+	);
+}
+
+interface StatusHubSummaryErrorGridProps {
+	message: string;
+	retryLabel: string;
+	onRetry: () => void;
+}
+
+/**
+ * Erro local (só a query desta seção falhou, as outras 4 do Dashboard
+ * seguem OK) — preserva o grid de 4 células do skeleton/estado carregado
+ * em vez de colapsar pra uma caixa única centralizada. Cada célula é
+ * minimalista (ícone + retry) porque repetir a frase completa 4x seria
+ * ruído; a mensagem completa fica em `aria-label` no próprio `role="alert"`
+ * de cada célula, pra leitor de tela anunciar o contexto real.
+ */
+function StatusHubSummaryErrorGrid({
+	message,
+	retryLabel,
+	onRetry,
+}: StatusHubSummaryErrorGridProps) {
+	return (
+		<div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+			{METRIC_KEYS.map((metricKey) => (
+				<div
+					key={`error-${metricKey}`}
+					role="alert"
+					aria-label={message}
+					className="flex h-24 flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-border-subtle bg-surface-low/50 p-4 text-center"
+				>
+					<TriangleAlert
+						className="h-4 w-4 text-muted-foreground"
+						aria-hidden="true"
+					/>
+					<button
+						type="button"
+						onClick={onRetry}
+						className="text-xs font-medium text-muted-foreground transition-colors hover:text-foreground hover:underline cursor-pointer"
+					>
+						{retryLabel}
+					</button>
 				</div>
 			))}
 		</div>
@@ -43,14 +95,13 @@ export function StatusHubSummary({
 			return <StatusHubSummarySkeleton />;
 		}
 		return (
-			<CardErrorFallback
+			<StatusHubSummaryErrorGrid
 				message={t(
 					"metrics.errorTitle",
 					"Não foi possível carregar os indicadores",
 				)}
 				retryLabel={t("common:actions.retry", "Tentar novamente")}
 				onRetry={() => refetch()}
-				className="min-h-24"
 			/>
 		);
 	}

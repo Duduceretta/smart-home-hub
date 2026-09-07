@@ -125,10 +125,62 @@ describe("AutomationsView Integration Tests", () => {
 			),
 		).toBeInTheDocument();
 
+		// Assert — mesma paridade dimensional do skeleton (h-full, rounded-xl)
+		// e tom neutro (nunca destructive/vermelho)
+		const alert = screen.getByRole("alert");
+		expect(alert).toHaveClass("h-full");
+		expect(alert).toHaveClass("rounded-xl");
+		expect(alert).toHaveClass("border-dashed");
+		expect(alert.className).not.toMatch(/destructive/);
+
 		const initialCount = requestCount;
 		await user.click(screen.getByRole("button", { name: "Tentar novamente" }));
 
 		await waitFor(() => expect(requestCount).toBeGreaterThan(initialCount));
+	});
+
+	it("AutomationsView_RetrySucceeds_ShouldRestoreNormalContent", async () => {
+		// Arrange — useAutomations tem `retry: 1` — falha nas 2 primeiras
+		// chamadas (inicial + retry automático) e só sucede a partir da 3ª
+		// (clique manual)
+		let requestCount = 0;
+		server.use(
+			http.get("*/api/devices", () =>
+				HttpResponse.json([createPickerDeviceMock()]),
+			),
+			http.get("*/api/automations/counts", () =>
+				HttpResponse.json(createAutomationFilterCountsMock()),
+			),
+			http.get("*/api/automations", ({ request }) => {
+				const url = new URL(request.url);
+				if (url.pathname.endsWith("/counts")) return;
+				requestCount += 1;
+				if (requestCount <= 2) {
+					return HttpResponse.json({ title: "Erro" }, { status: 500 });
+				}
+				return HttpResponse.json({
+					items: [createAutomationMock({ name: "Ligar Luzes" })],
+					page: 1,
+					pageSize: 20,
+					totalCount: 1,
+					hasNextPage: false,
+				});
+			}),
+		);
+		const user = userEvent.setup();
+
+		// Act
+		renderAutomationsView();
+		await screen.findByText(
+			"Não foi possível carregar as automações.",
+			{},
+			{ timeout: 3000 },
+		);
+		await user.click(screen.getByRole("button", { name: "Tentar novamente" }));
+
+		// Assert — conteúdo normal volta, sem reload de página
+		expect(await screen.findByText("Ligar Luzes")).toBeInTheDocument();
+		expect(screen.queryByRole("alert")).not.toBeInTheDocument();
 	});
 
 	it("AutomationsView_Loaded_ShouldRenderListAndSummaryCounts", async () => {
