@@ -60,11 +60,15 @@ export const DashboardView: React.FC = () => {
 		refetch: refetchOverview,
 	} = useDashboardOverview();
 	const {
+		data: automationsSummaryData,
 		isError: isAutomationsSummaryError,
 		refetch: refetchAutomationsSummary,
 	} = useRecentAutomations();
-	const { isError: isActivityLogError, refetch: refetchActivityLog } =
-		useActivityLog(1, ACTIVITY_LOG_VISIBLE_ENTRIES_LIMIT);
+	const {
+		data: activityLogData,
+		isError: isActivityLogError,
+		refetch: refetchActivityLog,
+	} = useActivityLog(1, ACTIVITY_LOG_VISIBLE_ENTRIES_LIMIT);
 
 	const devices = devicesPage?.items ?? [];
 	const rooms = roomsData ?? [];
@@ -80,16 +84,38 @@ export const DashboardView: React.FC = () => {
 	 * Detector de falha sistêmica (seção 12.2 de `ui-and-design-system.md`):
 	 * as 5 áreas do Dashboard (KPIs, gráfico de energia, seção de cômodos,
 	 * automações recentes, linha do tempo) consomem, no total, estas 5
-	 * queries independentes. 2+ falhando ao mesmo tempo é sintoma de outage
-	 * de rede/backend, não de bug isolado num endpoint — nesse caso um
-	 * único banner consolidado substitui os 5 alertas fragmentados.
+	 * queries independentes. 2+ falhando SEM cache pra mostrar ao mesmo
+	 * tempo é sintoma de outage de rede/backend — nesse caso um único
+	 * banner consolidado substitui os alertas fragmentados. Queries com
+	 * `data` em cache (stale-while-revalidate, seção 12.1) não contam pro
+	 * cálculo — já estão degradando graciosamente sozinhas.
 	 */
 	const { isSystemic, retryAll } = useSystemicFailureDetector([
-		{ isError: isOverviewError, refetch: refetchOverview },
-		{ isError: isRoomsError, refetch: refetchRooms },
-		{ isError: isDevicesError, refetch: refetchDevices },
-		{ isError: isAutomationsSummaryError, refetch: refetchAutomationsSummary },
-		{ isError: isActivityLogError, refetch: refetchActivityLog },
+		{
+			isError: isOverviewError,
+			hasData: Boolean(overviewData),
+			refetch: refetchOverview,
+		},
+		{
+			isError: isRoomsError,
+			hasData: Boolean(roomsData),
+			refetch: refetchRooms,
+		},
+		{
+			isError: isDevicesError,
+			hasData: Boolean(devicesPage),
+			refetch: refetchDevices,
+		},
+		{
+			isError: isAutomationsSummaryError,
+			hasData: Boolean(automationsSummaryData),
+			refetch: refetchAutomationsSummary,
+		},
+		{
+			isError: isActivityLogError,
+			hasData: Boolean(activityLogData),
+			refetch: refetchActivityLog,
+		},
 	]);
 
 	const energyUsageByRoomKey = useMemo(() => {

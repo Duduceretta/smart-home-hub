@@ -300,6 +300,33 @@ describe("DashboardView Integration Tests", () => {
 		);
 	});
 
+	it("DashboardView_TwoQueriesFailWithCachePresent_ShouldNotShowSystemicBanner", async () => {
+		// Arrange — tudo sucede primeiro, populando o cache das 5 queries
+		useDefaultHandlers();
+		const { queryClient } = renderDashboard();
+		await screen.findByText("Sala de Estar");
+
+		// Act — rooms e devices passam a falhar em background (refetch), mas
+		// ambas já têm cache válido — stale-while-revalidate, não outage
+		server.use(
+			http.get("*/api/rooms", () =>
+				HttpResponse.json({ title: "Erro" }, { status: 500 }),
+			),
+			http.get("*/api/devices", () =>
+				HttpResponse.json({ title: "Erro" }, { status: 500 }),
+			),
+		);
+		await queryClient.refetchQueries();
+
+		// Assert — SEM banner sistêmico; conteúdo continua normal (do cache)
+		await waitFor(() => {
+			expect(
+				screen.queryByText(/não foi possível conectar ao servidor/i),
+			).not.toBeInTheDocument();
+		});
+		expect(screen.getByText("Sala de Estar")).toBeInTheDocument();
+	});
+
 	it("DashboardView_SystemicFailureRecovers_ShouldRemoveBannerAndRestoreContentWithoutReload", async () => {
 		// Arrange — rooms e automations falham na 1ª chamada, sucesso a partir da 2ª
 		let roomsCallCount = 0;
