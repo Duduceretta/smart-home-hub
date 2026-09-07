@@ -59,8 +59,13 @@ export function RoomActivityFeed({ roomId }: RoomActivityFeedProps) {
 			</h3>
 
 			{isLoading ? (
-				<div className="rounded-lg border border-border-subtle bg-surface-container p-3 text-xs text-muted-foreground">
-					{t("activity.loading", "Carregando...")}
+				<div role="status" aria-busy="true" className="flex flex-col gap-2">
+					{[0, 1].map((i) => (
+						<div
+							key={i}
+							className="h-14 animate-pulse rounded-lg border border-border-subtle bg-surface-container"
+						/>
+					))}
 				</div>
 			) : isError ? (
 				<div className="flex items-center justify-between rounded-lg border border-dashed border-border-subtle p-3 text-xs text-muted-foreground">

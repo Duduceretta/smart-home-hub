@@ -148,3 +148,38 @@ Casos reais corrigidos nas auditorias de Automações/Layout/Dashboard/Dispositi
 | Chip ativo com hover "mais claro" (`DevicesGlanceBar`) | gradiente com stop em hex arbitrário mais claro que `surface-highest` | `bg-surface-highest` + `hover:brightness-110` | sem token acima de `surface-highest`; hex novo não é permitido |
 | `DevicesGrid`, `DeviceListRow`, wizard de descoberta | `bg-[#1c1b1c]`, `text-[#c7c6cb]`, `border-[#46464b]/20` etc. | `bg-surface-low`, `text-muted-foreground`, `border-border-subtle/20` | hex cru duplicando token existente em vez da classe semântica |
 | Modal de edição de preview de cômodo (Dashboard) | linha não selecionada em `bg-surface-low` dentro de um modal `bg-surface-container` | `bg-surface-high` (padrão) / `bg-surface-highest` (selecionado) | filho mais escuro que o próprio modal |
+
+## 11. Skeletons e Perceived Performance
+
+> Numeração sequencial à última seção existente no momento desta auditoria (Skeletons/Perceived Performance). Se outra auditoria em paralelo (ex: Error States) também propuser seção nova, renumerar ao mesclar — o conteúdo abaixo não depende do número em si.
+
+Todo estado de carregamento de dado assíncrono (`useQuery`/`useMutation` do TanStack Query) segue este padrão — validado nesta auditoria contra Rooms, Devices, Automações, Grupos, Histórico e Dashboard.
+
+### 11.1. Filosofia — Progressive Hydration, não tela bloqueada
+O modelo antigo (spinner central bloqueando a tela inteira até tudo responder) é proibido para novo código e deve ser migrado onde ainda existir. Cada componente é dono do próprio estado de carregamento — o layout estático (cascas) nunca espera pelo dado. Isso já é a filosofia por trás do `useScrollFade` e da remoção de chrome de painel mobile (ver `responsive-design.md`, seções 8 e 13.8): cada peça da UI monta o quanto antes, sem esperar a peça vizinha.
+
+### 11.2. As Três Regras Inegociáveis
+1. **Cascas estáticas nunca têm skeleton.** Título de página, breadcrumbs, abas, sidebar, botões de filtro montam no primeiro render — eles não dependem de rede.
+2. **Spinner só em ação ativa do usuário.** Dentro de um botão durante submit/mutação, num toggle/switch durante `isPending`, ou num "carregar mais" de paginação incremental. Nunca solto ocupando uma área de conteúdo estruturado (lista, card, painel, gráfico) — isso é sempre skeleton.
+3. **Zero CLS.** O skeleton espelha exatamente a dimensão real do componente carregado — mesma altura, padding, gap e border-radius. Nenhum salto entre o placeholder e o dado real.
+
+### 11.3. Co-location vs. Arquivo Separado
+- **Co-located** (`export function XSkeleton()` no mesmo arquivo do componente real): itens de lista, cards atômicos, blocos com < 30-40 linhas de layout. Ex.: `AutomationSkeletonRow` (exportado de `ActiveAutomationsCard.tsx`), os blocos `h-14 animate-pulse` em `DeviceLinkedAutomations.tsx`/`RoomLinkedAutomations.tsx`/`DeviceGroupLinkedAutomations.tsx` (mesmo padrão aplicado agora em `DeviceActivityFeed.tsx`/`RoomActivityFeed.tsx`), `EditDeviceModalSkeleton` (co-located em `EditDeviceModal.tsx`, espelha cabeçalho/grid de campos/tabs/pills/rodapé do form real) e `ActivityTimelineRowSkeleton` (co-located em `ActivityLogTimeline.tsx`, espelha o `ActivityTimelineRow` real e agora é visualmente distinto do empty state — antes os dois compartilhavam o mesmo bloco de ícone+texto).
+- **Arquivo separado** (`*.skeleton.tsx`): grids compostos com lógica de repetição, gráficos SVG, ou componentes `React.lazy()`. Ex.: `RoomDeviceSectionSkeleton.tsx`, `HistorySkeleton.tsx` — e os três skeletons de painel master implementados na primeira rodada desta auditoria: `room-list-panel.skeleton.tsx` (`RoomListPanelSkeleton`), `device-group-list-panel.skeleton.tsx` (`DeviceGroupListPanelSkeleton`) e `automation-list-panel.skeleton.tsx` (`AutomationListPanelSkeleton`, que reaproveita o `AutomationSkeletonRow` já existente em vez de criar um novo shape visual). Os três substituíram o antigo spinner central + texto ("Carregando ambientes/grupos/automações...") de `RoomsView.tsx`, `DeviceGroupsView.tsx` e `AutomationsView.tsx`, espelhando a casca inteira do painel (header com contador/busca/criar + linhas da lista) — não só as linhas — já que nenhuma parte do painel real existe ainda durante o carregamento inicial.
+- **Gráfico já carregado dentro de outro contexto** (Sheet/painel): `DeviceTelemetrySheet.tsx` (`isLoading` do histórico de telemetria) segue o mesmo padrão de bloco único já usado em `DeviceEnergyChart.tsx`/`RoomEnergyChart.tsx` (`h-52 w-full animate-pulse bg-surface-high/60`) em vez de inventar uma variação nova pro mesmo tipo de conteúdo (gráfico).
+- **Indicador inline mínimo** (não é bem um "skeleton" de conteúdo, mas segue a mesma regra de não deixar texto solto "Carregando..."): `EditDeviceGeneralTab.tsx` e `DiscoveryStepConfigure.tsx` trocaram o texto ao lado do seletor de pills de ambiente por um pulso pequeno (`h-3 w-3 rounded-full bg-surface-high animate-pulse`, `role="status"` com `aria-label` em vez de `aria-busy` no container — é um indicador isolado, não uma área de conteúdo substituída).
+
+### 11.4. Padrão de Consumo
+```tsx
+const { data, isLoading, isError } = useEntityQuery(params);
+
+if (isLoading) return <EntitySkeleton />;
+if (isError) return <EntityErrorState onRetry={refetch} />;
+return <EntityContent data={data} />;
+```
+Sem `React.lazy()`, não há necessidade de `<Suspense>` — o guard de `isLoading` do TanStack Query já cobre o caso. `Suspense` só entra pro fallback de rota (`RoutePendingFallback.tsx`, chunk de código, não dado de API).
+
+### 11.5. Tokens e Acessibilidade
+- Usar exclusivamente `bg-surface-low`/`bg-surface-container`/`bg-surface-high` + `animate-pulse`. Sem hex cru, sem opacidade arbitrária — `frontend/scripts/lint-tokens.mjs` bloqueia desvio.
+- Como os tokens de superfície são aliases (seção 1 deste documento), o skeleton herda automaticamente contraste correto nos 5 presets de tema (`zinc`, `indigo`, `slate-cyan`, `github-dimmed`, `contrast-safe-graphite`) sem precisar de override — não introduzir cor fixa que quebraria isso num preset alternativo.
+- Nó em loading precisa de `role="status"` e `aria-busy="true"` no container do skeleton (não em cada bloco pulsante individual), para leitor de tela não tentar narrar cada retângulo cinza. Os três skeletons de painel master desta auditoria seguem esse padrão.

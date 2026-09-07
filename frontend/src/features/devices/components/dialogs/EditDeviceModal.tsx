@@ -26,6 +26,59 @@ import { EditDeviceAdvancedSection } from "./EditDeviceAdvancedSection";
 import { EditDeviceGeneralTab } from "./EditDeviceGeneralTab";
 
 /**
+ * Espelha a casca do formulário real (cabeçalho com ícone/título/badges,
+ * grid de campos, tabs de integração, pills de ambiente, rodapé de ações)
+ * durante `isLoadingDevice` — substitui o spinner central genérico que
+ * ocupava a mesma altura sem indicar a estrutura que está por vir.
+ */
+function EditDeviceModalSkeleton() {
+	return (
+		<div
+			role="status"
+			aria-busy="true"
+			className="flex max-h-full flex-col animate-pulse sm:max-h-[85vh]"
+		>
+			<div className="flex items-start gap-4 border-b border-border-subtle/60 bg-surface-low/30 p-6 pb-4">
+				<div className="h-10 w-10 shrink-0 rounded-xl bg-surface-high" />
+				<div className="flex flex-1 flex-col gap-2">
+					<div className="h-4 w-40 rounded-sm bg-surface-high" />
+					<div className="h-3 w-56 rounded-sm bg-surface-high/60" />
+					<div className="mt-2 flex items-center gap-2">
+						<div className="h-6 w-20 rounded-full bg-surface-high" />
+						<div className="h-6 w-16 rounded-full bg-surface-high/60" />
+					</div>
+				</div>
+			</div>
+
+			<div className="flex-1 p-6">
+				<div className="flex flex-col gap-4">
+					<div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2">
+						<div className="h-12.5 rounded-lg bg-surface-container" />
+						<div className="h-12.5 rounded-lg bg-surface-container" />
+						<div className="h-12.5 rounded-lg bg-surface-container" />
+						<div className="h-12.5 rounded-lg bg-surface-container" />
+					</div>
+					<div className="h-9 w-full rounded-xl bg-surface-container" />
+					<div className="flex flex-wrap gap-1.5">
+						<div className="h-7.5 w-20 rounded-lg bg-surface-container" />
+						<div className="h-7.5 w-24 rounded-lg bg-surface-container" />
+						<div className="h-7.5 w-16 rounded-lg bg-surface-container" />
+					</div>
+				</div>
+			</div>
+
+			<div className="flex items-center justify-between border-t border-border-subtle/60 bg-surface-low/50 px-6 py-3.5">
+				<div className="h-8.5 w-24 rounded-lg bg-surface-container" />
+				<div className="flex items-center gap-2.5">
+					<div className="h-8.5 w-20 rounded-lg bg-surface-container" />
+					<div className="h-8.5 w-24 rounded-lg bg-surface-container" />
+				</div>
+			</div>
+		</div>
+	);
+}
+
+/**
  * Orchestrates the Edit Device dialog: form lifecycle (reset on device
  * load/close), the shared `useForm` instance handed down to
  * `EditDeviceGeneralTab`/`EditDeviceAdvancedSection` via `FormProvider`,
@@ -149,12 +202,7 @@ export const EditDeviceModal: React.FC = () => {
 				)}
 			>
 				{isLoadingDevice || !device ? (
-					<div className="flex h-72 flex-col items-center justify-center gap-2.5 p-6 text-muted-foreground">
-						<Loader2 className="h-6 w-6 animate-spin text-primary" />
-						<span className="text-xs font-medium">
-							{t("form.edit.loading")}
-						</span>
-					</div>
+					<EditDeviceModalSkeleton />
 				) : (
 					<FormProvider {...formMethods}>
 						<form

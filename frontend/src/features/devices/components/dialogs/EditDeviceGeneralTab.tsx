@@ -173,9 +173,11 @@ export function EditDeviceGeneralTab() {
 					})}
 
 					{isLoadingRooms && (
-						<span className="text-xs text-muted-foreground">
-							{t("form.fields.room.loading")}
-						</span>
+						<span
+							role="status"
+							aria-label={t("form.fields.room.loading")}
+							className="h-3 w-3 shrink-0 rounded-full bg-surface-high animate-pulse"
+						/>
 					)}
 				</fieldset>
 			</div>

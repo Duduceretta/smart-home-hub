@@ -2,7 +2,6 @@ import {
 	Activity,
 	Calendar,
 	Cpu,
-	Loader2,
 	Radio,
 	Thermometer,
 	Wifi,
@@ -171,10 +170,11 @@ export const DeviceTelemetrySheet: React.FC<DeviceTelemetrySheetProps> = ({
 					</div>
 
 					{isLoading ? (
-						<div className="flex h-52 flex-col items-center justify-center gap-2 text-muted-foreground">
-							<Loader2 className="h-5 w-5 animate-spin text-primary" />
-							<p className="text-xs">{t("telemetry.loading")}</p>
-						</div>
+						<div
+							role="status"
+							aria-busy="true"
+							className="h-52 w-full animate-pulse rounded-lg bg-surface-high/60"
+						/>
 					) : isError ? (
 						<div className="rounded-lg border border-dashed border-rose-950/60 bg-rose-950/10 p-5 text-center text-xs text-rose-400">
 							{t("telemetry.errorLoading")}

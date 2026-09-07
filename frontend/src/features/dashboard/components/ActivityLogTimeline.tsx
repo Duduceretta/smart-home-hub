@@ -50,6 +50,21 @@ const DEFAULT_EVENT_STYLE = {
 	border: "border-border-subtle",
 };
 
+const SKELETON_ROW_IDS = ["sk-1", "sk-2", "sk-3", "sk-4"];
+
+/** Espelha `ActivityTimelineRow` (círculo de ícone + 2 linhas de texto). */
+function ActivityTimelineRowSkeleton() {
+	return (
+		<div className="relative z-10 flex items-start gap-4">
+			<div className="mt-0.5 h-6 w-6 shrink-0 rounded-full bg-surface-high" />
+			<div className="flex min-w-0 flex-1 flex-col gap-1.5">
+				<div className="h-3.5 w-2/3 rounded-sm bg-surface-high" />
+				<div className="h-3 w-1/3 rounded-sm bg-surface-high/60" />
+			</div>
+		</div>
+	);
+}
+
 export function ActivityLogTimeline() {
 	const { t, i18n } = useTranslation("dashboard");
 	const navigate = useNavigate();
@@ -83,13 +98,22 @@ export function ActivityLogTimeline() {
 							onRetry={() => refetch()}
 						/>
 					</div>
-				) : isLoading || entries.length === 0 ? (
+				) : isLoading ? (
+					<div
+						role="status"
+						aria-busy="true"
+						className="relative flex h-80 flex-col justify-center gap-5 animate-pulse"
+					>
+						<div className="absolute bottom-2 left-2.75 top-2 w-px bg-border-subtle" />
+						{SKELETON_ROW_IDS.map((id) => (
+							<ActivityTimelineRowSkeleton key={id} />
+						))}
+					</div>
+				) : entries.length === 0 ? (
 					<div className="flex h-80 flex-col items-center justify-center gap-2 text-center">
 						<Clock className="h-7 w-7 text-muted-foreground" />
 						<p className="text-xs font-medium text-muted-foreground">
-							{isLoading
-								? t("activityLog.loading", "Carregando...")
-								: t("activityLog.emptyTitle")}
+							{t("activityLog.emptyTitle")}
 						</p>
 					</div>
 				) : (
