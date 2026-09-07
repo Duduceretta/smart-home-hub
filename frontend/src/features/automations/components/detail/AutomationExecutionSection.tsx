@@ -9,6 +9,8 @@ import {
 	YAxis,
 } from "recharts";
 import { ActivityTimelineRow } from "@/core/components/activity/ActivityTimelineRow";
+import { CardErrorFallback } from "@/core/components/feedback/CardErrorFallback";
+import { StaleDataIndicator } from "@/core/components/feedback/StaleDataIndicator";
 import { useAutomationExecutionHistory } from "../../hooks/useAutomationExecutionHistory";
 import { useAutomationWeekdayExecutions } from "../../hooks/useAutomationWeekdayExecutions";
 import { formatRelativeTime } from "../../lib/format-relative-time";
@@ -30,10 +32,18 @@ interface AutomationExecutionSectionProps {
 export function AutomationExecutionSection({
 	automationId,
 }: AutomationExecutionSectionProps) {
-	const { data: weekdayCounts, isLoading: isLoadingWeekday } =
-		useAutomationWeekdayExecutions(automationId);
-	const { data: history, isLoading: isLoadingHistory } =
-		useAutomationExecutionHistory(automationId, 1, HISTORY_PAGE_SIZE);
+	const {
+		data: weekdayCounts,
+		isLoading: isLoadingWeekday,
+		isError: isWeekdayError,
+		refetch: refetchWeekday,
+	} = useAutomationWeekdayExecutions(automationId);
+	const {
+		data: history,
+		isLoading: isLoadingHistory,
+		isError: isHistoryError,
+		refetch: refetchHistory,
+	} = useAutomationExecutionHistory(automationId, 1, HISTORY_PAGE_SIZE);
 
 	const chartData = [...(weekdayCounts ?? [])]
 		.sort((a, b) => a.dayOfWeek - b.dayOfWeek)
@@ -49,12 +59,20 @@ export function AutomationExecutionSection({
 		<div className="space-y-6">
 			{/* Bloco 1: Execuções por Dia da Semana */}
 			<div className="rounded-lg border border-border-subtle bg-surface-container p-4">
-				<div className="mb-4 text-xs font-medium uppercase tracking-wider text-muted-foreground">
+				<div className="mb-4 flex items-center gap-1.5 text-xs font-medium uppercase tracking-wider text-muted-foreground">
 					Execuções por dia da semana
+					{isWeekdayError && weekdayCounts && <StaleDataIndicator />}
 				</div>
 
 				{isLoadingWeekday ? (
 					<div className="h-40 w-full animate-pulse rounded-lg bg-surface-high/60" />
+				) : isWeekdayError && !weekdayCounts ? (
+					<CardErrorFallback
+						className="h-40"
+						message="Não foi possível carregar as execuções por dia da semana."
+						retryLabel="Tentar de novo"
+						onRetry={() => refetchWeekday()}
+					/>
 				) : !hasAnyExecution ? (
 					<p className="py-4 text-center text-xs text-muted-foreground">
 						Nenhuma execução registrada nos últimos 30 dias.
@@ -119,8 +137,9 @@ export function AutomationExecutionSection({
 
 			{/* Bloco 2: Histórico de Execução */}
 			<div className="rounded-lg border border-border-subtle bg-surface-container p-4">
-				<div className="mb-4 text-xs font-medium uppercase tracking-wider text-muted-foreground">
+				<div className="mb-4 flex items-center gap-1.5 text-xs font-medium uppercase tracking-wider text-muted-foreground">
 					Histórico de execução
+					{isHistoryError && history && <StaleDataIndicator />}
 				</div>
 
 				{isLoadingHistory ? (
@@ -128,6 +147,13 @@ export function AutomationExecutionSection({
 						<div className="h-10 animate-pulse rounded-lg bg-surface-high" />
 						<div className="h-10 animate-pulse rounded-lg bg-surface-high" />
 					</div>
+				) : isHistoryError && !history ? (
+					<CardErrorFallback
+						className="h-40"
+						message="Não foi possível carregar o histórico de execução."
+						retryLabel="Tentar de novo"
+						onRetry={() => refetchHistory()}
+					/>
 				) : entries.length === 0 ? (
 					<div className="flex flex-col items-center justify-center gap-2 py-6 text-center">
 						<Clock className="h-5 w-5 text-muted-foreground" />
