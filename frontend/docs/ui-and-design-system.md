@@ -222,7 +222,14 @@ Um erro de rede num painel operacional não é uma emergência visual. A UI deve
 Nunca tratar "essa query falhou" e "a API está fora do ar" da mesma forma — são causas raiz diferentes e merecem UI diferente:
 
 - **Nível Local (uma query, um card)**: fallback compacto, neutro, dentro do próprio espaço do card — nunca vermelho. Ver 12.3.
-- **Nível Sistêmico (múltiplas queries falhando simultaneamente, ou erro de rede/5xx confirmado)**: quando 2+ queries independentes na mesma tela falham ao mesmo tempo (sintoma de outage, não de um endpoint específico com bug), a tela deve suprimir os fallbacks locais individuais e mostrar **um único banner consolidado no topo** com ação única "Tentar novamente" que dispara o retry de todas as queries afetadas de uma vez — nunca N botões de retry independentes na mesma viewport pro mesmo evento de falha. Este é o gap mais urgente do Dashboard hoje (seção A.2 da auditoria): não existe essa camada de decisão, cada card decide sozinho que vai mostrar seu próprio alerta.
+- **Nível Sistêmico (múltiplas queries falhando simultaneamente, ou erro de rede/5xx confirmado)**: quando 2+ queries independentes na mesma tela falham ao mesmo tempo (sintoma de outage, não de um endpoint específico com bug), a tela deve suprimir os fallbacks locais individuais e mostrar **um único banner consolidado no topo** com ação única "Tentar novamente" que dispara o retry de todas as queries afetadas de uma vez — nunca N botões de retry independentes na mesma viewport pro mesmo evento de falha.
+
+**Implementado no Dashboard** (referência viva do padrão):
+- `core/hooks/useSystemicFailureDetector.ts` — hook agnóstico de domínio: recebe uma lista de `{ isError, refetch }` (uma entrada por query relevante da tela) e devolve `{ isSystemic, failingCount, retryAll }`. `isSystemic` vira `true` a partir de 2 queries falhando ao mesmo tempo; `retryAll()` dispara `refetch()` só nas que estão em erro.
+- `widgets/dashboard/DashboardView.tsx` consome o detector no nível do widget (não em cada card): monta a lista com as 5 queries que alimentam as 5 áreas do Dashboard (`useDashboardOverview`, `useRooms`, `useDevices`, `useRecentAutomations`, `useActivityLog`) e passa `isSystemic` como prop `suppressErrorUI` pra `StatusHubSummary`, `EnergyLoadWidget`, `ActiveAutomationsCard`, `ActivityLogTimeline` e pro bloco de seção de cômodos (inline no próprio `DashboardView`).
+- `features/dashboard/components/SystemicFailureBanner.tsx` — o único banner consolidado, renderizado no topo da tela só quando `isSystemic` é `true`, com ação única `retryAll`.
+- Cada um dos 5 consumidores, quando `suppressErrorUI` é `true` e a própria query está em erro, **não** renderiza seu `CardErrorFallback` local (mensagem + retry próprio) — em vez disso reaproveita o próprio skeleton do componente (`StatusHubSummarySkeleton`, `EnergyLoadWidgetSkeleton`, `RoomDeviceSectionSkeleton`, `AutomationSkeletonRow` ×3, `ActivityTimelineSkeletonRows`) como placeholder estático, preservando a dimensão exata sem introduzir uma segunda mensagem de erro (decisão: reaproveitar o skeleton existente em vez de criar um terceiro visual novo só pra esse estado — é a opção mais simples que já garante zero CLS de graça, por já ter sido construída pra bater com o layout real).
+- `DashboardErrorState.tsx` (o componente vermelho antigo) foi **removido** — sem consumidores restantes após a migração de todos os 5 pontos pra `CardErrorFallback` (caso local) + `SystemicFailureBanner` (caso sistêmico).
 
 ### 12.3. Fallback Local — Regras de Estilo
 Baseado no padrão que já existe (e funciona bem) em `DeviceEnergyChart.tsx`/`RoomEnergyChart.tsx`/`RoomClimateSection.tsx`/`DeviceLinkedAutomations.tsx`/`RoomLinkedAutomations.tsx`/`DeviceGroupLinkedAutomations.tsx` — a diferença é parar de duplicar esse bloco 6 vezes e extrair componente:
@@ -238,11 +245,27 @@ Baseado no padrão que já existe (e funciona bem) em `DeviceEnergyChart.tsx`/`R
 - Texto: uma linha só, `text-xs text-muted-foreground` — sem título + subtítulo + parágrafo (o padrão do `DashboardErrorState` atual, com `text-sm font-semibold` + `text-xs` + botão, é verboso demais pro espaço de um card).
 
 ### 12.4. Zero CLS — Paridade com o Skeleton
-**Regra mandatória**: o fallback de erro de um componente deve ocupar exatamente a mesma altura/grid/border-radius do seu Skeleton (seção 11) — os dois são "a mesma caixa vazia", só muda o conteúdo interno (pulso vs. mensagem+retry). Um componente cujo skeleton é um grid de 4 cards não pode virar uma caixa única centralizada no estado de erro (violação encontrada em `StatusHubSummary.tsx`) — o erro, nesse caso, ocupa **cada célula do grid individualmente**, ou (se a falha for da mesma query que alimenta todas as células) vira um caso de banner sistêmico da seção 12.2 em vez de erro local por célula.
+**Regra mandatória**: o fallback de erro de um componente deve ocupar exatamente a mesma altura/grid/border-radius do seu Skeleton (seção 11) — os dois são "a mesma caixa vazia", só muda o conteúdo interno (pulso vs. mensagem+retry). `StatusHubSummary.tsx` (skeleton em grid de 4 cards) usa `className="min-h-24"` no `CardErrorFallback` local pra aproximar a altura do grid real sem reconstruir uma célula de erro por card — paridade aproximada, não pixel-perfeita; quando a mesma query falha de verdade (não é 1 endpoint isolado, é sintoma de outage), o caminho correto passa a ser o banner sistêmico da seção 12.2, que suprime esse fallback local por completo em favor do skeleton estático (zero CLS de verdade, por reaproveitar a peça já construída pro layout real).
 
 Acessibilidade mandatória: o container do fallback leva `role="alert"` (não `role="status"` — é usado no skeleton, ver seção 11.5 — erro é conteúdo que interrompe, não um estado transitório) e a mensagem de erro deve ser texto real (nunca só ícone), pra leitor de tela anunciar o problema sem depender de contexto visual.
 
 ### 12.5. Guia Estrutural FSD — Co-location vs. Compartilhado
-- **Co-located** (`export function XErrorFallback()` no mesmo arquivo): fallback com layout exclusivo daquele card, < 30 linhas, que não se repete em nenhum outro lugar do projeto.
-- **`core/components/feedback/CardErrorFallback.tsx`** (novo, proposto): fallback compacto genérico parametrizável (`message`, `onRetry`, `className`) — substitui as 6 duplicações da seção 12.3, e é o candidato natural pra qualquer novo card com erro local daqui pra frente. Mora em `core/` (não `shared/`) por ser agnóstico de domínio, na mesma linha de `core/components/ui/`.
-- **`features/dashboard/components/DashboardErrorState.tsx`** (existente): mantém-se como está **apenas** se for redesenhado pro tom neutro da seção 12.3 — hoje usa `border-destructive`/`bg-destructive`/`AlertTriangle` vermelho, o oposto do padrão que esta seção define. Recomendação: descontinuar em favor do `CardErrorFallback` genérico + a lógica de consolidação sistêmica da seção 12.2 pro caso específico do Dashboard.
+- **Co-located** (`export function XErrorFallback()` no mesmo arquivo): fallback com layout exclusivo daquele card, < 30 linhas, que não se repete em nenhum outro lugar do projeto. Ex.: `EditDeviceModalErrorFallback` (`EditDeviceModal.tsx`) — tem 2 ações (Fechar + Tentar novamente) em vez de 1, estrutura suficientemente diferente do padrão de card pra não entrar no componente compartilhado.
+- **`core/components/feedback/CardErrorFallback.tsx`** (implementado): fallback compacto genérico — `message`/`children`, `retryLabel` (texto do botão fica a cargo de cada chamador, que traduz no próprio namespace — evita fixar um texto só no componente agnóstico), `onRetry`, `className` (pra ajustar dimensão/superfície por card, preservando paridade com o skeleton específico). `role="alert"` embutido, não repetido no chamador. Mora em `core/` (não `shared/`) por ser agnóstico de domínio, na mesma linha de `core/components/ui/`.
+
+  Pontos de consumo atuais:
+  | Componente | `className` extra |
+  |---|---|
+  | `DeviceEnergyChart.tsx` | — (padrão) |
+  | `RoomEnergyChart.tsx` | — (padrão) |
+  | `RoomClimateSection.tsx` | — (padrão) |
+  | `DeviceLinkedAutomations.tsx` | — (padrão) |
+  | `RoomLinkedAutomations.tsx` | — (padrão) |
+  | `DeviceGroupLinkedAutomations.tsx` | — (padrão) |
+  | `DeviceListPanel.tsx` | `bg-surface-low/50` |
+  | `StatusHubSummary.tsx` | `min-h-24` |
+  | `EnergyLoadWidget.tsx` | — (padrão, dentro de wrapper `h-62.5` próprio) |
+  | `ActiveAutomationsCard.tsx` | — (padrão) |
+  | `ActivityLogTimeline.tsx` | — (padrão, dentro de wrapper `h-80` próprio) |
+  | `DashboardView.tsx` (seção de cômodos) | — (padrão) |
+- **`features/dashboard/components/DashboardErrorState.tsx`** — **removido**. Descontinuado em favor do `CardErrorFallback` genérico (caso local) e do `SystemicFailureBanner` (caso sistêmico, seção 12.2) — sem consumidores restantes após a migração dos 5 pontos do Dashboard que ainda o usavam.
