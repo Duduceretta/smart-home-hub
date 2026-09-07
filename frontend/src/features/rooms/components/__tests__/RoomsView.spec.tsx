@@ -77,7 +77,9 @@ describe("RoomsView Integration Tests", () => {
 		renderRoomsView();
 
 		// Assert
-		expect(screen.getByText("Carregando ambientes...")).toBeInTheDocument();
+		const skeleton = screen.getByRole("status");
+		expect(skeleton).toBeInTheDocument();
+		expect(skeleton).toHaveAttribute("aria-busy", "true");
 	});
 
 	it("RoomsView_FetchRoomsFails_ShouldRenderErrorStateAndRetryOnClick", async () => {

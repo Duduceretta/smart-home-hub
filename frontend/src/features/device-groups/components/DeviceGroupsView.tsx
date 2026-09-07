@@ -1,4 +1,4 @@
-import { AlertTriangle, Boxes, Loader2, Plus, Trash2 } from "lucide-react";
+import { AlertTriangle, Boxes, Plus, Trash2 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useLocation, useSearchParams } from "react-router-dom";
@@ -13,6 +13,7 @@ import { DeviceGroupDetailPanel } from "./detail/DeviceGroupDetailPanel";
 import { DeviceGroupFormDialog } from "./dialogs/DeviceGroupFormDialog";
 import { DeviceGroupListPanel } from "./list/DeviceGroupListPanel";
 import { DeviceGroupsSummaryBar } from "./list/DeviceGroupsSummaryBar";
+import { DeviceGroupListPanelSkeleton } from "./list/device-group-list-panel.skeleton";
 
 /**
  * View de Grupos de Dispositivos — estrutura Master-Detail em duas colunas,
@@ -181,9 +182,8 @@ export function DeviceGroupsView() {
 						</button>
 					</div>
 				) : isLoadingGroups ? (
-					<div className="flex flex-1 items-center justify-center gap-2 text-sm text-muted-foreground">
-						<Loader2 className="h-4 w-4 animate-spin text-primary" />
-						{t("page.loading", "Carregando grupos...")}
+					<div className="min-h-0 flex-1">
+						<DeviceGroupListPanelSkeleton />
 					</div>
 				) : groups.length === 0 ? (
 					<div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-4 rounded-xl border border-dashed border-border-subtle bg-surface-container/30 p-6 text-center">

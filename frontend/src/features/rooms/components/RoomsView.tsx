@@ -1,4 +1,4 @@
-import { AlertTriangle, DoorOpen, Loader2, Plus, Trash2 } from "lucide-react";
+import { AlertTriangle, DoorOpen, Plus, Trash2 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useLocation, useSearchParams } from "react-router-dom";
@@ -14,6 +14,7 @@ import { RoomDetailPanel } from "./detail/RoomDetailPanel";
 import { RoomFormDialog } from "./dialogs/RoomFormDialog";
 import { RoomListPanel } from "./list/RoomListPanel";
 import { RoomsSummaryBar } from "./list/RoomsSummaryBar";
+import { RoomListPanelSkeleton } from "./list/room-list-panel.skeleton";
 
 /**
  * View de Ambientes — duas colunas desde o topo: título/subtítulo + stats +
@@ -190,9 +191,8 @@ export function RoomsView() {
 						</button>
 					</div>
 				) : isLoadingRooms ? (
-					<div className="flex flex-1 items-center justify-center gap-2 text-sm text-muted-foreground">
-						<Loader2 className="h-4 w-4 animate-spin text-primary" />
-						{t("page.loading", "Carregando ambientes...")}
+					<div className="min-h-0 flex-1">
+						<RoomListPanelSkeleton />
 					</div>
 				) : rooms.length === 0 ? (
 					<div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-4 rounded-xl border border-dashed border-border-subtle bg-surface-container/30 p-6 text-center">

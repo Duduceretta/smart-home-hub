@@ -92,7 +92,9 @@ describe("AutomationsView Integration Tests", () => {
 		renderAutomationsView();
 
 		// Assert
-		expect(screen.getByText("Carregando automações...")).toBeInTheDocument();
+		const skeleton = screen.getByRole("status");
+		expect(skeleton).toBeInTheDocument();
+		expect(skeleton).toHaveAttribute("aria-busy", "true");
 	});
 
 	it("AutomationsView_FetchFails_ShouldRenderErrorStateAndRetry", async () => {

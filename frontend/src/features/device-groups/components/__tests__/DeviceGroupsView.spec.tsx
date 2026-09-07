@@ -61,7 +61,9 @@ describe("DeviceGroupsView Integration Tests", () => {
 		renderDeviceGroupsView();
 
 		// Assert
-		expect(screen.getByText("Carregando grupos...")).toBeInTheDocument();
+		const skeleton = screen.getByRole("status");
+		expect(skeleton).toBeInTheDocument();
+		expect(skeleton).toHaveAttribute("aria-busy", "true");
 	});
 
 	it("DeviceGroupsView_FetchGroupsFails_ShouldRenderErrorStateAndRetryOnClick", async () => {

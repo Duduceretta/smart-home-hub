@@ -1,4 +1,4 @@
-import { AlertTriangle, ArrowLeft, Loader2 } from "lucide-react";
+import { AlertTriangle, ArrowLeft } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
@@ -21,6 +21,7 @@ import { AutomationFilterChips } from "./list/AutomationFilterChips";
 import { AutomationFilterRail } from "./list/AutomationFilterRail";
 import { AutomationListPanel } from "./list/AutomationListPanel";
 import { AutomationSummaryBar } from "./list/AutomationSummaryBar";
+import { AutomationListPanelSkeleton } from "./list/automation-list-panel.skeleton";
 
 /**
  * View de Automações — master-detail (split-view) acima de `lg` (1024px):
@@ -325,9 +326,8 @@ export function AutomationsView() {
 						</button>
 					</div>
 				) : isLoadingAutomations ? (
-					<div className="flex flex-1 items-center justify-center gap-2 text-sm text-muted-foreground">
-						<Loader2 className="h-4 w-4 animate-spin text-primary" />
-						Carregando automações...
+					<div className="min-h-0 flex-1">
+						<AutomationListPanelSkeleton />
 					</div>
 				) : (
 					<>

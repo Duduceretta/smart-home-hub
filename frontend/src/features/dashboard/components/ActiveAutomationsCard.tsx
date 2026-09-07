@@ -20,7 +20,7 @@ const VISIBLE_COUNT = 3;
  * espelhando o comportamento das seções de cômodos (RoomDeviceSection).
  * As automações não mudam de lugar automaticamente ao serem ativadas/desativadas.
  */
-function AutomationSkeletonRow() {
+export function AutomationSkeletonRow() {
 	return (
 		<div className="flex h-16 items-center gap-4 rounded-lg border border-border-subtle bg-surface-low/50 p-4 animate-pulse">
 			<div className="h-8 w-8 shrink-0 rounded-full bg-surface-highest/60" />
