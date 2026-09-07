@@ -2,7 +2,12 @@ import { delay, HttpResponse, http } from "msw";
 import { describe, expect, it } from "vitest";
 import { createDashboardOverviewMock } from "@/testing/mocks/dashboard.mock";
 import { server } from "@/testing/mocks/server";
-import { renderWithProviders, screen, userEvent } from "@/testing/test-utils";
+import {
+	renderWithProviders,
+	screen,
+	userEvent,
+	waitFor,
+} from "@/testing/test-utils";
 import { StatusHubSummary } from "../StatusHubSummary";
 
 describe("StatusHubSummary Integration Tests", () => {
@@ -174,5 +179,66 @@ describe("StatusHubSummary Integration Tests", () => {
 		// Assert — conteúdo normal volta, sem sobrar nenhum alerta
 		expect(await screen.findByText("130")).toBeInTheDocument();
 		expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+	});
+
+	it("StatusHubSummary_BackgroundRefetchFailsWithCache_ShouldKeepMetricsAndShowStaleIndicator", async () => {
+		// Arrange — 1ª carga bem-sucedida, popula o cache
+		server.use(
+			http.get("*/api/dashboard/overview", () =>
+				HttpResponse.json(createDashboardOverviewMock()),
+			),
+		);
+		const { queryClient } = renderWithProviders(<StatusHubSummary />);
+		await screen.findByText("130");
+
+		// Act — refetch em background (ex: foco de janela) falha
+		server.use(
+			http.get("*/api/dashboard/overview", () =>
+				HttpResponse.json({ title: "Erro" }, { status: 500 }),
+			),
+		);
+		await queryClient.refetchQueries();
+
+		// Assert — mantém o conteúdo normal (dado em cache), só ganha o
+		// indicador discreto — nunca o fallback de erro completo
+		expect(
+			await screen.findByTitle(/dados desatualizados/i, {}, { timeout: 3000 }),
+		).toBeInTheDocument();
+		expect(screen.getByText("130")).toBeInTheDocument();
+		expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+	});
+
+	it("StatusHubSummary_RefetchSucceedsAfterStale_ShouldRemoveIndicatorWithoutInteraction", async () => {
+		// Arrange — fica stale primeiro
+		server.use(
+			http.get("*/api/dashboard/overview", () =>
+				HttpResponse.json(createDashboardOverviewMock()),
+			),
+		);
+		const { queryClient } = renderWithProviders(<StatusHubSummary />);
+		await screen.findByText("130");
+
+		server.use(
+			http.get("*/api/dashboard/overview", () =>
+				HttpResponse.json({ title: "Erro" }, { status: 500 }),
+			),
+		);
+		await queryClient.refetchQueries();
+		await screen.findByTitle(/dados desatualizados/i, {}, { timeout: 3000 });
+
+		// Act — próximo refetch em background sucede, sem interação do usuário
+		server.use(
+			http.get("*/api/dashboard/overview", () =>
+				HttpResponse.json(createDashboardOverviewMock()),
+			),
+		);
+		await queryClient.refetchQueries();
+
+		// Assert
+		await waitFor(() =>
+			expect(
+				screen.queryByTitle(/dados desatualizados/i),
+			).not.toBeInTheDocument(),
+		);
 	});
 });

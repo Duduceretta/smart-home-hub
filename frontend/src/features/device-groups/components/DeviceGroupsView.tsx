@@ -3,6 +3,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useLocation, useSearchParams } from "react-router-dom";
 import { CardErrorFallback } from "@/core/components/feedback/CardErrorFallback";
+import { StaleDataIndicator } from "@/core/components/feedback/StaleDataIndicator";
 import { useConfirm } from "@/core/components/providers/ConfirmDialogProvider";
 import { useMediaQuery } from "@/core/hooks/useMediaQuery";
 import { cn } from "@/core/utils";
@@ -32,11 +33,12 @@ export function DeviceGroupsView() {
 		?.selectedGroupId;
 
 	const {
-		data: groups = [],
+		data: groupsData,
 		isLoading: isLoadingGroups,
 		isError: isGroupsError,
 		refetch: refetchGroups,
 	} = useDeviceGroups();
+	const groups = groupsData ?? [];
 
 	const [query, setQuery] = useState("");
 	const viewMode = useDeviceGroupsUIStore((s) => s.viewMode);
@@ -154,8 +156,9 @@ export function DeviceGroupsView() {
 				)}
 			>
 				<div className="flex shrink-0 flex-col gap-1">
-					<h1 className="text-3xl font-semibold tracking-tight text-foreground">
+					<h1 className="flex items-center gap-2 text-3xl font-semibold tracking-tight text-foreground">
 						{t("title", "Grupos de Dispositivos")}
+						{isGroupsError && groupsData && <StaleDataIndicator />}
 					</h1>
 					<p className="text-sm text-muted-foreground">
 						{t(
@@ -165,7 +168,7 @@ export function DeviceGroupsView() {
 					</p>
 				</div>
 
-				{isGroupsError ? (
+				{isGroupsError && !groupsData ? (
 					<div className="min-h-0 flex-1">
 						<CardErrorFallback
 							message={t(

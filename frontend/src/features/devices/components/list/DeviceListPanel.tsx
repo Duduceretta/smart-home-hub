@@ -10,6 +10,7 @@ import {
 import { useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { CardErrorFallback } from "@/core/components/feedback/CardErrorFallback";
+import { StaleDataIndicator } from "@/core/components/feedback/StaleDataIndicator";
 import { useDebouncedValue } from "@/core/hooks/useDebouncedValue";
 import { cn } from "@/core/utils";
 import { useDevices } from "../../hooks/useDevices";
@@ -187,7 +188,7 @@ export function DeviceListPanel({
 		<div className="flex h-full max-h-full w-full flex-col overflow-hidden rounded-xl bg-surface-low shadow-sm">
 			<div className="flex shrink-0 flex-col gap-2.5 bg-surface-container/50 p-3">
 				<div className="flex items-center justify-between">
-					<span className="pl-1.5 text-sm font-semibold tracking-wide text-foreground">
+					<span className="flex items-center gap-1.5 pl-1.5 text-sm font-semibold tracking-wide text-foreground">
 						{t(
 							"list.count",
 							`${totalCount} dispositivo${totalCount === 1 ? "" : "s"}`,
@@ -195,6 +196,7 @@ export function DeviceListPanel({
 								count: totalCount,
 							},
 						)}
+						{isError && data && <StaleDataIndicator />}
 					</span>
 
 					{/* biome-ignore lint/a11y/useSemanticElements: segmented control de 2 botões, não um form <fieldset> */}
@@ -277,7 +279,7 @@ export function DeviceListPanel({
 							<div key={sk} className="h-14 rounded-lg bg-surface-container" />
 						))}
 					</div>
-				) : isError ? (
+				) : isError && !data ? (
 					<CardErrorFallback
 						message={t(
 							"grid.errorLoad",

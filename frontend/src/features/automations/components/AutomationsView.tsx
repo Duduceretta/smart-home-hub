@@ -3,6 +3,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { CardErrorFallback } from "@/core/components/feedback/CardErrorFallback";
+import { StaleDataIndicator } from "@/core/components/feedback/StaleDataIndicator";
 import { useDebouncedValue } from "@/core/hooks/useDebouncedValue";
 import { useMediaQuery } from "@/core/hooks/useMediaQuery";
 import { cn } from "@/core/utils";
@@ -301,8 +302,9 @@ export function AutomationsView() {
 							})}
 						</button>
 					)}
-					<h1 className="text-3xl font-semibold tracking-tight text-foreground">
+					<h1 className="flex items-center gap-2 text-3xl font-semibold tracking-tight text-foreground">
 						{t("title", "Automações")}
+						{isAutomationsError && automations && <StaleDataIndicator />}
 					</h1>
 					<p className="text-sm text-muted-foreground">
 						{t(
@@ -312,7 +314,7 @@ export function AutomationsView() {
 					</p>
 				</div>
 
-				{isAutomationsError ? (
+				{isAutomationsError && !automations ? (
 					<div className="min-h-0 flex-1">
 						<CardErrorFallback
 							message={t(

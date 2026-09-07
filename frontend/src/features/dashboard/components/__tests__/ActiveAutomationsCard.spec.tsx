@@ -437,4 +437,50 @@ describe("ActiveAutomationsCard Integration Tests", () => {
 			),
 		).toBeInTheDocument();
 	});
+
+	it("ActiveAutomationsCard_NoCacheAndFetchFails_ShouldShowErrorFallback", async () => {
+		// Arrange — sem carga anterior bem-sucedida (regressão do fallback já implementado)
+		server.use(
+			http.get("*/api/automations", () =>
+				HttpResponse.json({ title: "Erro" }, { status: 500 }),
+			),
+		);
+
+		// Act
+		renderCard();
+
+		// Assert
+		expect(
+			await screen.findByText("Não foi possível carregar as automações"),
+		).toBeInTheDocument();
+	});
+
+	it("ActiveAutomationsCard_BackgroundRefetchFailsWithCache_ShouldKeepListAndShowStaleIndicator", async () => {
+		// Arrange — 1ª carga bem-sucedida, popula o cache
+		mockAutomations([
+			{
+				id: "a1",
+				name: "Ligar luz da Sala",
+				isActive: true,
+				createdAt: "2026-01-01T00:00:00Z",
+				updatedAt: "2026-01-01T00:00:00Z",
+			},
+		]);
+		const { queryClient } = renderCard();
+		await screen.findByText("Ligar luz da Sala");
+
+		// Act — refetch em background falha
+		server.use(
+			http.get("*/api/automations", () =>
+				HttpResponse.json({ title: "Erro" }, { status: 500 }),
+			),
+		);
+		await queryClient.refetchQueries();
+
+		// Assert — lista continua na tela, com indicador discreto no título
+		expect(
+			await screen.findByTitle(/dados desatualizados/i, {}, { timeout: 3000 }),
+		).toBeInTheDocument();
+		expect(screen.getByText("Ligar luz da Sala")).toBeInTheDocument();
+	});
 });

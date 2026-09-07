@@ -6,6 +6,7 @@ import {
 	Zap,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { StaleDataIndicator } from "@/core/components/feedback/StaleDataIndicator";
 import { useDashboardOverview } from "../hooks/useDashboardOverview";
 import { formatEnergy } from "../lib/formatEnergy";
 
@@ -90,21 +91,29 @@ export function StatusHubSummary({
 		return <StatusHubSummarySkeleton />;
 	}
 
-	if (isError || !data) {
-		if (suppressErrorUI) {
-			return <StatusHubSummarySkeleton />;
+	if (!data) {
+		if (isError) {
+			if (suppressErrorUI) {
+				return <StatusHubSummarySkeleton />;
+			}
+			return (
+				<StatusHubSummaryErrorGrid
+					message={t(
+						"metrics.errorTitle",
+						"Não foi possível carregar os indicadores",
+					)}
+					retryLabel={t("common:actions.retry", "Tentar novamente")}
+					onRetry={() => refetch()}
+				/>
+			);
 		}
-		return (
-			<StatusHubSummaryErrorGrid
-				message={t(
-					"metrics.errorTitle",
-					"Não foi possível carregar os indicadores",
-				)}
-				retryLabel={t("common:actions.retry", "Tentar novamente")}
-				onRetry={() => refetch()}
-			/>
-		);
+		return null;
 	}
+
+	// Stale-while-revalidate: um refetch em background pode ter falhado
+	// (`isError`), mas já existe `data` de um fetch anterior bem-sucedido —
+	// mantém o conteúdo normal na tela em vez do fallback de erro, só com um
+	// indicador discreto (seção 12.1 de ui-and-design-system.md).
 
 	const { summary } = data;
 	const energy = formatEnergy(summary.energyConsumptionKwh);
@@ -117,6 +126,7 @@ export function StatusHubSummary({
 					<span className="min-w-0 flex-1 truncate text-xs font-semibold uppercase tracking-wider text-muted-foreground">
 						{t("metrics.energyConsumption")}
 					</span>
+					{isError && <StaleDataIndicator className="mr-1" />}
 					<Zap className="h-4 w-4 shrink-0 text-amber-400" />
 				</div>
 				<div className="flex flex-col gap-0.5">

@@ -117,4 +117,41 @@ describe("EnergyLoadWidget Integration Tests", () => {
 		);
 		expect(requestCount).toBeGreaterThan(requestsBeforeRetryClick);
 	});
+
+	it("EnergyLoadWidget_BackgroundRefetchFailsWithCache_ShouldKeepChartAndShowStaleIndicator", async () => {
+		// Arrange — 1ª carga bem-sucedida, popula o cache
+		server.use(
+			http.get("*/api/dashboard/overview", () =>
+				HttpResponse.json(
+					createDashboardOverviewMock({
+						summary: {
+							totalDevicesCount: 5,
+							onlineDevicesCount: 4,
+							energyConsumptionKwh: 0.13,
+							isEnergyEstimated: false,
+							averageTemperatureCelsius: 23,
+							temperatureTrend: 0,
+							activeAlertsCount: 0,
+						},
+					}),
+				),
+			),
+		);
+		const { queryClient } = renderWithProviders(<EnergyLoadWidget />);
+		await screen.findByText(/130 Wh/);
+
+		// Act — refetch em background falha
+		server.use(
+			http.get("*/api/dashboard/overview", () =>
+				HttpResponse.json({ title: "Erro" }, { status: 500 }),
+			),
+		);
+		await queryClient.refetchQueries();
+
+		// Assert — gráfico continua na tela, com o indicador discreto no título
+		expect(
+			await screen.findByTitle(/dados desatualizados/i, {}, { timeout: 3000 }),
+		).toBeInTheDocument();
+		expect(screen.getByText(/130 Wh/)).toBeInTheDocument();
+	});
 });

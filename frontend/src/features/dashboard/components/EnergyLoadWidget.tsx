@@ -11,6 +11,7 @@ import {
 	YAxis,
 } from "recharts";
 import { CardErrorFallback } from "@/core/components/feedback/CardErrorFallback";
+import { StaleDataIndicator } from "@/core/components/feedback/StaleDataIndicator";
 import { useDashboardOverview } from "../hooks/useDashboardOverview";
 import { formatEnergy, formatPower } from "../lib/formatEnergy";
 
@@ -60,23 +61,30 @@ export function EnergyLoadWidget({
 		return <EnergyLoadWidgetSkeleton />;
 	}
 
-	if (isError || !data) {
-		if (suppressErrorUI) {
-			return <EnergyLoadWidgetSkeleton />;
+	if (!data) {
+		if (isError) {
+			if (suppressErrorUI) {
+				return <EnergyLoadWidgetSkeleton />;
+			}
+			return (
+				<div className="flex h-62.5 flex-col justify-center rounded-xl border border-border-subtle bg-surface-container p-4">
+					<CardErrorFallback
+						message={t(
+							"energyChart.errorTitle",
+							"Não foi possível carregar o gráfico de consumo",
+						)}
+						retryLabel={t("common:actions.retry", "Tentar novamente")}
+						onRetry={() => refetch()}
+					/>
+				</div>
+			);
 		}
-		return (
-			<div className="flex h-62.5 flex-col justify-center rounded-xl border border-border-subtle bg-surface-container p-4">
-				<CardErrorFallback
-					message={t(
-						"energyChart.errorTitle",
-						"Não foi possível carregar o gráfico de consumo",
-					)}
-					retryLabel={t("common:actions.retry", "Tentar novamente")}
-					onRetry={() => refetch()}
-				/>
-			</div>
-		);
+		return null;
 	}
+
+	// Stale-while-revalidate: refetch em background pode ter falhado
+	// (`isError`), mas já existe `data` de um fetch anterior — mantém o
+	// gráfico normal na tela com um indicador discreto em vez do fallback.
 
 	const chartData = data.energyChart.map((point) => {
 		const date = new Date(point.timestamp);
@@ -104,8 +112,9 @@ export function EnergyLoadWidget({
 				<div className="flex flex-col gap-1">
 					<div className="flex items-center gap-2">
 						<div className="h-4 w-1.5 rounded-full bg-primary" />
-						<h3 className="text-sm font-semibold tracking-tight text-foreground">
+						<h3 className="flex items-center gap-1.5 text-sm font-semibold tracking-tight text-foreground">
 							{t("energyChart.title", "Potência ao vivo")}
+							{isError && <StaleDataIndicator />}
 						</h3>
 					</div>
 					<span className="pl-3.5 text-xs text-muted-foreground">

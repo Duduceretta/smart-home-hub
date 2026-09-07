@@ -15,7 +15,8 @@
 		"on": "On",
 		"off": "Off",
 		"loading": "Loading...",
-		"readOnly": "Read only"
+		"readOnly": "Read only",
+		"staleData": "Stale data — couldn't refresh right now."
 	},
 	"time": {
 		"now": "now",

@@ -3,6 +3,7 @@ import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { CardErrorFallback } from "@/core/components/feedback/CardErrorFallback";
+import { StaleDataIndicator } from "@/core/components/feedback/StaleDataIndicator";
 import { Switch } from "@/core/components/ui/switch";
 import { cn } from "@/core/utils";
 import { useRecentAutomations } from "../hooks/useRecentAutomations";
@@ -119,6 +120,7 @@ export function ActiveAutomationsCard({
 					<h3 className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
 						{t("automations.title")}
 					</h3>
+					{isError && data && <StaleDataIndicator />}
 					{automations.length > 0 && (
 						<button
 							type="button"
@@ -142,7 +144,7 @@ export function ActiveAutomationsCard({
 					<AutomationSkeletonRow />
 					<AutomationSkeletonRow />
 				</div>
-			) : isError ? (
+			) : isError && !data ? (
 				suppressErrorUI ? (
 					<div className="flex flex-col gap-2">
 						<AutomationSkeletonRow />

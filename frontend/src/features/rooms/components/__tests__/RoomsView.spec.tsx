@@ -155,6 +155,30 @@ describe("RoomsView Integration Tests", () => {
 		expect(screen.queryByRole("alert")).not.toBeInTheDocument();
 	});
 
+	it("RoomsView_BackgroundRefetchFailsWithCache_ShouldKeepListAndShowStaleIndicator", async () => {
+		// Arrange — 1ª carga bem-sucedida, popula o cache
+		mockRoomsList([createRoomMock({ name: "Sala de Estar" })]);
+		mockAssignableDevices();
+		const { queryClient } = renderRoomsView();
+		await screen.findByText("Sala de Estar");
+
+		// Act — refetch em background falha
+		server.use(
+			http.get("*/api/rooms", () =>
+				HttpResponse.json({ title: "Erro" }, { status: 500 }),
+			),
+		);
+		await queryClient.refetchQueries();
+
+		// Assert — lista de ambientes continua na tela, sem fallback de erro,
+		// só com o indicador discreto no título
+		expect(
+			await screen.findByTitle(/dados desatualizados/i, {}, { timeout: 3000 }),
+		).toBeInTheDocument();
+		expect(screen.getByText("Sala de Estar")).toBeInTheDocument();
+		expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+	});
+
 	it("RoomsView_NoRoomsRegistered_ShouldRenderEmptyStateWithCreateButton", async () => {
 		// Arrange
 		mockRoomsList([]);

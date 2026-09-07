@@ -2,6 +2,7 @@ import { ChevronsDownUp, ChevronsUpDown } from "lucide-react";
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { CardErrorFallback } from "@/core/components/feedback/CardErrorFallback";
+import { StaleDataIndicator } from "@/core/components/feedback/StaleDataIndicator";
 import { useSystemicFailureDetector } from "@/core/hooks/useSystemicFailureDetector";
 import { ActiveAutomationsCard } from "@/features/dashboard/components/ActiveAutomationsCard";
 import { ActivityLogTimeline } from "@/features/dashboard/components/ActivityLogTimeline";
@@ -69,6 +70,11 @@ export const DashboardView: React.FC = () => {
 	const rooms = roomsData ?? [];
 	const isLoading = isRoomsLoading || isDevicesLoading;
 	const isError = isRoomsError || isDevicesError;
+	// Stale-while-revalidate: só considera "tem cache" quando as duas queries
+	// (rooms e devices) já tiveram fetch bem-sucedido — se qualquer uma nunca
+	// carregou, não dá pra montar `roomSections` de forma confiável.
+	const hasRoomSectionCache =
+		roomsData !== undefined && devicesPage !== undefined;
 
 	/**
 	 * Detector de falha sistêmica (seção 12.2 de `ui-and-design-system.md`):
@@ -183,22 +189,25 @@ export const DashboardView: React.FC = () => {
 					<EnergyLoadWidget suppressErrorUI={isSystemic} />
 
 					{!isLoading && roomSections.length > 0 && (
-						<button
-							type="button"
-							onClick={() => setAllRoomsExpanded(roomKeys, !allRoomsExpanded)}
-							className="flex items-center gap-1.5 self-end rounded-md border border-border-subtle bg-surface-container/50 px-2.5 py-1 text-xs font-medium uppercase tracking-wider text-muted-foreground transition-all hover:border-border hover:bg-surface-high hover:text-foreground cursor-pointer shadow-xs"
-						>
-							{allRoomsExpanded ? (
-								<ChevronsDownUp className="h-3.5 w-3.5" />
-							) : (
-								<ChevronsUpDown className="h-3.5 w-3.5" />
-							)}
-							{t(
-								allRoomsExpanded
-									? "roomSection.collapseAll"
-									: "roomSection.expandAll",
-							)}
-						</button>
+						<div className="flex items-center justify-end gap-2">
+							{isError && hasRoomSectionCache && <StaleDataIndicator />}
+							<button
+								type="button"
+								onClick={() => setAllRoomsExpanded(roomKeys, !allRoomsExpanded)}
+								className="flex items-center gap-1.5 rounded-md border border-border-subtle bg-surface-container/50 px-2.5 py-1 text-xs font-medium uppercase tracking-wider text-muted-foreground transition-all hover:border-border hover:bg-surface-high hover:text-foreground cursor-pointer shadow-xs"
+							>
+								{allRoomsExpanded ? (
+									<ChevronsDownUp className="h-3.5 w-3.5" />
+								) : (
+									<ChevronsUpDown className="h-3.5 w-3.5" />
+								)}
+								{t(
+									allRoomsExpanded
+										? "roomSection.collapseAll"
+										: "roomSection.expandAll",
+								)}
+							</button>
+						</div>
 					)}
 
 					{isLoading ? (
@@ -206,7 +215,7 @@ export const DashboardView: React.FC = () => {
 							<RoomDeviceSectionSkeleton />
 							<RoomDeviceSectionSkeleton />
 						</>
-					) : isError ? (
+					) : isError && !hasRoomSectionCache ? (
 						isSystemic ? (
 							<>
 								<RoomDeviceSectionSkeleton />

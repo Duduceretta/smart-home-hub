@@ -3,6 +3,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useLocation, useSearchParams } from "react-router-dom";
 import { CardErrorFallback } from "@/core/components/feedback/CardErrorFallback";
+import { StaleDataIndicator } from "@/core/components/feedback/StaleDataIndicator";
 import { useConfirm } from "@/core/components/providers/ConfirmDialogProvider";
 import { useMediaQuery } from "@/core/hooks/useMediaQuery";
 import { cn } from "@/core/utils";
@@ -34,11 +35,12 @@ export function RoomsView() {
 		?.selectedRoomId;
 
 	const {
-		data: rooms = [],
+		data: roomsData,
 		isLoading: isLoadingRooms,
 		isError: isRoomsError,
 		refetch: refetchRooms,
 	} = useRooms();
+	const rooms = roomsData ?? [];
 	const { data: allDevices = [] } = useAssignableDevices();
 
 	const [query, setQuery] = useState("");
@@ -169,15 +171,16 @@ export function RoomsView() {
 				)}
 			>
 				<div className="flex shrink-0 flex-col gap-1">
-					<h1 className="text-3xl font-semibold tracking-tight text-foreground">
+					<h1 className="flex items-center gap-2 text-3xl font-semibold tracking-tight text-foreground">
 						{t("page.title", "Ambientes")}
+						{isRoomsError && roomsData && <StaleDataIndicator />}
 					</h1>
 					<p className="text-sm text-muted-foreground">
 						{t("page.subtitle", "Organize seus dispositivos por cômodo.")}
 					</p>
 				</div>
 
-				{isRoomsError ? (
+				{isRoomsError && !roomsData ? (
 					<div className="min-h-0 flex-1">
 						<CardErrorFallback
 							message={t(

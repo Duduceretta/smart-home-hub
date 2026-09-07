@@ -10,6 +10,7 @@ import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { ActivityTimelineRow } from "@/core/components/activity/ActivityTimelineRow";
 import { CardErrorFallback } from "@/core/components/feedback/CardErrorFallback";
+import { StaleDataIndicator } from "@/core/components/feedback/StaleDataIndicator";
 import { ACTIVITY_LOG_VISIBLE_ENTRIES_LIMIT } from "../constants/dashboard.constants";
 import { useActivityLog } from "../hooks/useActivityLog";
 import { getRelativeTime } from "../lib/relativeTime";
@@ -101,14 +102,15 @@ export function ActivityLogTimeline({
 	return (
 		<div className="flex flex-1 flex-col gap-4 rounded-xl border border-border-subtle bg-surface-container p-4 transition-all duration-200 hover:border-border">
 			<div className="flex items-center justify-between">
-				<h3 className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+				<h3 className="flex items-center gap-1.5 text-xs font-medium uppercase tracking-wider text-muted-foreground">
 					{t("activityLog.title")}
+					{isError && data && <StaleDataIndicator />}
 				</h3>
 				<Clock className="h-4 w-4 text-muted-foreground" />
 			</div>
 
 			<div className="min-h-80">
-				{isError ? (
+				{isError && !data ? (
 					suppressErrorUI ? (
 						<div className="relative flex h-80 flex-col justify-center gap-5 animate-pulse">
 							<ActivityTimelineSkeletonRows />

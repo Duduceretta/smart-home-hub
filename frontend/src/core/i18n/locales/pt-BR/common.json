@@ -15,7 +15,8 @@
 		"on": "Ligado",
 		"off": "Desligado",
 		"loading": "Carregando...",
-		"readOnly": "Somente leitura"
+		"readOnly": "Somente leitura",
+		"staleData": "Dados desatualizados — não foi possível atualizar agora."
 	},
 	"time": {
 		"now": "agora",
