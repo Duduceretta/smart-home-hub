@@ -10,7 +10,7 @@ import {
 	XAxis,
 	YAxis,
 } from "recharts";
-import { Button } from "@/core/components/ui/button";
+import { CardErrorFallback } from "@/core/components/feedback/CardErrorFallback";
 import { useRoomEnergy } from "../../hooks/useRoomEnergy";
 import {
 	formatRoomEnergy,
@@ -99,17 +99,14 @@ export function RoomEnergyChart({ roomId }: RoomEnergyChartProps) {
 			{isLoading ? (
 				<div className="h-40 w-full animate-pulse rounded-lg bg-surface-high/60" />
 			) : isError ? (
-				<div className="flex items-center justify-between rounded-lg border border-dashed border-border-subtle p-3 text-xs text-muted-foreground">
-					<span>
-						{t(
-							"energy.errorLoad",
-							"Não foi possível carregar o consumo de energia.",
-						)}
-					</span>
-					<Button variant="ghost" size="xs" onClick={() => refetch()}>
-						{t("energy.retry", "Tentar de novo")}
-					</Button>
-				</div>
+				<CardErrorFallback
+					message={t(
+						"energy.errorLoad",
+						"Não foi possível carregar o consumo de energia.",
+					)}
+					retryLabel={t("energy.retry", "Tentar de novo")}
+					onRetry={() => refetch()}
+				/>
 			) : !data?.hasEnergyData ? (
 				<div className="flex flex-col items-center justify-center gap-1 rounded-lg border border-dashed border-border-subtle bg-surface-low/30 py-6 text-center">
 					<Activity className="h-4 w-4 text-muted-foreground" />

@@ -1,7 +1,7 @@
 import { Bot, Clock, Radio } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
-import { Button } from "@/core/components/ui/button";
+import { CardErrorFallback } from "@/core/components/feedback/CardErrorFallback";
 import { cn } from "@/core/utils";
 import { useDeviceGroupAutomations } from "../../hooks/useDeviceGroupAutomations";
 import type { DeviceGroupAutomationTriggerKind } from "../../types/device-groups.types";
@@ -63,17 +63,14 @@ export function DeviceGroupLinkedAutomations({
 					))}
 				</div>
 			) : isError ? (
-				<div className="flex items-center justify-between rounded-lg border border-dashed border-border-subtle p-3 text-xs text-muted-foreground">
-					<span>
-						{t(
-							"automations.errorLoad",
-							"Não foi possível carregar as automações.",
-						)}
-					</span>
-					<Button variant="ghost" size="xs" onClick={() => refetch()}>
-						{t("automations.retry", "Tentar de novo")}
-					</Button>
-				</div>
+				<CardErrorFallback
+					message={t(
+						"automations.errorLoad",
+						"Não foi possível carregar as automações.",
+					)}
+					retryLabel={t("automations.retry", "Tentar de novo")}
+					onRetry={() => refetch()}
+				/>
 			) : automations.length === 0 ? (
 				<div className="rounded-lg border border-dashed border-border-subtle bg-surface-container/20 p-4 text-center">
 					<p className="text-xs text-muted-foreground">

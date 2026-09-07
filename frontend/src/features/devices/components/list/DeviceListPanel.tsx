@@ -9,7 +9,7 @@ import {
 } from "lucide-react";
 import { useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
-import { Button } from "@/core/components/ui/button";
+import { CardErrorFallback } from "@/core/components/feedback/CardErrorFallback";
 import { useDebouncedValue } from "@/core/hooks/useDebouncedValue";
 import { cn } from "@/core/utils";
 import { useDevices } from "../../hooks/useDevices";
@@ -278,20 +278,15 @@ export function DeviceListPanel({
 						))}
 					</div>
 				) : isError ? (
-					<div
-						role="alert"
-						className="flex items-center justify-between rounded-lg border border-dashed border-border-subtle bg-surface-low/50 p-3 text-xs text-muted-foreground"
-					>
-						<span>
-							{t(
-								"grid.errorLoad",
-								"Não foi possível carregar os dispositivos.",
-							)}
-						</span>
-						<Button variant="ghost" size="xs" onClick={() => refetch()}>
-							{t("grid.retry", "Tentar de novo")}
-						</Button>
-					</div>
+					<CardErrorFallback
+						message={t(
+							"grid.errorLoad",
+							"Não foi possível carregar os dispositivos.",
+						)}
+						retryLabel={t("grid.retry", "Tentar de novo")}
+						onRetry={() => refetch()}
+						className="bg-surface-low/50"
+					/>
 				) : devices.length === 0 ? (
 					<div className="flex flex-col items-center justify-center gap-2 p-6 text-center">
 						<Cpu className="h-5 w-5 text-muted-foreground" />

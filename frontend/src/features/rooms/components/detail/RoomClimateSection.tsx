@@ -1,6 +1,6 @@
 import { Droplets, Thermometer } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { Button } from "@/core/components/ui/button";
+import { CardErrorFallback } from "@/core/components/feedback/CardErrorFallback";
 import { useRoomClimate } from "../../hooks/useRoomClimate";
 import { RoomKpiCard } from "./RoomKpiCard";
 
@@ -32,17 +32,14 @@ export function RoomClimateSection({ roomId }: RoomClimateSectionProps) {
 
 	if (isError) {
 		return (
-			<div className="flex items-center justify-between rounded-lg border border-dashed border-border-subtle p-3 text-xs text-muted-foreground">
-				<span>
-					{t(
-						"climate.errorLoad",
-						"Não foi possível carregar o clima do ambiente.",
-					)}
-				</span>
-				<Button variant="ghost" size="xs" onClick={() => refetch()}>
-					{t("climate.retry", "Tentar de novo")}
-				</Button>
-			</div>
+			<CardErrorFallback
+				message={t(
+					"climate.errorLoad",
+					"Não foi possível carregar o clima do ambiente.",
+				)}
+				retryLabel={t("climate.retry", "Tentar de novo")}
+				onRetry={() => refetch()}
+			/>
 		);
 	}
 
