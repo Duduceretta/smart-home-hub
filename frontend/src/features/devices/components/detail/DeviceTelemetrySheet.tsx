@@ -20,6 +20,7 @@ import {
 	XAxis,
 	YAxis,
 } from "recharts";
+import { CardErrorFallback } from "@/core/components/feedback/CardErrorFallback";
 import { SheetLayout } from "@/core/components/layouts/SheetLayout";
 import { useDeviceTelemetryHistory } from "../../hooks/useDeviceTelemetryHistory";
 import type { Device, TelemetryRange } from "../../types/devices.types";
@@ -38,7 +39,7 @@ export const DeviceTelemetrySheet: React.FC<DeviceTelemetrySheetProps> = ({
 	const { t, i18n } = useTranslation("devices");
 	const [range, setRange] = useState<TelemetryRange>("24h");
 
-	const { data, isLoading, isError } = useDeviceTelemetryHistory({
+	const { data, isLoading, isError, refetch } = useDeviceTelemetryHistory({
 		deviceId: device?.id ?? null,
 		range,
 		enabled: isOpen && Boolean(device?.id),
@@ -176,12 +177,12 @@ export const DeviceTelemetrySheet: React.FC<DeviceTelemetrySheetProps> = ({
 							className="h-52 w-full animate-pulse rounded-lg bg-surface-high/60"
 						/>
 					) : isError ? (
-						<div
-							role="alert"
-							className="rounded-lg border border-dashed border-border-subtle bg-surface-low/50 p-5 text-center text-xs text-muted-foreground"
-						>
-							{t("telemetry.errorLoading")}
-						</div>
+						<CardErrorFallback
+							className="h-52 flex-col justify-center gap-2"
+							message={t("telemetry.errorLoading")}
+							retryLabel={t("telemetry.retry", "Tentar de novo")}
+							onRetry={() => refetch()}
+						/>
 					) : chartData.length === 0 ? (
 						<div className="flex h-52 flex-col items-center justify-center rounded-lg border border-dashed border-border-subtle p-6 text-center text-muted-foreground">
 							<Activity className="mb-2 h-6 w-6 stroke-1 text-muted-foreground" />

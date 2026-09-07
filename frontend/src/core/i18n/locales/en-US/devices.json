@@ -245,6 +245,7 @@
 		"noRecords": "No records found for the selected period",
 		"mqttHint": "MQTT events will populate the chart in real time.",
 		"errorLoading": "Failed to load telemetry history logs.",
+		"retry": "Try again",
 		"loading": "Loading telemetry..."
 	},
 	"ranges": {

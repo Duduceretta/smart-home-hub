@@ -245,6 +245,7 @@
 		"noRecords": "Sem registros para o período selecionado",
 		"mqttHint": "Eventos via MQTT preencherão o gráfico em tempo real.",
 		"errorLoading": "Não foi possível carregar os registros de telemetria.",
+		"retry": "Tentar de novo",
 		"loading": "Carregando telemetria..."
 	},
 	"ranges": {
