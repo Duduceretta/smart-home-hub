@@ -216,7 +216,19 @@ Todo estado de erro de dado assíncrono (`useQuery`/`useMutation` do TanStack Qu
 ### 12.1. Filosofia — Degradação Graciosa, não Pânico
 Um erro de rede num painel operacional não é uma emergência visual. A UI deve comunicar "não deu pra atualizar isso agora" sem competir por atenção com alertas vermelhos grandes — reservar vermelho/`destructive` pra ações destrutivas reais (excluir) e falhas sistêmicas confirmadas, nunca pra "essa query específica ainda não respondeu".
 
-**Stale-While-Revalidate é mandatório quando há cache válido**: se o TanStack Query ainda tem `data` de um fetch anterior bem-sucedido, uma falha de *refetch* em background nunca deve substituir esse conteúdo pelo fallback de erro — mostrar os dados desatualizados com um indicador sutil (`text-warm`, ícone pequeno, ex: `<AlertCircle className="h-3 w-3 text-warm" />` com tooltip "Dados desatualizados") em vez de destruir o que já estava na tela. Hoje nenhum componente do projeto faz isso — todos os ~15 pontos de erro auditados substituem o conteúdo inteiro mesmo com cache disponível.
+**Stale-While-Revalidate é mandatório quando há cache válido** (implementado): se o TanStack Query ainda tem `data` de um fetch anterior bem-sucedido, uma falha de *refetch* em background nunca substitui esse conteúdo pelo fallback de erro — mostra os dados desatualizados com `core/components/feedback/StaleDataIndicator.tsx` (ícone `AlertCircle` `h-3 w-3 text-warm`, `title`/`aria-label` nativos com o texto de `common:status.staleData`) em vez de destruir o que já estava na tela. Critério: `isError && !data` → fallback de erro completo (sem cache nenhum); `isError && data` → conteúdo normal com `data` do cache + `StaleDataIndicator`; sem `isError` → conteúdo normal sem indicador.
+
+Pontos já cobertos (rodada 1 — maior tráfego, priorizados conforme instrução da tarefa):
+- `DeviceListPanel.tsx` (lista) — indicador no contador "N dispositivos".
+- `RoomsView.tsx` / `DeviceGroupsView.tsx` / `AutomationsView.tsx` (painéis master) — indicador no `<h1>` da tela.
+- `StatusHubSummary.tsx` (grid de KPIs) — indicador no Card 1 (Consumo).
+- `EnergyLoadWidget.tsx` (gráfico) — indicador no título do card.
+- `widgets/dashboard/DashboardView.tsx`, seção de cômodos — indicador na barra de "expandir/recolher todos" (só quando `roomsData` e `devicesPage` têm cache).
+- `ActiveAutomationsCard.tsx` / `ActivityLogTimeline.tsx` — indicador no título do card.
+
+Pontos pendentes (rodada 2 — menor tráfego, painéis de detalhe): `EditDeviceModal.tsx`, `DeviceEnergyChart.tsx`, `RoomEnergyChart.tsx`, `RoomClimateSection.tsx`, `DeviceLinkedAutomations.tsx`, `RoomLinkedAutomations.tsx`, `DeviceGroupLinkedAutomations.tsx` — ainda substituem o conteúdo pelo `CardErrorFallback` mesmo com cache válido.
+
+**Tensão observada com a seção 12.2 (banner sistêmico)**: `useSystemicFailureDetector` conta `isError` por query, sem saber se ela tem `data` em cache. Isso significa que 2+ queries podem estar `isError: true` e ainda assim **todas** exibindo conteúdo perfeitamente normal (stale, com indicador discreto) — mas o banner "Não foi possível conectar ao servidor" dispara mesmo assim, por cima de uma tela que já está graciosamente degradada. Não foi resolvido nesta rodada (o detector não foi alterado) — fica registrado como tensão real entre os dois mecanismos, não uma contradição óbvia de se corrigir sem risco (ex.: o detector poderia exigir `!data` como parte do critério de "falha", mas isso mudaria o comportamento do banner sistêmico já testado e documentado na seção 12.2 sem uma decisão explícita sobre qual sinal deve prevalecer numa falha de rede real com múltiplos caches ainda válidos).
 
 ### 12.2. Hierarquia de Tratamento: Local vs. Sistêmico
 Nunca tratar "essa query falhou" e "a API está fora do ar" da mesma forma — são causas raiz diferentes e merecem UI diferente:
