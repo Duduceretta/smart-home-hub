@@ -285,6 +285,17 @@ public static class TuyaFrameCodec
         var json = System
             .Text.Encoding.UTF8.GetString(plain, payloadStart, plain.Length - payloadStart)
             .TrimEnd('\0');
+
+        // Sob rajada de comandos (ex: brilho/modo mudando rápido em sequência), o
+        // dispositivo às vezes responde a CONTROL_NEW só com o retcode de sucesso,
+        // sem ecoar nenhum DPS — um ACK legítimo, não uma resposta corrompida.
+        // Tratar como "nenhum DP reportado" em vez de tentar parsear JSON vazio
+        // (JsonDocument.Parse lança JsonReaderException pra string vazia).
+        if (string.IsNullOrWhiteSpace(json))
+        {
+            return new Dictionary<int, object?>();
+        }
+
         using var document = JsonDocument.Parse(json);
         var root = document.RootElement;
 
