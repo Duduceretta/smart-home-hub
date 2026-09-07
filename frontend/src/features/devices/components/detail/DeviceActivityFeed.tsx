@@ -1,7 +1,7 @@
 import { Bot, Clock, MonitorPlay, Music, Power } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { ActivityTimelineRow } from "@/core/components/activity/ActivityTimelineRow";
-import { Button } from "@/core/components/ui/button";
+import { CardErrorFallback } from "@/core/components/feedback/CardErrorFallback";
 import { useDeviceActivityLog } from "../../hooks/useDeviceActivityLog";
 import { getRelativeTime } from "../../lib/get-relative-time";
 
@@ -72,17 +72,14 @@ export function DeviceActivityFeed({ deviceId }: DeviceActivityFeedProps) {
 					))}
 				</div>
 			) : isError ? (
-				<div className="flex items-center justify-between rounded-lg border border-dashed border-border-subtle p-3 text-xs text-muted-foreground">
-					<span>
-						{t(
-							"activity.errorLoad",
-							"Não foi possível carregar a atividade recente.",
-						)}
-					</span>
-					<Button variant="ghost" size="xs" onClick={() => refetch()}>
-						{t("activity.retry", "Tentar de novo")}
-					</Button>
-				</div>
+				<CardErrorFallback
+					message={t(
+						"activity.errorLoad",
+						"Não foi possível carregar a atividade recente.",
+					)}
+					retryLabel={t("activity.retry", "Tentar de novo")}
+					onRetry={() => refetch()}
+				/>
 			) : entries.length === 0 ? (
 				<p className="rounded-lg border border-dashed border-border-subtle bg-surface-container/20 p-4 text-center text-xs text-muted-foreground">
 					{t("activity.empty", "Nenhuma atividade recente.")}
