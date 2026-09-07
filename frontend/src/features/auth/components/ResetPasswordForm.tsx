@@ -1,22 +1,55 @@
-import { AlertCircle, ArrowLeft, Loader2 } from "lucide-react";
+import { AlertCircle, ArrowLeft } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { FormGlobalError } from "@/core/components/forms/FormGlobalError";
 import { PasswordInput } from "@/core/components/forms/PasswordInput";
 import { Button } from "@/core/components/ui/button";
 import { useResetPasswordForm } from "../hooks/useResetPasswordForm";
 
+export function ResetPasswordSkeleton() {
+	return (
+		<div
+			role="status"
+			aria-busy="true"
+			className="flex flex-col gap-4 py-2 animate-pulse"
+		>
+			<span className="sr-only">Validando token de recuperação...</span>
+			{/* Campo de Senha */}
+			<div className="space-y-1.5">
+				<div className="h-3.5 w-24 rounded bg-surface-high/80" />
+				<div className="h-11 w-full rounded-lg border border-border-subtle bg-surface-container" />
+				<div className="h-4.5 w-32 rounded bg-surface-high/40" />
+			</div>
+			{/* Campo de Confirmação */}
+			<div className="space-y-1.5">
+				<div className="h-3.5 w-36 rounded bg-surface-high/80" />
+				<div className="h-11 w-full rounded-lg border border-border-subtle bg-surface-container" />
+				<div className="h-4.5 w-32 rounded bg-surface-high/40" />
+			</div>
+			{/* Botão de Envio */}
+			<div className="pt-2 mt-2">
+				<div className="h-11 w-full rounded-lg bg-surface-high" />
+			</div>
+		</div>
+	);
+}
+
 export function ResetPasswordForm() {
 	const { t } = useTranslation("auth");
+	const [searchParams] = useSearchParams();
+	const email = searchParams.get("email") || "";
+
 	const {
 		register,
 		handleFormSubmit,
 		formState: { errors },
 		isSubmitting,
 		isVerifying,
-		email,
+		email: userEmail,
 		tokenError,
 	} = useResetPasswordForm();
+
+	const displayEmail = email || userEmail;
 
 	return (
 		<div className="relative w-full max-w-md overflow-hidden rounded-2xl border border-border-subtle bg-surface-low/80 p-6 sm:p-8 shadow-2xl backdrop-blur-xl animate-fade-up">
@@ -26,21 +59,16 @@ export function ResetPasswordForm() {
 				<h2 className="mb-1 text-2xl sm:text-3xl font-semibold text-foreground">
 					{t("resetPassword.title")}
 				</h2>
-				{email && !tokenError && (
+				{displayEmail && !tokenError && (
 					<p className="text-sm text-muted-foreground">
 						{t("resetPassword.resettingFor")}{" "}
-						<span className="text-primary font-medium">{email}</span>
+						<span className="text-primary font-medium">{displayEmail}</span>
 					</p>
 				)}
 			</div>
 
 			{isVerifying ? (
-				<div className="flex flex-col items-center justify-center py-8">
-					<Loader2 className="h-8 w-8 animate-spin text-primary" />
-					<p className="mt-4 text-sm text-muted-foreground">
-						{t("resetPassword.verifying")}
-					</p>
-				</div>
+				<ResetPasswordSkeleton />
 			) : tokenError ? (
 				<div className="flex flex-col items-center justify-center space-y-4 py-4 text-center">
 					<AlertCircle className="h-12 w-12 text-destructive" />

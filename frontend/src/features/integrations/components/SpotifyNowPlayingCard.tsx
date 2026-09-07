@@ -20,10 +20,38 @@ import { useSpotifyPlayback } from "../hooks/useSpotifyPlayback";
 import { useSpotifyStatus } from "../hooks/useSpotifyStatus";
 import { useToggleSpotifyPlayback } from "../hooks/useToggleSpotifyPlayback";
 
+export function SpotifyNowPlayingSkeleton() {
+	return (
+		<div
+			role="status"
+			aria-busy="true"
+			className="flex flex-col gap-4 rounded-xl border border-border-subtle bg-surface-container p-4 animate-pulse"
+		>
+			<span className="sr-only">Carregando Spotify...</span>
+			<div className="flex items-center gap-3.5">
+				<div className="h-12 w-12 shrink-0 rounded-lg border border-border-subtle bg-surface-high" />
+				<div className="flex min-w-0 flex-1 flex-col gap-2">
+					<div className="h-4 w-32 rounded bg-surface-high" />
+					<div className="h-3 w-20 rounded bg-surface-high/60" />
+				</div>
+			</div>
+			<div className="flex items-center justify-center gap-3 py-1">
+				<div className="h-8 w-8 rounded-full bg-surface-high" />
+				<div className="h-9 w-9 rounded-full bg-surface-high" />
+				<div className="h-8 w-8 rounded-full bg-surface-high" />
+			</div>
+			<div className="flex items-center gap-2 pt-1">
+				<div className="h-4 w-4 rounded-full bg-surface-high/50" />
+				<div className="h-2 flex-1 rounded bg-surface-high/60" />
+			</div>
+		</div>
+	);
+}
+
 export const SpotifyNowPlayingCard: React.FC = () => {
 	const { t } = useTranslation("integrations");
-	const { data: status } = useSpotifyStatus();
-	const { data: playback } = useSpotifyPlayback({
+	const { data: status, isLoading: isLoadingStatus } = useSpotifyStatus();
+	const { data: playback, isLoading: isLoadingPlayback } = useSpotifyPlayback({
 		enabled: Boolean(status?.connected),
 	});
 	const { mutate: setVolume } = useSetSpotifyVolume();
@@ -58,6 +86,10 @@ export const SpotifyNowPlayingCard: React.FC = () => {
 			setVolume(debouncedVolume);
 		}
 	}, [debouncedVolume, setVolume]);
+
+	if (isLoadingStatus || (Boolean(status?.connected) && isLoadingPlayback)) {
+		return <SpotifyNowPlayingSkeleton />;
+	}
 
 	if (!status?.connected) {
 		return (

@@ -38,10 +38,22 @@ function DeviceSelect({
 	placeholder: string;
 	loadingText: string;
 }) {
+	if (isLoading) {
+		return (
+			<div
+				role="status"
+				aria-busy="true"
+				className="h-11 sm:h-9 w-full rounded-lg bg-surface-high animate-pulse"
+			>
+				<span className="sr-only">{loadingText}</span>
+			</div>
+		);
+	}
+
 	return (
 		<Select value={value || undefined} onValueChange={onChange}>
-			<SelectTrigger className="h-11 sm:h-9 w-full" disabled={isLoading}>
-				<SelectValue placeholder={isLoading ? loadingText : placeholder} />
+			<SelectTrigger className="h-11 sm:h-9 w-full">
+				<SelectValue placeholder={placeholder} />
 			</SelectTrigger>
 			<SelectContent>
 				{devices.map((device) => (

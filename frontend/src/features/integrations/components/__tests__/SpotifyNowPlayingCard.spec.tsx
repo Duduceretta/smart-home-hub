@@ -331,4 +331,19 @@ describe("SpotifyNowPlayingCard Integration Tests", () => {
 
 		fireEvent.pointerUp(slider, { pointerId: 1 });
 	});
+
+	it("SpotifyNowPlayingCard_WhenLoading_RendersSkeletonWithRoleStatusAndAriaBusy", async () => {
+		server.use(
+			http.get("*/api/integrations/spotify/status", () => {
+				return new Promise(() => {}); // never resolves
+			}),
+		);
+
+		renderWithProviders(<SpotifyNowPlayingCard />);
+
+		const skeleton = screen.getByRole("status");
+		expect(skeleton).toBeInTheDocument();
+		expect(skeleton).toHaveAttribute("aria-busy", "true");
+		expect(screen.getByText("Carregando Spotify...")).toBeInTheDocument();
+	});
 });

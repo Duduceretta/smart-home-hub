@@ -1,9 +1,27 @@
-import { Loader2, RefreshCw, Search, Settings2 } from "lucide-react";
+import { RefreshCw, Search, Settings2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { cn } from "@/core/utils";
 import { INTEGRATION_ICON } from "../../../constants/devices.constants";
 import { useDevicesUIStore } from "../../../store/devices-ui.store";
 import { INTEGRATION_TYPE_LABEL_KEYS } from "../../../types/devices.types";
+
+export function DiscoveryDeviceCardSkeleton() {
+	return (
+		<div className="flex flex-col justify-between gap-3 rounded-xl border border-border-subtle bg-surface-low p-3.5 shadow-xs animate-pulse">
+			<div className="flex items-center gap-3">
+				<span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-border-subtle bg-surface-container" />
+				<div className="min-w-0 flex-1 space-y-1.5">
+					<div className="h-3.5 w-28 rounded bg-surface-high" />
+					<div className="h-3 w-16 rounded bg-surface-high/60" />
+				</div>
+			</div>
+			<div className="flex items-center justify-between gap-2 border-t border-border-subtle/50 pt-2">
+				<div className="h-2.5 w-14 rounded bg-surface-high/70" />
+				<div className="h-2.5 w-12 rounded bg-surface-high/50" />
+			</div>
+		</div>
+	);
+}
 
 export const DiscoveryStepFound: React.FC = () => {
 	const { t } = useTranslation("devices");
@@ -54,28 +72,33 @@ export const DiscoveryStepFound: React.FC = () => {
 
 			{/* Lista de Dispositivos ou Empty/Scanning State */}
 			{discoveredDevices.length === 0 ? (
-				<div className="flex flex-1 flex-col items-center justify-center gap-2.5 rounded-xl border border-dashed border-border-subtle bg-surface-low/50 py-10 text-center">
-					{isScanning ? (
-						<>
-							<Loader2 className="h-5 w-5 animate-spin text-primary" />
-							<p className="text-xs font-medium text-muted-foreground">
-								{t("discoveryModal.scan.scanningSubtitle")}
-							</p>
-						</>
-					) : (
-						<>
-							<div className="flex h-10 w-10 items-center justify-center rounded-xl border border-border-subtle bg-surface-container text-muted-foreground shadow-xs">
-								<Search className="h-5 w-5" />
-							</div>
-							<p className="text-sm font-semibold text-foreground">
-								{t("discoveryModal.scan.emptyTitle")}
-							</p>
-							<p className="max-w-xs text-xs text-muted-foreground">
-								{t("discoveryModal.scan.emptySubtitle")}
-							</p>
-						</>
-					)}
-				</div>
+				isScanning ? (
+					<div
+						role="status"
+						aria-busy="true"
+						className="grid flex-1 auto-rows-min grid-cols-1 gap-3 overflow-y-auto scrollbar-gutter-stable scrollbar-thin sm:grid-cols-2"
+					>
+						<span className="sr-only">
+							{t("discoveryModal.scan.scanningSubtitle")}
+						</span>
+						<DiscoveryDeviceCardSkeleton />
+						<DiscoveryDeviceCardSkeleton />
+						<DiscoveryDeviceCardSkeleton />
+						<DiscoveryDeviceCardSkeleton />
+					</div>
+				) : (
+					<div className="flex flex-1 flex-col items-center justify-center gap-2.5 rounded-xl border border-dashed border-border-subtle bg-surface-low/50 py-10 text-center">
+						<div className="flex h-10 w-10 items-center justify-center rounded-xl border border-border-subtle bg-surface-container text-muted-foreground shadow-xs">
+							<Search className="h-5 w-5" />
+						</div>
+						<p className="text-sm font-semibold text-foreground">
+							{t("discoveryModal.scan.emptyTitle")}
+						</p>
+						<p className="max-w-xs text-xs text-muted-foreground">
+							{t("discoveryModal.scan.emptySubtitle")}
+						</p>
+					</div>
+				)
 			) : (
 				<div className="grid flex-1 auto-rows-min grid-cols-1 gap-3 overflow-y-auto scrollbar-gutter-stable scrollbar-thin sm:grid-cols-2">
 					{discoveredDevices.map((device) => {
@@ -127,11 +150,11 @@ export const DiscoveryStepFound: React.FC = () => {
 					})}
 
 					{isScanning && (
-						<div className="flex flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-border-subtle bg-surface-low/30 p-6 text-center">
-							<Loader2 className="h-5 w-5 animate-spin text-primary" />
-							<p className="text-xs text-muted-foreground">
+						<div role="status" aria-busy="true">
+							<span className="sr-only">
 								{t("discoveryModal.scan.scanningSubtitle")}
-							</p>
+							</span>
+							<DiscoveryDeviceCardSkeleton />
 						</div>
 					)}
 				</div>

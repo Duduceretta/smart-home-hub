@@ -1,6 +1,7 @@
-import { LayoutGrid, List, Loader2, Plus, Search } from "lucide-react";
+import { LayoutGrid, List, Plus, Search } from "lucide-react";
 import { useEffect, useRef } from "react";
 import { cn } from "@/core/utils";
+import { AutomationSkeletonRow } from "@/features/dashboard/components/ActiveAutomationsCard";
 import type {
 	AutomationView,
 	AutomationViewMode,
@@ -253,14 +254,9 @@ export function AutomationListPanel({
 				)}
 
 				{isLoadingMore && (
-					<div
-						className={cn(
-							"flex items-center justify-center gap-1.5 text-xs text-muted-foreground",
-							viewMode === "cards" ? "py-3" : "h-10",
-						)}
-					>
-						<Loader2 className="h-3.5 w-3.5 animate-spin text-primary" />
-						Carregando mais...
+					<div role="status" aria-busy="true" className="w-full">
+						<span className="sr-only">Carregando mais automações</span>
+						<AutomationSkeletonRow />
 					</div>
 				)}
 

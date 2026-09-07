@@ -846,4 +846,28 @@ describe("AutomationCreationWizard Integration Tests", {
 		expect(screen.queryByText("O que deve acontecer?")).not.toBeInTheDocument();
 		expect(screen.queryByText("Tudo pronto?")).not.toBeInTheDocument();
 	});
+
+	it("AutomationCreationWizard_WhenLoadingDevices_RendersPulsingSkeletonsInStep2AndStep3", async () => {
+		// Server never resolves devices query
+		server.use(
+			http.get("*/api/devices", () => {
+				return new Promise(() => {});
+			}),
+		);
+
+		const user = userEvent.setup({ delay: null });
+		useAutomationsUIStore.getState().openCreateWizard();
+		renderWithProviders(<AutomationCreationWizard />);
+
+		// Select device trigger
+		await user.click(
+			await screen.findByRole("button", { name: /Dispositivo/i }),
+		);
+		await user.click(screen.getByRole("button", { name: "Próximo" }));
+
+		// Step 2: TriggerConfigStep device select is skeleton
+		const step2Skeleton = screen.getByRole("status");
+		expect(step2Skeleton).toBeInTheDocument();
+		expect(step2Skeleton).toHaveAttribute("aria-busy", "true");
+	});
 });

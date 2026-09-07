@@ -142,32 +142,39 @@ export function ActionsStep({
 				<div className="flex flex-col gap-4 rounded-lg border border-border-subtle bg-surface-high p-4">
 					<div className="flex flex-col gap-1.5">
 						<Label>{t("wizard.actionsStep.deviceLabel")}</Label>
-						<Select
-							value={draft.deviceId || undefined}
-							onValueChange={(deviceId) =>
-								setDraft((prev) => ({ ...prev, deviceId }))
-							}
-						>
-							<SelectTrigger
-								className="h-11 sm:h-9 w-full"
-								disabled={isLoadingDevices}
+						{isLoadingDevices ? (
+							<div
+								role="status"
+								aria-busy="true"
+								className="h-11 sm:h-9 w-full rounded-lg bg-surface-container animate-pulse"
 							>
-								<SelectValue
-									placeholder={
-										isLoadingDevices
-											? t("wizard.actionsStep.loading")
-											: t("wizard.actionsStep.selectDevicePlaceholder")
-									}
-								/>
-							</SelectTrigger>
-							<SelectContent>
-								{devices.map((device) => (
-									<SelectItem key={device.id} value={device.id}>
-										{device.name}
-									</SelectItem>
-								))}
-							</SelectContent>
-						</Select>
+								<span className="sr-only">
+									{t("wizard.actionsStep.loading")}
+								</span>
+							</div>
+						) : (
+							<Select
+								value={draft.deviceId || undefined}
+								onValueChange={(deviceId) =>
+									setDraft((prev) => ({ ...prev, deviceId }))
+								}
+							>
+								<SelectTrigger className="h-11 sm:h-9 w-full">
+									<SelectValue
+										placeholder={t(
+											"wizard.actionsStep.selectDevicePlaceholder",
+										)}
+									/>
+								</SelectTrigger>
+								<SelectContent>
+									{devices.map((device) => (
+										<SelectItem key={device.id} value={device.id}>
+											{device.name}
+										</SelectItem>
+									))}
+								</SelectContent>
+							</Select>
+						)}
 					</div>
 
 					<div className="flex flex-col gap-1.5">
