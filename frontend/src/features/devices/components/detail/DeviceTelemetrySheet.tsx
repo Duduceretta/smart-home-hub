@@ -176,7 +176,10 @@ export const DeviceTelemetrySheet: React.FC<DeviceTelemetrySheetProps> = ({
 							className="h-52 w-full animate-pulse rounded-lg bg-surface-high/60"
 						/>
 					) : isError ? (
-						<div className="rounded-lg border border-dashed border-rose-950/60 bg-rose-950/10 p-5 text-center text-xs text-rose-400">
+						<div
+							role="alert"
+							className="rounded-lg border border-dashed border-border-subtle bg-surface-low/50 p-5 text-center text-xs text-muted-foreground"
+						>
 							{t("telemetry.errorLoading")}
 						</div>
 					) : chartData.length === 0 ? (
