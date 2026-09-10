@@ -1,6 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { loginWithEmail } from "../api/auth.api";
 import { useAuthStore } from "../store/useAuthStore";
 import { type LoginFormData, loginSchema } from "../types/auth.schemas";
@@ -8,6 +8,7 @@ import { type LoginFormData, loginSchema } from "../types/auth.schemas";
 export function useLoginForm() {
 	const setUser = useAuthStore((state) => state.setUser);
 	const navigate = useNavigate();
+	const location = useLocation();
 
 	const formMethods = useForm<LoginFormData>({
 		resolver: zodResolver(loginSchema),
@@ -19,7 +20,20 @@ export function useLoginForm() {
 		try {
 			const user = await loginWithEmail(data);
 			setUser(user);
-			navigate("/dashboard");
+
+			const fromState = (
+				location.state as {
+					from?: { pathname: string; search?: string; hash?: string } | string;
+				}
+			)?.from;
+			const destination =
+				typeof fromState === "string"
+					? fromState
+					: fromState?.pathname
+						? `${fromState.pathname}${fromState.search || ""}${fromState.hash || ""}`
+						: "/dashboard";
+
+			navigate(destination, { replace: true });
 		} catch (error: unknown) {
 			if (error instanceof Error) {
 				formMethods.setError("root", {

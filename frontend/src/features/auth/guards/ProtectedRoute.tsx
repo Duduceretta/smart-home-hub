@@ -1,12 +1,13 @@
 import { Loader2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { Navigate, Outlet } from "react-router-dom";
+import { Navigate, Outlet, useLocation } from "react-router-dom";
 import { useAuthStore } from "../store/useAuthStore";
 
 export function ProtectedRoute() {
 	const { t } = useTranslation("auth");
 	const user = useAuthStore((state) => state.user);
 	const isLoading = useAuthStore((state) => state.isLoading);
+	const location = useLocation();
 
 	if (isLoading) {
 		return (
@@ -20,7 +21,7 @@ export function ProtectedRoute() {
 	}
 
 	if (!user) {
-		return <Navigate to="/login" replace />;
+		return <Navigate to="/login" state={{ from: location }} replace />;
 	}
 
 	return <Outlet />;

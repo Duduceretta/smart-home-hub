@@ -158,7 +158,7 @@ export async function mockBackendEssentials(page: Page): Promise<void> {
 		});
 	});
 
-	await page.route(`${API_ORIGIN}/api/dashboard/overview`, async (route) => {
+	await page.route(`${API_ORIGIN}/api/dashboard/overview*`, async (route) => {
 		await route.fulfill({
 			status: 200,
 			contentType: "application/json",
@@ -174,6 +174,76 @@ export async function mockBackendEssentials(page: Page): Promise<void> {
 				energyChart: [],
 				roomUsage: [],
 				recentActivities: [],
+			}),
+		});
+	});
+
+	await page.route(`${API_ORIGIN}/api/rooms*`, async (route) => {
+		await route.fulfill({
+			status: 200,
+			contentType: "application/json",
+			body: JSON.stringify([]),
+		});
+	});
+
+	await page.route(`${API_ORIGIN}/api/devices*`, async (route) => {
+		await route.fulfill({
+			status: 200,
+			contentType: "application/json",
+			body: JSON.stringify({
+				items: [],
+				page: 1,
+				pageSize: 200,
+				totalCount: 0,
+				totalPages: 0,
+				hasNextPage: false,
+				hasPreviousPage: false,
+			}),
+		});
+	});
+
+	await page.route(
+		`${API_ORIGIN}/api/dashboard/activity-log*`,
+		async (route) => {
+			await route.fulfill({
+				status: 200,
+				contentType: "application/json",
+				body: JSON.stringify({
+					items: [],
+					page: 1,
+					pageSize: 5,
+					totalCount: 0,
+					totalPages: 0,
+					hasNextPage: false,
+					hasPreviousPage: false,
+				}),
+			});
+		},
+	);
+
+	await page.route(
+		`${API_ORIGIN}/api/integrations/spotify/status*`,
+		async (route) => {
+			await route.fulfill({
+				status: 200,
+				contentType: "application/json",
+				body: JSON.stringify({ connected: false, displayName: null }),
+			});
+		},
+	);
+
+	await page.route(`${API_ORIGIN}/api/automations*`, async (route) => {
+		await route.fulfill({
+			status: 200,
+			contentType: "application/json",
+			body: JSON.stringify({
+				items: [],
+				page: 1,
+				pageSize: 10,
+				totalCount: 0,
+				totalPages: 0,
+				hasNextPage: false,
+				hasPreviousPage: false,
 			}),
 		});
 	});

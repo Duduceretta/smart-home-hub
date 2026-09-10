@@ -4,6 +4,7 @@ import {
 	Navigate,
 	RouterProvider,
 } from "react-router-dom";
+import { setUnauthorizedRedirectHandler } from "@/core/api/api.client";
 import { ProtectedRoute } from "@/features/auth/guards/ProtectedRoute";
 import { PublicRoute } from "@/features/auth/guards/PublicRoute";
 import { AppLayout } from "@/widgets/layout/AppLayout";
@@ -40,7 +41,7 @@ function withFallback(element: React.ReactNode) {
 	return <Suspense fallback={<RoutePendingFallback />}>{element}</Suspense>;
 }
 
-const router = createBrowserRouter([
+export const router = createBrowserRouter([
 	{
 		element: <PublicRoute />,
 		children: [
@@ -113,6 +114,10 @@ const router = createBrowserRouter([
 		element: <Navigate to="/dashboard" replace />,
 	},
 ]);
+
+setUnauthorizedRedirectHandler((to) => {
+	void router.navigate(to, { replace: true });
+});
 
 export function Router() {
 	return <RouterProvider router={router} />;

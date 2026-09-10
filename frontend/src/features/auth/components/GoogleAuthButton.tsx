@@ -1,7 +1,7 @@
 import { Loader2 } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { Button } from "@/core/components/ui/button";
 import { loginWithGoogle } from "../api/auth.api";
@@ -16,6 +16,7 @@ export function GoogleAuthButton({ actionText }: GoogleAuthButtonProps) {
 	const [isLoading, setIsLoading] = useState(false);
 	const setUser = useAuthStore((state) => state.setUser);
 	const navigate = useNavigate();
+	const location = useLocation();
 
 	const handleGoogleLogin = async () => {
 		setIsLoading(true);
@@ -25,7 +26,20 @@ export function GoogleAuthButton({ actionText }: GoogleAuthButtonProps) {
 			if (!user) return;
 
 			setUser(user);
-			navigate("/dashboard");
+
+			const fromState = (
+				location.state as {
+					from?: { pathname: string; search?: string; hash?: string } | string;
+				}
+			)?.from;
+			const destination =
+				typeof fromState === "string"
+					? fromState
+					: fromState?.pathname
+						? `${fromState.pathname}${fromState.search || ""}${fromState.hash || ""}`
+						: "/dashboard";
+
+			navigate(destination, { replace: true });
 		} catch (error: unknown) {
 			if (error instanceof Error) {
 				toast.error(error.message);
