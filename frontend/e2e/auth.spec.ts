@@ -80,4 +80,23 @@ test.describe("E2E: Fluxos de Autenticação", () => {
 			page.getByRole("heading", { name: "Bem-vindo(a)" }),
 		).toBeVisible();
 	});
+
+	test("AuthLayout_MobileBackground_DeveExibirFundoAnimadoEmTelasMobileEOcultarEmDesktop", async ({
+		page,
+	}) => {
+		// Teste em viewport mobile estreito (360x740)
+		await page.setViewportSize({ width: 360, height: 740 });
+		await page.goto("/login");
+
+		const mobileBg = page.getByTestId("mobile-auth-background");
+		await expect(mobileBg).toBeVisible();
+
+		// Teste em viewport mobile intermediário (428x926)
+		await page.setViewportSize({ width: 428, height: 926 });
+		await expect(mobileBg).toBeVisible();
+
+		// Teste em viewport desktop (1280x800) - deve estar oculto via md:hidden
+		await page.setViewportSize({ width: 1280, height: 800 });
+		await expect(mobileBg).toBeHidden();
+	});
 });
