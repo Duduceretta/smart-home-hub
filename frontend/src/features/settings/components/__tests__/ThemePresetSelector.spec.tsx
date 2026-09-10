@@ -72,4 +72,28 @@ describe("ThemePresetSelector Integration Tests", () => {
 			"contrast-safe-graphite",
 		);
 	});
+
+	it("ThemePresetSelector_DropdownVariant_ShouldRenderTriggerAndAllowSelectingPreset", async () => {
+		// Arrange
+		const user = userEvent.setup();
+		renderWithProviders(<ThemePresetSelector variant="dropdown" />);
+
+		// Act - click dropdown trigger
+		const trigger = screen.getByRole("button");
+		expect(trigger).toBeInTheDocument();
+		await user.click(trigger);
+
+		// Assert menu items are visible
+		const indigoOption = await screen.findByRole("menuitemradio", {
+			name: "Indigo",
+		});
+		expect(indigoOption).toBeInTheDocument();
+
+		// Act - select Indigo
+		await user.click(indigoOption);
+
+		// Assert
+		expect(localStorage.getItem("app-theme-preset")).toBe("indigo");
+		expect(document.documentElement.getAttribute("data-theme")).toBe("indigo");
+	});
 });
