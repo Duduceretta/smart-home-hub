@@ -1,34 +1,45 @@
 import { Home } from "lucide-react";
 import { type ReactNode, useEffect, useState } from "react";
+import { Outlet, useLocation } from "react-router-dom";
 import { cn } from "@/core/utils";
 import { ThemePresetSelector } from "@/features/settings/components/ThemePresetSelector";
 import { ArchitecturalResidenceIllustration } from "./components/ArchitecturalResidenceIllustration";
+import { DesktopAuthBackground } from "./components/DesktopAuthBackground";
 import { MobileAuthBackground } from "./components/MobileAuthBackground";
 
 interface AuthLayoutProps {
-	children: ReactNode;
+	children?: ReactNode;
 }
 
 export function AuthLayout({ children }: AuthLayoutProps) {
+	const location = useLocation();
 	const [mounted, setMounted] = useState(false);
 
 	useEffect(() => {
-		const t = setTimeout(() => setMounted(true), 100);
+		const t = setTimeout(() => setMounted(true), 80);
 		return () => clearTimeout(t);
 	}, []);
 
 	return (
-		<main className="relative flex min-h-screen w-full flex-col bg-background selection:bg-primary/30 md:flex-row antialiased">
+		<main className="relative flex min-h-screen w-full flex-col bg-background selection:bg-primary/30 lg:flex-row antialiased">
 			{/* Seletor de Tema no canto superior direito (visível em desktop e mobile) */}
 			<div className="absolute top-4 right-4 sm:top-6 sm:right-6 z-30">
 				<ThemePresetSelector variant="dropdown" />
 			</div>
 
 			{/* LADO ESQUERDO: Painel Decorativo de Corte Arquitetônico (Fixo para Desktop) */}
-			<section className="sticky top-0 z-20 hidden h-screen overflow-hidden border-r border-border-subtle bg-background shadow-[15px_0_50px_rgba(0,0,0,0.5)] md:flex md:w-1/2 lg:w-7/12">
+			<section className="sticky top-0 z-20 hidden h-screen overflow-hidden border-r border-border-subtle bg-background shadow-[15px_0_50px_rgba(0,0,0,0.5)] lg:flex lg:w-7/12">
 				<div className="absolute inset-0 z-0 overflow-hidden">
-					{/* Ilustração arquitetônica rica com profundidade, luzes interativas e parallax sutil */}
-					<ArchitecturalResidenceIllustration className="h-full w-full" />
+					{/* Ilustração arquitetônica com montagem progressiva sequencial */}
+					<div
+						data-testid="auth-illustration-container"
+						className="h-full w-full"
+					>
+						<ArchitecturalResidenceIllustration
+							key={location.pathname}
+							className="h-full w-full"
+						/>
+					</div>
 
 					{/* Vinheta lateral suave apenas na borda divisória direita (sem escurecer o piso inferior) */}
 					<div className="absolute inset-y-0 right-0 w-16 bg-linear-to-r from-transparent to-background/40 pointer-events-none" />
@@ -37,7 +48,7 @@ export function AuthLayout({ children }: AuthLayoutProps) {
 				<div className="relative z-10 flex h-full w-full flex-col justify-between p-12 pointer-events-none">
 					<div
 						className={cn(
-							"opacity-0-init flex items-center gap-2 pointer-events-auto",
+							"opacity-0-init flex items-center gap-2 pointer-events-auto w-fit",
 							mounted && "animate-slide-left",
 						)}
 					>
@@ -49,7 +60,7 @@ export function AuthLayout({ children }: AuthLayoutProps) {
 
 					<div
 						className={cn(
-							"opacity-0-init pointer-events-auto",
+							"opacity-0-init pointer-events-auto absolute bottom-6 left-6",
 							mounted && "animate-fade-up delay-400",
 						)}
 					>
@@ -64,12 +75,13 @@ export function AuthLayout({ children }: AuthLayoutProps) {
 			</section>
 
 			{/* LADO DIREITO (Dinâmico, recebe os formulários) */}
-			<section className="relative z-10 flex min-h-screen w-full flex-col items-center justify-center overflow-y-auto bg-background p-4 py-8 sm:p-8 md:p-12 md:w-1/2 lg:w-5/12">
-				{/* Fundo dinâmico/sutil reaproveitando o céu noturno da residência em viewports mobile */}
+			<section className="relative z-10 flex min-h-screen w-full flex-col items-center justify-center overflow-y-auto bg-background p-4 py-8 sm:p-8 lg:p-8 2xl:p-12 lg:w-5/12">
+				{/* Fundo dinâmico/sutil reaproveitando o céu noturno e calor da residência (mobile e desktop) */}
 				<MobileAuthBackground />
+				<DesktopAuthBackground />
 
 				{/* Bloco de marca compacto no topo em Mobile (identidade garantida em telas pequenas) */}
-				<div className="relative z-10 mb-6 flex items-center gap-2 md:hidden">
+				<div className="relative z-10 mb-6 flex items-center gap-2 lg:hidden">
 					<Home className="h-7 w-7 text-primary" />
 					<span className="text-2xl font-semibold tracking-tight text-foreground">
 						Nexus Hub
@@ -77,9 +89,11 @@ export function AuthLayout({ children }: AuthLayoutProps) {
 				</div>
 
 				<div className="relative z-10 flex w-full justify-center">
-					{children}
+					{children ?? <Outlet />}
 				</div>
 			</section>
 		</main>
 	);
 }
+
+export default AuthLayout;

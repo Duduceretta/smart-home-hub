@@ -13,6 +13,7 @@ import { RoutePendingFallback } from "./RoutePendingFallback";
 // Cada página vira seu próprio chunk — sem isso, /login baixava o mesmo
 // bundle de 1.6MB de /dashboard (recharts, SignalR, todas as features),
 // mesmo sem precisar de nenhum deles antes do usuário autenticar.
+const AuthLayout = lazy(() => import("@/widgets/layout/AuthLayout"));
 const LoginPage = lazy(() => import("@/pages/login/LoginPage"));
 const RegisterPage = lazy(() => import("@/pages/register/RegisterPage"));
 const ForgotPasswordPage = lazy(
@@ -46,20 +47,25 @@ export const router = createBrowserRouter([
 		element: <PublicRoute />,
 		children: [
 			{
-				path: "/login",
-				element: withFallback(<LoginPage />),
-			},
-			{
-				path: "/register",
-				element: withFallback(<RegisterPage />),
-			},
-			{
-				path: "/forgot-password",
-				element: withFallback(<ForgotPasswordPage />),
-			},
-			{
-				path: "/reset-password",
-				element: withFallback(<ResetPasswordPage />),
+				element: withFallback(<AuthLayout />),
+				children: [
+					{
+						path: "/login",
+						element: withFallback(<LoginPage />),
+					},
+					{
+						path: "/register",
+						element: withFallback(<RegisterPage />),
+					},
+					{
+						path: "/forgot-password",
+						element: withFallback(<ForgotPasswordPage />),
+					},
+					{
+						path: "/reset-password",
+						element: withFallback(<ResetPasswordPage />),
+					},
+				],
 			},
 		],
 	},
