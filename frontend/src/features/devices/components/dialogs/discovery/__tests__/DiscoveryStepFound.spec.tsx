@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { useDevicesUIStore } from "@/features/devices/store/devices-ui.store";
 import {
+	DeviceTypeEnum,
 	type DiscoveredDevice,
 	IntegrationTypeEnum,
 } from "@/features/devices/types/devices.types";
@@ -11,9 +12,14 @@ const mockDiscoveredDevice: DiscoveredDevice = {
 	temporaryId: "temp-1",
 	name: "Lâmpada Inteligente",
 	brand: "Philips",
+	externalId: "ext-1",
+	type: DeviceTypeEnum.Light,
 	integrationType: IntegrationTypeEnum.TuyaLocal,
 	ipAddress: "192.168.1.50",
+	macAddress: null,
 	signalStrength: -45,
+	additionalProperties: null,
+	upnpServices: null,
 };
 
 describe("DiscoveryStepFound Integration Tests", () => {

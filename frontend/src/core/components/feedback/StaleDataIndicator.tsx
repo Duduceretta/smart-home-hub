@@ -29,8 +29,8 @@ export function StaleDataIndicator({ className }: StaleDataIndicatorProps) {
 	return (
 		<AlertCircle
 			className={cn("h-3 w-3 shrink-0 text-warm", className)}
-			title={label}
 			aria-label={label}
+			{...({ title: label } as Record<string, string>)}
 		/>
 	);
 }

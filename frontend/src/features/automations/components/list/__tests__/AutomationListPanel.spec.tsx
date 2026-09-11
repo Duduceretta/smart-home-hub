@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
+import type { AutomationView } from "@/features/automations/types/automations.types";
 import { renderWithProviders, screen } from "@/testing/test-utils";
-import type { AutomationView } from "../../types/automations.types";
 import { AutomationListPanel } from "../AutomationListPanel";
 
 function createMockAutomation(id: string): AutomationView {
@@ -39,6 +39,7 @@ describe("AutomationListPanel Integration Tests", () => {
 				onLoadMore={vi.fn()}
 				hasMore={true}
 				isLoadingMore={true}
+				resetKey="initial"
 			/>,
 		);
 
