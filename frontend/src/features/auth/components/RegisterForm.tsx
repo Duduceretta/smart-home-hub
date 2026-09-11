@@ -95,6 +95,28 @@ export function RegisterForm() {
 							? t("register.submitting")
 							: t("register.submitButton")}
 					</Button>
+
+					<p className="mt-3 text-center text-xs text-muted-foreground leading-relaxed">
+						{t("register.termsConsentPrefix")}{" "}
+						<Link
+							to="/legal/terms"
+							target="_blank"
+							rel="noreferrer"
+							className="font-medium text-foreground underline underline-offset-4 transition-colors hover:text-primary"
+						>
+							{t("register.termsOfService")}
+						</Link>{" "}
+						{t("register.and")}{" "}
+						<Link
+							to="/legal/privacy"
+							target="_blank"
+							rel="noreferrer"
+							className="font-medium text-foreground underline underline-offset-4 transition-colors hover:text-primary"
+						>
+							{t("register.privacyPolicy")}
+						</Link>
+						.
+					</p>
 				</div>
 
 				<FormGlobalError error={errors.root?.message} />

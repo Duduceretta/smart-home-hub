@@ -33,6 +33,22 @@ describe("AuthLayout Integration Tests", () => {
 		expect(screen.getByTestId("auth-form-content")).toBeInTheDocument();
 	});
 
+	it("AuthLayout_LegalFooter_ShouldRenderLegalFooterWithTermsAndPrivacyLinks", () => {
+		// Act
+		renderAuthLayout(<div data-testid="auth-form-content">Form Content</div>);
+
+		// Assert
+		const footer = screen.getByTestId("legal-footer");
+		expect(footer).toBeInTheDocument();
+		expect(
+			screen.getByRole("link", { name: "Termos de Serviço" }),
+		).toHaveAttribute("href", "/legal/terms");
+		expect(screen.getByRole("link", { name: "Privacidade" })).toHaveAttribute(
+			"href",
+			"/legal/privacy",
+		);
+	});
+
 	it("AuthLayout_ThemeSelector_ShouldRenderTriggerAndAllowChangingTheme", async () => {
 		// Arrange
 		const user = userEvent.setup();

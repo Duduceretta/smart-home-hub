@@ -3,6 +3,7 @@ import { type ReactNode, useEffect, useState } from "react";
 import { Outlet, useLocation } from "react-router-dom";
 import { cn } from "@/core/utils";
 import { ThemePresetSelector } from "@/features/settings/components/ThemePresetSelector";
+import { LegalFooter } from "@/widgets/legal-footer";
 import { ArchitecturalResidenceIllustration } from "./components/ArchitecturalResidenceIllustration";
 import { DesktopAuthBackground } from "./components/DesktopAuthBackground";
 import { MobileAuthBackground } from "./components/MobileAuthBackground";
@@ -75,22 +76,29 @@ export function AuthLayout({ children }: AuthLayoutProps) {
 			</section>
 
 			{/* LADO DIREITO (Dinâmico, recebe os formulários) */}
-			<section className="relative z-10 flex min-h-screen w-full flex-col items-center justify-center overflow-y-auto bg-background p-4 py-8 sm:p-8 lg:p-8 2xl:p-12 lg:w-5/12">
+			<section className="relative z-10 flex min-h-screen w-full flex-col items-center justify-between overflow-y-auto bg-background p-4 py-8 sm:p-8 lg:p-8 2xl:p-12 lg:w-5/12">
 				{/* Fundo dinâmico/sutil reaproveitando o céu noturno e calor da residência (mobile e desktop) */}
 				<MobileAuthBackground />
 				<DesktopAuthBackground />
 
-				{/* Bloco de marca compacto no topo em Mobile (identidade garantida em telas pequenas) */}
-				<div className="relative z-10 mb-6 flex items-center gap-2 lg:hidden">
-					<Home className="h-7 w-7 text-primary" />
-					<span className="text-2xl font-semibold tracking-tight text-foreground">
-						Nexus Hub
-					</span>
+				{/* Espaçador superior para alinhamento vertical equilibrado */}
+				<div className="hidden lg:block w-full h-4" aria-hidden="true" />
+
+				<div className="relative z-10 flex w-full flex-1 flex-col items-center justify-center my-auto">
+					{/* Bloco de marca compacto no topo em Mobile (identidade garantida em telas pequenas) */}
+					<div className="mb-6 flex items-center gap-2 lg:hidden">
+						<Home className="h-7 w-7 text-primary" />
+						<span className="text-2xl font-semibold tracking-tight text-foreground">
+							Nexus Hub
+						</span>
+					</div>
+
+					<div className="flex w-full justify-center">
+						{children ?? <Outlet />}
+					</div>
 				</div>
 
-				<div className="relative z-10 flex w-full justify-center">
-					{children ?? <Outlet />}
-				</div>
+				<LegalFooter variant="compact" className="relative z-10 mt-6" />
 			</section>
 		</main>
 	);
