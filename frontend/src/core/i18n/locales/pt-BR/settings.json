@@ -7,7 +7,8 @@
 		"integrations": "Integrações"
 	},
 	"theme": {
-		"ariaLabel": "Tema de cores do aplicativo"
+		"ariaLabel": "Tema de cores do aplicativo",
+		"changeTheme": "Alterar o tema"
 	},
 	"language": {
 		"label": "Idioma",

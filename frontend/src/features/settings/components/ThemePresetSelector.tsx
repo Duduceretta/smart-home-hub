@@ -7,6 +7,11 @@ import {
 	DropdownMenuRadioItem,
 	DropdownMenuTrigger,
 } from "@/core/components/ui/dropdown-menu";
+import {
+	Tooltip,
+	TooltipContent,
+	TooltipTrigger,
+} from "@/core/components/ui/tooltip";
 import { cn } from "@/core/utils";
 import { useThemeUIStore } from "../store/theme-ui.store";
 import { THEME_PRESET_OPTIONS, type ThemePresetId } from "../types/theme.types";
@@ -29,20 +34,27 @@ export function ThemePresetSelector({
 
 		return (
 			<DropdownMenu>
-				<DropdownMenuTrigger asChild>
-					<button
-						type="button"
-						aria-label={t("theme.ariaLabel")}
-						className="relative flex h-9 w-9 items-center justify-center rounded-lg border border-border-subtle bg-surface-low text-muted-foreground transition-colors hover:bg-surface-container hover:text-foreground cursor-pointer"
-					>
-						<Palette className="h-4 w-4" />
-						<span
-							className="absolute bottom-1.5 right-1.5 size-1.5 rounded-full ring-1 ring-background"
-							style={{ backgroundColor: activeOption.swatch.primary }}
-							aria-hidden="true"
-						/>
-					</button>
-				</DropdownMenuTrigger>
+				<Tooltip>
+					<TooltipTrigger asChild>
+						<DropdownMenuTrigger asChild>
+							<button
+								type="button"
+								aria-label={t("theme.ariaLabel")}
+								className="relative flex h-9 w-9 items-center justify-center rounded-lg border border-border-subtle bg-surface-low text-muted-foreground transition-colors hover:bg-surface-container hover:text-foreground cursor-pointer"
+							>
+								<Palette className="h-4 w-4" />
+								<span
+									className="absolute bottom-1.5 right-1.5 size-1.5 rounded-full ring-1 ring-background"
+									style={{ backgroundColor: activeOption.swatch.primary }}
+									aria-hidden="true"
+								/>
+							</button>
+						</DropdownMenuTrigger>
+					</TooltipTrigger>
+					<TooltipContent side="bottom" align="end">
+						{t("theme.changeTheme", "Alterar o tema")}
+					</TooltipContent>
+				</Tooltip>
 				<DropdownMenuContent align="end" className="w-56 p-1">
 					<DropdownMenuRadioGroup
 						value={preset}

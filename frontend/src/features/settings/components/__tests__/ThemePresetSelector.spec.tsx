@@ -96,4 +96,19 @@ describe("ThemePresetSelector Integration Tests", () => {
 		expect(localStorage.getItem("app-theme-preset")).toBe("indigo");
 		expect(document.documentElement.getAttribute("data-theme")).toBe("indigo");
 	});
+
+	it("ThemePresetSelector_DropdownVariant_ShouldRenderTooltipWithChangeThemeText", async () => {
+		// Arrange
+		const user = userEvent.setup();
+		renderWithProviders(<ThemePresetSelector variant="dropdown" />);
+
+		const trigger = screen.getByRole("button");
+		await user.hover(trigger);
+
+		// Assert tooltip becomes visible
+		const tooltip = await screen.findByRole("tooltip", {
+			name: /alterar o tema/i,
+		});
+		expect(tooltip).toBeInTheDocument();
+	});
 });
