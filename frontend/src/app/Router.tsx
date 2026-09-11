@@ -22,6 +22,8 @@ const ForgotPasswordPage = lazy(
 const ResetPasswordPage = lazy(
 	() => import("@/pages/reset-password/ResetPasswordPage"),
 );
+const PrivacyPage = lazy(() => import("@/pages/legal/privacy/PrivacyPage"));
+const TermsPage = lazy(() => import("@/pages/legal/terms/TermsPage"));
 const DashboardPage = lazy(() => import("@/pages/dashboard/DashboardPage"));
 const DevicesPage = lazy(() => import("@/pages/devices/DevicesPage"));
 const RoomsPage = lazy(() => import("@/pages/rooms/RoomsPage"));
@@ -114,6 +116,14 @@ export const router = createBrowserRouter([
 				],
 			},
 		],
+	},
+	{
+		path: "/legal/privacy",
+		element: withFallback(<PrivacyPage />),
+	},
+	{
+		path: "/legal/terms",
+		element: withFallback(<TermsPage />),
 	},
 	{
 		path: "/",
