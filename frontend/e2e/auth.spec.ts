@@ -81,22 +81,63 @@ test.describe("E2E: Fluxos de Autenticação", () => {
 		).toBeVisible();
 	});
 
-	test("AuthLayout_MobileBackground_DeveExibirFundoAnimadoEmTelasMobileEOcultarEmDesktop", async ({
+	test("AuthLayout_Backgrounds_DeveAlternarEntreMobileEDesktopConformeViewport", async ({
 		page,
 	}) => {
+		const mobileBg = page.getByTestId("mobile-auth-background");
+		const desktopBg = page.getByTestId("desktop-auth-background");
+		const illustration = page.getByTestId("auth-illustration-container");
+
 		// Teste em viewport mobile estreito (360x740)
 		await page.setViewportSize({ width: 360, height: 740 });
 		await page.goto("/login");
-
-		const mobileBg = page.getByTestId("mobile-auth-background");
 		await expect(mobileBg).toBeVisible();
+		await expect(desktopBg).toBeHidden();
+		await expect(illustration).toBeHidden();
 
 		// Teste em viewport mobile intermediário (428x926)
 		await page.setViewportSize({ width: 428, height: 926 });
 		await expect(mobileBg).toBeVisible();
+		await expect(desktopBg).toBeHidden();
+		await expect(illustration).toBeHidden();
 
-		// Teste em viewport desktop (1280x800) - deve estar oculto via md:hidden
+		// Teste em viewport mobile landscape (667x375)
+		await page.setViewportSize({ width: 667, height: 375 });
+		await expect(mobileBg).toBeVisible();
+		await expect(desktopBg).toBeHidden();
+		await expect(illustration).toBeHidden();
+
+		// Teste em viewport tablet portrait / iPad Mini (768x1024) - deve assumir layout mobile
+		await page.setViewportSize({ width: 768, height: 1024 });
+		await expect(mobileBg).toBeVisible();
+		await expect(desktopBg).toBeHidden();
+		await expect(illustration).toBeHidden();
+		await expect(
+			page.getByRole("button", { name: "Iniciar Sessão" }),
+		).toBeVisible();
+
+		// Teste em viewport tablet landscape / laptop pequeno (1024x768) - layout desktop de duas colunas
+		await page.setViewportSize({ width: 1024, height: 768 });
+		await expect(mobileBg).toBeHidden();
+		await expect(desktopBg).toBeVisible();
+		await expect(illustration).toBeVisible();
+
+		// Teste em viewport desktop padrão (1280x800)
 		await page.setViewportSize({ width: 1280, height: 800 });
 		await expect(mobileBg).toBeHidden();
+		await expect(desktopBg).toBeVisible();
+		await expect(illustration).toBeVisible();
+		await expect(
+			page.getByRole("button", { name: "Iniciar Sessão" }),
+		).toBeVisible();
+
+		// Teste em viewport desktop Full HD (1920x1080)
+		await page.setViewportSize({ width: 1920, height: 1080 });
+		await expect(mobileBg).toBeHidden();
+		await expect(desktopBg).toBeVisible();
+		await expect(illustration).toBeVisible();
+		await expect(
+			page.getByRole("button", { name: "Iniciar Sessão" }),
+		).toBeVisible();
 	});
 });

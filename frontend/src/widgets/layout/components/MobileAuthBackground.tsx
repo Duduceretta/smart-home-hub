@@ -12,7 +12,7 @@ export function MobileAuthBackground({ className }: MobileAuthBackgroundProps) {
 			fill="none"
 			xmlns="http://www.w3.org/2000/svg"
 			className={cn(
-				"pointer-events-none absolute inset-0 z-0 h-full w-full overflow-hidden md:hidden",
+				"pointer-events-none absolute inset-0 z-0 h-full w-full overflow-hidden lg:hidden",
 				className,
 			)}
 			aria-hidden="true"
@@ -75,18 +75,9 @@ export function MobileAuthBackground({ className }: MobileAuthBackgroundProps) {
 					y2="800"
 					gradientUnits="userSpaceOnUse"
 				>
-					<stop
-						offset="0%"
-						stopColor="var(--surface-highest)"
-						stopOpacity="0.22"
-					/>
-					<stop offset="35%" stopColor="var(--popover)" stopOpacity="0.25" />
-					<stop offset="70%" stopColor="var(--card)" stopOpacity="0.35" />
-					<stop
-						offset="100%"
-						stopColor="var(--background)"
-						stopOpacity="0.85"
-					/>
+					<stop offset="0%" stopColor="var(--background)" stopOpacity="0.98" />
+					<stop offset="55%" stopColor="var(--card)" stopOpacity="0.95" />
+					<stop offset="100%" stopColor="var(--popover)" stopOpacity="0.8" />
 				</linearGradient>
 
 				{/* 2. Glow ambiente suave e acolhedor derivado da residência */}
@@ -96,8 +87,20 @@ export function MobileAuthBackground({ className }: MobileAuthBackgroundProps) {
 					cy="28%"
 					r="60%"
 				>
-					<stop offset="0%" stopColor="var(--warm)" stopOpacity="0.25" />
-					<stop offset="50%" stopColor="var(--warm)" stopOpacity="0.07" />
+					<stop offset="0%" stopColor="var(--warm)" stopOpacity="0.18" />
+					<stop offset="50%" stopColor="var(--warm)" stopOpacity="0.04" />
+					<stop offset="100%" stopColor="var(--warm)" stopOpacity="0" />
+				</radialGradient>
+
+				{/* 3. Nebulosas cósmicas difusas perfeitamente esmaecidas */}
+				<radialGradient id="mobile-auth-upper-nebula" cx="50%" cy="24%" r="45%">
+					<stop offset="0%" stopColor="var(--primary)" stopOpacity="0.03" />
+					<stop offset="60%" stopColor="var(--primary)" stopOpacity="0.01" />
+					<stop offset="100%" stopColor="var(--primary)" stopOpacity="0" />
+				</radialGradient>
+				<radialGradient id="mobile-auth-lower-nebula" cx="50%" cy="80%" r="40%">
+					<stop offset="0%" stopColor="var(--warm)" stopOpacity="0.025" />
+					<stop offset="50%" stopColor="var(--warm)" stopOpacity="0.008" />
 					<stop offset="100%" stopColor="var(--warm)" stopOpacity="0" />
 				</radialGradient>
 			</defs>
@@ -113,23 +116,9 @@ export function MobileAuthBackground({ className }: MobileAuthBackgroundProps) {
 				className="mobile-ambient-breath"
 			/>
 
-			{/* Poeira estelar / nebulosa cósmica sutil */}
-			<ellipse
-				cx="200"
-				cy="190"
-				rx="160"
-				ry="95"
-				fill="var(--primary)"
-				opacity="0.02"
-			/>
-			<ellipse
-				cx="200"
-				cy="640"
-				rx="140"
-				ry="80"
-				fill="var(--warm)"
-				opacity="0.015"
-			/>
+			{/* Brilhos cósmicos difusos esmaecidos (sem bordas duras) */}
+			<rect width="400" height="800" fill="url(#mobile-auth-upper-nebula)" />
+			<rect width="400" height="800" fill="url(#mobile-auth-lower-nebula)" />
 
 			{/* --- CAMPO DE ESTRELAS DISTRIBUÍDO NO ENTORNO DO CARD --- */}
 
