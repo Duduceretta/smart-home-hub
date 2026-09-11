@@ -70,7 +70,7 @@ export function LoginForm() {
 					<Button
 						type="submit"
 						disabled={isSubmitting}
-						className="h-11 w-full bg-primary text-primary-foreground hover:bg-primary/90 font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer"
+						className="h-11 w-full rounded-lg border border-border bg-surface-high text-sm font-semibold text-foreground shadow-xs transition-all hover:border-foreground/40 hover:bg-surface-highest active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer"
 					>
 						{isSubmitting ? t("login.submitting") : t("login.submitButton")}
 					</Button>
