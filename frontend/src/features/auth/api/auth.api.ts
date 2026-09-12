@@ -1,9 +1,8 @@
+import axios from "axios";
 import {
-	type ActionCodeSettings,
 	confirmPasswordReset,
 	createUserWithEmailAndPassword,
 	GoogleAuthProvider,
-	sendPasswordResetEmail,
 	signInWithEmailAndPassword,
 	signInWithPopup,
 	signOut,
@@ -174,40 +173,27 @@ export const logoutUser = async (): Promise<void> => {
 };
 
 export const resetPassword = async (email: string): Promise<void> => {
-	const actionCodeSettings: ActionCodeSettings = {
-		url: `${window.location.origin}/reset-password`,
-		handleCodeInApp: true,
-	};
-
 	try {
-		await sendPasswordResetEmail(auth, email, actionCodeSettings);
+		await apiClient.post("/auth/forgot-password", { email });
 	} catch (error: unknown) {
-		if (error instanceof Error && "code" in error) {
-			const firebaseError = error as { code: string };
-
-			// Proteção estrita contra enumeração de usuário: se a conta não existir,
-			// não expomos erro na UI para evitar descoberta de emails cadastrados.
-			if (firebaseError.code === "auth/user-not-found") {
-				return;
-			}
-
-			if (firebaseError.code === "auth/too-many-requests") {
+		if (axios.isAxiosError(error)) {
+			if (error.response?.status === 429) {
 				throw new AuthError(
 					"forgotPassword.errors.tooManyRequests",
-					firebaseError.code,
+					"auth/too-many-requests",
 				);
 			}
 
-			if (firebaseError.code === "auth/network-request-failed") {
+			if (!error.response) {
 				throw new AuthError(
 					"forgotPassword.errors.networkError",
-					firebaseError.code,
+					"auth/network-request-failed",
 				);
 			}
 
-			Logger.error("Erro no Firebase ao solicitar recuperação de senha", error);
+			Logger.error("Erro na API ao solicitar recuperação de senha", error);
 		} else {
-			Logger.error("Falha crítica desconhecida na recuperação de senha", error);
+			Logger.error("Falha crítica na recuperação de senha", error);
 		}
 
 		throw new AuthError("forgotPassword.errors.generic");
