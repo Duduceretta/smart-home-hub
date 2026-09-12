@@ -1,6 +1,7 @@
 import { ArrowLeft, Calendar, Home, ShieldCheck } from "lucide-react";
 import type { ReactNode } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { LanguageSelector } from "@/features/settings/components/LanguageSelector";
 import { ThemePresetSelector } from "@/features/settings/components/ThemePresetSelector";
 import { LegalFooter } from "@/widgets/legal-footer";
 
@@ -62,7 +63,8 @@ export function LegalLayout({
 						</Link>
 					</div>
 
-					<div className="flex items-center gap-3">
+					<div className="flex items-center gap-2 sm:gap-3">
+						<LanguageSelector />
 						<ThemePresetSelector variant="dropdown" />
 					</div>
 				</div>

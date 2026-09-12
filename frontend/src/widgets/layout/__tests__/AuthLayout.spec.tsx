@@ -1,7 +1,12 @@
 import { MemoryRouter } from "react-router-dom";
 import { beforeEach, describe, expect, it } from "vitest";
 import { useAuthIllustrationUIStore } from "@/features/auth/store/auth-illustration-ui.store";
-import { renderWithProviders, screen, userEvent } from "@/testing/test-utils";
+import {
+	renderWithProviders,
+	screen,
+	userEvent,
+	within,
+} from "@/testing/test-utils";
 import { AuthLayout } from "../AuthLayout";
 
 function renderAuthLayout(children: React.ReactNode) {
@@ -40,6 +45,7 @@ describe("AuthLayout Integration Tests", () => {
 		// Assert
 		const footer = screen.getByTestId("legal-footer");
 		expect(footer).toBeInTheDocument();
+		expect(footer.className).toContain("justify-end");
 		expect(
 			screen.getByRole("link", { name: "Termos de Serviço" }),
 		).toHaveAttribute("href", "/legal/terms");
@@ -72,6 +78,31 @@ describe("AuthLayout Integration Tests", () => {
 
 		// Assert
 		expect(document.documentElement.getAttribute("data-theme")).toBe("indigo");
+	});
+
+	it("AuthLayout_LanguageSelector_ShouldRenderTriggerWithFlagAndAllowChangingLanguage", async () => {
+		// Arrange
+		const user = userEvent.setup();
+		renderAuthLayout(<div>Form Content</div>);
+
+		// Assert LanguageSelector exists with flag and language name
+		const langTrigger = screen.getByRole("button", {
+			name: /selecionar idioma|idioma/i,
+		});
+		expect(langTrigger).toBeInTheDocument();
+		expect(within(langTrigger).getByTestId("flag-brazil")).toBeInTheDocument();
+		expect(langTrigger).toHaveTextContent("Português");
+
+		// Act - open dropdown and switch to English
+		await user.click(langTrigger);
+		const enOption = await screen.findByRole("menuitemradio", {
+			name: /english/i,
+		});
+		await user.click(enOption);
+
+		// Assert
+		expect(within(langTrigger).getByTestId("flag-usa")).toBeInTheDocument();
+		expect(langTrigger).toHaveTextContent("English");
 	});
 
 	it("AuthLayout_InteractiveLights_ShouldBeExcludedFromTabOrder", () => {

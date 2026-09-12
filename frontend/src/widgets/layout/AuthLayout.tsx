@@ -2,6 +2,7 @@ import { Home } from "lucide-react";
 import { type ReactNode, useEffect, useState } from "react";
 import { Outlet, useLocation } from "react-router-dom";
 import { cn } from "@/core/utils";
+import { LanguageSelector } from "@/features/settings/components/LanguageSelector";
 import { ThemePresetSelector } from "@/features/settings/components/ThemePresetSelector";
 import { LegalFooter } from "@/widgets/legal-footer";
 import { ArchitecturalResidenceIllustration } from "./components/ArchitecturalResidenceIllustration";
@@ -23,8 +24,9 @@ export function AuthLayout({ children }: AuthLayoutProps) {
 
 	return (
 		<main className="relative flex min-h-screen w-full flex-col bg-background selection:bg-primary/30 lg:flex-row antialiased">
-			{/* Seletor de Tema no canto superior direito (visível em desktop e mobile) */}
-			<div className="absolute top-4 right-4 sm:top-6 sm:right-6 z-30">
+			{/* Seletores de Idioma e Tema no canto superior direito (visível em desktop e mobile) */}
+			<div className="absolute top-4 right-4 sm:top-6 sm:right-6 z-30 flex items-center gap-2">
+				<LanguageSelector />
 				<ThemePresetSelector variant="dropdown" />
 			</div>
 
@@ -61,11 +63,11 @@ export function AuthLayout({ children }: AuthLayoutProps) {
 
 					<div
 						className={cn(
-							"opacity-0-init pointer-events-auto absolute bottom-6 left-6",
+							"opacity-0-init pointer-events-auto absolute bottom-2.75 left-3 sm:bottom-3.25 sm:left-4 z-20",
 							mounted && "animate-fade-up delay-400",
 						)}
 					>
-						<div className="inline-flex items-center gap-2 rounded-full border border-border-subtle bg-surface-low/80 px-4 py-2 backdrop-blur-md">
+						<div className="inline-flex items-center gap-2 rounded-full border border-border-subtle bg-surface-low/80 px-3.5 py-1.5 backdrop-blur-md">
 							<span className="h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.25)]" />
 							<span className="text-xs font-medium text-muted-foreground">
 								Todos os sistemas operacionais
@@ -98,7 +100,10 @@ export function AuthLayout({ children }: AuthLayoutProps) {
 					</div>
 				</div>
 
-				<LegalFooter variant="compact" className="relative z-10 mt-6" />
+				{/* Rodapé legal no canto inferior direito */}
+				<div className="absolute bottom-1.5 right-2.5 sm:bottom-2 sm:right-3.5 z-20 pointer-events-auto">
+					<LegalFooter variant="compact" />
+				</div>
 			</section>
 		</main>
 	);

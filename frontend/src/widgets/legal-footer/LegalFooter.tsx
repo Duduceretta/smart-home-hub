@@ -21,7 +21,7 @@ export function LegalFooter({
 			<footer
 				data-testid="legal-footer"
 				className={cn(
-					"flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-xs text-muted-foreground",
+					"flex w-full flex-wrap items-center justify-end gap-x-3 gap-y-1 text-xs text-muted-foreground",
 					className,
 				)}
 			>
