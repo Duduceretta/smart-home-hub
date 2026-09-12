@@ -1,6 +1,6 @@
-import { Home } from "lucide-react";
 import { type ReactNode, useEffect, useState } from "react";
 import { Outlet, useLocation } from "react-router-dom";
+import { NexusHubWordmark } from "@/core/components/brand";
 import { cn } from "@/core/utils";
 import { LanguageSelector } from "@/features/settings/components/LanguageSelector";
 import { ThemePresetSelector } from "@/features/settings/components/ThemePresetSelector";
@@ -24,12 +24,6 @@ export function AuthLayout({ children }: AuthLayoutProps) {
 
 	return (
 		<main className="relative flex min-h-screen w-full flex-col bg-background selection:bg-primary/30 lg:flex-row antialiased">
-			{/* Seletores de Idioma e Tema no canto superior direito (visível em desktop e mobile) */}
-			<div className="absolute top-4 right-4 sm:top-6 sm:right-6 z-30 flex items-center gap-2">
-				<LanguageSelector />
-				<ThemePresetSelector variant="dropdown" />
-			</div>
-
 			{/* LADO ESQUERDO: Painel Decorativo de Corte Arquitetônico (Fixo para Desktop) */}
 			<section className="sticky top-0 z-20 hidden h-screen overflow-hidden border-r border-border-subtle bg-background shadow-[15px_0_50px_rgba(0,0,0,0.5)] lg:flex lg:w-7/12">
 				<div className="absolute inset-0 z-0 overflow-hidden">
@@ -48,17 +42,15 @@ export function AuthLayout({ children }: AuthLayoutProps) {
 					<div className="absolute inset-y-0 right-0 w-16 bg-linear-to-r from-transparent to-background/40 pointer-events-none" />
 				</div>
 
-				<div className="relative z-10 flex h-full w-full flex-col justify-between p-12 pointer-events-none">
+				<div className="relative z-10 h-full w-full pointer-events-none">
 					<div
 						className={cn(
-							"opacity-0-init flex items-center gap-2 pointer-events-auto w-fit",
+							"opacity-0-init absolute top-12 left-[5.5%] flex items-center pointer-events-auto w-fit",
 							mounted && "animate-slide-left",
 						)}
 					>
-						<Home className="h-8 w-8 text-primary" />
-						<h1 className="text-2xl font-semibold tracking-tight text-foreground">
-							Nexus Hub
-						</h1>
+						<NexusHubWordmark className="h-6 w-auto text-foreground" />
+						<h1 className="sr-only">Nexus Hub</h1>
 					</div>
 
 					<div
@@ -78,31 +70,45 @@ export function AuthLayout({ children }: AuthLayoutProps) {
 			</section>
 
 			{/* LADO DIREITO (Dinâmico, recebe os formulários) */}
-			<section className="relative z-10 flex min-h-screen w-full flex-col items-center justify-between overflow-y-auto bg-background p-4 py-8 sm:p-8 lg:p-8 2xl:p-12 lg:w-5/12">
+			<section className="relative z-10 flex min-h-screen w-full flex-col items-center justify-between overflow-y-auto bg-background p-4 py-6 sm:p-8 lg:p-8 2xl:p-12 lg:w-5/12">
 				{/* Fundo dinâmico/sutil reaproveitando o céu noturno e calor da residência (mobile e desktop) */}
 				<MobileAuthBackground />
 				<DesktopAuthBackground />
 
-				{/* Espaçador superior para alinhamento vertical equilibrado */}
+				{/* Header Mobile / Controles Topo:
+				    No mobile: barra de topo com logo à esquerda e seletores à direita (com flex-wrap para evitar sobreposição).
+				    No desktop: seletores posicionados de forma absoluta no canto superior direito (lg:absolute lg:top-6 lg:right-6). */}
+				<header className="relative z-30 flex w-full flex-wrap items-center justify-between gap-3 mb-6 sm:mb-8 lg:mb-0 lg:static lg:block">
+					{/* Bloco de marca visível apenas no mobile */}
+					<div className="flex items-center shrink-0 lg:hidden">
+						<NexusHubWordmark className="h-5 w-auto text-foreground" />
+						<span className="sr-only">Nexus Hub</span>
+					</div>
+
+					{/* Seletores de Idioma e Tema (únicos no DOM, adaptam de flex no mobile para absolute no desktop) */}
+					<div className="flex items-center gap-2 shrink-0 lg:absolute lg:top-6 lg:right-6">
+						<LanguageSelector />
+						<ThemePresetSelector variant="dropdown" />
+					</div>
+				</header>
+
+				{/* Espaçador superior para alinhamento vertical equilibrado no desktop */}
 				<div className="hidden lg:block w-full h-4" aria-hidden="true" />
 
 				<div className="relative z-10 flex w-full flex-1 flex-col items-center justify-center my-auto">
-					{/* Bloco de marca compacto no topo em Mobile (identidade garantida em telas pequenas) */}
-					<div className="mb-6 flex items-center gap-2 lg:hidden">
-						<Home className="h-7 w-7 text-primary" />
-						<span className="text-2xl font-semibold tracking-tight text-foreground">
-							Nexus Hub
-						</span>
-					</div>
-
 					<div className="flex w-full justify-center">
 						{children ?? <Outlet />}
 					</div>
 				</div>
 
-				{/* Rodapé legal no canto inferior direito */}
-				<div className="absolute bottom-1.5 right-2.5 sm:bottom-2 sm:right-3.5 z-20 pointer-events-auto">
-					<LegalFooter variant="compact" />
+				{/* Rodapé legal:
+				    No mobile: centralizado horizontalmente no fluxo do layout (mt-6 sm:mt-8 mb-2 w-full flex justify-center).
+				    No desktop: ancorado no canto inferior direito de forma absoluta (lg:absolute lg:bottom-2 lg:right-3.5). */}
+				<div className="relative z-20 mt-6 sm:mt-8 mb-2 flex w-full justify-center pointer-events-auto lg:absolute lg:bottom-2 lg:right-3.5 lg:mt-0 lg:mb-0 lg:w-auto">
+					<LegalFooter
+						variant="compact"
+						className="justify-center lg:justify-end"
+					/>
 				</div>
 			</section>
 		</main>
