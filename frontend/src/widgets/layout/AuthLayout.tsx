@@ -75,7 +75,7 @@ export function AuthLayout({ children }: AuthLayoutProps) {
 			</section>
 
 			{/* LADO DIREITO (Dinâmico, recebe os formulários) */}
-			<section className="relative z-10 flex min-h-screen w-full flex-col items-center justify-between overflow-y-auto bg-background p-4 py-6 sm:p-8 lg:p-8 2xl:p-12 lg:w-5/12">
+			<section className="relative z-10 flex min-h-screen w-full flex-col items-center justify-between overflow-y-auto bg-background p-4 py-4 sm:p-8 lg:p-8 2xl:p-12 lg:w-5/12">
 				{/* Fundo dinâmico/sutil reaproveitando o céu noturno e calor da residência (mobile e desktop) */}
 				<MobileAuthBackground />
 				<DesktopAuthBackground />
@@ -83,7 +83,7 @@ export function AuthLayout({ children }: AuthLayoutProps) {
 				{/* Header Mobile / Controles Topo:
 				    No mobile: barra de topo com logo à esquerda e seletores à direita (com flex-wrap para evitar sobreposição).
 				    No desktop: seletores posicionados de forma absoluta no canto superior direito (lg:absolute lg:top-6 lg:right-6). */}
-				<header className="relative z-30 flex w-full flex-wrap items-center justify-between gap-3 mb-6 sm:mb-8 lg:mb-0 lg:static lg:block">
+				<header className="relative z-30 flex w-full flex-wrap items-center justify-between gap-3 mb-4 sm:mb-6 lg:mb-0 lg:static lg:block">
 					{/* Bloco de marca visível apenas no mobile */}
 					<div className="flex items-center shrink-0 lg:hidden">
 						<NexusHubWordmark className="h-5 w-auto text-foreground" />
@@ -107,9 +107,9 @@ export function AuthLayout({ children }: AuthLayoutProps) {
 				</div>
 
 				{/* Rodapé legal:
-				    No mobile: centralizado horizontalmente no fluxo do layout (mt-6 sm:mt-8 mb-2 w-full flex justify-center).
+				    No mobile: centralizado horizontalmente no fluxo do layout (mt-4 sm:mt-6 mb-2 w-full flex justify-center).
 				    No desktop: ancorado no canto inferior direito de forma absoluta (lg:absolute lg:bottom-2 lg:right-3.5). */}
-				<div className="relative z-20 mt-6 sm:mt-8 mb-2 flex w-full justify-center pointer-events-auto lg:absolute lg:bottom-2 lg:right-3.5 lg:mt-0 lg:mb-0 lg:w-auto">
+				<div className="relative z-20 mt-4 sm:mt-6 mb-2 flex w-full justify-center pointer-events-auto lg:absolute lg:bottom-2 lg:right-3.5 lg:mt-0 lg:mb-0 lg:w-auto">
 					<LegalFooter
 						variant="compact"
 						className="justify-center lg:justify-end"
