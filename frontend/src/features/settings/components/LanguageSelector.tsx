@@ -57,7 +57,7 @@ export function LanguageSelector({ className }: LanguageSelectorProps = {}) {
 							type="button"
 							aria-label={t("language.ariaLabel", "Selecionar idioma")}
 							className={cn(
-								"flex h-9 w-[138px] items-center justify-between rounded-lg border border-border-subtle bg-surface-low px-3 text-xs font-medium text-foreground transition-colors hover:bg-surface-container hover:text-foreground cursor-pointer focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-ring shrink-0",
+								"flex h-9 w-34.5 items-center justify-between rounded-lg border border-border-subtle bg-surface-low px-3 text-xs font-medium text-foreground transition-colors hover:bg-surface-container hover:text-foreground cursor-pointer focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-ring shrink-0",
 								className,
 							)}
 						>
