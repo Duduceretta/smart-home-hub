@@ -16,6 +16,8 @@ using SmartHomeHub.Infrastructure.Persistence.Conversions;
 using SmartHomeHub.Infrastructure.Realtime.Services;
 using SmartHomeHub.Infrastructure.Scheduling;
 using SmartHomeHub.Infrastructure.Services;
+using SmartHomeHub.Infrastructure.Services.Auth;
+using SmartHomeHub.Infrastructure.Services.Email;
 using SmartHomeHub.Infrastructure.Tuya;
 
 namespace SmartHomeHub.Infrastructure;
@@ -93,6 +95,22 @@ public static class DependencyInjection
             });
 
         services.AddSingleton<IAutomationEventQueue, AutomationEventQueue>();
+
+        services.AddSingleton<IFirebaseAuthService, FirebaseAuthService>();
+        services
+            .AddHttpClient<IEmailService, ResendEmailService>()
+            .AddStandardResilienceHandler(options =>
+            {
+                options.AttemptTimeout.Timeout = TimeSpan.FromSeconds(5);
+                options.TotalRequestTimeout.Timeout = TimeSpan.FromSeconds(10);
+                options.CircuitBreaker.SamplingDuration = TimeSpan.FromSeconds(20);
+                options.CircuitBreaker.FailureRatio = 0.5;
+                options.CircuitBreaker.MinimumThroughput = 5;
+                options.CircuitBreaker.BreakDuration = TimeSpan.FromSeconds(30);
+                options.Retry.MaxRetryAttempts = 2;
+                options.Retry.BackoffType = Polly.DelayBackoffType.Exponential;
+                options.Retry.Delay = TimeSpan.FromMilliseconds(500);
+            });
 
         services.AddHostedService<AutomationExecutionWorker>();
         services.AddScoped<IAutomationActionDispatcher, AutomationActionDispatcher>();

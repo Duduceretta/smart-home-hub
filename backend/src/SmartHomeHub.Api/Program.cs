@@ -206,6 +206,7 @@ try
     app.MapDashboardEndpoints();
     app.MapHistoryEndpoints();
     app.MapUserEndpoints();
+    app.MapAuthEndpoints();
     app.MapRoomEndpoints();
     app.MapDeviceEndpoints();
     app.MapDeviceGroupEndpoints();
