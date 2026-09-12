@@ -12,6 +12,8 @@
 	},
 	"language": {
 		"label": "Idioma",
-		"description": "Idioma usado na interface do hub."
+		"description": "Idioma usado na interface do hub.",
+		"ariaLabel": "Selecionar idioma",
+		"changeLanguage": "Alterar idioma"
 	}
 }

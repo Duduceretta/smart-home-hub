@@ -6,10 +6,11 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/core/components/ui/select";
+import { BrazilFlag, USAFlag } from "./FlagIcons";
 
 const LANGUAGES = [
-	{ code: "pt-BR", label: "Português (Brasil)", flag: "🇧🇷" },
-	{ code: "en-US", label: "English (US)", flag: "🇺🇸" },
+	{ code: "pt-BR", label: "Português (Brasil)", Flag: BrazilFlag },
+	{ code: "en-US", label: "English (US)", Flag: USAFlag },
 ] as const;
 
 export function LanguageSettingRow() {
@@ -38,12 +39,17 @@ export function LanguageSettingRow() {
 					<SelectValue />
 				</SelectTrigger>
 				<SelectContent align="end">
-					{LANGUAGES.map((lang) => (
-						<SelectItem key={lang.code} value={lang.code}>
-							<span className="mr-1">{lang.flag}</span>
-							{lang.label}
-						</SelectItem>
-					))}
+					{LANGUAGES.map((lang) => {
+						const ItemFlag = lang.Flag;
+						return (
+							<SelectItem key={lang.code} value={lang.code}>
+								<div className="flex items-center gap-2">
+									<ItemFlag />
+									<span>{lang.label}</span>
+								</div>
+							</SelectItem>
+						);
+					})}
 				</SelectContent>
 			</Select>
 		</div>
