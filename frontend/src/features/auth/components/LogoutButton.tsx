@@ -29,10 +29,17 @@ export function LogoutButton() {
 		} catch (error: unknown) {
 			if (error instanceof Error) {
 				Logger.error("Falha na tentativa de logout via Firebase", error);
-				toast.error("Não foi possível sair da conta. Verifique sua conexão.");
+				toast.error(
+					t(
+						"logout.error",
+						"Não foi possível sair da conta. Verifique sua conexão.",
+					),
+				);
 			} else {
 				Logger.error("Falha crítica e inesperada no logout", error);
-				toast.error("Ocorreu um erro inesperado.");
+				toast.error(
+					t("common:status.unexpectedError", "Ocorreu um erro inesperado."),
+				);
 			}
 			setIsLoggingOut(false);
 		}

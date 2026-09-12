@@ -7,13 +7,19 @@ import { Button } from "@/core/components/ui/button";
 import { useResetPasswordForm } from "../hooks/useResetPasswordForm";
 
 export function ResetPasswordSkeleton() {
+	const { t } = useTranslation("auth");
 	return (
 		<div
 			role="status"
 			aria-busy="true"
 			className="flex flex-col gap-4 py-2 animate-pulse"
 		>
-			<span className="sr-only">Validando token de recuperação...</span>
+			<span className="sr-only">
+				{t(
+					"resetPassword.validatingToken",
+					"Validando token de recuperação...",
+				)}
+			</span>
 			{/* Campo de Senha */}
 			<div className="space-y-1.5">
 				<div className="h-3.5 w-24 rounded bg-surface-high/80" />

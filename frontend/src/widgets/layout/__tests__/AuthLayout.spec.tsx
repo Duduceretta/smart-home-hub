@@ -1,5 +1,6 @@
 import { MemoryRouter } from "react-router-dom";
 import { beforeEach, describe, expect, it } from "vitest";
+import i18n from "@/core/i18n";
 import { useAuthIllustrationUIStore } from "@/features/auth/store/auth-illustration-ui.store";
 import {
 	renderWithProviders,
@@ -18,8 +19,9 @@ function renderAuthLayout(children: React.ReactNode) {
 }
 
 describe("AuthLayout Integration Tests", () => {
-	beforeEach(() => {
+	beforeEach(async () => {
 		localStorage.clear();
+		await i18n.changeLanguage("pt-BR");
 		document.documentElement.removeAttribute("data-theme");
 		useAuthIllustrationUIStore.getState().resetLamps();
 	});
@@ -103,6 +105,18 @@ describe("AuthLayout Integration Tests", () => {
 		// Assert
 		expect(within(langTrigger).getByTestId("flag-usa")).toBeInTheDocument();
 		expect(langTrigger).toHaveTextContent("English");
+
+		// Status badge and legal footer must reflect English translation
+		expect(screen.getByText("All systems operational")).toBeInTheDocument();
+		expect(
+			screen.getByRole("link", { name: "Terms of Service" }),
+		).toBeInTheDocument();
+		expect(screen.getByRole("link", { name: "Privacy" })).toBeInTheDocument();
+		expect(
+			screen.getByRole("button", {
+				name: "Toggle living room light (decorative)",
+			}),
+		).toBeInTheDocument();
 	});
 
 	it("AuthLayout_InteractiveLights_ShouldBeExcludedFromTabOrder", () => {

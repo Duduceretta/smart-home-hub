@@ -44,7 +44,12 @@ export function GoogleAuthButton({ actionText }: GoogleAuthButtonProps) {
 			if (error instanceof Error) {
 				toast.error(error.message);
 			} else {
-				toast.error("Ocorreu um erro inesperado ao conectar com o Google.");
+				toast.error(
+					t(
+						"google.error",
+						"Ocorreu um erro inesperado ao conectar com o Google.",
+					),
+				);
 			}
 		} finally {
 			setIsLoading(false);

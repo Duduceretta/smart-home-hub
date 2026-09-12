@@ -1,4 +1,5 @@
 import { type ReactNode, useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Outlet, useLocation } from "react-router-dom";
 import { NexusHubWordmark } from "@/core/components/brand";
 import { cn } from "@/core/utils";
@@ -14,6 +15,7 @@ interface AuthLayoutProps {
 }
 
 export function AuthLayout({ children }: AuthLayoutProps) {
+	const { t } = useTranslation("auth");
 	const location = useLocation();
 	const [mounted, setMounted] = useState(false);
 
@@ -62,7 +64,10 @@ export function AuthLayout({ children }: AuthLayoutProps) {
 						<div className="inline-flex items-center gap-2 rounded-full border border-border-subtle bg-surface-low/80 px-3.5 py-1.5 backdrop-blur-md">
 							<span className="h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.25)]" />
 							<span className="text-xs font-medium text-muted-foreground">
-								Todos os sistemas operacionais
+								{t(
+									"illustration.allSystemsOperational",
+									"Todos os sistemas operacionais",
+								)}
 							</span>
 						</div>
 					</div>

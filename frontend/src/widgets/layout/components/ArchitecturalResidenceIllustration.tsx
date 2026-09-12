@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { useAuthIllustrationUIStore } from "@/features/auth/store/auth-illustration-ui.store";
 
 interface ArchitecturalResidenceIllustrationProps {
@@ -7,6 +8,7 @@ interface ArchitecturalResidenceIllustrationProps {
 export function ArchitecturalResidenceIllustration({
 	className,
 }: ArchitecturalResidenceIllustrationProps) {
+	const { t } = useTranslation("auth");
 	const {
 		isLivingLampOn,
 		isBedroomLampOn,
@@ -23,7 +25,10 @@ export function ArchitecturalResidenceIllustration({
 			fill="none"
 			xmlns="http://www.w3.org/2000/svg"
 			className={className}
-			aria-label="Corte arquitetônico da residência"
+			aria-label={t(
+				"illustration.crossSectionAria",
+				"Corte arquitetônico da residência",
+			)}
 		>
 			<defs>
 				{/* Estilos dinâmicos, transições de luz e acessibilidade */}
@@ -2446,7 +2451,10 @@ export function ArchitecturalResidenceIllustration({
 					<g
 						role="button"
 						tabIndex={-1}
-						aria-label="Alternar luz do quarto (decorativo)"
+						aria-label={t(
+							"illustration.toggleBedroom",
+							"Alternar luz do quarto (decorativo)",
+						)}
 						onClick={toggleBedroomLamp}
 						className="cursor-pointer group outline-none focus:outline-none focus-visible:outline-none select-none"
 					>
@@ -2497,7 +2505,10 @@ export function ArchitecturalResidenceIllustration({
 					<g
 						role="button"
 						tabIndex={-1}
-						aria-label="Alternar luz do escritório (decorativo)"
+						aria-label={t(
+							"illustration.toggleOffice",
+							"Alternar luz do escritório (decorativo)",
+						)}
 						onClick={toggleOfficeLamp}
 						className="cursor-pointer group outline-none focus:outline-none focus-visible:outline-none select-none"
 					>
@@ -3595,7 +3606,10 @@ export function ArchitecturalResidenceIllustration({
 					<g
 						role="button"
 						tabIndex={-1}
-						aria-label="Alternar luz da sala (decorativo)"
+						aria-label={t(
+							"illustration.toggleLiving",
+							"Alternar luz da sala (decorativo)",
+						)}
 						onClick={toggleLivingLamp}
 						className="cursor-pointer group outline-none focus:outline-none focus-visible:outline-none select-none"
 					>
