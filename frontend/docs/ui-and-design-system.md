@@ -68,6 +68,19 @@ Mensagens de validação que surgem repentinamente causam pulos na interface (*C
 3. **Espaçamento entre Grupos de Campo**: Com o slot de 18px já embutido no rodapé de cada campo, o espaçamento entre campos consecutivos na tag `<form>` deve ser estritamente `gap-1` a `gap-1.5` (4px a 6px).
 4. **Erros de Validação vs. Infraestrutura**: Erros de validação (inclusive os retornados assincronamente pelo Firebase/API, como "email já em uso") devem ser atribuídos ao campo específico via `setError("email", ...)` e renderizados no slot inline. O componente `FormGlobalError` (banner com ícone de alerta) é reservado exclusivamente para falhas sistêmicas e indisponibilidade de rede.
 
+### 2.2. Largura Canônica dos Cards de Autenticação (Sintaxe Numérica Tailwind v4)
+
+O projeto adota formalmente a **sintaxe numérica do Tailwind v4** para controle de larguras e espaçamentos (ex: `max-w-95`, `max-w-102`), aposentando classes genéricas e imprecisas como `max-w-sm` ou `max-w-md`. Isso assegura previsibilidade geométrica no design system e impede que regras de dimensão sejam decididas de forma ad-hoc ou reinventadas a cada nova tela.
+
+Como todos os fluxos de autenticação compartilham o mesmo shell fixo (`AuthLayout.tsx`), a alternância entre telas ocorre no mesmo espaço visual. Para manter uma navegação fluida sem saltos geométricos bruscos entre Login e Cadastro, são estabelecidos dois tokens de largura:
+
+| Padrão | Classe Tailwind v4 | Largura Real | Casos de Uso / Telas | Justificativa Visual |
+|---|---|---|---|---|
+| **Largura Compacta** | `max-w-95` | 380px (`95 × 4px`) | Login (`LoginForm`), Solicitação de Reset (`ForgotPasswordForm`), Definição de Senha (`ResetPasswordForm`), Verificação de E-mail (`VerifyEmailContent`) | Telas com 1-2 campos ou focadas em status/feedback; otimiza a concentração visual e elimina espaços em branco desnecessários. |
+| **Largura Ampla** | `max-w-102` | 408px (`102 × 4px`) | Cadastro (`RegisterForm`) | Formulários com 3+ campos (Nome, E-mail, Senha, Confirmação) e termos legais; concede respiro horizontal adequado para rótulos e botões. |
+
+> **Controle de Salto Visual (Delta de Transição)**: A diferença entre a largura compacta (380px) e a ampla (408px) é de apenas 28px (14px em cada lateral). Isso preserva a sutil distinção de hierarquia necessária para o formulário de cadastro, eliminando o antigo salto desconfortável de ~68px (`max-w-md` = 448px vs 380px).
+
 ---
 
 ## 3. Padrão de Modais e Sheets de Domínio
@@ -162,6 +175,7 @@ Casos reais corrigidos nas auditorias de Automações/Layout/Dashboard/Dispositi
 | Chip ativo com hover "mais claro" (`DevicesGlanceBar`) | gradiente com stop em hex arbitrário mais claro que `surface-highest` | `bg-surface-highest` + `hover:brightness-110` | sem token acima de `surface-highest`; hex novo não é permitido |
 | `DevicesGrid`, `DeviceListRow`, wizard de descoberta | `bg-[#1c1b1c]`, `text-[#c7c6cb]`, `border-[#46464b]/20` etc. | `bg-surface-low`, `text-muted-foreground`, `border-border-subtle/20` | hex cru duplicando token existente em vez da classe semântica |
 | Modal de edição de preview de cômodo (Dashboard) | linha não selecionada em `bg-surface-low` dentro de um modal `bg-surface-container` | `bg-surface-high` (padrão) / `bg-surface-highest` (selecionado) | filho mais escuro que o próprio modal |
+| Card de Cadastro (`RegisterForm`) | `max-w-md` (448px) vs `max-w-95` (380px) nas demais telas (salto de 68px) | `max-w-102` (408px) — delta de 28px em relação ao Login | transição entre Login e Cadastro dentro do mesmo shell fixo provocava salto de largura incômodo |
 
 ## 11. Skeletons e Perceived Performance
 
