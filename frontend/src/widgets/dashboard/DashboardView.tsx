@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { CardErrorFallback } from "@/core/components/feedback/CardErrorFallback";
 import { StaleDataIndicator } from "@/core/components/feedback/StaleDataIndicator";
 import { useSystemicFailureDetector } from "@/core/hooks/useSystemicFailureDetector";
+import { EmailVerificationBanner } from "@/features/auth/components/EmailVerificationBanner";
 import { ActiveAutomationsCard } from "@/features/dashboard/components/ActiveAutomationsCard";
 import { ActivityLogTimeline } from "@/features/dashboard/components/ActivityLogTimeline";
 import { CameraFeedCard } from "@/features/dashboard/components/CameraFeedCard";
@@ -195,6 +196,8 @@ export const DashboardView: React.FC = () => {
 	return (
 		<div className="flex flex-col gap-6 motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-2 motion-safe:duration-300">
 			<DashboardTopBar />
+
+			<EmailVerificationBanner />
 
 			{isSystemic && <SystemicFailureBanner onRetryAll={retryAll} />}
 

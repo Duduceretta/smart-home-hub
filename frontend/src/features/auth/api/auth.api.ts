@@ -1,5 +1,6 @@
 import axios from "axios";
 import {
+	applyActionCode,
 	confirmPasswordReset,
 	createUserWithEmailAndPassword,
 	GoogleAuthProvider,
@@ -266,3 +267,73 @@ export const syncUserWithBackendRequest =
 			);
 		}
 	};
+
+export const sendVerificationEmail = async (email: string): Promise<void> => {
+	try {
+		await apiClient.post("/auth/send-verification-email", { email });
+	} catch (error: unknown) {
+		if (axios.isAxiosError(error)) {
+			if (error.response?.status === 429) {
+				throw new AuthError(
+					"verifyEmail.errors.tooManyRequests",
+					"auth/too-many-requests",
+				);
+			}
+
+			if (!error.response) {
+				throw new AuthError(
+					"verifyEmail.errors.networkError",
+					"auth/network-request-failed",
+				);
+			}
+
+			Logger.error("Erro na API ao solicitar confirmação de e-mail", error);
+		} else {
+			Logger.error("Falha crítica ao solicitar confirmação de e-mail", error);
+		}
+
+		throw new AuthError("verifyEmail.errors.generic");
+	}
+};
+
+export const verifyEmailToken = async (oobCode: string): Promise<void> => {
+	try {
+		await applyActionCode(auth, oobCode);
+		if (auth.currentUser) {
+			await auth.currentUser.reload();
+		}
+	} catch (error: unknown) {
+		Logger.error("Código de verificação de e-mail inválido ou expirado", error);
+		if (error instanceof Error && "code" in error) {
+			const firebaseError = error as { code: string };
+			if (
+				firebaseError.code === "auth/expired-action-code" ||
+				firebaseError.code === "auth/invalid-action-code"
+			) {
+				throw new AuthError(
+					"verifyEmail.errors.invalidOrExpiredToken",
+					firebaseError.code,
+				);
+			}
+			if (firebaseError.code === "auth/user-disabled") {
+				throw new AuthError(
+					"verifyEmail.errors.userDisabled",
+					firebaseError.code,
+				);
+			}
+			if (firebaseError.code === "auth/user-not-found") {
+				throw new AuthError(
+					"verifyEmail.errors.userNotFound",
+					firebaseError.code,
+				);
+			}
+			if (firebaseError.code === "auth/network-request-failed") {
+				throw new AuthError(
+					"verifyEmail.errors.networkError",
+					firebaseError.code,
+				);
+			}
+		}
+		throw new AuthError("verifyEmail.errors.invalidOrExpiredToken");
+	}
+};

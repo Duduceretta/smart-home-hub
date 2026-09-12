@@ -1,7 +1,12 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { useLocation, useNavigate } from "react-router-dom";
-import { AuthError, registerWithEmail } from "../api/auth.api";
+import { Logger } from "@/core/logger/app.logger";
+import {
+	AuthError,
+	registerWithEmail,
+	sendVerificationEmail,
+} from "../api/auth.api";
 import { useAuthStore } from "../store/useAuthStore";
 import { type RegisterFormData, registerSchema } from "../types/auth.schemas";
 
@@ -20,6 +25,14 @@ export function useRegisterForm() {
 		try {
 			const user = await registerWithEmail(data);
 			setUser(user);
+
+			// Disparo assíncrono e não-bloqueante do e-mail de confirmação
+			sendVerificationEmail(data.email).catch((error) => {
+				Logger.warn(
+					"Falha não-bloqueante ao despachar e-mail de verificação inicial",
+					error,
+				);
+			});
 
 			const fromState = (
 				location.state as {

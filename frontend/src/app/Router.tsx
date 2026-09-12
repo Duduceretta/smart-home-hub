@@ -22,6 +22,9 @@ const ForgotPasswordPage = lazy(
 const ResetPasswordPage = lazy(
 	() => import("@/pages/reset-password/ResetPasswordPage"),
 );
+const VerifyEmailPage = lazy(
+	() => import("@/pages/verify-email/VerifyEmailPage"),
+);
 const PrivacyPage = lazy(() => import("@/pages/legal/privacy/PrivacyPage"));
 const TermsPage = lazy(() => import("@/pages/legal/terms/TermsPage"));
 const DashboardPage = lazy(() => import("@/pages/dashboard/DashboardPage"));
@@ -114,6 +117,15 @@ export const router = createBrowserRouter([
 							]
 						: []),
 				],
+			},
+		],
+	},
+	{
+		element: withFallback(<AuthLayout />),
+		children: [
+			{
+				path: "/verify-email",
+				element: withFallback(<VerifyEmailPage />),
 			},
 		],
 	},
