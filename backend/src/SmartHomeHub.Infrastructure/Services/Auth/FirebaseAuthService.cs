@@ -58,6 +58,51 @@ public class FirebaseAuthService(IConfiguration configuration, ILogger<FirebaseA
         }
     }
 
+    public async Task<string?> GenerateEmailVerificationLinkAsync(
+        string email,
+        string continueUrl,
+        CancellationToken cancellationToken = default
+    )
+    {
+        EnsureFirebaseInitialized();
+
+        var auth =
+            FirebaseAuth.DefaultInstance
+            ?? throw new InvalidOperationException(
+                "Instância do Firebase Auth não foi inicializada."
+            );
+
+        var actionCodeSettings = new ActionCodeSettings
+        {
+            Url = continueUrl,
+            HandleCodeInApp = true,
+        };
+
+        try
+        {
+            return await auth.GenerateEmailVerificationLinkAsync(
+                email,
+                actionCodeSettings,
+                cancellationToken
+            );
+        }
+        catch (FirebaseAuthException ex) when (IsUserNotFoundException(ex))
+        {
+            logger.LogInformation(
+                "Usuário não encontrado no Firebase Authentication para solicitação de verificação de e-mail."
+            );
+            return null;
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(
+                ex,
+                "Erro ao solicitar geração de link de verificação de e-mail no Firebase."
+            );
+            throw;
+        }
+    }
+
     private static bool IsUserNotFoundException(FirebaseAuthException ex)
     {
         return ex.AuthErrorCode == AuthErrorCode.UserNotFound

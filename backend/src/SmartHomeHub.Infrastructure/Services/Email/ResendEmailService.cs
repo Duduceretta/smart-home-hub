@@ -14,10 +14,41 @@ public class ResendEmailService(
 {
     private const string ResendApiEndpoint = "https://api.resend.com/emails";
 
-    public async Task SendPasswordResetEmailAsync(
+    public Task SendPasswordResetEmailAsync(
         string recipientEmail,
         string resetLink,
         CancellationToken cancellationToken = default
+    )
+    {
+        var htmlContent = EmailTemplates.GetPasswordResetTemplate(resetLink);
+        return SendEmailAsync(
+            recipientEmail,
+            "Recuperação de Senha — Nexus Hub",
+            htmlContent,
+            cancellationToken
+        );
+    }
+
+    public Task SendEmailVerificationEmailAsync(
+        string recipientEmail,
+        string verificationLink,
+        CancellationToken cancellationToken = default
+    )
+    {
+        var htmlContent = EmailTemplates.GetEmailVerificationTemplate(verificationLink);
+        return SendEmailAsync(
+            recipientEmail,
+            "Confirmação de E-mail — Nexus Hub",
+            htmlContent,
+            cancellationToken
+        );
+    }
+
+    private async Task SendEmailAsync(
+        string recipientEmail,
+        string subject,
+        string htmlContent,
+        CancellationToken cancellationToken
     )
     {
         var apiKey = GetApiKey();
@@ -34,13 +65,11 @@ public class ResendEmailService(
         var senderName = configuration["Resend:SenderName"] ?? "Nexus Hub";
         var from = $"{senderName} <{senderEmail}>";
 
-        var htmlContent = EmailTemplates.GetPasswordResetTemplate(resetLink);
-
         var payload = new
         {
             from,
             to = new[] { recipientEmail },
-            subject = "Recuperação de Senha — Nexus Hub",
+            subject,
             html = htmlContent,
         };
 

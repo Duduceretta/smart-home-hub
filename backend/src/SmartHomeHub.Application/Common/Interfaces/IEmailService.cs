@@ -10,4 +10,13 @@ public interface IEmailService
         string resetLink,
         CancellationToken cancellationToken = default
     );
+
+    /// <summary>
+    /// Dispara o e-mail transacional com o link de confirmação de e-mail.
+    /// </summary>
+    Task SendEmailVerificationEmailAsync(
+        string recipientEmail,
+        string verificationLink,
+        CancellationToken cancellationToken = default
+    );
 }
