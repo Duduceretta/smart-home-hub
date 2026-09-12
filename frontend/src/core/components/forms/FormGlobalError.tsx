@@ -12,9 +12,14 @@ export function FormGlobalError({ error, className }: FormGlobalErrorProps) {
 		<AnimatePresence>
 			{error && (
 				<motion.div
-					initial={{ opacity: 0, height: 0, marginBottom: 0 }}
-					animate={{ opacity: 1, height: "auto", marginBottom: 12 }}
-					exit={{ opacity: 0, height: 0, marginBottom: 0 }}
+					initial={{ opacity: 0, height: 0, marginTop: 0, marginBottom: 0 }}
+					animate={{
+						opacity: 1,
+						height: "auto",
+						marginTop: 16,
+						marginBottom: 16,
+					}}
+					exit={{ opacity: 0, height: 0, marginTop: 0, marginBottom: 0 }}
 					transition={{ duration: 0.2, ease: "easeOut" }}
 					className={cn("overflow-hidden w-full", className)}
 				>
