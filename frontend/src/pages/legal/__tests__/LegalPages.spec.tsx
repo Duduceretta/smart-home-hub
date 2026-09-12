@@ -27,14 +27,14 @@ describe("Legal Pages Integration Tests", () => {
 			).toBeGreaterThanOrEqual(1);
 			expect(screen.getAllByText(/Eduardo/i).length).toBeGreaterThanOrEqual(1);
 
-			// Explicit contact email placeholder
+			// Explicit contact email
 			const contactLinks = screen.getAllByRole("link", {
-				name: /\[EMAIL_DE_CONTATO\]/i,
+				name: /duduceretta@gmail\.com/i,
 			});
 			expect(contactLinks.length).toBeGreaterThanOrEqual(1);
 			expect(contactLinks[0]).toHaveAttribute(
 				"href",
-				"mailto:[EMAIL_DE_CONTATO]",
+				"mailto:duduceretta@gmail.com",
 			);
 
 			// Key LGPD sections
@@ -114,14 +114,14 @@ describe("Legal Pages Integration Tests", () => {
 				screen.getByText(/Trabalho de Conclusão de Curso/i),
 			).toBeInTheDocument();
 
-			// Explicit contact email placeholder
+			// Explicit contact email
 			const contactLinks = screen.getAllByRole("link", {
-				name: /\[EMAIL_DE_CONTATO\]/i,
+				name: /duduceretta@gmail\.com/i,
 			});
 			expect(contactLinks.length).toBeGreaterThanOrEqual(1);
 			expect(contactLinks[0]).toHaveAttribute(
 				"href",
-				"mailto:[EMAIL_DE_CONTATO]",
+				"mailto:duduceretta@gmail.com",
 			);
 
 			// Key Terms sections
@@ -176,6 +176,20 @@ describe("Legal Pages Integration Tests", () => {
 			});
 			expect(backButton).toBeInTheDocument();
 			await user.click(backButton);
+		});
+
+		it("LegalLayout_LanguageSelector_ShouldBeRenderedInHeader", () => {
+			renderWithProviders(
+				<MemoryRouter>
+					<TermsPage />
+				</MemoryRouter>,
+			);
+
+			const langButton = screen.getByRole("button", {
+				name: /selecionar idioma|idioma/i,
+			});
+			expect(langButton).toBeInTheDocument();
+			expect(langButton).toHaveTextContent("Português");
 		});
 	});
 });

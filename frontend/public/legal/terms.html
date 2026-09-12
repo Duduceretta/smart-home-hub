@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Termos de Serviço — Nexus Hub</title>
+<meta name="description" content="Termos de Serviço do Nexus Hub: condições de uso da plataforma de automação residencial.">
+<style>
+  :root {
+    --bg: #141314;
+    --card: #2a2a2a;
+    --card-soft: #1f1f1f;
+    --border: rgba(255,255,255,0.08);
+    --text: #e8e6e3;
+    --text-muted: #9a9793;
+    --accent: #7ec8e3;
+  }
+  * { box-sizing: border-box; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    line-height: 1.65;
+    margin: 0;
+  }
+  a { color: var(--accent); text-decoration: underline; text-underline-offset: 2px; }
+  .topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--border);
+  }
+  .brand { display: flex; align-items: center; gap: 8px; font-weight: 700; color: var(--text); text-decoration: none; }
+  .back-link { color: var(--text-muted); text-decoration: none; font-size: 0.9rem; }
+  .back-link:hover { color: var(--text); }
+  .layout {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 40px 24px 100px;
+    display: grid;
+    grid-template-columns: 220px 1fr;
+    gap: 48px;
+  }
+  @media (max-width: 800px) {
+    .layout { grid-template-columns: 1fr; }
+    .toc { display: none; }
+  }
+  .toc { position: sticky; top: 24px; align-self: start; }
+  .toc h4 { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); margin-bottom: 12px; }
+  .toc ol { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 8px; }
+  .toc a { color: var(--text-muted); font-size: 0.85rem; text-decoration: none; }
+  .toc a:hover { color: var(--text); }
+  .content { max-width: 720px; }
+  .badge {
+    display: inline-block;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+    background: var(--card-soft);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 4px 12px;
+    margin-bottom: 16px;
+  }
+  h1 { font-size: 2rem; margin: 0 0 8px; }
+  .subtitle { color: var(--text-muted); font-size: 1rem; margin-bottom: 4px; }
+  .updated { color: var(--text-muted); font-size: 0.85rem; margin-bottom: 40px; }
+  h2 { font-size: 1.25rem; margin-top: 44px; margin-bottom: 12px; scroll-margin-top: 24px; }
+  p { color: #cfccc8; margin: 0 0 12px; }
+  ul { color: #cfccc8; padding-left: 20px; }
+  li { margin-bottom: 6px; }
+  .card {
+    background: var(--card-soft);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px 18px;
+    margin: 16px 0;
+  }
+  .card p:last-child { margin-bottom: 0; }
+  .mono { font-family: ui-monospace, monospace; font-size: 0.8rem; }
+  .contact-box {
+    background: var(--card-soft);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px;
+    margin-top: 16px;
+  }
+  .contact-box p { margin: 2px 0; }
+  .counterpart {
+    margin-top: 56px;
+    padding-top: 24px;
+    border-top: 1px solid var(--border);
+    font-size: 0.9rem;
+  }
+</style>
+</head>
+<body>
+
+  <div class="topbar">
+    <a class="brand" href="/">🏠 Nexus Hub</a>
+    <a class="back-link" href="/">← Voltar</a>
+  </div>
+
+  <div class="layout">
+    <nav class="toc">
+      <h4>Sumário</h4>
+      <ol>
+        <li><a href="#natureza-servico">Natureza do Serviço</a></li>
+        <li><a href="#aceitacao">Aceitação dos Termos</a></li>
+        <li><a href="#responsabilidades">Responsabilidades do Usuário</a></li>
+        <li><a href="#dispositivos">Uso com Dispositivos Físicos</a></li>
+        <li><a href="#terceiros">Integrações de Terceiros</a></li>
+        <li><a href="#disponibilidade">Isenção de Garantias</a></li>
+        <li><a href="#propriedade">Propriedade Intelectual</a></li>
+        <li><a href="#alteracoes">Alterações nos Termos</a></li>
+        <li><a href="#contato">Contato e Suporte</a></li>
+      </ol>
+    </nav>
+
+    <main class="content">
+      <span class="badge">Documento oficial</span>
+      <h1>Termos de Serviço</h1>
+      <p class="subtitle">Condições e diretrizes para utilização da plataforma de automação residencial Nexus Hub.</p>
+      <p class="updated">Última atualização: 10 de setembro de 2026</p>
+
+      <section id="natureza-servico">
+        <h2>1. Natureza da Plataforma e Estágio Atual</h2>
+        <p>O <strong>Nexus Hub</strong> (disponível em <span class="mono">nexushub.page</span>) é uma plataforma de automação e orquestração residencial concebida com princípios de arquitetura prioritariamente local (<em>Local-First</em>), desenvolvida por <strong>Eduardo</strong> no âmbito de Trabalho de Conclusão de Curso (TCC) e em transição contínua para ambiente de teste beta.</p>
+        <p>Por se tratar de um projeto de pesquisa acadêmica e engenharia em constante evolução, o serviço é disponibilizado no estado em que se encontra (<strong>"as is"</strong>) e conforme a disponibilidade (<strong>"as available"</strong>), podendo sofrer alterações, inclusões de novas capacidades e melhorias periódicas sem aviso prévio.</p>
+      </section>
+
+      <section id="aceitacao">
+        <h2>2. Aceitação dos Termos</h2>
+        <p>Ao acessar, cadastrar-se ou utilizar a plataforma Nexus Hub, você declara ter lido, compreendido e concordado com estes Termos de Serviço e com a nossa Política de Privacidade. Caso não concorde com qualquer disposição aqui expressa, você deve abster-se de utilizar a plataforma.</p>
+      </section>
+
+      <section id="responsabilidades">
+        <h2>3. Responsabilidades do Usuário e Credenciais</h2>
+        <ul>
+          <li><strong>Sigilo de Credenciais:</strong> você é o único responsável pela guarda, confidencialidade e segurança da senha associada à sua conta e por todas as ações executadas sob suas credenciais de login.</li>
+          <li><strong>Uso Lícito:</strong> você se compromete a não utilizar o Nexus Hub para qualquer finalidade ilícita, fraudulenta ou que viole direitos de privacidade e segurança de terceiros na rede ou na residência.</li>
+          <li><strong>Integridade do Sistema:</strong> é proibido tentar contornar travas de autenticação, explorar vulnerabilidades ou sobrecarregar a infraestrutura da API do ecossistema.</li>
+        </ul>
+      </section>
+
+      <section id="dispositivos">
+        <h2>4. Uso com Dispositivos Físicos e Segurança Elétrica</h2>
+        <div class="card">
+          <p><strong>Atenção à segurança do hardware físico:</strong></p>
+          <p>O Nexus Hub atua exclusivamente como camada lógica de software e supervisão de automação. A responsabilidade pela instalação elétrica, isolamento, capacidade de carga (amperagem/voltagem) e compatibilidade física de atuadores, tomadas, interruptores, relés, motores e aparelhos controlados é integralmente do usuário e de profissionais eletricistas qualificados.</p>
+        </div>
+        <p>O desenvolvedor do Nexus Hub não se responsabiliza por eventuais queimas de dispositivos, sobrecargas de circuito, mau contato elétrico ou danos materiais derivados de defeitos intrínsecos de hardware dos fabricantes terceiros conectados à rede local.</p>
+      </section>
+
+      <section id="terceiros">
+        <h2>5. Dependência de Serviços e APIs de Terceiros</h2>
+        <p>O Nexus Hub pode interagir opcionalmente com serviços e protocolos de terceiros, incluindo mas não se limitando a:</p>
+        <ul>
+          <li><strong>Google Firebase:</strong> gestão de identidades e login social;</li>
+          <li><strong>Spotify Web API:</strong> sincronização de áudio e controle de reprodução;</li>
+          <li><strong>Google Cast:</strong> controle de dispositivos Chromecast e Android TV;</li>
+          <li><strong>Tuya / Smart Life / Sonoff / ESPHome:</strong> hardware IoT integrado via rede local ou MQTT.</li>
+        </ul>
+        <p>Esses serviços operam sob termos e políticas próprias. O Nexus Hub não possui ingerência sobre eles e não se responsabiliza por instabilidades temporárias, mudanças repentinas em APIs de terceiros, revogações de acesso ou descontinuidade de suporte promovidas pelos respectivos provedores.</p>
+      </section>
+
+      <section id="disponibilidade">
+        <h2>6. Isenção de Garantias e Limitação de Responsabilidade</h2>
+        <p>Embora o projeto empregue boas práticas modernas de engenharia de software e testes contínuos, não podemos garantir que a plataforma operará 100% livre de erros ou sem interrupções ocasionais decorrentes de quedas de rede local, falhas de roteador ou reinicializações do servidor.</p>
+        <p>Em nenhuma hipótese o desenvolvedor do Nexus Hub será responsabilizado por danos indiretos, lucros cessantes ou perdas de oportunidade decorrentes do uso ou da impossibilidade de uso do sistema.</p>
+      </section>
+
+      <section id="propriedade">
+        <h2>7. Propriedade Intelectual</h2>
+        <p>O nome "Nexus Hub", logotipos, ilustrações arquitetônicas originais, código-fonte e design visual são de titularidade de seus criadores e protegidos pelas leis de direitos autorais e de software. O usuário recebe uma licença pessoal, não exclusiva e intransferível para utilizar o sistema para seus propósitos residenciais.</p>
+      </section>
+
+      <section id="alteracoes">
+        <h2>8. Alterações e Atualizações dos Termos</h2>
+        <p>Estes termos podem ser revisados periodicamente para refletir o lançamento de novas funcionalidades ou adequações normativas. Sempre que houver alterações substanciais, a data de última atualização no topo desta página será revisada. A permanência no uso do sistema após as modificações constitui anuência tácita com os termos atualizados.</p>
+      </section>
+
+      <section id="contato">
+        <h2>9. Contato e Notificações Legais</h2>
+        <p>Para dúvidas, reporte de problemas ou questões relativas a estes Termos de Serviço, utilize o canal oficial:</p>
+        <div class="contact-box">
+          <p><strong>Eduardo — Nexus Hub</strong></p>
+          <p style="color: var(--text-muted); font-size: 0.8rem;">Responsável pelo Projeto</p>
+          <p class="mono">E-mail: <a href="mailto:duduceretta@gmail.com">duduceretta@gmail.com</a></p>
+          <p style="color: var(--text-muted); font-size: 0.8rem;">Domínio da aplicação: nexushub.page</p>
+        </div>
+      </section>
+
+      <div class="counterpart">
+        Consulte também nossa <a href="/legal/privacy.html">Política de Privacidade</a> (LGPD).
+      </div>
+    </main>
+  </div>
+
+</body>
+</html>

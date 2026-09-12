@@ -216,10 +216,10 @@ export function TermsPage() {
 					<p className="text-sm font-mono mt-2 text-foreground">
 						E-mail:{" "}
 						<a
-							href="mailto:[EMAIL_DE_CONTATO]"
+							href="mailto:duduceretta@gmail.com"
 							className="text-primary underline hover:opacity-80 font-bold"
 						>
-							[EMAIL_DE_CONTATO]
+							duduceretta@gmail.com
 						</a>
 					</p>
 					<p className="text-xs text-muted-foreground mt-1">

@@ -50,10 +50,10 @@ export function PrivacyPage() {
 					Para quaisquer esclarecimentos ou solicitações relativas à privacidade
 					e proteção de seus dados, o canal oficial direto de contato é:{" "}
 					<a
-						href="mailto:[EMAIL_DE_CONTATO]"
+						href="mailto:duduceretta@gmail.com"
 						className="font-mono text-xs font-semibold text-primary underline underline-offset-2 hover:opacity-80"
 					>
-						[EMAIL_DE_CONTATO]
+						duduceretta@gmail.com
 					</a>
 					.
 				</p>
@@ -252,10 +252,10 @@ export function PrivacyPage() {
 					Para exercer qualquer um desses direitos, basta enviar uma mensagem
 					com sua solicitação para o e-mail:{" "}
 					<a
-						href="mailto:[EMAIL_DE_CONTATO]"
+						href="mailto:duduceretta@gmail.com"
 						className="font-mono text-xs font-semibold text-primary underline hover:opacity-80"
 					>
-						[EMAIL_DE_CONTATO]
+						duduceretta@gmail.com
 					</a>
 					. Sua demanda será respondida sem cobrança de custos e dentro dos
 					prazos da LGPD.
@@ -325,10 +325,10 @@ export function PrivacyPage() {
 					<p className="text-sm font-mono mt-2 text-foreground">
 						E-mail:{" "}
 						<a
-							href="mailto:[EMAIL_DE_CONTATO]"
+							href="mailto:duduceretta@gmail.com"
 							className="text-primary underline hover:opacity-80 font-bold"
 						>
-							[EMAIL_DE_CONTATO]
+							duduceretta@gmail.com
 						</a>
 					</p>
 					<p className="text-xs text-muted-foreground mt-1">
