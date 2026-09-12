@@ -16,12 +16,19 @@
 		"off": "Off",
 		"loading": "Loading...",
 		"readOnly": "Read only",
-		"staleData": "Stale data — couldn't refresh right now."
+		"staleData": "Stale data — couldn't refresh right now.",
+		"unexpectedError": "An unexpected error occurred."
 	},
 	"time": {
 		"now": "now",
 		"minutesAgo": "{{count}}m ago",
 		"hoursAgo": "{{count}}h ago",
 		"daysAgo": "{{count}}d ago"
+	},
+	"legal": {
+		"allRightsReserved": "All rights reserved.",
+		"termsOfService": "Terms of Service",
+		"privacy": "Privacy",
+		"privacyPolicy": "Privacy Policy"
 	}
 }

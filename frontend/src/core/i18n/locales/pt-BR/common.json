@@ -16,12 +16,19 @@
 		"off": "Desligado",
 		"loading": "Carregando...",
 		"readOnly": "Somente leitura",
-		"staleData": "Dados desatualizados — não foi possível atualizar agora."
+		"staleData": "Dados desatualizados — não foi possível atualizar agora.",
+		"unexpectedError": "Ocorreu um erro inesperado."
 	},
 	"time": {
 		"now": "agora",
 		"minutesAgo": "há {{count}} min",
 		"hoursAgo": "há {{count}}h",
 		"daysAgo": "há {{count}}d"
+	},
+	"legal": {
+		"allRightsReserved": "Todos os direitos reservados.",
+		"termsOfService": "Termos de Serviço",
+		"privacy": "Privacidade",
+		"privacyPolicy": "Política de Privacidade"
 	}
 }

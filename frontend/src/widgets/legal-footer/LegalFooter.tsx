@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import { cn } from "@/core/utils";
 
@@ -14,6 +15,7 @@ export function LegalFooter({
 	className,
 	variant = "compact",
 }: LegalFooterProps) {
+	const { t } = useTranslation("common");
 	const currentYear = new Date().getFullYear();
 
 	if (variant === "compact") {
@@ -33,7 +35,7 @@ export function LegalFooter({
 					to="/legal/terms"
 					className="transition-colors hover:text-foreground hover:underline"
 				>
-					Termos de Serviço
+					{t("legal.termsOfService", "Termos de Serviço")}
 				</Link>
 				<span aria-hidden="true" className="text-border">
 					•
@@ -42,7 +44,7 @@ export function LegalFooter({
 					to="/legal/privacy"
 					className="transition-colors hover:text-foreground hover:underline"
 				>
-					Privacidade
+					{t("legal.privacy", "Privacidade")}
 				</Link>
 			</footer>
 		);
@@ -57,13 +59,16 @@ export function LegalFooter({
 			)}
 		>
 			<div className="mx-auto flex max-w-4xl flex-col items-center justify-between gap-4 px-4 sm:flex-row sm:px-6">
-				<p>© {currentYear} Nexus Hub. Todos os direitos reservados.</p>
+				<p>
+					© {currentYear} Nexus Hub.{" "}
+					{t("legal.allRightsReserved", "Todos os direitos reservados.")}
+				</p>
 				<div className="flex items-center gap-4">
 					<Link
 						to="/legal/terms"
 						className="transition-colors hover:text-foreground hover:underline"
 					>
-						Termos de Serviço
+						{t("legal.termsOfService", "Termos de Serviço")}
 					</Link>
 					<span aria-hidden="true" className="text-border">
 						•
@@ -72,7 +77,7 @@ export function LegalFooter({
 						to="/legal/privacy"
 						className="transition-colors hover:text-foreground hover:underline"
 					>
-						Política de Privacidade
+						{t("legal.privacyPolicy", "Política de Privacidade")}
 					</Link>
 				</div>
 			</div>
