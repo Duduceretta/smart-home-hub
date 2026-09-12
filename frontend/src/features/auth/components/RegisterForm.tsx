@@ -1,4 +1,4 @@
-import { Mail, User } from "lucide-react";
+import { Loader2, Mail, User } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import { FormGlobalError } from "@/core/components/forms/FormGlobalError";
@@ -17,14 +17,19 @@ export function RegisterForm() {
 		isSubmitting,
 	} = useRegisterForm();
 
+	const translateError = (errorKey?: string) => {
+		if (!errorKey) return undefined;
+		return t(errorKey, errorKey);
+	};
+
 	return (
 		<div
-			className="relative w-full max-w-md overflow-hidden rounded-2xl border border-border-subtle bg-surface-low/80 p-6 sm:p-8 shadow-2xl backdrop-blur-xl animate-fade-up delay-100 opacity-0-init"
+			className="relative w-full max-w-md overflow-hidden rounded-2xl border border-border-subtle bg-surface-low/80 p-5 sm:p-7 shadow-2xl backdrop-blur-xl animate-fade-up delay-100 opacity-0-init"
 			style={{ animationFillMode: "forwards" }}
 		>
 			<div className="shimmer-line absolute left-0 right-0 top-0 h-px" />
 
-			<div className="mb-6 sm:mb-8">
+			<div className="mb-4 sm:mb-5">
 				<h2 className="mb-1 text-2xl sm:text-3xl font-semibold text-foreground">
 					{t("register.title")}
 				</h2>
@@ -46,7 +51,7 @@ export function RegisterForm() {
 					autoComplete="name"
 					placeholder={t("register.namePlaceholder")}
 					registration={register("name")}
-					error={errors.name?.message}
+					error={translateError(errors.name?.message)}
 					delayClass="delay-200"
 				/>
 
@@ -58,7 +63,7 @@ export function RegisterForm() {
 					autoComplete="email"
 					placeholder={t("register.emailPlaceholder")}
 					registration={register("email")}
-					error={errors.email?.message}
+					error={translateError(errors.email?.message)}
 					delayClass="delay-300"
 				/>
 
@@ -68,7 +73,7 @@ export function RegisterForm() {
 					autoComplete="new-password"
 					placeholder="••••••••"
 					registration={register("password")}
-					error={errors.password?.message}
+					error={translateError(errors.password?.message)}
 					delayClass="delay-400"
 				/>
 
@@ -78,22 +83,27 @@ export function RegisterForm() {
 					autoComplete="new-password"
 					placeholder="••••••••"
 					registration={register("confirmPassword")}
-					error={errors.confirmPassword?.message}
+					error={translateError(errors.confirmPassword?.message)}
 					delayClass="delay-500"
 				/>
 
 				<div
-					className="pt-2 animate-fade-up delay-600 opacity-0-init"
+					className="pt-1 animate-fade-up delay-600 opacity-0-init"
 					style={{ animationFillMode: "forwards" }}
 				>
 					<Button
 						type="submit"
 						disabled={isSubmitting}
-						className="h-11 w-full rounded-lg border border-border bg-surface-high text-sm font-semibold text-foreground shadow-xs transition-all hover:border-foreground/40 hover:bg-surface-highest active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer"
+						className="h-11 w-full rounded-lg border border-border bg-surface-high text-sm font-semibold text-foreground shadow-xs transition-all hover:border-foreground/40 hover:bg-surface-highest active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer flex items-center justify-center"
 					>
-						{isSubmitting
-							? t("register.submitting")
-							: t("register.submitButton")}
+						{isSubmitting ? (
+							<>
+								<Loader2 className="mr-2 h-4 w-4 animate-spin text-muted-foreground" />
+								{t("register.submitting")}
+							</>
+						) : (
+							t("register.submitButton")
+						)}
 					</Button>
 
 					<p className="mt-2 text-center text-xs text-muted-foreground leading-normal text-balance">
@@ -119,11 +129,11 @@ export function RegisterForm() {
 					</p>
 				</div>
 
-				<FormGlobalError error={errors.root?.message} />
+				<FormGlobalError error={translateError(errors.root?.message)} />
 			</form>
 
 			<div
-				className="relative mt-3 animate-fade-up delay-600 opacity-0-init"
+				className="relative mt-2.5 animate-fade-up delay-600 opacity-0-init"
 				style={{ animationFillMode: "forwards" }}
 			>
 				<div className="absolute inset-0 flex items-center">
@@ -137,14 +147,14 @@ export function RegisterForm() {
 			</div>
 
 			<div
-				className="mt-3 animate-fade-up delay-700 opacity-0-init"
+				className="mt-2.5 animate-fade-up delay-700 opacity-0-init"
 				style={{ animationFillMode: "forwards" }}
 			>
 				<GoogleAuthButton actionText={t("register.googleButton")} />
 			</div>
 
 			<div
-				className="mt-4 text-center animate-fade-up delay-700 opacity-0-init"
+				className="mt-3.5 text-center animate-fade-up delay-700 opacity-0-init"
 				style={{ animationFillMode: "forwards" }}
 			>
 				<p className="text-sm text-muted-foreground">
