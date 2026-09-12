@@ -103,8 +103,8 @@ export function PasswordInput({
 				</button>
 			</div>
 
-			{/* 🛡️ Reserva compacta (20px) padronizada sem Layout Shift */}
-			<div className="min-h-5 flex items-start pt-0.5">
+			{/* 🛡️ Reserva compacta (18px) padronizada sem Layout Shift */}
+			<div className="min-h-4.5 flex items-start pt-0.5">
 				<AnimatePresence mode="wait">
 					{error && (
 						<motion.p

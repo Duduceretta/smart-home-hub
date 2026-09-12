@@ -60,10 +60,13 @@ Para garantir consistência visual e hierarquia clara entre formulários e pain�
 | **Campos da mesma Seção** | 12px a 16px | `space-y-3` a `space-y-4` |
 | **Entre Seções/Categorias** | 24px a 32px | `space-y-6` a `space-y-8` |
 
-### 2.1. Prevenção de Layout Shift (CLS) em Erros de Validação
-Mensagens de validação que surgem repentinamente causam pulos na interface (*Cumulative Layout Shift*).
+### 2.1. Padrão de Slot de Erro Fixo e Densidade de Formulários
+Mensagens de validação que surgem repentinamente causam pulos na interface (*Cumulative Layout Shift*). Para conciliar alta densidade visual com a eliminação total de CLS:
 
-- **Padrão:** Reserve a área da mensagem com `min-h-[18px]` ou `min-h-[20px]` na tag de erro em vez de renderizar condicionalmente containers de altura fixa desproporcionais.
+1. **Slot de Erro Embutido**: Todo input de formulário (`FormInput`, `PasswordInput`) deve conter um slot reservado de altura fixa de 18px (`min-h-[18px]`) com `text-xs leading-tight`. O slot existe sempre no DOM — vazio quando não há erro, preenchido quando há.
+2. **Pertencimento ao Bloco**: O slot de erro é parte integrante do componente de input, não devendo ser somado com margens externas redundantes.
+3. **Espaçamento entre Grupos de Campo**: Com o slot de 18px já embutido no rodapé de cada campo, o espaçamento entre campos consecutivos na tag `<form>` deve ser estritamente `gap-1` a `gap-1.5` (4px a 6px).
+4. **Erros de Validação vs. Infraestrutura**: Erros de validação (inclusive os retornados assincronamente pelo Firebase/API, como "email já em uso") devem ser atribuídos ao campo específico via `setError("email", ...)` e renderizados no slot inline. O componente `FormGlobalError` (banner com ícone de alerta) é reservado exclusivamente para falhas sistêmicas e indisponibilidade de rede.
 
 ---
 

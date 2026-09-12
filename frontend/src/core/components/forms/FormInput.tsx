@@ -99,7 +99,7 @@ export function FormInput({
 				/>
 			</div>
 
-			<div className="min-h-5 flex items-start pt-0.5">
+			<div className="min-h-4.5 flex items-start pt-0.5">
 				<AnimatePresence mode="wait">
 					{error && (
 						<motion.p
