@@ -96,13 +96,13 @@ export function RegisterForm() {
 							: t("register.submitButton")}
 					</Button>
 
-					<p className="mt-3 text-center text-xs text-muted-foreground leading-relaxed">
+					<p className="mt-2 text-center text-xs text-muted-foreground leading-normal text-balance">
 						{t("register.termsConsentPrefix")}{" "}
 						<Link
 							to="/legal/terms"
 							target="_blank"
 							rel="noreferrer"
-							className="font-medium text-foreground underline underline-offset-4 transition-colors hover:text-primary"
+							className="underline underline-offset-2 decoration-border hover:decoration-muted-foreground transition-colors hover:text-foreground"
 						>
 							{t("register.termsOfService")}
 						</Link>{" "}
@@ -111,7 +111,7 @@ export function RegisterForm() {
 							to="/legal/privacy"
 							target="_blank"
 							rel="noreferrer"
-							className="font-medium text-foreground underline underline-offset-4 transition-colors hover:text-primary"
+							className="underline underline-offset-2 decoration-border hover:decoration-muted-foreground transition-colors hover:text-foreground"
 						>
 							{t("register.privacyPolicy")}
 						</Link>
@@ -123,7 +123,7 @@ export function RegisterForm() {
 			</form>
 
 			<div
-				className="relative mt-4 animate-fade-up delay-600 opacity-0-init"
+				className="relative mt-3 animate-fade-up delay-600 opacity-0-init"
 				style={{ animationFillMode: "forwards" }}
 			>
 				<div className="absolute inset-0 flex items-center">
