@@ -111,6 +111,12 @@ public class IntegrationTestWebAppFactory : WebApplicationFactory<Program>, IAsy
             services.RemoveAll<ISpotifyMediaService>();
             services.AddSingleton(_ => Substitute.For<ISpotifyMediaService>());
 
+            // Auth & Email: substitui Firebase Admin SDK e Resend por mocks NSubstitute
+            services.RemoveAll<IFirebaseAuthService>();
+            services.AddSingleton(_ => Substitute.For<IFirebaseAuthService>());
+            services.RemoveAll<IEmailService>();
+            services.AddSingleton(_ => Substitute.For<IEmailService>());
+
             var serviceProvider = services.BuildServiceProvider();
             using var scope = serviceProvider.CreateScope();
             var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
