@@ -59,7 +59,7 @@ export function VerifyEmailContent() {
 	};
 
 	return (
-		<div className="relative w-full max-w-md overflow-hidden rounded-2xl border border-border-subtle bg-surface-low/80 p-5 sm:p-7 shadow-2xl backdrop-blur-xl animate-fade-up text-center">
+		<div className="relative w-full max-w-95 overflow-hidden rounded-2xl border border-border-subtle bg-surface-low/80 p-5 sm:p-7 shadow-2xl backdrop-blur-xl animate-fade-up text-center">
 			<div className="shimmer-line absolute left-0 right-0 top-0 h-px" />
 
 			{status === "verifying" && (
