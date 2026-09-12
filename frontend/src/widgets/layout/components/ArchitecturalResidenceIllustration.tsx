@@ -85,6 +85,14 @@ export function ArchitecturalResidenceIllustration({
 							opacity: 1;
 						}
 					}
+					.house-layer-slabs,
+					.house-layer-structure,
+					.house-layer-architecture,
+					.house-layer-furniture,
+					.house-layer-items,
+					.house-layer-lights {
+						opacity: 0;
+					}
 					.house-layer-slabs {
 						animation: houseBuildSlabs 0.48s cubic-bezier(0.16, 1, 0.3, 1) 0.04s both;
 						will-change: transform, opacity;
@@ -169,10 +177,7 @@ export function ArchitecturalResidenceIllustration({
 					}
 				`}</style>
 
-				{/* 1. Filtros de profundidade (blur no plano distante) e sombras de contato */}
-				<filter id="dof-far" x="-10%" y="-10%" width="120%" height="120%">
-					<feGaussianBlur stdDeviation="2.5" />
-				</filter>
+				{/* 1. Sombras de contato e profundidade */}
 
 				<filter
 					id="soft-contact-shadow"
@@ -481,43 +486,6 @@ export function ArchitecturalResidenceIllustration({
 					height="1000"
 					fill="url(#sky-dusk-gradient)"
 				/>
-
-				{/* Silhueta arquitetônica de fundo desfocada (profundidade de campo) */}
-				<g filter="url(#dof-far)" opacity="0.35">
-					<polygon
-						points="0,480 90,480 90,410 180,410 180,480 320,480 320,370 410,370 410,480 840,480 840,1000 0,1000"
-						fill="var(--surface-container)"
-					/>
-					<polygon
-						points="520,520 630,520 630,440 760,440 760,520 840,520 840,1000 520,1000"
-						fill="var(--surface-high)"
-					/>
-					{/* Pequenas luzes distantes nas janelas de fundo */}
-					<rect
-						x="120"
-						y="430"
-						width="16"
-						height="22"
-						fill="var(--warm)"
-						opacity="0.4"
-					/>
-					<rect
-						x="350"
-						y="395"
-						width="20"
-						height="30"
-						fill="var(--warm)"
-						opacity="0.35"
-					/>
-					<rect
-						x="680"
-						y="460"
-						width="22"
-						height="28"
-						fill="var(--warm)"
-						opacity="0.3"
-					/>
-				</g>
 			</g>
 
 			{/* ========================================================================= */}
