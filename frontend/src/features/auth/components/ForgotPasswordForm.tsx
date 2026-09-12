@@ -1,4 +1,4 @@
-import { ArrowLeft, CheckCircle2, Mail } from "lucide-react";
+import { ArrowLeft, CheckCircle2, Loader2, Mail } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import { FormGlobalError } from "@/core/components/forms/FormGlobalError";
@@ -16,14 +16,19 @@ export function ForgotPasswordForm() {
 		isSuccess,
 	} = useForgotPasswordForm();
 
+	const translateError = (errorKey?: string) => {
+		if (!errorKey) return undefined;
+		return t(errorKey, errorKey);
+	};
+
 	return (
 		<div
-			className="relative w-full max-w-md overflow-hidden rounded-2xl border border-border-subtle bg-surface-low/80 p-6 sm:p-8 shadow-2xl backdrop-blur-xl animate-fade-up delay-100 opacity-0-init"
+			className="relative w-full max-w-md overflow-hidden rounded-2xl border border-border-subtle bg-surface-low/80 p-5 sm:p-7 shadow-2xl backdrop-blur-xl animate-fade-up delay-100 opacity-0-init"
 			style={{ animationFillMode: "forwards" }}
 		>
 			<div className="shimmer-line absolute left-0 right-0 top-0 h-px" />
 
-			<div className="mb-6 sm:mb-8">
+			<div className="mb-4 sm:mb-5">
 				<h2 className="mb-1 text-2xl sm:text-3xl font-semibold text-foreground">
 					{t("forgotPassword.title")}
 				</h2>
@@ -60,7 +65,7 @@ export function ForgotPasswordForm() {
 						autoComplete="email"
 						placeholder={t("forgotPassword.emailPlaceholder")}
 						registration={register("email")}
-						error={errors.email?.message}
+						error={translateError(errors.email?.message)}
 						delayClass="delay-200"
 					/>
 
@@ -71,18 +76,23 @@ export function ForgotPasswordForm() {
 						<Button
 							type="submit"
 							disabled={isSubmitting}
-							className="h-11 w-full rounded-lg border border-border bg-surface-high text-sm font-semibold text-foreground shadow-xs transition-all hover:border-foreground/40 hover:bg-surface-highest active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer"
+							className="h-11 w-full rounded-lg border border-border bg-surface-high text-sm font-semibold text-foreground shadow-xs transition-all hover:border-foreground/40 hover:bg-surface-highest active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer flex items-center justify-center"
 						>
-							{isSubmitting
-								? t("forgotPassword.submitting")
-								: t("forgotPassword.submitButton")}
+							{isSubmitting ? (
+								<>
+									<Loader2 className="mr-2 h-4 w-4 animate-spin text-muted-foreground" />
+									{t("forgotPassword.submitting")}
+								</>
+							) : (
+								t("forgotPassword.submitButton")
+							)}
 						</Button>
 					</div>
 
-					<FormGlobalError error={errors.root?.message} />
+					<FormGlobalError error={translateError(errors.root?.message)} />
 
 					<div
-						className="mt-8 text-center animate-fade-up delay-400 opacity-0-init"
+						className="mt-4 text-center animate-fade-up delay-400 opacity-0-init"
 						style={{ animationFillMode: "forwards" }}
 					>
 						<Link
