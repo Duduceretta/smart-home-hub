@@ -61,12 +61,10 @@ export function LanguageSelector({ className }: LanguageSelectorProps = {}) {
 								className,
 							)}
 						>
-							<div className="flex items-center gap-2 min-w-0">
-								<ActiveFlag />
-								<span className="truncate font-medium">
-									{activeOption.label}
-								</span>
-							</div>
+							<ActiveFlag className="shrink-0" />
+							<span className="flex-1 text-center truncate font-medium px-1">
+								{activeOption.label}
+							</span>
 							<ChevronDown
 								className="size-3.5 text-muted-foreground opacity-70 shrink-0"
 								aria-hidden="true"
