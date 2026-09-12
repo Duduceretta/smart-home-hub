@@ -24,6 +24,16 @@ const CANCELLED_CODES = new Set([
 	"auth/cancelled-popup-request",
 ]);
 
+export class AuthError extends Error {
+	public readonly code?: string;
+
+	constructor(message: string, code?: string) {
+		super(message);
+		this.name = "AuthError";
+		this.code = code;
+	}
+}
+
 export const loginWithEmail = async (
 	credentials: LoginFormData,
 ): Promise<User> => {
@@ -40,18 +50,33 @@ export const loginWithEmail = async (
 
 			if (
 				firebaseError.code === "auth/invalid-credential" ||
-				firebaseError.code === "auth/user-not-found"
+				firebaseError.code === "auth/user-not-found" ||
+				firebaseError.code === "auth/wrong-password"
 			) {
-				throw new Error("E-mail ou senha incorretos.");
-			}
-			if (firebaseError.code === "auth/too-many-requests") {
-				throw new Error(
-					"Muitas tentativas falhas. Tente novamente mais tarde.",
+				throw new AuthError(
+					"login.errors.invalidCredentials",
+					firebaseError.code,
 				);
 			}
+			if (firebaseError.code === "auth/user-disabled") {
+				throw new AuthError("login.errors.userDisabled", firebaseError.code);
+			}
+			if (firebaseError.code === "auth/invalid-email") {
+				throw new AuthError("login.errors.emailInvalid", firebaseError.code);
+			}
+			if (firebaseError.code === "auth/too-many-requests") {
+				throw new AuthError("login.errors.tooManyRequests", firebaseError.code);
+			}
+			if (firebaseError.code === "auth/network-request-failed") {
+				throw new AuthError("login.errors.networkError", firebaseError.code);
+			}
+
+			Logger.error("Erro no Firebase ao autenticar usuário", error);
+		} else {
+			Logger.error("Falha desconhecida no login", error);
 		}
 
-		throw new Error("Erro ao autenticar. Verifique sua conexão.");
+		throw new AuthError("login.errors.generic");
 	}
 };
 
@@ -80,16 +105,6 @@ export const loginWithGoogle = async (): Promise<User | null> => {
 		);
 	}
 };
-
-export class AuthError extends Error {
-	public readonly code?: string;
-
-	constructor(message: string, code?: string) {
-		super(message);
-		this.name = "AuthError";
-		this.code = code;
-	}
-}
 
 export const registerWithEmail = async (
 	credentials: RegisterFormData,

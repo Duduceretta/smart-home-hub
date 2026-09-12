@@ -3,8 +3,8 @@ import { z } from "zod";
 const emailValidation = z.email("Digite um formato de e-mail válido.");
 
 export const loginSchema = z.object({
-	email: emailValidation,
-	password: z.string().min(1, "A senha é obrigatória."),
+	email: z.email("login.errors.emailInvalid"),
+	password: z.string().min(1, "login.errors.passwordRequired"),
 });
 export type LoginFormData = z.infer<typeof loginSchema>;
 

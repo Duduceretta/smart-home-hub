@@ -1,7 +1,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { useLocation, useNavigate } from "react-router-dom";
-import { loginWithEmail } from "../api/auth.api";
+import { AuthError, loginWithEmail } from "../api/auth.api";
 import { useAuthStore } from "../store/useAuthStore";
 import { type LoginFormData, loginSchema } from "../types/auth.schemas";
 
@@ -35,6 +35,21 @@ export function useLoginForm() {
 
 			navigate(destination, { replace: true });
 		} catch (error: unknown) {
+			if (error instanceof AuthError) {
+				if (error.code === "auth/invalid-email") {
+					formMethods.setError("email", {
+						type: "manual",
+						message: error.message,
+					});
+					return;
+				}
+				formMethods.setError("root", {
+					type: "manual",
+					message: error.message,
+				});
+				return;
+			}
+
 			if (error instanceof Error) {
 				formMethods.setError("root", {
 					type: "manual",
@@ -43,7 +58,7 @@ export function useLoginForm() {
 			} else {
 				formMethods.setError("root", {
 					type: "manual",
-					message: "Ocorreu um erro crítico e inesperado.",
+					message: "login.errors.generic",
 				});
 			}
 		}
