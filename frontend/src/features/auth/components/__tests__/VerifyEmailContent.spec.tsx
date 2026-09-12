@@ -1,3 +1,4 @@
+import type { User } from "firebase/auth";
 import { MemoryRouter } from "react-router-dom";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import i18n from "@/core/i18n";
@@ -34,7 +35,11 @@ describe("VerifyEmailContent Integration Tests", () => {
 	it("VerifyEmailContent_WhenVerificationSucceedsAndUserLoggedIn_RendersSuccessWithDashboardLink", async () => {
 		vi.spyOn(authApi, "verifyEmailToken").mockResolvedValue();
 		useAuthStore.setState({
-			user: { uid: "123", email: "user@test.com", emailVerified: true } as any,
+			user: {
+				uid: "123",
+				email: "user@test.com",
+				emailVerified: true,
+			} as unknown as User,
 			isLoading: false,
 		});
 

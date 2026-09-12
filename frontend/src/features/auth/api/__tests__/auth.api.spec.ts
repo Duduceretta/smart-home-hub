@@ -1,7 +1,7 @@
 import { HttpResponse, http } from "msw";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import { server } from "@/testing/mocks/server";
-import { AuthError, sendVerificationEmail } from "../auth.api";
+import { sendVerificationEmail } from "../auth.api";
 
 describe("auth.api verification tests", () => {
 	it("sendVerificationEmail_WhenApiSucceeds_ShouldResolveWithoutError", async () => {

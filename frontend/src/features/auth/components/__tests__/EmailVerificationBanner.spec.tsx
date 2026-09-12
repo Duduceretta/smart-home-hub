@@ -1,4 +1,5 @@
 import userEvent from "@testing-library/user-event";
+import type { User } from "firebase/auth";
 import { toast } from "sonner";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import i18n from "@/core/i18n";
@@ -39,7 +40,7 @@ describe("EmailVerificationBanner Component Tests", () => {
 				uid: "123",
 				email: "verified@test.com",
 				emailVerified: true,
-			} as any,
+			} as unknown as User,
 			isLoading: false,
 		});
 
@@ -53,7 +54,7 @@ describe("EmailVerificationBanner Component Tests", () => {
 				uid: "123",
 				email: "unverified@test.com",
 				emailVerified: false,
-			} as any,
+			} as unknown as User,
 			isLoading: false,
 		});
 
@@ -75,7 +76,7 @@ describe("EmailVerificationBanner Component Tests", () => {
 				uid: "123",
 				email: "unverified@test.com",
 				emailVerified: false,
-			} as any,
+			} as unknown as User,
 			isLoading: false,
 		});
 
@@ -103,7 +104,7 @@ describe("EmailVerificationBanner Component Tests", () => {
 				uid: "123",
 				email: "unverified@test.com",
 				emailVerified: false,
-			} as any,
+			} as unknown as User,
 			isLoading: false,
 		});
 
