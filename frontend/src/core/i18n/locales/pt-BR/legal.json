@@ -1,0 +1,44 @@
+{
+	"layout": {
+		"back": "Voltar para a página anterior",
+		"officialDocument": "Documento Oficial • Nexus Hub",
+		"lastUpdated": "Última atualização",
+		"tocAria": "Índice do documento",
+		"tocTitle": "Sumário do Documento",
+		"transparencyNote": "Transparência e conformidade em toda a plataforma:"
+	},
+	"terms": {
+		"title": "Termos de Serviço",
+		"subtitle": "Condições e diretrizes para utilização da plataforma de automação residencial Nexus Hub.",
+		"lastUpdated": "10 de setembro de 2026",
+		"counterpartLabel": "Consulte também nossa Política de Privacidade (LGPD)",
+		"toc": {
+			"naturezaServico": "Natureza do Serviço e Estágio",
+			"aceitacao": "Aceitação dos Termos",
+			"responsabilidades": "Responsabilidades do Usuário",
+			"dispositivos": "Uso com Dispositivos Físicos",
+			"terceiros": "Integrações e Serviços de Terceiros",
+			"disponibilidade": "Isenção de Garantias e Limites",
+			"propriedade": "Propriedade Intelectual",
+			"alteracoes": "Alterações nos Termos",
+			"contato": "Contato e Suporte"
+		}
+	},
+	"privacy": {
+		"title": "Política de Privacidade",
+		"subtitle": "Como o Nexus Hub coleta, utiliza, armazena e protege seus dados pessoais de acordo com a LGPD.",
+		"lastUpdated": "10 de setembro de 2026",
+		"counterpartLabel": "Acesse também os Termos de Serviço do Nexus Hub",
+		"toc": {
+			"responsavel": "Responsável pelo Tratamento",
+			"dadosColetados": "Dados Pessoais Coletados",
+			"finalidades": "Finalidades e Bases Legais (LGPD)",
+			"compartilhamento": "Compartilhamento com Terceiros",
+			"retencao": "Retenção e Descarte de Dados",
+			"direitosTitular": "Direitos do Titular de Dados",
+			"cookiesArmazenamento": "Cookies e Armazenamento Local",
+			"seguranca": "Segurança da Informação",
+			"contato": "Contato e Encarregado (DPO)"
+		}
+	}
+}

@@ -1,6 +1,13 @@
-import { ArrowLeft, Calendar, Home, ShieldCheck } from "lucide-react";
+import { ArrowLeft, Calendar, ShieldCheck } from "lucide-react";
 import type { ReactNode } from "react";
+import { useTranslation } from "react-i18next";
 import { Link, useNavigate } from "react-router-dom";
+import { NexusHubWordmark } from "@/core/components/brand";
+import {
+	Tooltip,
+	TooltipContent,
+	TooltipTrigger,
+} from "@/core/components/ui/tooltip";
 import { LanguageSelector } from "@/features/settings/components/LanguageSelector";
 import { ThemePresetSelector } from "@/features/settings/components/ThemePresetSelector";
 import { LegalFooter } from "@/widgets/legal-footer";
@@ -30,6 +37,7 @@ export function LegalLayout({
 	children,
 	counterpartLink,
 }: LegalLayoutProps) {
+	const { t } = useTranslation("legal");
 	const navigate = useNavigate();
 
 	const handleGoBack = () => {
@@ -46,20 +54,27 @@ export function LegalLayout({
 			<header className="sticky top-0 z-30 border-b border-border-subtle bg-background/80 backdrop-blur-md">
 				<div className="mx-auto flex h-16 max-w-4xl items-center justify-between px-4 sm:px-6">
 					<div className="flex items-center gap-3">
-						<button
-							type="button"
-							onClick={handleGoBack}
-							aria-label="Voltar para a página anterior"
-							className="flex h-9 w-9 items-center justify-center rounded-lg border border-border-subtle bg-surface-low text-muted-foreground transition-colors hover:bg-surface-container hover:text-foreground cursor-pointer"
-						>
-							<ArrowLeft className="h-4 w-4" />
-						</button>
+						<Tooltip>
+							<TooltipTrigger asChild>
+								<button
+									type="button"
+									onClick={handleGoBack}
+									aria-label={t("layout.back", "Voltar para a página anterior")}
+									className="flex h-9 w-9 items-center justify-center rounded-lg border border-border-subtle bg-surface-low text-muted-foreground transition-colors hover:bg-surface-container hover:text-foreground cursor-pointer"
+								>
+									<ArrowLeft className="h-4 w-4" />
+								</button>
+							</TooltipTrigger>
+							<TooltipContent side="bottom" align="start">
+								{t("layout.back", "Voltar para a página anterior")}
+							</TooltipContent>
+						</Tooltip>
 						<Link
 							to="/"
-							className="flex items-center gap-2 font-semibold tracking-tight text-foreground transition-opacity hover:opacity-80"
+							className="flex items-center transition-opacity hover:opacity-80"
 						>
-							<Home className="h-5 w-5 text-primary" />
-							<span>Nexus Hub</span>
+							<NexusHubWordmark className="h-5 w-auto text-foreground" />
+							<span className="sr-only">Nexus Hub</span>
 						</Link>
 					</div>
 
@@ -77,7 +92,9 @@ export function LegalLayout({
 					<header className="mb-8 border-b border-border-subtle pb-8">
 						<div className="inline-flex items-center gap-1.5 rounded-full border border-border-subtle bg-surface-low px-3 py-1 text-xs font-medium text-muted-foreground mb-4">
 							<ShieldCheck className="h-3.5 w-3.5 text-primary" />
-							<span>Documento Oficial • Nexus Hub</span>
+							<span>
+								{t("layout.officialDocument", "Documento Oficial • Nexus Hub")}
+							</span>
 						</div>
 
 						<h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">
@@ -87,27 +104,29 @@ export function LegalLayout({
 
 						<div className="mt-4 flex items-center gap-2 text-xs text-muted-foreground">
 							<Calendar className="h-3.5 w-3.5" />
-							<span>Última atualização: {lastUpdated}</span>
+							<span>
+								{t("layout.lastUpdated", "Última atualização")}: {lastUpdated}
+							</span>
 						</div>
 					</header>
 
 					{/* Optional Table of Contents */}
 					{tableOfContents && tableOfContents.length > 0 && (
 						<nav
-							aria-label="Índice do documento"
+							aria-label={t("layout.tocAria", "Índice do documento")}
 							className="mb-10 rounded-xl border border-border-subtle bg-surface-low/80 p-5 backdrop-blur-sm"
 						>
 							<h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">
-								Sumário do Documento
+								{t("layout.tocTitle", "Sumário do Documento")}
 							</h2>
 							<ol className="grid gap-2 text-sm sm:grid-cols-2">
 								{tableOfContents.map((item, index) => (
 									<li key={item.id}>
 										<a
 											href={`#${item.id}`}
-											className="flex items-center gap-2 text-muted-foreground transition-colors hover:text-foreground"
+											className="flex items-baseline gap-2 text-muted-foreground transition-colors hover:text-foreground"
 										>
-											<span className="text-xs font-mono text-muted-foreground/70">
+											<span className="text-xs font-mono text-muted-foreground/70 shrink-0">
 												{(index + 1).toString().padStart(2, "0")}.
 											</span>
 											<span>{item.title}</span>
@@ -127,7 +146,10 @@ export function LegalLayout({
 					{counterpartLink && (
 						<div className="mt-12 rounded-xl border border-border-subtle bg-surface-low p-6 text-center">
 							<p className="text-sm text-muted-foreground mb-2">
-								Transparência e conformidade em toda a plataforma:
+								{t(
+									"layout.transparencyNote",
+									"Transparência e conformidade em toda a plataforma:",
+								)}
 							</p>
 							<Link
 								to={counterpartLink.to}

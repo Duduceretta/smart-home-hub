@@ -1,0 +1,44 @@
+{
+	"layout": {
+		"back": "Back to previous page",
+		"officialDocument": "Official Document • Nexus Hub",
+		"lastUpdated": "Last updated",
+		"tocAria": "Document table of contents",
+		"tocTitle": "Document Summary",
+		"transparencyNote": "Transparency and compliance across the platform:"
+	},
+	"terms": {
+		"title": "Terms of Service",
+		"subtitle": "Terms and guidelines for using the Nexus Hub home automation platform.",
+		"lastUpdated": "September 10, 2026",
+		"counterpartLabel": "Also check out our Privacy Policy (LGPD)",
+		"toc": {
+			"naturezaServico": "Nature of Service and Current Stage",
+			"aceitacao": "Acceptance of Terms",
+			"responsabilidades": "User Responsibilities and Credentials",
+			"dispositivos": "Use with Physical Devices and Electrical Safety",
+			"terceiros": "Third-Party Services and APIs",
+			"disponibilidade": "Disclaimer of Warranties and Limits",
+			"propriedade": "Intellectual Property",
+			"alteracoes": "Changes to Terms",
+			"contato": "Contact and Legal Notices"
+		}
+	},
+	"privacy": {
+		"title": "Privacy Policy",
+		"subtitle": "How Nexus Hub collects, uses, stores, and protects your personal data in accordance with LGPD.",
+		"lastUpdated": "September 10, 2026",
+		"counterpartLabel": "Also access the Nexus Hub Terms of Service",
+		"toc": {
+			"responsavel": "Data Controller",
+			"dadosColetados": "Personal Data Collected",
+			"finalidades": "Purposes and Legal Grounds (LGPD)",
+			"compartilhamento": "Third-Party Data Sharing",
+			"retencao": "Data Retention and Deletion",
+			"direitosTitular": "Data Subject Rights",
+			"cookiesArmazenamento": "Cookies and Browser Storage",
+			"seguranca": "Information Security",
+			"contato": "Contact and DPO"
+		}
+	}
+}

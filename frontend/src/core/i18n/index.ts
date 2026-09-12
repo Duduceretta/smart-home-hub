@@ -10,6 +10,7 @@ import enDeviceGroups from "./locales/en-US/device-groups.json";
 import enDevices from "./locales/en-US/devices.json";
 import enHistory from "./locales/en-US/history.json";
 import enIntegrations from "./locales/en-US/integrations.json";
+import enLegal from "./locales/en-US/legal.json";
 import enRooms from "./locales/en-US/rooms.json";
 import enSettings from "./locales/en-US/settings.json";
 import ptAuth from "./locales/pt-BR/auth.json";
@@ -20,6 +21,7 @@ import ptDeviceGroups from "./locales/pt-BR/device-groups.json";
 import ptDevices from "./locales/pt-BR/devices.json";
 import ptHistory from "./locales/pt-BR/history.json";
 import ptIntegrations from "./locales/pt-BR/integrations.json";
+import ptLegal from "./locales/pt-BR/legal.json";
 import ptRooms from "./locales/pt-BR/rooms.json";
 import ptSettings from "./locales/pt-BR/settings.json";
 
@@ -37,6 +39,7 @@ export const resources = {
 		history: ptHistory,
 		settings: ptSettings,
 		integrations: ptIntegrations,
+		legal: ptLegal,
 	},
 	"en-US": {
 		common: enCommon,
@@ -49,6 +52,7 @@ export const resources = {
 		history: enHistory,
 		settings: enSettings,
 		integrations: enIntegrations,
+		legal: enLegal,
 	},
 } as const;
 
@@ -70,6 +74,7 @@ i18n
 			"history",
 			"settings",
 			"integrations",
+			"legal",
 		],
 		interpolation: {
 			escapeValue: false,
