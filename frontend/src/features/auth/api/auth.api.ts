@@ -1,4 +1,5 @@
 import {
+	type ActionCodeSettings,
 	confirmPasswordReset,
 	createUserWithEmailAndPassword,
 	GoogleAuthProvider,
@@ -173,18 +174,43 @@ export const logoutUser = async (): Promise<void> => {
 };
 
 export const resetPassword = async (email: string): Promise<void> => {
+	const actionCodeSettings: ActionCodeSettings = {
+		url: `${window.location.origin}/reset-password`,
+		handleCodeInApp: true,
+	};
+
 	try {
-		await sendPasswordResetEmail(auth, email);
+		await sendPasswordResetEmail(auth, email, actionCodeSettings);
 	} catch (error: unknown) {
 		if (error instanceof Error && "code" in error) {
+			const firebaseError = error as { code: string };
+
+			// Proteção estrita contra enumeração de usuário: se a conta não existir,
+			// não expomos erro na UI para evitar descoberta de emails cadastrados.
+			if (firebaseError.code === "auth/user-not-found") {
+				return;
+			}
+
+			if (firebaseError.code === "auth/too-many-requests") {
+				throw new AuthError(
+					"forgotPassword.errors.tooManyRequests",
+					firebaseError.code,
+				);
+			}
+
+			if (firebaseError.code === "auth/network-request-failed") {
+				throw new AuthError(
+					"forgotPassword.errors.networkError",
+					firebaseError.code,
+				);
+			}
+
 			Logger.error("Erro no Firebase ao solicitar recuperação de senha", error);
 		} else {
 			Logger.error("Falha crítica desconhecida na recuperação de senha", error);
 		}
 
-		throw new Error(
-			"Não foi possível processar a solicitação. Tente novamente mais tarde.",
-		);
+		throw new AuthError("forgotPassword.errors.generic");
 	}
 };
 
@@ -193,9 +219,14 @@ export const verifyResetToken = async (oobCode: string): Promise<string> => {
 		return await verifyPasswordResetCode(auth, oobCode);
 	} catch (error: unknown) {
 		Logger.error("Código de reset inválido ou expirado", error);
-		throw new Error(
-			"O link de recuperação é inválido ou já expirou. Solicite um novo.",
-		);
+		if (error instanceof Error && "code" in error) {
+			const firebaseError = error as { code: string };
+			throw new AuthError(
+				"resetPassword.errors.invalidOrExpiredToken",
+				firebaseError.code,
+			);
+		}
+		throw new AuthError("resetPassword.errors.invalidOrExpiredToken");
 	}
 };
 
@@ -207,9 +238,33 @@ export const submitNewPassword = async (
 		await confirmPasswordReset(auth, oobCode, newPassword);
 	} catch (error: unknown) {
 		Logger.error("Erro ao tentar redefinir a senha", error);
-		throw new Error(
-			"Não foi possível redefinir a senha. O link pode ter expirado.",
-		);
+		if (error instanceof Error && "code" in error) {
+			const firebaseError = error as { code: string };
+
+			if (
+				firebaseError.code === "auth/expired-action-code" ||
+				firebaseError.code === "auth/invalid-action-code"
+			) {
+				throw new AuthError(
+					"resetPassword.errors.expiredActionCode",
+					firebaseError.code,
+				);
+			}
+			if (firebaseError.code === "auth/weak-password") {
+				throw new AuthError(
+					"resetPassword.errors.passwordWeak",
+					firebaseError.code,
+				);
+			}
+			if (firebaseError.code === "auth/network-request-failed") {
+				throw new AuthError(
+					"resetPassword.errors.networkError",
+					firebaseError.code,
+				);
+			}
+		}
+
+		throw new AuthError("resetPassword.errors.generic");
 	}
 };
 

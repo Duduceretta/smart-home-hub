@@ -1,7 +1,5 @@
 import { z } from "zod";
 
-const emailValidation = z.email("Digite um formato de e-mail válido.");
-
 export const loginSchema = z.object({
 	email: z.email("login.errors.emailInvalid"),
 	password: z.string().min(1, "login.errors.passwordRequired"),
@@ -9,7 +7,7 @@ export const loginSchema = z.object({
 export type LoginFormData = z.infer<typeof loginSchema>;
 
 export const forgotPasswordSchema = z.object({
-	email: emailValidation,
+	email: z.email("forgotPassword.errors.emailInvalid"),
 });
 export type ForgotPasswordFormData = z.infer<typeof forgotPasswordSchema>;
 
@@ -33,11 +31,16 @@ export type RegisterFormData = z.infer<typeof registerSchema>;
 
 export const resetPasswordSchema = z
 	.object({
-		password: z.string().min(6, "A senha deve ter no mínimo 6 caracteres."),
+		password: z
+			.string()
+			.min(8, "resetPassword.errors.passwordMin")
+			.regex(/[A-Z]/, "resetPassword.errors.passwordUppercase")
+			.regex(/[0-9]/, "resetPassword.errors.passwordNumber")
+			.regex(/[^a-zA-Z0-9]/, "resetPassword.errors.passwordSpecial"),
 		confirmPassword: z.string(),
 	})
 	.refine((data) => data.password === data.confirmPassword, {
-		message: "As senhas não coincidem.",
+		message: "resetPassword.errors.passwordMismatch",
 		path: ["confirmPassword"],
 	});
 export type ResetPasswordFormData = z.infer<typeof resetPasswordSchema>;

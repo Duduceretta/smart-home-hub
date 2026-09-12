@@ -1,7 +1,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { resetPassword } from "../api/auth.api";
+import { AuthError, resetPassword } from "../api/auth.api";
 import {
 	type ForgotPasswordFormData,
 	forgotPasswordSchema,
@@ -21,6 +21,14 @@ export function useForgotPasswordForm() {
 			await resetPassword(data.email);
 			setIsSuccess(true);
 		} catch (error: unknown) {
+			if (error instanceof AuthError) {
+				formMethods.setError("root", {
+					type: "manual",
+					message: error.message,
+				});
+				return;
+			}
+
 			if (error instanceof Error) {
 				formMethods.setError("root", {
 					type: "manual",
@@ -29,7 +37,7 @@ export function useForgotPasswordForm() {
 			} else {
 				formMethods.setError("root", {
 					type: "manual",
-					message: "Ocorreu um erro crítico e inesperado.",
+					message: "forgotPassword.errors.generic",
 				});
 			}
 		}
