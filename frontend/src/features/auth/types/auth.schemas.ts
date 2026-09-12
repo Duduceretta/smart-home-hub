@@ -15,21 +15,18 @@ export type ForgotPasswordFormData = z.infer<typeof forgotPasswordSchema>;
 
 export const registerSchema = z
 	.object({
-		name: z.string().min(3, "O nome deve ter no mínimo 3 caracteres."),
-		email: emailValidation,
+		name: z.string().min(3, "register.errors.nameMin"),
+		email: z.email("register.errors.emailInvalid"),
 		password: z
 			.string()
-			.min(8, "A senha deve ter no mínimo 8 caracteres.")
-			.regex(/[A-Z]/, "A senha deve conter pelo menos uma letra maiúscula.")
-			.regex(/[0-9]/, "A senha deve conter pelo menos um número.")
-			.regex(
-				/[^a-zA-Z0-9]/,
-				"A senha deve conter pelo menos um caractere especial.",
-			),
+			.min(8, "register.errors.passwordMin")
+			.regex(/[A-Z]/, "register.errors.passwordUppercase")
+			.regex(/[0-9]/, "register.errors.passwordNumber")
+			.regex(/[^a-zA-Z0-9]/, "register.errors.passwordSpecial"),
 		confirmPassword: z.string(),
 	})
 	.refine((data) => data.password === data.confirmPassword, {
-		message: "As senhas não coincidem.",
+		message: "register.errors.passwordMismatch",
 		path: ["confirmPassword"],
 	});
 export type RegisterFormData = z.infer<typeof registerSchema>;

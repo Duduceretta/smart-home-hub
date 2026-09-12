@@ -1,13 +1,14 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { useNavigate } from "react-router-dom";
-import { registerWithEmail } from "../api/auth.api";
+import { useLocation, useNavigate } from "react-router-dom";
+import { AuthError, registerWithEmail } from "../api/auth.api";
 import { useAuthStore } from "../store/useAuthStore";
 import { type RegisterFormData, registerSchema } from "../types/auth.schemas";
 
 export function useRegisterForm() {
 	const setUser = useAuthStore((state) => state.setUser);
 	const navigate = useNavigate();
+	const location = useLocation();
 
 	const formMethods = useForm<RegisterFormData>({
 		resolver: zodResolver(registerSchema),
@@ -19,8 +20,41 @@ export function useRegisterForm() {
 		try {
 			const user = await registerWithEmail(data);
 			setUser(user);
-			navigate("/dashboard");
+
+			const fromState = (
+				location.state as {
+					from?: { pathname: string; search?: string; hash?: string } | string;
+				}
+			)?.from;
+			const destination =
+				typeof fromState === "string"
+					? fromState
+					: fromState?.pathname
+						? `${fromState.pathname}${fromState.search || ""}${fromState.hash || ""}`
+						: "/dashboard";
+
+			navigate(destination, { replace: true });
 		} catch (error: unknown) {
+			if (error instanceof AuthError) {
+				if (
+					error.code === "auth/email-already-in-use" ||
+					error.code === "auth/invalid-email"
+				) {
+					formMethods.setError("email", {
+						type: "manual",
+						message: error.message,
+					});
+					return;
+				}
+				if (error.code === "auth/weak-password") {
+					formMethods.setError("password", {
+						type: "manual",
+						message: error.message,
+					});
+					return;
+				}
+			}
+
 			if (error instanceof Error) {
 				formMethods.setError("root", {
 					type: "manual",

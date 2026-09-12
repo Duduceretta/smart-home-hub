@@ -81,6 +81,16 @@ export const loginWithGoogle = async (): Promise<User | null> => {
 	}
 };
 
+export class AuthError extends Error {
+	public readonly code?: string;
+
+	constructor(message: string, code?: string) {
+		super(message);
+		this.name = "AuthError";
+		this.code = code;
+	}
+}
+
 export const registerWithEmail = async (
 	credentials: RegisterFormData,
 ): Promise<User> => {
@@ -101,14 +111,30 @@ export const registerWithEmail = async (
 			const firebaseError = error as { code: string };
 
 			if (firebaseError.code === "auth/email-already-in-use") {
-				throw new Error("Este e-mail já está cadastrado no sistema.");
+				throw new AuthError("register.errors.emailInUse", firebaseError.code);
 			}
 			if (firebaseError.code === "auth/weak-password") {
-				throw new Error("A senha fornecida é muito fraca.");
+				throw new AuthError("register.errors.passwordWeak", firebaseError.code);
 			}
+			if (firebaseError.code === "auth/invalid-email") {
+				throw new AuthError("register.errors.emailInvalid", firebaseError.code);
+			}
+			if (firebaseError.code === "auth/too-many-requests") {
+				throw new AuthError(
+					"register.errors.tooManyRequests",
+					firebaseError.code,
+				);
+			}
+			if (firebaseError.code === "auth/network-request-failed") {
+				throw new AuthError("register.errors.networkError", firebaseError.code);
+			}
+
+			Logger.error("Erro no Firebase ao registrar usuário", error);
+		} else {
+			Logger.error("Falha desconhecida no cadastro", error);
 		}
 
-		throw new Error("Erro ao criar a conta. Verifique sua conexão.");
+		throw new AuthError("register.errors.generic");
 	}
 };
 
