@@ -36,6 +36,17 @@ O `contrast-safe-graphite` é a referência de rigor do grupo: usa cinza neutro 
 
 Ao criar um preset novo, **não adicione tingimento de cor às superfícies sem recalcular esses pares de contraste** — é fácil quebrar a acessibilidade escolhendo tons "por olho".
 
+### 1.1. Identidade de Marca Nexus Hub (Logo & Favicon)
+
+Para a identidade visual oficial da marca (`NexusHubWordmark`, `NexusHubMonogram` e `/favicon.svg`), são definidos tokens dedicados em `src/app/styles/index.css`:
+
+| Token CSS | Tailwind Class | Valor Hex | Uso Oficial |
+|---|---|---|---|
+| `--brand-accent` | `text-brand-accent` / `fill-brand-accent` | `#12967a` | Letra "N" e ícone central de rede "x" no Wordmark e Monograma. |
+| `--brand-muted` | `text-brand-muted` / `fill-brand-muted` | `#d6d3ce` | Letra "H" no monograma fechado (harmonizado com o teal sem estourar contraste). |
+
+Esses tokens garantem identidade visual uniforme em todos os temas, sem dependência de hex cru no código de componentes.
+
 ---
 
 ## 2. Ritmo Vertical e Agrupamento Proporcional (8px Grid)

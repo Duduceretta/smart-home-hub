@@ -55,6 +55,8 @@
 	--color-cool-foreground: var(--primary-foreground);
 	--color-alert: var(--alert);
 	--color-alert-foreground: var(--alert-foreground);
+	--color-brand-accent: var(--brand-accent);
+	--color-brand-muted: var(--brand-muted);
 	--radius-sm: calc(var(--radius) * 0.6);
 	--radius-md: calc(var(--radius) * 0.8);
 	--radius-lg: var(--radius);
@@ -107,6 +109,8 @@
 	--warm-foreground: #382f27;
 	--alert: #93000a;
 	--alert-foreground: #410002;
+	--brand-accent: #12967a;
+	--brand-muted: #d6d3ce;
 }
 
 .dark {
@@ -159,6 +163,8 @@
 	--warm-foreground: #18181b;
 	--alert: #ef4444;
 	--alert-foreground: #ffffff;
+	--brand-accent: #12967a;
+	--brand-muted: #d6d3ce;
 }
 
 /* Preset "zinc-minimalist" é o padrão do .dark acima — sem override necessário. */
