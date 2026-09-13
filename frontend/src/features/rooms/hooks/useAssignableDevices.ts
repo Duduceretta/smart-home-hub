@@ -12,7 +12,7 @@ import { roomsKeys } from "./rooms.keys";
 export function useAssignableDevices() {
 	return useQuery<RoomPickerDevice[], Error>({
 		queryKey: roomsKeys.pickerDevices(),
-		queryFn: fetchAssignableDevices,
+		queryFn: ({ signal }) => fetchAssignableDevices(signal),
 		staleTime: 1000 * 60,
 		retry: 1,
 	});

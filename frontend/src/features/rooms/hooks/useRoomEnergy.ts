@@ -6,7 +6,7 @@ import { roomsKeys } from "./rooms.keys";
 export function useRoomEnergy(roomId: string, range: RoomEnergyRange) {
 	return useQuery<RoomEnergy, Error>({
 		queryKey: roomsKeys.energy(roomId, range),
-		queryFn: () => fetchRoomEnergy(roomId, range),
+		queryFn: ({ signal }) => fetchRoomEnergy(roomId, range, signal),
 		staleTime: 1000 * 30,
 		retry: 1,
 	});

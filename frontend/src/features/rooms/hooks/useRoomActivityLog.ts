@@ -7,7 +7,7 @@ import { roomsKeys } from "./rooms.keys";
 export function useRoomActivityLog(roomId: string) {
 	return useQuery<RoomActivityEntry[], Error>({
 		queryKey: roomsKeys.activityLog(roomId),
-		queryFn: () => fetchRoomActivityLog(roomId),
+		queryFn: ({ signal }) => fetchRoomActivityLog(roomId, signal),
 		staleTime: 1000 * 30,
 		retry: 1,
 	});

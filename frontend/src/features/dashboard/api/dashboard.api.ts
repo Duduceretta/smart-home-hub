@@ -11,10 +11,13 @@ import type {
  * Fetches the aggregated dashboard overview (summary KPIs, energy chart,
  * room usage and recent activities) for the authenticated user.
  */
-export async function fetchDashboardOverview(): Promise<DashboardOverviewResponse> {
+export async function fetchDashboardOverview(
+	signal?: AbortSignal,
+): Promise<DashboardOverviewResponse> {
 	try {
 		const { data } = await apiClient.get<DashboardOverviewResponse>(
 			"/dashboard/overview",
+			{ signal },
 		);
 		return data;
 	} catch (error: unknown) {
@@ -32,13 +35,13 @@ export async function fetchDashboardOverview(): Promise<DashboardOverviewRespons
  * hooks/api umas das outras diretamente. `pageSize` alto porque o
  * card ordena/filtra client-side (mesmo padrão de `DevicesGlanceBar`).
  */
-export async function fetchAutomationsSummary(): Promise<
-	DashboardAutomationSummary[]
-> {
+export async function fetchAutomationsSummary(
+	signal?: AbortSignal,
+): Promise<DashboardAutomationSummary[]> {
 	try {
 		const { data } = await apiClient.get<
 			PagedResponse<DashboardAutomationSummary> | DashboardAutomationSummary[]
-		>("/automations", { params: { page: 1, pageSize: 50 } });
+		>("/automations", { params: { page: 1, pageSize: 50 }, signal });
 
 		if (
 			data &&
@@ -92,11 +95,12 @@ export async function updateDashboardAutomationStatus(
 export async function fetchActivityLog(
 	page: number,
 	pageSize: number,
+	signal?: AbortSignal,
 ): Promise<PagedResponse<ActivityLogEntry>> {
 	try {
 		const { data } = await apiClient.get<PagedResponse<ActivityLogEntry>>(
 			"/dashboard/activity-log",
-			{ params: { page, pageSize } },
+			{ params: { page, pageSize }, signal },
 		);
 		return data;
 	} catch (error: unknown) {

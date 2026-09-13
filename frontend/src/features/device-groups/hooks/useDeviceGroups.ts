@@ -10,7 +10,7 @@ import { deviceGroupsKeys } from "./device-groups.keys";
 export function useDeviceGroups() {
 	return useQuery<DeviceGroup[], Error>({
 		queryKey: deviceGroupsKeys.lists(),
-		queryFn: () => fetchDeviceGroups(),
+		queryFn: ({ signal }) => fetchDeviceGroups(undefined, undefined, signal),
 		staleTime: 1000 * 60 * 5,
 		retry: 1,
 	});

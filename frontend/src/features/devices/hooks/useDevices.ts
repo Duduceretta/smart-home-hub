@@ -7,7 +7,7 @@ import { type DevicesListFilters, devicesKeys } from "./devices.keys";
 export function useDevices(filters: DevicesListFilters = {}) {
 	return useQuery<PagedResponse<Device>, Error>({
 		queryKey: devicesKeys.list(filters),
-		queryFn: () => fetchDevices(filters),
+		queryFn: ({ signal }) => fetchDevices(filters, signal),
 		staleTime: 1000 * 30,
 	});
 }

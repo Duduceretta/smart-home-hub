@@ -1,4 +1,5 @@
 import "./core/i18n";
+import "./core/utils/touchSafety";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";

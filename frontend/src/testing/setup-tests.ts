@@ -1,6 +1,7 @@
 import "@testing-library/jest-dom/vitest";
 import { cleanup } from "@testing-library/react";
 import { afterAll, afterEach, beforeAll, vi } from "vitest";
+import "@/core/utils/touchSafety";
 import i18n from "@/core/i18n";
 import { server } from "./mocks/server";
 

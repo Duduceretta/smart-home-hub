@@ -306,3 +306,43 @@ Acessibilidade mandatória: o container do fallback leva `role="alert"` (não `r
   | `ActivityLogTimeline.tsx` | — (padrão, dentro de wrapper `h-80` próprio) |
   | `DashboardView.tsx` (seção de cômodos) | — (padrão) |
 - **`features/dashboard/components/DashboardErrorState.tsx`** — **removido**. Descontinuado em favor do `CardErrorFallback` genérico (caso local) e do `SystemicFailureBanner` (caso sistêmico, seção 12.2) — sem consumidores restantes após a migração dos 5 pontos do Dashboard que ainda o usavam.
+
+---
+
+## 13. Shell de Navegação Lateral (Sidebar Desktop & Drawer Mobile)
+
+Padrão estabelecido para o shell lateral autenticado do Nexus Hub, cobrindo desktop e drawer mobile equivalente.
+
+### 13.1. Estrutura Escalável em Seções (`NAV_SECTIONS`)
+A lista plana anterior foi formalmente categorizada em 3 seções semânticas em `src/widgets/layout/nav.types.ts`:
+- **`Principal`**: `Dashboard` (`LayoutDashboard`), `Dispositivos` (`Router`), `Ambientes` (`DoorOpen`), `Grupos` (`Layers`).
+- **`Automação`**: `Automações` (`Bot`), `Histórico` (`History`).
+- **`Sistema`**: `Configurações` (`Settings`).
+
+**Regra para adicionar novas rotas**: Declarar a rota dentro de `NAV_SECTIONS` no respectivo grupo (ex: Câmeras em `Principal`, Logs em `Automação`, Integrações em `Sistema`). Nunca injetar `<Link>` solto fora do mapeamento de seções.
+
+### 13.2. Desktop — Estados Expandido e Colapsado
+- **Fundo**: Gradiente sutil vertical `bg-linear-to-b from-card via-card/95 to-surface-low/95 border-r border-border-subtle`, proporcionando profundidade refinada sem violar o padrão "zero neon/glow".
+- **Expandida**: Largura canônica `w-64` (256px), padding fixo `px-2 py-3`. Títulos de seção com divisória contínua inline: `flex items-center gap-2 px-3 py-1 select-none` com texto em `text-[10px] font-medium uppercase tracking-wider text-muted-foreground/70` seguido de linha fina horizontal `flex-1 h-px bg-border-subtle/60` (padrão `"AUTOMAÇÃO ————————"`).
+- **Colapsada**: Largura canônica `w-18` (72px), padding fixo `px-2 py-3`. Títulos de seção colapsam para divisores sutis centralizados `h-px w-8 mx-auto bg-border-subtle/60 my-1`. Itens de navegação viram botões quadrados `h-10 w-10 mx-auto justify-center` envolvidos por `Tooltip` do Radix (`side="right" sideOffset={12}`) com anúncio acessível via `<span className="sr-only">`.
+- **Alternância de Estado (Toggle)**:
+  - Botão de seta fixo removido.
+  - Clicar no logo/monograma no topo da barra alterna instantaneamente entre os estados.
+  - Hover próximo à borda direita da sidebar exibe um botão flutuante de expansão temporário em fade-in suave (padrão Gemini), que desaparece quando o cursor se afasta.
+- **Persistência**: Preferência salva em `localStorage` sob a chave `nexus_sidebar_collapsed`.
+- **Zero CLS**: O padding `px-2 py-3` permanece fixo entre os estados expandido e colapsado. A transição de largura utiliza `transition-[width] duration-200 ease-out will-change-[width]` com os textos contidos em `overflow-hidden transition-[max-width,opacity] duration-200`.
+
+### 13.3. Mobile — Drawer Lateral Substituto (Off-Canvas)
+Abaixo de 768px (`md`), a navegação é exclusivamente operada via **Drawer Lateral deslizante da esquerda**:
+- **Dimensões**: `w-[82vw] max-w-xs` (320px em telas maiores), preservando 15% a 18% da viewport à direita com backdrop escurecido (`bg-black/60 backdrop-blur-xs`).
+- **Focus Trap & Acessibilidade**: Implementado sobre `radix-ui` `DialogPrimitive` (`role="dialog"`, `aria-modal="true"`, `aria-label="Menu de Navegação Principal"`). Foco confinado dentro do drawer durante a exibição e retornado ao botão disparador no fechamento.
+- **Fechamento**: Toque no backdrop, tecla `Escape`, botão de fechar (X), clique em qualquer link de navegação ou gesto de **swipe para a esquerda** (`deltaX < -50px`).
+- **Alvos de Toque**: Todos os links e botões possuem `h-11` (44px) estrito.
+
+### 13.4. Resolução dos Desvios Visuais e Bugs de Layout
+1. **Marca Oficial Nexus Hub**: Substituído o texto genérico "Smart Hub" e o ícone de casa por `NexusHubMonogram` (`variant="tile"`, `h-8 w-8`) e `NexusHubWordmark`, alinhando a identidade visual ao `AuthLayout`. O texto estático secundário ("Hub Ativo: 01") foi removido.
+2. **Correção do Bug de Corte de Borda (Corner Clipping)**: A causa raiz do corte na borda esquerda dos itens ativos era a combinação de `overflow-x-hidden` sem padding horizontal no container `<nav>` com o `ring-1` que projetava 1px para fora da bounding box. Corrigido adicionando `px-1` de respiro interno ao `<nav>`, removendo o `ring-1` externo e introduzindo uma barra de acento vertical sutil na borda interna esquerda (`absolute left-0 top-2 bottom-2 w-1 rounded-r-full bg-primary`) complementada por `bg-primary/10`, garantindo `border-radius` intacto em todas as resoluções.
+3. **Alinhamento e Truncamento Seguro**: Todos os rótulos de navegação utilizam `truncate flex-1 min-w-0`, prevenindo quebras de linha com nomes longos de cômodos ou rotinas futuras.
+4. **Linha Divisória de Seção Inline**: Implementada a linha horizontal contínua preenchendo o restante da largura à direita do rótulo da categoria (`flex-1 h-px bg-border-subtle/60`).
+5. **Reordenação do Rodapé**: O botão de logout ("Sair") foi reposicionado para o topo do rodapé, vindo **antes** do card de status de dispositivos online, seguido pelo botão de ação rápida ("+ Adicionar") na base.
+6. **Preparação para Múltiplos Hubs**: O contrato TypeScript `HubInfo` foi estruturado em `nav.types.ts` com identificação, status de conectividade e papel (`primary` | `secondary`), preparando a arquitetura de dados sem antecipar UI desnecessária antes do backend suportar a funcionalidade.

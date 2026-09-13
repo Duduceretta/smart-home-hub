@@ -10,7 +10,7 @@ import { historyKeys } from "./history.keys";
 export function useEventHistory(params: GetHistoryParams) {
 	return useQuery<PagedResponse<HistoryEvent>, Error>({
 		queryKey: historyKeys.list(params),
-		queryFn: () => getEventHistory(params),
+		queryFn: ({ signal }) => getEventHistory(params, signal),
 		staleTime: 1000 * 30, // 30s
 		placeholderData: (prev) => prev,
 	});

@@ -6,7 +6,7 @@ import { dashboardKeys } from "./dashboard.keys";
 export function useDashboardOverview() {
 	return useQuery<DashboardOverviewResponse, Error>({
 		queryKey: dashboardKeys.overview(),
-		queryFn: fetchDashboardOverview,
+		queryFn: ({ signal }) => fetchDashboardOverview(signal),
 		staleTime: 1000 * 60 * 5,
 		retry: 1,
 	});

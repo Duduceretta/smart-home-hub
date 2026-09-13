@@ -1,13 +1,17 @@
 import { Bot, LayoutDashboard, Router, Settings } from "lucide-react";
-import { useEffect, useState } from "react";
-import { Link, Outlet, useLocation } from "react-router-dom";
+import { Suspense, useEffect, useState } from "react";
+import { Outlet, useLocation, useNavigate } from "react-router-dom";
+import { RoutePendingFallback } from "@/app/RoutePendingFallback";
+import { PageErrorBoundary } from "@/core/components/feedback/PageErrorBoundary";
 import { cn } from "@/core/utils";
 import { Header } from "./Header";
+import { isRouteActive } from "./nav.types";
 import { MobileSidebarSheet, Sidebar } from "./Sidebar";
 
 export function AppLayout() {
 	const location = useLocation();
-	const isActive = (path: string) => location.pathname.includes(path);
+	const navigate = useNavigate();
+	const isActive = (path: string) => isRouteActive(location.pathname, path);
 	const isRoomsRoute = location.pathname.startsWith("/rooms");
 
 	const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
@@ -17,6 +21,19 @@ export function AppLayout() {
 	useEffect(() => {
 		setIsMobileNavOpen(false);
 	}, [location.pathname]);
+
+	// Pré-carrega todos os chunks de páginas autenticadas em background uma única vez
+	// após montar o layout da aplicação. Isso elimina completamente a necessidade
+	// de download de novos módulos ou suspensão da árvore Fiber ao alternar abas da barra lateral.
+	useEffect(() => {
+		void import("@/pages/dashboard/DashboardPage");
+		void import("@/pages/devices/DevicesPage");
+		void import("@/pages/rooms/RoomsPage");
+		void import("@/pages/device-groups/DeviceGroupsPage");
+		void import("@/pages/automations/AutomationsPage");
+		void import("@/pages/history/HistoryPage");
+		void import("@/pages/settings/SettingsPage");
+	}, []);
 
 	const mobileNavItems = [
 		{ name: "Início", path: "/dashboard", icon: LayoutDashboard },
@@ -33,7 +50,10 @@ export function AppLayout() {
 
 			{/* Área Principal */}
 			<main className="flex-1 flex flex-col h-full min-w-0 relative bg-linear-to-b from-muted to-background">
-				<Header onMenuClick={() => setIsMobileNavOpen(true)} />
+				<Header
+					onMenuClick={() => setIsMobileNavOpen(true)}
+					isMenuOpen={isMobileNavOpen}
+				/>
 
 				<MobileSidebarSheet
 					isOpen={isMobileNavOpen}
@@ -41,11 +61,10 @@ export function AppLayout() {
 				/>
 
 				{/* Área de Conteúdo Rolável */}
-				<div className="flex-1 overflow-y-auto w-full p-4 sm:p-6 lg:p-8 [scrollbar-gutter:stable] scrollbar-thin">
+				<div className="flex-1 overflow-y-auto w-full p-4 sm:p-6 lg:p-8 scrollbar-gutter-stable scrollbar-thin">
 					<div
-						key={location.pathname}
 						className={cn(
-							"w-full pb-20 md:pb-0 motion-safe:animate-in motion-safe:fade-in motion-safe:duration-200",
+							"w-full pb-20 md:pb-0",
 							// Automações, Ambientes, Dispositivos e Grupos precisam de altura
 							// definida pra fazer o split-view rolar por dentro (lista e
 							// painel de detalhe cada um com seu próprio scroll), não a
@@ -58,7 +77,11 @@ export function AppLayout() {
 								"h-full",
 						)}
 					>
-						<Outlet />
+						<PageErrorBoundary>
+							<Suspense fallback={<RoutePendingFallback />}>
+								<Outlet />
+							</Suspense>
+						</PageErrorBoundary>
 					</div>
 				</div>
 			</main>
@@ -68,11 +91,17 @@ export function AppLayout() {
 				{mobileNavItems.map((item) => {
 					const active = isActive(item.path);
 					return (
-						<Link
+						// `<button>` em vez de `<Link>` — ver Sidebar.tsx (NavItemDesktop)
+						// para o racional completo (causa raiz confirmada do
+						// travamento em navegação rápida).
+						<button
 							key={item.name}
-							to={item.path}
+							type="button"
+							onClick={() => {
+								if (!active) navigate(item.path);
+							}}
 							className={cn(
-								"flex flex-col items-center justify-center w-16 py-1 rounded-lg transition-colors",
+								"flex flex-col items-center justify-center w-16 py-1 rounded-lg transition-colors cursor-pointer",
 								active
 									? "text-primary font-semibold"
 									: "text-muted-foreground hover:text-foreground",
@@ -85,7 +114,7 @@ export function AppLayout() {
 								)}
 							/>
 							<span className="text-xs tracking-tight">{item.name}</span>
-						</Link>
+						</button>
 					);
 				})}
 			</nav>

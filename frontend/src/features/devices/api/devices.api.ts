@@ -25,19 +25,23 @@ export type FetchDevicesParams = DevicesListFilters;
  * paginated server-side. Normalizes both paginated PagedResponse and
  * direct Array responses into a single PagedResponse shape.
  */
-export async function fetchDevices({
-	query,
-	category,
-	status,
-	roomId,
-	onlyOn,
-	page = 1,
-	pageSize = 50,
-}: FetchDevicesParams = {}): Promise<PagedResponse<Device>> {
+export async function fetchDevices(
+	{
+		query,
+		category,
+		status,
+		roomId,
+		onlyOn,
+		page = 1,
+		pageSize = 50,
+	}: FetchDevicesParams = {},
+	signal?: AbortSignal,
+): Promise<PagedResponse<Device>> {
 	try {
 		const { data } = await apiClient.get<PagedResponse<Device> | Device[]>(
 			"/devices",
 			{
+				signal,
 				params: {
 					q: query || undefined,
 					category: category && category !== "Todos" ? category : undefined,
@@ -81,9 +85,14 @@ export async function fetchDevices({
 /**
  * Fetches the details of a specific device by its unique identifier.
  */
-export async function fetchDeviceById(id: string): Promise<Device> {
+export async function fetchDeviceById(
+	id: string,
+	signal?: AbortSignal,
+): Promise<Device> {
 	try {
-		const { data } = await apiClient.get<Device>(`/devices/${id}`);
+		const { data } = await apiClient.get<Device>(`/devices/${id}`, {
+			signal,
+		});
 		return data;
 	} catch (error: unknown) {
 		throw handleApplicationError(
@@ -208,10 +217,12 @@ export async function stopDeviceDiscoveryRequest(): Promise<void> {
  */
 export async function getDeviceMediaStateRequest(
 	deviceId: string,
+	signal?: AbortSignal,
 ): Promise<DeviceMediaState> {
 	try {
 		const { data } = await apiClient.get<DeviceMediaState>(
 			`/devices/${deviceId}/media`,
+			{ signal },
 		);
 		return data;
 	} catch (error: unknown) {
@@ -338,10 +349,12 @@ export async function setDeviceWorkModeRequest({
  */
 export async function fetchDeviceWorkMode(
 	deviceId: string,
+	signal?: AbortSignal,
 ): Promise<DeviceWorkMode> {
 	try {
 		const { data } = await apiClient.get<{ workMode: DeviceWorkMode }>(
 			`/devices/${deviceId}/work-mode`,
+			{ signal },
 		);
 		return data.workMode;
 	} catch (error: unknown) {
@@ -364,11 +377,12 @@ const DEVICE_ACTIVITY_VISIBLE_LIMIT = 8;
 export async function fetchDeviceEnergy(
 	deviceId: string,
 	range: DeviceEnergyRange,
+	signal?: AbortSignal,
 ): Promise<DeviceEnergy> {
 	try {
 		const { data } = await apiClient.get<DeviceEnergy>(
 			`/devices/${deviceId}/energy`,
-			{ params: { range } },
+			{ params: { range }, signal },
 		);
 		return data;
 	} catch (error: unknown) {
@@ -386,10 +400,12 @@ export async function fetchDeviceEnergy(
  */
 export async function fetchDeviceAutomations(
 	deviceId: string,
+	signal?: AbortSignal,
 ): Promise<DeviceLinkedAutomation[]> {
 	try {
 		const { data } = await apiClient.get<DeviceLinkedAutomation[]>(
 			`/devices/${deviceId}/automations`,
+			{ signal },
 		);
 		return data;
 	} catch (error: unknown) {
@@ -406,11 +422,15 @@ export async function fetchDeviceAutomations(
  */
 export async function fetchDeviceActivityLog(
 	deviceId: string,
+	signal?: AbortSignal,
 ): Promise<DeviceActivityEntry[]> {
 	try {
 		const { data } = await apiClient.get<PagedResponse<DeviceActivityEntry>>(
 			`/devices/${deviceId}/events`,
-			{ params: { page: 1, pageSize: DEVICE_ACTIVITY_VISIBLE_LIMIT } },
+			{
+				params: { page: 1, pageSize: DEVICE_ACTIVITY_VISIBLE_LIMIT },
+				signal,
+			},
 		);
 		return data.items ?? [];
 	} catch (error: unknown) {
@@ -424,18 +444,22 @@ export async function fetchDeviceActivityLog(
 /**
  * Fetches historical telemetry data points (power usage, temperature, voltage) for a specific device.
  */
-export async function getDeviceTelemetryHistoryRequest({
-	id,
-	range = "24h",
-}: {
-	id: string;
-	range?: TelemetryRange;
-}): Promise<DeviceTelemetryHistory> {
+export async function getDeviceTelemetryHistoryRequest(
+	{
+		id,
+		range = "24h",
+	}: {
+		id: string;
+		range?: TelemetryRange;
+	},
+	signal?: AbortSignal,
+): Promise<DeviceTelemetryHistory> {
 	try {
 		const { data } = await apiClient.get<DeviceTelemetryHistory>(
 			`/devices/${id}/telemetry`,
 			{
 				params: { range },
+				signal,
 			},
 		);
 		return data;

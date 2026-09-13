@@ -5,6 +5,7 @@ import {
 	RouterProvider,
 } from "react-router-dom";
 import { setUnauthorizedRedirectHandler } from "@/core/api/api.client";
+import { RouteErrorBoundary } from "@/core/components/feedback/PageErrorBoundary";
 import { ProtectedRoute } from "@/features/auth/guards/ProtectedRoute";
 import { PublicRoute } from "@/features/auth/guards/PublicRoute";
 import { AppLayout } from "@/widgets/layout/AppLayout";
@@ -50,6 +51,7 @@ function withFallback(element: React.ReactNode) {
 export const router = createBrowserRouter([
 	{
 		element: <PublicRoute />,
+		errorElement: <RouteErrorBoundary />,
 		children: [
 			{
 				element: withFallback(<AuthLayout />),
@@ -76,43 +78,44 @@ export const router = createBrowserRouter([
 	},
 	{
 		element: <ProtectedRoute />,
+		errorElement: <RouteErrorBoundary />,
 		children: [
 			{
 				element: <AppLayout />,
 				children: [
 					{
 						path: "/dashboard",
-						element: withFallback(<DashboardPage />),
+						element: <DashboardPage />,
 					},
 					{
 						path: "/devices",
-						element: withFallback(<DevicesPage />),
+						element: <DevicesPage />,
 					},
 					{
 						path: "/rooms",
-						element: withFallback(<RoomsPage />),
+						element: <RoomsPage />,
 					},
 					{
 						path: "/device-groups",
-						element: withFallback(<DeviceGroupsPage />),
+						element: <DeviceGroupsPage />,
 					},
 					{
 						path: "/automations",
-						element: withFallback(<AutomationsPage />),
+						element: <AutomationsPage />,
 					},
 					{
 						path: "/history",
-						element: withFallback(<HistoryPage />),
+						element: <HistoryPage />,
 					},
 					{
 						path: "/settings",
-						element: withFallback(<SettingsPage />),
+						element: <SettingsPage />,
 					},
 					...(import.meta.env.DEV && DevToolsPage
 						? [
 								{
 									path: "/dev-tools",
-									element: withFallback(<DevToolsPage />),
+									element: <DevToolsPage />,
 								},
 							]
 						: []),
@@ -148,5 +151,11 @@ setUnauthorizedRedirectHandler((to) => {
 });
 
 export function Router() {
-	return <RouterProvider router={router} />;
+	// `useTransitions={false}` — desliga o wrapping automático de updates de
+	// estado do router em `React.startTransition` (comportamento padrão do
+	// RRv7 desde que a antiga future flag `v7_startTransition` virou
+	// default). Mitiga acúmulo sob navegação muito rápida — parte da causa
+	// raiz do travamento ao trocar de rota rapidamente, junto com o `<Link>`
+	// trocado por `navigate()` em botão nativo (ver Sidebar.tsx).
+	return <RouterProvider router={router} useTransitions={false} />;
 }

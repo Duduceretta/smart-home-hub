@@ -257,6 +257,7 @@ export const DeviceTelemetrySheet: React.FC<DeviceTelemetrySheetProps> = ({
 												fillOpacity={1}
 												fill="url(#powerGrad)"
 												name={t("telemetry.powerUsage")}
+												isAnimationActive={false}
 											/>
 										</AreaChart>
 									</ResponsiveContainer>
@@ -304,6 +305,7 @@ export const DeviceTelemetrySheet: React.FC<DeviceTelemetrySheetProps> = ({
 												strokeWidth={2}
 												dot={false}
 												name={t("telemetry.temperature")}
+												isAnimationActive={false}
 											/>
 										</LineChart>
 									</ResponsiveContainer>

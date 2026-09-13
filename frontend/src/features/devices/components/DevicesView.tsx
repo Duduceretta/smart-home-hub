@@ -1,5 +1,5 @@
 import { ArrowLeft } from "lucide-react";
-import { useCallback, useEffect } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { useMediaQuery } from "@/core/hooks/useMediaQuery";
@@ -63,21 +63,18 @@ export const DevicesView: React.FC = () => {
 		[setSearchParams, isDesktopMasterDetail],
 	);
 
-	/** Seleção programática (default inicial / correção de filtro) — nunca
-	 * empilha histórico, só acontece em telas largas (`autoSelectFirst`). */
-	const setDefaultDevice = useCallback(
-		(id: string | null) => {
-			setSearchParams(
-				(prev) => {
-					const next = new URLSearchParams(prev);
-					if (id) next.set("device", id);
-					else next.delete("device");
-					return next;
-				},
-				{ replace: true },
-			);
-		},
-		[setSearchParams],
+	/** Seleção implícita (default inicial / correção de filtro) — vive só em
+	 * estado local, nunca na URL. Ao contrário da seleção explícita acima,
+	 * esta é recalculada toda vez que a lista paginada/filtrada muda (evento
+	 * de telemetria via SignalR, digitação na busca, etc.); gravar isso via
+	 * `setSearchParams` history-replace de dentro de um efeito data-driven é
+	 * exatamente o padrão que causava corrida ao trocar de rota rapidamente
+	 * (mesma causa raiz já corrigida em Rooms/DeviceGroups/Automations) —
+	 * ver `RoomsView.activeRoomId` para o mesmo racional. */
+	const [autoDeviceId, setAutoDeviceId] = useState<string | null>(null);
+	const activeDeviceId = useMemo(
+		() => selectedDeviceId ?? autoDeviceId,
+		[selectedDeviceId, autoDeviceId],
 	);
 
 	/** Botão "voltar" do painel de detalhe (só existe <lg) — sempre empilha,
@@ -97,11 +94,11 @@ export const DevicesView: React.FC = () => {
 	useEffect(() => {
 		if (stateDeviceId) {
 			resetFilters();
-			setDefaultDevice(stateDeviceId);
+			selectDevice(stateDeviceId);
 		}
 	}, [stateDeviceId]);
 
-	const { data: selectedDevice = null } = useDevice(selectedDeviceId ?? "");
+	const { data: selectedDevice = null } = useDevice(activeDeviceId ?? "");
 
 	return (
 		<div className="flex h-full min-h-0 gap-4">
@@ -140,9 +137,9 @@ export const DevicesView: React.FC = () => {
 
 					<div className="h-full min-w-0 flex-1">
 						<DeviceListPanel
-							selectedId={selectedDeviceId}
+							selectedId={activeDeviceId}
 							onSelect={selectDevice}
-							onAutoSelect={setDefaultDevice}
+							onAutoSelect={setAutoDeviceId}
 							autoSelectFirst={isDesktopMasterDetail}
 							onCreate={openDiscoveryModal}
 						/>

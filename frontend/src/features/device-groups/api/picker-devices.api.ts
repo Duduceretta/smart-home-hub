@@ -9,12 +9,15 @@ import type { PickerDevice } from "../types/device-groups.types";
  * and from device-groups.api.ts to keep the "picker data source" concern
  * visually distinct from the group's own CRUD API.
  */
-export async function fetchPickerDevices(): Promise<PickerDevice[]> {
+export async function fetchPickerDevices(
+	signal?: AbortSignal,
+): Promise<PickerDevice[]> {
 	try {
 		const { data } = await apiClient.get<
 			PagedResponse<PickerDevice> | PickerDevice[]
 		>("/devices", {
 			params: { pageSize: 200 },
+			signal,
 		});
 
 		if (

@@ -8,8 +8,12 @@ export function useAutomationWeekdayExecutions(
 ) {
 	return useQuery({
 		queryKey: automationsKeys.weekdayExecutions(automationId ?? "", sinceDays),
-		queryFn: () =>
-			fetchAutomationWeekdayExecutions(automationId as string, sinceDays),
+		queryFn: ({ signal }) =>
+			fetchAutomationWeekdayExecutions(
+				automationId as string,
+				sinceDays,
+				signal,
+			),
 		enabled: Boolean(automationId),
 		staleTime: 1000 * 60,
 		retry: 1,

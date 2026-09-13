@@ -13,6 +13,7 @@ import type {
  */
 export async function getEventHistory(
 	params: GetHistoryParams,
+	signal?: AbortSignal,
 ): Promise<PagedResponse<HistoryEvent>> {
 	try {
 		const { data } = await apiClient.get<PagedResponse<HistoryEvent>>(
@@ -30,6 +31,7 @@ export async function getEventHistory(
 					page: params.page ?? 1,
 					pageSize: params.pageSize ?? 20,
 				},
+				signal,
 			},
 		);
 
@@ -49,6 +51,7 @@ export async function getEventHistory(
  */
 export async function getEventHistoryStats(
 	params: GetHistoryStatsParams,
+	signal?: AbortSignal,
 ): Promise<HistoryKpiMetrics> {
 	try {
 		const { data } = await apiClient.get<HistoryKpiMetrics>("/history/stats", {
@@ -62,6 +65,7 @@ export async function getEventHistoryStats(
 				source: params.source,
 				search: params.search,
 			},
+			signal,
 		});
 
 		return data;

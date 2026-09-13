@@ -2,12 +2,15 @@
 
 > Auditoria "mobile-first real" (testado primeiro em 375px/iPhone SE, depois validado em 768px e 1280px) sobre o App Shell (`widgets/layout/`), o Dashboard e a tela de Dispositivos. Referência pra não repetir a mesma investigação nas próximas telas (Automações, Ambientes, Grupos, Histórico). Breakpoints usados são sempre os padrão do Tailwind (`sm`=640px, `md`=768px, `lg`=1024px, `xl`=1280px) — nenhum breakpoint customizado foi criado.
 
-## 1. Sidebar → Sheet abaixo de `md` (768px)
+## 1. Sidebar → Drawer Lateral abaixo de `md` (768px)
 
 - `Sidebar` (`widgets/layout/Sidebar.tsx`) permanece `hidden md:flex` — nunca ocupa espaço de layout abaixo de 768px.
-- Abaixo de `md`, a navegação vira um drawer lateral: `MobileSidebarSheet` (exportado do mesmo arquivo, `widgets/layout/Sidebar.tsx`), que reaproveita o `SheetLayout` (`core/components/layouts/SheetLayout.tsx`) já usado em outros pontos do app (ex: `DeviceTelemetrySheet`) — não foi criado nenhum padrão de drawer novo.
-- Os itens de navegação (`NAV_ITEMS`) são um único array em escopo de módulo, compartilhado entre a `Sidebar` de desktop e o `MobileSidebarSheet` — evita duplicar a lista de rotas.
-- Estado (`isMobileNavOpen`) mora em `AppLayout`, que dispara `Header`'s `onMenuClick` pra abrir e passa `isOpen`/`onClose` pro `MobileSidebarSheet`.
+- Abaixo de `md`, a navegação vira um **drawer lateral off-canvas à esquerda**: `MobileNavigationDrawer` (com alias `MobileSidebarSheet` para compatibilidade), cobrindo `w-[82vw] max-w-xs` com backdrop escurecido semi-transparente (`bg-black/60 backdrop-blur-xs`).
+- Desenvolvido sobre `radix-ui` `DialogPrimitive`, garantindo focus trap automático, fechamento via tecla `Escape`, clique no backdrop, botão de fechar e bloqueio do scroll do `body`.
+- Suporta gesto de **swipe para a esquerda** (`onTouchStart`/`onTouchEnd`, deltaX < -50px) para fechamento ergonômico por toque.
+- Os itens de navegação são definidos em `NAV_SECTIONS` (`src/widgets/layout/nav.types.ts`), agrupados em seções (`Principal`, `Automação`, `Sistema`), compartilhadas entre desktop e mobile.
+- Alvos de toque estritamente em `h-11` (44px) para todos os links e para o botão de logout no rodapé do drawer.
+- Estado (`isMobileNavOpen`) mora em `AppLayout`, que dispara o `Header`'s `onMenuClick` pra abrir, passa `isMenuOpen` pro botão hamburguer (`aria-expanded`, `aria-controls`) e `isOpen`/`onClose` pro drawer.
 - Fecha automaticamente ao navegar: `AppLayout` observa `location.pathname` num `useEffect` e força `setIsMobileNavOpen(false)` a cada mudança de rota (além do próprio `onClick={onClose}` em cada `Link` do drawer, por segurança).
 
 ## 2. Header — prioridade de conteúdo em 375px

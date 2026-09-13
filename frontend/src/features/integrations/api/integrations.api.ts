@@ -21,10 +21,13 @@ export async function getSpotifyLoginUrlRequest(): Promise<{
 	}
 }
 
-export async function getSpotifyStatusRequest(): Promise<SpotifyStatus> {
+export async function getSpotifyStatusRequest(
+	signal?: AbortSignal,
+): Promise<SpotifyStatus> {
 	try {
 		const { data } = await apiClient.get<SpotifyStatus>(
 			"/integrations/spotify/status",
+			{ signal },
 		);
 		return data;
 	} catch (error: unknown) {
@@ -46,10 +49,13 @@ export async function disconnectSpotifyRequest(): Promise<void> {
 	}
 }
 
-export async function getSpotifyPlaybackRequest(): Promise<SpotifyPlaybackState | null> {
+export async function getSpotifyPlaybackRequest(
+	signal?: AbortSignal,
+): Promise<SpotifyPlaybackState | null> {
 	try {
 		const { data } = await apiClient.get<SpotifyPlaybackState | null>(
 			"/integrations/spotify/playback",
+			{ signal },
 		);
 		return data;
 	} catch (error: unknown) {

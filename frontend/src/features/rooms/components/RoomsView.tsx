@@ -69,23 +69,6 @@ export function RoomsView() {
 		[setSearchParams, isDesktopMasterDetail],
 	);
 
-	/** Seleção programática (default inicial / correção de filtro) — nunca
-	 * empilha histórico, só acontece em telas largas (`autoSelectFirst`). */
-	const setDefaultRoom = useCallback(
-		(id: string | null) => {
-			setSearchParams(
-				(prev) => {
-					const next = new URLSearchParams(prev);
-					if (id) next.set("room", id);
-					else next.delete("room");
-					return next;
-				},
-				{ replace: true },
-			);
-		},
-		[setSearchParams],
-	);
-
 	/** Botão "voltar" do painel de detalhe (só existe <lg) — sempre empilha,
 	 * pra o botão físico de voltar do navegador desfazer exatamente essa ação
 	 * (volta pro detalhe), e não sair da tela de Ambientes. */
@@ -123,28 +106,20 @@ export function RoomsView() {
 	// biome-ignore lint/correctness/useExhaustiveDependencies: dispara só na chegada com stateRoomId
 	useEffect(() => {
 		if (stateRoomId) {
-			setDefaultRoom(stateRoomId);
+			selectRoom(stateRoomId);
 		}
 	}, [stateRoomId]);
 
-	// Auto-seleção do primeiro item só acontece em telas desktop master-detail (lg+)
-	useEffect(() => {
-		if (isDesktopMasterDetail && !selectedRoomId && visibleRooms.length > 0) {
-			setDefaultRoom(visibleRooms[0].id);
+	// Em desktop (split-view), o primeiro ambiente visível é o selecionado ativo caso
+	// nenhum esteja especificado na URL. Não usa efeitos com setSearchParams para evitar
+	// conflitos de histórico ao trocar de rotas rapidamente.
+	const activeRoomId = useMemo(() => {
+		if (selectedRoomId) {
+			const exists = visibleRooms.some((room) => room.id === selectedRoomId);
+			if (exists) return selectedRoomId;
 		}
-	}, [isDesktopMasterDetail, selectedRoomId, visibleRooms, setDefaultRoom]);
-
-	// Se o ambiente selecionado não existir mais no conjunto filtrado/excluído (em desktop)
-	useEffect(() => {
-		if (
-			isDesktopMasterDetail &&
-			selectedRoomId &&
-			visibleRooms.length > 0 &&
-			!visibleRooms.some((room) => room.id === selectedRoomId)
-		) {
-			setDefaultRoom(visibleRooms[0].id);
-		}
-	}, [isDesktopMasterDetail, selectedRoomId, visibleRooms, setDefaultRoom]);
+		return isDesktopMasterDetail ? (visibleRooms[0]?.id ?? null) : null;
+	}, [selectedRoomId, visibleRooms, isDesktopMasterDetail]);
 
 	const devicesByRoom = useMemo(() => {
 		const map = new Map<string, RoomPickerDevice[]>();
@@ -157,9 +132,9 @@ export function RoomsView() {
 		return map;
 	}, [allDevices]);
 
-	const selectedRoom = rooms.find((room) => room.id === selectedRoomId) ?? null;
-	const selectedRoomDevices = selectedRoomId
-		? (devicesByRoom.get(selectedRoomId) ?? [])
+	const selectedRoom = rooms.find((room) => room.id === activeRoomId) ?? null;
+	const selectedRoomDevices = activeRoomId
+		? (devicesByRoom.get(activeRoomId) ?? [])
 		: [];
 
 	return (
@@ -229,7 +204,7 @@ export function RoomsView() {
 							<RoomListPanel
 								rooms={visibleRooms}
 								devicesByRoom={devicesByRoom}
-								selectedId={selectedRoomId}
+								selectedId={activeRoomId}
 								onSelect={selectRoom}
 								onDelete={handleDeleteRoom}
 								onCreate={openCreateDialog}

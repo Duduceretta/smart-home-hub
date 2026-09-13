@@ -11,7 +11,7 @@ import { automationsKeys } from "./automations.keys";
 export function usePickerDevices() {
 	return useQuery<PickerDevice[], Error>({
 		queryKey: automationsKeys.pickerDevices(),
-		queryFn: fetchPickerDevices,
+		queryFn: ({ signal }) => fetchPickerDevices(signal),
 		staleTime: 1000 * 60,
 		retry: 1,
 	});
