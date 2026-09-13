@@ -1,8 +1,8 @@
-using System.Web;
 using FluentValidation;
 using Mediator;
 using Microsoft.Extensions.Logging;
 using SmartHomeHub.Application.Common.Interfaces;
+using SmartHomeHub.Application.Features.Auth.Common;
 using SmartHomeHub.Domain.Common.Primitives;
 
 namespace SmartHomeHub.Application.Features.Auth.Commands.SendVerificationEmail;
@@ -52,15 +52,19 @@ public class SendVerificationEmailCommandHandler(
         {
             // Usuário não encontrado no Firebase: aplica atraso estocástico equivalente à latência
             // de envio do e-mail para mitigar timing attacks na enumeração de usuários.
-            await Task.Delay(Random.Shared.Next(200, 300), cancellationToken);
+            await AuthActionLinkHelper.SimulateUniformLatencyAsync(cancellationToken);
             logger.LogInformation(
                 "Solicitação de confirmação de e-mail concluída para {EmailMasked}",
-                MaskEmail(request.Email)
+                AuthActionLinkHelper.MaskEmail(request.Email)
             );
             return Result.Success();
         }
 
-        var actionUrl = BuildDirectActionUrl(rawVerificationLink);
+        var actionUrl = AuthActionLinkHelper.BuildDirectActionUrl(
+            rawVerificationLink,
+            VerifyEmailContinueUrl,
+            "verifyEmail"
+        );
 
         await emailService.SendEmailVerificationEmailAsync(
             request.Email,
@@ -70,52 +74,9 @@ public class SendVerificationEmailCommandHandler(
 
         logger.LogInformation(
             "E-mail de confirmação de conta enviado com sucesso para {EmailMasked}",
-            MaskEmail(request.Email)
+            AuthActionLinkHelper.MaskEmail(request.Email)
         );
 
         return Result.Success();
-    }
-
-    /// <summary>
-    /// Extrai o 'oobCode' do link bruto retornado pelo Firebase Admin SDK para apontar diretamente
-    /// para o endpoint de verificação do Nexus Hub, com 'mode=verifyEmail' e 'oobCode' na query string.
-    /// </summary>
-    private static string BuildDirectActionUrl(string rawLink)
-    {
-        try
-        {
-            var uri = new Uri(rawLink);
-            var query = HttpUtility.ParseQueryString(uri.Query);
-            var oobCode = query["oobCode"];
-
-            if (!string.IsNullOrWhiteSpace(oobCode))
-            {
-                return $"{VerifyEmailContinueUrl}?mode=verifyEmail&oobCode={Uri.EscapeDataString(oobCode)}";
-            }
-        }
-        catch
-        {
-            // Em caso de falha de parsing, utiliza o link gerado pelo Firebase Admin como fallback seguro
-        }
-
-        return rawLink;
-    }
-
-    private static string MaskEmail(string email)
-    {
-        if (string.IsNullOrWhiteSpace(email) || !email.Contains('@'))
-            return "***";
-
-        var parts = email.Split('@');
-        var name = parts[0];
-        var domain = parts[1];
-
-        var maskedName = name.Length switch
-        {
-            <= 2 => $"{name[0]}*",
-            _ => $"{name[0]}***{name[^1]}",
-        };
-
-        return $"{maskedName}@{domain}";
     }
 }
