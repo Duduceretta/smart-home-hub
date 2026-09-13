@@ -217,6 +217,19 @@ Para evitar vazamento de dados sensíveis em produção, qualquer rastro de exec
 
 - **Páginas**: componentes de página (ex: `HistoryPage.tsx`) não devem conter declaração de UI extensiva. Eles orquestram subcomponentes importados de `features/`.
 - **Componentes de Gráficos**: dependências pesadas como o Recharts devem possuir invólucros (`ResponsiveContainer`) garantindo a fluidez em layouts Mobile First.
+- **`ResponsiveContainer` atrás de layout animado**: qualquer `ResponsiveContainer` que fique visível por trás de um elemento com `transition-[width]` (ex: a sidebar, `widgets/layout/Sidebar.tsx`, `duration-300`) deve receber a prop `debounce` alinhada à duração dessa transição (ver `EnergyLoadWidget.tsx`, `debounce={320}`). Sem isso, o Recharts remede o container a cada tick do `ResizeObserver` disparado pela animação de largura, recalculando o gráfico inteiro em pleno meio da transição — perceptível como lag só nas telas que têm gráfico atrás da sidebar. `isAnimationActive={false}` no `<Area>`/`<Line>` (já convenção no projeto) não é suficiente sozinho; ele evita a animação de entrada do próprio traçado, não o custo de remedição do container.
+
+### 4.3. `<Link>` do `react-router-dom` vs. clique físico rápido repetido (v7.18.3)
+
+Investigação registrada em detalhe: `handoff.md` (raiz do repositório) e issue aberto em `remix-run/react-router`.
+
+**Sintoma**: cliques físicos reais e rápidos entre itens de navegação diferentes (não cliques sintéticos/programáticos) causavam travamento total da aba por 15–25s, sem erro no console e com CPU baixa — trace do Chrome Performance mostrou acúmulo de `RunTask` que sobrevivia ~16s além do fim do input.
+
+**Causa raiz**: isolada por eliminação progressiva do app até sobrar o mínimo reprodutível — está no mecanismo interno de clique do `<Link>` do `react-router-dom` v7.18.3 (scheduling de `React.startTransition`), não no código deste projeto. Confirmado que a v8 do react-router **não** resolve isso na fonte (`<Link>` continua `wrapped in React.startTransition`).
+
+**Decisão consciente, registrada aqui para não ser "corrigida" de volta por engano**: todos os itens de navegação (`Sidebar.tsx`, menu inferior mobile em `AppLayout.tsx`) usam `<button type="button" onClick={() => navigate(path)}>` em vez de `<Link to={path}>`. `Router.tsx` usa `<RouterProvider useTransitions={false}>` como mitigação complementar.
+
+**Trade-off aceito**: itens de navegação da sidebar perderam Ctrl+click / clique do meio / "abrir em nova aba" (comportamento nativo de `<a>`), porque agora são `<button>`. Aceito porque elimina o travamento, confirmado com testes reais repetidos; nenhuma correção mais "elegante" foi encontrada que preserve `<Link>` sem o freeze. **Não reverter para `<Link>`** nesses pontos sem antes confirmar (a) que uma versão futura do react-router-dom corrigiu o bug reportado, ou (b) reproduzir manualmente com cliques físicos reais (não sintéticos) que o freeze não volta.
 
 ---
 
