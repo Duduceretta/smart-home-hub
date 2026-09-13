@@ -158,7 +158,10 @@ export function EnergyLoadWidget({
 						</p>
 					</div>
 				) : (
-					<ResponsiveContainer width="100%" height="100%">
+					// debounce alinhado à duration-300 da transição de largura da
+					// sidebar (Sidebar.tsx) — só recalcula depois que a animação
+					// termina, em vez de tentar acompanhar cada frame do resize.
+					<ResponsiveContainer width="100%" height="100%" debounce={320}>
 						<AreaChart
 							data={chartData}
 							margin={{ top: 8, right: 8, left: 0, bottom: 0 }}
