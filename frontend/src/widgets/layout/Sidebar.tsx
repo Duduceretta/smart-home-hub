@@ -1,7 +1,7 @@
 import { Plus, X } from "lucide-react";
 import { Dialog as DialogPrimitive } from "radix-ui";
 import { useRef, useState } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { NexusHubMonogram, NexusHubWordmark } from "@/core/components/brand";
 import { Ripple, useRipple } from "@/core/components/feedback/Ripple";
 import { Progress } from "@/core/components/ui/progress";
@@ -48,15 +48,14 @@ interface NavItemDesktopProps {
 
 function NavItemDesktop({ item, isActive, isCollapsed }: NavItemDesktopProps) {
 	const { ripples, createRipple, removeRipple } = useRipple();
+	const navigate = useNavigate();
 
 	return (
 		<NavTooltip enabled={isCollapsed} content={item.name}>
-			<Link
-				to={item.path}
-				onClick={(e) => {
-					if (isActive) {
-						e.preventDefault();
-					}
+			<button
+				type="button"
+				onClick={() => {
+					if (!isActive) navigate(item.path);
 				}}
 				onPointerDown={createRipple}
 				aria-label={isCollapsed ? item.name : undefined}
@@ -95,7 +94,7 @@ function NavItemDesktop({ item, isActive, isCollapsed }: NavItemDesktopProps) {
 				>
 					{item.name}
 				</span>
-			</Link>
+			</button>
 		</NavTooltip>
 	);
 }
@@ -363,26 +362,28 @@ interface NavItemMobileProps {
 
 function NavItemMobile({ item, isActive, onClose }: NavItemMobileProps) {
 	const { ripples, createRipple, removeRipple } = useRipple();
+	const navigate = useNavigate();
 
-	const handleClick = (e: React.MouseEvent) => {
-		if (isActive) {
-			e.preventDefault();
-		}
+	// Elemento nativo (`<button>` em vez de `<Link>` do react-router-dom) —
+	// ver `NavItemDesktop` para o racional completo (causa raiz confirmada
+	// do travamento em navegação rápida).
+	const handleClick = () => {
+		if (!isActive) navigate(item.path);
 		setTimeout(() => {
 			onClose();
 		}, 160);
 	};
 
 	return (
-		<Link
-			to={item.path}
+		<button
+			type="button"
 			onPointerDown={createRipple}
 			onClick={handleClick}
 			onContextMenu={(e) => e.preventDefault()}
 			draggable={false}
 			aria-current={isActive ? "page" : undefined}
 			className={cn(
-				"group/drawer-item relative flex h-11 items-center gap-3 rounded-lg px-3 text-sm font-medium transition-colors duration-150 outline-none focus-visible:ring-2 focus-visible:ring-primary/40 select-none cursor-pointer overflow-hidden active:scale-[0.98]",
+				"group/drawer-item relative flex h-11 w-full items-center gap-3 rounded-lg px-3 text-left text-sm font-medium transition-colors duration-150 outline-none focus-visible:ring-2 focus-visible:ring-primary/40 select-none cursor-pointer overflow-hidden active:scale-[0.98]",
 				isActive
 					? "bg-primary/10 text-foreground font-semibold"
 					: "text-muted-foreground hover:text-foreground hover:bg-surface-highest/40 active:text-foreground",
@@ -406,7 +407,7 @@ function NavItemMobile({ item, isActive, onClose }: NavItemMobileProps) {
 			<span className="truncate flex-1 min-w-0 relative z-10 pointer-events-none">
 				{item.name}
 			</span>
-		</Link>
+		</button>
 	);
 }
 

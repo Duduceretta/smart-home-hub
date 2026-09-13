@@ -151,5 +151,11 @@ setUnauthorizedRedirectHandler((to) => {
 });
 
 export function Router() {
-	return <RouterProvider router={router} />;
+	// `useTransitions={false}` — desliga o wrapping automático de updates de
+	// estado do router em `React.startTransition` (comportamento padrão do
+	// RRv7 desde que a antiga future flag `v7_startTransition` virou
+	// default). Mitiga acúmulo sob navegação muito rápida — parte da causa
+	// raiz do travamento ao trocar de rota rapidamente, junto com o `<Link>`
+	// trocado por `navigate()` em botão nativo (ver Sidebar.tsx).
+	return <RouterProvider router={router} useTransitions={false} />;
 }

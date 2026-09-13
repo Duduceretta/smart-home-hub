@@ -32,23 +32,23 @@ describe("Sidebar Component", () => {
 
 		// Assert items
 		expect(
-			screen.getByRole("link", { name: /dashboard/i }),
+			screen.getByRole("button", { name: /dashboard/i }),
 		).toBeInTheDocument();
 		expect(
-			screen.getByRole("link", { name: /dispositivos/i }),
+			screen.getByRole("button", { name: /^dispositivos$/i }),
 		).toBeInTheDocument();
 		expect(
-			screen.getByRole("link", { name: /ambientes/i }),
+			screen.getByRole("button", { name: /ambientes/i }),
 		).toBeInTheDocument();
-		expect(screen.getByRole("link", { name: /grupos/i })).toBeInTheDocument();
+		expect(screen.getByRole("button", { name: /grupos/i })).toBeInTheDocument();
 		expect(
-			screen.getByRole("link", { name: /automações/i }),
-		).toBeInTheDocument();
-		expect(
-			screen.getByRole("link", { name: /histórico/i }),
+			screen.getByRole("button", { name: /automações/i }),
 		).toBeInTheDocument();
 		expect(
-			screen.getByRole("link", { name: /configurações/i }),
+			screen.getByRole("button", { name: /histórico/i }),
+		).toBeInTheDocument();
+		expect(
+			screen.getByRole("button", { name: /configurações/i }),
 		).toBeInTheDocument();
 	});
 
@@ -59,11 +59,11 @@ describe("Sidebar Component", () => {
 			</MemoryRouter>,
 		);
 
-		const activeLink = screen.getByRole("link", { name: /dispositivos/i });
+		const activeLink = screen.getByRole("button", { name: /^dispositivos$/i });
 		expect(activeLink).toHaveAttribute("aria-current", "page");
 		expect(activeLink.className).toContain("bg-primary/10");
 
-		const inactiveLink = screen.getByRole("link", { name: /dashboard/i });
+		const inactiveLink = screen.getByRole("button", { name: /dashboard/i });
 		expect(inactiveLink).not.toHaveAttribute("aria-current");
 		expect(inactiveLink.className).not.toContain("bg-primary/10");
 	});
@@ -75,7 +75,7 @@ describe("Sidebar Component", () => {
 			</MemoryRouter>,
 		);
 
-		const link = screen.getByRole("link", { name: /dispositivos/i });
+		const link = screen.getByRole("button", { name: /^dispositivos$/i });
 		expect(link.querySelector(".animate-mui-ripple")).not.toBeInTheDocument();
 
 		// Pressiona o botão simulando toque/clique. A leitura de
@@ -211,7 +211,9 @@ describe("Sidebar Component", () => {
 		});
 		expect(addButton.className).toContain("active:scale-[0.97]");
 
-		const navLinks = screen.getAllByRole("link");
+		const navLinks = screen.getAllByRole("button", {
+			name: /^(dashboard|dispositivos|ambientes|grupos|automações|histórico|configurações)$/i,
+		});
 		expect(navLinks.length).toBeGreaterThan(0);
 		for (const link of navLinks) {
 			expect(link.className).toContain("active:scale-[0.98]");
@@ -273,7 +275,9 @@ describe("MobileNavigationDrawer Component", () => {
 		});
 		expect(closeButton.className).toContain("active:scale-90");
 
-		const navLinks = screen.getAllByRole("link");
+		const navLinks = screen.getAllByRole("button", {
+			name: /^(dashboard|dispositivos|ambientes|grupos|automações|histórico|configurações)$/i,
+		});
 		expect(navLinks.length).toBeGreaterThan(0);
 		for (const link of navLinks) {
 			expect(link.className).toContain("active:scale-[0.98]");
@@ -287,11 +291,11 @@ describe("MobileNavigationDrawer Component", () => {
 			</MemoryRouter>,
 		);
 
-		const activeLink = screen.getByRole("link", { name: /dispositivos/i });
+		const activeLink = screen.getByRole("button", { name: /^dispositivos$/i });
 		expect(activeLink).toHaveAttribute("aria-current", "page");
 		expect(activeLink.className).toContain("bg-primary/10");
 
-		const inactiveLink = screen.getByRole("link", { name: /dashboard/i });
+		const inactiveLink = screen.getByRole("button", { name: /dashboard/i });
 		expect(inactiveLink).not.toHaveAttribute("aria-current");
 		expect(inactiveLink.className).not.toContain("bg-primary/10");
 	});
@@ -306,7 +310,7 @@ describe("MobileNavigationDrawer Component", () => {
 		const dialog = screen.getByRole("dialog", {
 			name: /menu de navegação principal/i,
 		});
-		const link = screen.getByRole("link", { name: /dispositivos/i });
+		const link = screen.getByRole("button", { name: /^dispositivos$/i });
 
 		// Simula toque e segurar (long press)
 		expect(() => {

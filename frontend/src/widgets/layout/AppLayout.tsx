@@ -1,6 +1,6 @@
 import { Bot, LayoutDashboard, Router, Settings } from "lucide-react";
 import { Suspense, useEffect, useState } from "react";
-import { Link, Outlet, useLocation } from "react-router-dom";
+import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import { RoutePendingFallback } from "@/app/RoutePendingFallback";
 import { PageErrorBoundary } from "@/core/components/feedback/PageErrorBoundary";
 import { cn } from "@/core/utils";
@@ -10,6 +10,7 @@ import { MobileSidebarSheet, Sidebar } from "./Sidebar";
 
 export function AppLayout() {
 	const location = useLocation();
+	const navigate = useNavigate();
 	const isActive = (path: string) => isRouteActive(location.pathname, path);
 	const isRoomsRoute = location.pathname.startsWith("/rooms");
 
@@ -90,11 +91,17 @@ export function AppLayout() {
 				{mobileNavItems.map((item) => {
 					const active = isActive(item.path);
 					return (
-						<Link
+						// `<button>` em vez de `<Link>` — ver Sidebar.tsx (NavItemDesktop)
+						// para o racional completo (causa raiz confirmada do
+						// travamento em navegação rápida).
+						<button
 							key={item.name}
-							to={item.path}
+							type="button"
+							onClick={() => {
+								if (!active) navigate(item.path);
+							}}
 							className={cn(
-								"flex flex-col items-center justify-center w-16 py-1 rounded-lg transition-colors",
+								"flex flex-col items-center justify-center w-16 py-1 rounded-lg transition-colors cursor-pointer",
 								active
 									? "text-primary font-semibold"
 									: "text-muted-foreground hover:text-foreground",
@@ -107,7 +114,7 @@ export function AppLayout() {
 								)}
 							/>
 							<span className="text-xs tracking-tight">{item.name}</span>
-						</Link>
+						</button>
 					);
 				})}
 			</nav>
