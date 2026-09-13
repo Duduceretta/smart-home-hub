@@ -1,4 +1,4 @@
-import { isAxiosError } from "axios";
+import axios, { isAxiosError } from "axios";
 import { Logger } from "../logger/app.logger";
 
 export interface ProblemDetails {
@@ -36,6 +36,16 @@ export function handleApplicationError(
 	error: unknown,
 	fallbackMessage: string,
 ): AppError {
+	// Requisição cancelada (navegação rápida abortando uma query "stale" via
+	// AbortSignal do TanStack Query) — não é uma falha real, é o
+	// comportamento esperado. Relança o erro de cancelamento original
+	// (em vez de embrulhar num AppError) pra o TanStack Query reconhecer e
+	// ignorar silenciosamente, sem marcar a query como `isError`/exibir
+	// fallback de erro pro usuário a cada troca de rota rápida.
+	if (axios.isCancel(error)) {
+		throw error;
+	}
+
 	Logger.error(fallbackMessage, error);
 
 	if (error instanceof AppError) {

@@ -7,7 +7,7 @@ import { roomsKeys } from "./rooms.keys";
 export function useRoomAutomations(roomId: string) {
 	return useQuery<RoomLinkedAutomation[], Error>({
 		queryKey: roomsKeys.automations(roomId),
-		queryFn: () => fetchRoomAutomations(roomId),
+		queryFn: ({ signal }) => fetchRoomAutomations(roomId, signal),
 		staleTime: 1000 * 60,
 		retry: 1,
 	});

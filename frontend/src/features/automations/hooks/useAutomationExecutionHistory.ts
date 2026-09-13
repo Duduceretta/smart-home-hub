@@ -13,8 +13,13 @@ export function useAutomationExecutionHistory(
 			page,
 			pageSize,
 		),
-		queryFn: () =>
-			fetchAutomationExecutionHistory(automationId as string, page, pageSize),
+		queryFn: ({ signal }) =>
+			fetchAutomationExecutionHistory(
+				automationId as string,
+				page,
+				pageSize,
+				signal,
+			),
 		enabled: Boolean(automationId),
 		staleTime: 1000 * 30,
 		retry: 1,

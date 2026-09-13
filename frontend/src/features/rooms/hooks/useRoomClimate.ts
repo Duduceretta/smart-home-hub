@@ -6,7 +6,7 @@ import { roomsKeys } from "./rooms.keys";
 export function useRoomClimate(roomId: string) {
 	return useQuery<RoomClimate, Error>({
 		queryKey: roomsKeys.climate(roomId),
-		queryFn: () => fetchRoomClimate(roomId),
+		queryFn: ({ signal }) => fetchRoomClimate(roomId, signal),
 		staleTime: 1000 * 30,
 		retry: 1,
 	});

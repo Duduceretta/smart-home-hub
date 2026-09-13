@@ -11,7 +11,7 @@ import { deviceGroupsKeys } from "./device-groups.keys";
 export function usePickerDevices() {
 	return useQuery<PickerDevice[], Error>({
 		queryKey: deviceGroupsKeys.pickerDevices(),
-		queryFn: fetchPickerDevices,
+		queryFn: ({ signal }) => fetchPickerDevices(signal),
 		staleTime: 1000 * 60,
 		retry: 1,
 	});

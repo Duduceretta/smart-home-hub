@@ -10,7 +10,7 @@ import { deviceGroupsKeys } from "./device-groups.keys";
 export function useDeviceGroupAutomations(groupId: string) {
 	return useQuery<DeviceGroupLinkedAutomation[], Error>({
 		queryKey: deviceGroupsKeys.automations(groupId),
-		queryFn: () => fetchDeviceGroupAutomations(groupId),
+		queryFn: ({ signal }) => fetchDeviceGroupAutomations(groupId, signal),
 		enabled: Boolean(groupId),
 		staleTime: 1000 * 60,
 		retry: 1,

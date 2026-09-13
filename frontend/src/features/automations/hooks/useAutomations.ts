@@ -37,8 +37,11 @@ export function useAutomations(filters: AutomationsListFilters = {}) {
 		number
 	>({
 		queryKey: automationsKeys.list(filters),
-		queryFn: ({ pageParam }) =>
-			fetchAutomations({ ...filters, page: pageParam, pageSize: PAGE_SIZE }),
+		queryFn: ({ pageParam, signal }) =>
+			fetchAutomations(
+				{ ...filters, page: pageParam, pageSize: PAGE_SIZE },
+				signal,
+			),
 		initialPageParam: 1,
 		getNextPageParam: (lastPage) =>
 			lastPage.hasNextPage ? lastPage.page + 1 : undefined,

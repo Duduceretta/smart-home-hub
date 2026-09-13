@@ -19,12 +19,14 @@ import type {
 export async function fetchDeviceGroups(
 	page = 1,
 	pageSize = 200,
+	signal?: AbortSignal,
 ): Promise<DeviceGroup[]> {
 	try {
 		const { data } = await apiClient.get<
 			PagedResponse<DeviceGroup> | DeviceGroup[]
 		>("/device-groups", {
 			params: { page, pageSize },
+			signal,
 		});
 
 		if (
@@ -188,10 +190,12 @@ export async function setDeviceGroupBrightnessRequest(
  */
 export async function fetchDeviceGroupAutomations(
 	groupId: string,
+	signal?: AbortSignal,
 ): Promise<DeviceGroupLinkedAutomation[]> {
 	try {
 		const { data } = await apiClient.get<DeviceGroupLinkedAutomation[]>(
 			`/device-groups/${groupId}/automations`,
+			{ signal },
 		);
 		return data;
 	} catch (error: unknown) {

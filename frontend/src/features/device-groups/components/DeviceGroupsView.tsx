@@ -66,23 +66,6 @@ export function DeviceGroupsView() {
 		[setSearchParams, isDesktopMasterDetail],
 	);
 
-	/** Seleção programática (default inicial / correção de filtro) — nunca
-	 * empilha histórico, só acontece em telas largas (`autoSelectFirst`). */
-	const setDefaultGroup = useCallback(
-		(id: string | null) => {
-			setSearchParams(
-				(prev) => {
-					const next = new URLSearchParams(prev);
-					if (id) next.set("group", id);
-					else next.delete("group");
-					return next;
-				},
-				{ replace: true },
-			);
-		},
-		[setSearchParams],
-	);
-
 	/** Botão "voltar" do painel de detalhe (só existe <lg) — sempre empilha,
 	 * pra o botão físico de voltar do navegador desfazer exatamente essa ação
 	 * (volta pro detalhe), e não sair da tela de Grupos. */
@@ -120,31 +103,24 @@ export function DeviceGroupsView() {
 	// biome-ignore lint/correctness/useExhaustiveDependencies: dispara só na chegada com stateGroupId
 	useEffect(() => {
 		if (stateGroupId) {
-			setDefaultGroup(stateGroupId);
+			selectGroup(stateGroupId);
 		}
 	}, [stateGroupId]);
 
-	// Auto-seleção do primeiro item só acontece em telas desktop master-detail (lg+)
-	useEffect(() => {
-		if (isDesktopMasterDetail && !selectedGroupId && visibleGroups.length > 0) {
-			setDefaultGroup(visibleGroups[0].id);
+	// Em desktop (split-view), o primeiro grupo visível é o selecionado ativo caso
+	// nenhum esteja especificado na URL. Não dispara setSearchParams no mount para evitar corridas.
+	const activeGroupId = useMemo(() => {
+		if (selectedGroupId) {
+			const exists = visibleGroups.some(
+				(group) => group.id === selectedGroupId,
+			);
+			if (exists) return selectedGroupId;
 		}
-	}, [isDesktopMasterDetail, selectedGroupId, visibleGroups, setDefaultGroup]);
-
-	// Se o grupo selecionado não existir mais no conjunto filtrado/excluído (em desktop)
-	useEffect(() => {
-		if (
-			isDesktopMasterDetail &&
-			selectedGroupId &&
-			visibleGroups.length > 0 &&
-			!visibleGroups.some((group) => group.id === selectedGroupId)
-		) {
-			setDefaultGroup(visibleGroups[0].id);
-		}
-	}, [isDesktopMasterDetail, selectedGroupId, visibleGroups, setDefaultGroup]);
+		return isDesktopMasterDetail ? (visibleGroups[0]?.id ?? null) : null;
+	}, [selectedGroupId, visibleGroups, isDesktopMasterDetail]);
 
 	const selectedGroup =
-		groups.find((group) => group.id === selectedGroupId) ?? null;
+		groups.find((group) => group.id === activeGroupId) ?? null;
 
 	return (
 		<div className="flex h-full min-h-0 gap-4">
@@ -216,7 +192,7 @@ export function DeviceGroupsView() {
 						<div className="min-h-0 flex-1">
 							<DeviceGroupListPanel
 								groups={visibleGroups}
-								selectedId={selectedGroupId}
+								selectedId={activeGroupId}
 								onSelect={selectGroup}
 								onDelete={handleDeleteGroup}
 								onCreate={openCreateDialog}

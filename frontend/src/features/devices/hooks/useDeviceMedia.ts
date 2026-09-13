@@ -18,7 +18,8 @@ export function useDeviceMedia(
 ) {
 	return useQuery<DeviceMediaState, Error>({
 		queryKey: devicesKeys.media(deviceId ?? ""),
-		queryFn: () => getDeviceMediaStateRequest(deviceId as string),
+		queryFn: ({ signal }) =>
+			getDeviceMediaStateRequest(deviceId as string, signal),
 		enabled: Boolean(deviceId) && enabled,
 		staleTime: 1000 * 30,
 		refetchOnWindowFocus: false,

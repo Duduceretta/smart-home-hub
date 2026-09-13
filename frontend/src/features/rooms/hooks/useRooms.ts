@@ -10,7 +10,7 @@ import { roomsKeys } from "./rooms.keys";
 export function useRooms() {
 	return useQuery<Room[], Error>({
 		queryKey: roomsKeys.lists(),
-		queryFn: () => fetchRooms(),
+		queryFn: ({ signal }) => fetchRooms(undefined, undefined, signal),
 		staleTime: 1000 * 60 * 5,
 		retry: 1,
 	});

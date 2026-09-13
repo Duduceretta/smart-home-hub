@@ -128,6 +128,7 @@ export function AutomationExecutionSection({
 									name="Execuções"
 									fill="var(--color-primary)"
 									radius={[4, 4, 0, 0]}
+									isAnimationActive={false}
 								/>
 							</BarChart>
 						</ResponsiveContainer>

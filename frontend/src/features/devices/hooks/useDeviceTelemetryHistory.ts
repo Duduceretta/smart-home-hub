@@ -19,11 +19,14 @@ export function useDeviceTelemetryHistory({
 }: UseDeviceTelemetryHistoryOptions) {
 	return useQuery({
 		queryKey: devicesKeys.telemetry(deviceId ?? "", range),
-		queryFn: () =>
-			getDeviceTelemetryHistoryRequest({
-				id: deviceId as string,
-				range,
-			}),
+		queryFn: ({ signal }) =>
+			getDeviceTelemetryHistoryRequest(
+				{
+					id: deviceId as string,
+					range,
+				},
+				signal,
+			),
 		enabled: Boolean(deviceId) && enabled,
 		staleTime: 1000 * 30,
 		refetchOnWindowFocus: false,

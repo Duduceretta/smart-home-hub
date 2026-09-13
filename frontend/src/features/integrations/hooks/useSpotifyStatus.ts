@@ -6,7 +6,7 @@ import { integrationsKeys } from "./integrations.keys";
 export function useSpotifyStatus() {
 	return useQuery<SpotifyStatus, Error>({
 		queryKey: integrationsKeys.spotifyStatus(),
-		queryFn: getSpotifyStatusRequest,
+		queryFn: ({ signal }) => getSpotifyStatusRequest(signal),
 		staleTime: 1000 * 30,
 	});
 }

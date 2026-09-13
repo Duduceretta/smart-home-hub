@@ -16,7 +16,7 @@ export function useSpotifyPlayback({
 }: UseSpotifyPlaybackOptions = {}) {
 	return useQuery<SpotifyPlaybackState | null, Error>({
 		queryKey: integrationsKeys.spotifyPlayback(),
-		queryFn: getSpotifyPlaybackRequest,
+		queryFn: ({ signal }) => getSpotifyPlaybackRequest(signal),
 		enabled,
 		staleTime: 1000 * 30,
 		refetchOnWindowFocus: false,

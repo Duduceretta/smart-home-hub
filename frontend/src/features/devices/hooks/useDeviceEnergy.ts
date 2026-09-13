@@ -6,7 +6,7 @@ import { devicesKeys } from "./devices.keys";
 export function useDeviceEnergy(deviceId: string, range: DeviceEnergyRange) {
 	return useQuery<DeviceEnergy, Error>({
 		queryKey: devicesKeys.energy(deviceId, range),
-		queryFn: () => fetchDeviceEnergy(deviceId, range),
+		queryFn: ({ signal }) => fetchDeviceEnergy(deviceId, range, signal),
 		staleTime: 1000 * 30,
 		retry: 1,
 	});

@@ -1,15 +1,18 @@
 import { Bell, Menu, Wifi } from "lucide-react";
+import { Ripple, useRipple } from "@/core/components/feedback/Ripple";
 import { Button } from "@/core/components/ui/button";
 import { LogoutButton } from "@/features/auth/components/LogoutButton";
 import { useAuthStore } from "@/features/auth/store/useAuthStore";
 
 interface HeaderProps {
 	onMenuClick: () => void;
+	isMenuOpen?: boolean;
 }
 
-export function Header({ onMenuClick }: HeaderProps) {
+export function Header({ onMenuClick, isMenuOpen = false }: HeaderProps) {
 	const user = useAuthStore((state) => state.user);
 	const firstName = user?.displayName?.split(" ")[0] || "Visitante";
+	const { ripples, createRipple, removeRipple } = useRipple();
 
 	return (
 		<header className="sticky top-0 z-40 h-16 w-full border-b border-border bg-linear-to-b from-card/70 to-background/80 backdrop-blur-xl px-4 sm:px-8 flex items-center justify-between shrink-0">
@@ -19,11 +22,16 @@ export function Header({ onMenuClick }: HeaderProps) {
 				<Button
 					variant="ghost"
 					size="icon"
+					onPointerDown={createRipple}
 					onClick={onMenuClick}
-					className="md:hidden h-11 w-11 shrink-0 text-muted-foreground hover:text-foreground"
+					onContextMenu={(e) => e.preventDefault()}
+					className="relative overflow-hidden md:hidden h-11 w-11 shrink-0 text-muted-foreground hover:text-foreground active:scale-90 active:bg-surface-highest/60 transition-all duration-100 select-none cursor-pointer"
 					aria-label="Abrir menu"
+					aria-expanded={isMenuOpen}
+					aria-controls="mobile-navigation-drawer"
 				>
-					<Menu className="w-5 h-5" />
+					<Ripple ripples={ripples} onClear={removeRipple} />
+					<Menu className="w-5 h-5 relative z-10 pointer-events-none" />
 				</Button>
 
 				<div className="flex min-w-0 items-center gap-2 sm:gap-4">
@@ -51,7 +59,7 @@ export function Header({ onMenuClick }: HeaderProps) {
 				<Button
 					variant="outline"
 					size="icon"
-					className="h-11 w-11 md:h-9 md:w-9 rounded-full relative border-border bg-card/50 text-muted-foreground hover:text-foreground hover:bg-card"
+					className="h-11 w-11 md:h-9 md:w-9 rounded-full relative border-border bg-card/50 text-muted-foreground hover:text-foreground hover:bg-card active:scale-95 active:bg-surface-highest transition-all duration-100 select-none cursor-pointer"
 					aria-label="Notificações"
 				>
 					<Bell className="w-4 h-4" />

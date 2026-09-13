@@ -13,7 +13,7 @@ import { historyKeys } from "./history.keys";
 export function useEventHistoryStats(params: GetHistoryStatsParams) {
 	return useQuery<HistoryKpiMetrics, Error>({
 		queryKey: historyKeys.statsFiltered(params),
-		queryFn: () => getEventHistoryStats(params),
+		queryFn: ({ signal }) => getEventHistoryStats(params, signal),
 		staleTime: 1000 * 30, // 30s
 		placeholderData: (prev) => prev,
 	});

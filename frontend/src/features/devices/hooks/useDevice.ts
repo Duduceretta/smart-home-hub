@@ -8,7 +8,7 @@ export function useDevice(id: string) {
 
 	return useQuery<Device, Error>({
 		queryKey: devicesKeys.detail(id),
-		queryFn: () => fetchDeviceById(id),
+		queryFn: ({ signal }) => fetchDeviceById(id, signal),
 		enabled: Boolean(id),
 		staleTime: 1000 * 60 * 5,
 		initialData: () => {

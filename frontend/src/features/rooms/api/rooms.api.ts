@@ -26,12 +26,17 @@ import type {
  * pageSize=200 convention already used by `fetchAssignableDevices` below.
  * Supports both paginated PagedResponse and direct Array responses.
  */
-export async function fetchRooms(page = 1, pageSize = 200): Promise<Room[]> {
+export async function fetchRooms(
+	page = 1,
+	pageSize = 200,
+	signal?: AbortSignal,
+): Promise<Room[]> {
 	try {
 		const { data } = await apiClient.get<PagedResponse<Room> | Room[]>(
 			"/rooms",
 			{
 				params: { page, pageSize },
+				signal,
 			},
 		);
 
@@ -136,12 +141,15 @@ export async function deleteRoomRequest(id: string): Promise<void> {
  * device-assignment picker. Kept local to the `rooms` feature (FSD
  * isolation) — same pattern as `device-groups/api/picker-devices.api.ts`.
  */
-export async function fetchAssignableDevices(): Promise<RoomPickerDevice[]> {
+export async function fetchAssignableDevices(
+	signal?: AbortSignal,
+): Promise<RoomPickerDevice[]> {
 	try {
 		const { data } = await apiClient.get<
 			PagedResponse<RoomPickerDevice> | RoomPickerDevice[]
 		>("/devices", {
 			params: { pageSize: 200 },
+			signal,
 		});
 
 		if (
@@ -230,10 +238,14 @@ export async function setRoomDevicesPowerRequest(
 // ---------------------------------------------------------------------------
 
 /** `GET /rooms/{id}/climate` — última leitura de temperatura/umidade do ambiente. */
-export async function fetchRoomClimate(roomId: string): Promise<RoomClimate> {
+export async function fetchRoomClimate(
+	roomId: string,
+	signal?: AbortSignal,
+): Promise<RoomClimate> {
 	try {
 		const { data } = await apiClient.get<RoomClimate>(
 			`/rooms/${roomId}/climate`,
+			{ signal },
 		);
 		return data;
 	} catch (error: unknown) {
@@ -252,11 +264,12 @@ export async function fetchRoomClimate(roomId: string): Promise<RoomClimate> {
 export async function fetchRoomEnergy(
 	roomId: string,
 	range: RoomEnergyRange,
+	signal?: AbortSignal,
 ): Promise<RoomEnergy> {
 	try {
 		const { data } = await apiClient.get<RoomEnergy>(
 			`/rooms/${roomId}/energy`,
-			{ params: { range } },
+			{ params: { range }, signal },
 		);
 		return data;
 	} catch (error: unknown) {
@@ -278,10 +291,12 @@ export async function fetchRoomEnergy(
  */
 export async function fetchRoomAutomations(
 	roomId: string,
+	signal?: AbortSignal,
 ): Promise<RoomLinkedAutomation[]> {
 	try {
 		const { data } = await apiClient.get<RoomLinkedAutomation[]>(
 			`/rooms/${roomId}/automations`,
+			{ signal },
 		);
 		return data;
 	} catch (error: unknown) {
@@ -306,11 +321,15 @@ const ROOM_ACTIVITY_VISIBLE_LIMIT = 8;
  */
 export async function fetchRoomActivityLog(
 	roomId: string,
+	signal?: AbortSignal,
 ): Promise<RoomActivityEntry[]> {
 	try {
 		const { data } = await apiClient.get<PagedResponse<RoomActivityEntry>>(
 			`/rooms/${roomId}/events`,
-			{ params: { page: 1, pageSize: ROOM_ACTIVITY_VISIBLE_LIMIT } },
+			{
+				params: { page: 1, pageSize: ROOM_ACTIVITY_VISIBLE_LIMIT },
+				signal,
+			},
 		);
 		return data.items ?? [];
 	} catch (error: unknown) {

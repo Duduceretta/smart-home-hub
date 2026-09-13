@@ -105,26 +105,6 @@ export function AutomationsView() {
 		[setSearchParams, isDesktopMasterDetail, location.state, returnNav],
 	);
 
-	/** Seleção programática (default inicial / correção de filtro) — nunca
-	 * empilha histórico, só acontece em telas largas (`autoSelectFirst`). */
-	const setDefaultAutomation = useCallback(
-		(id: string | null) => {
-			setSearchParams(
-				(prev) => {
-					const next = new URLSearchParams(prev);
-					if (id) next.set("automation", id);
-					else next.delete("automation");
-					return next;
-				},
-				{
-					replace: true,
-					state: location.state ?? (returnNav.returnTo ? returnNav : undefined),
-				},
-			);
-		},
-		[setSearchParams, location.state, returnNav],
-	);
-
 	/** Botão "voltar" do painel de detalhe (só existe <lg) — sempre empilha,
 	 * pra o botão físico de voltar do navegador desfazer exatamente essa ação
 	 * (volta pro detalhe), e não sair da tela de Automações. */
@@ -184,14 +164,13 @@ export function AutomationsView() {
 	);
 
 	// Chegada via `location.state` (ex: Dashboard "ver automação")
-	// biome-ignore lint/correctness/useExhaustiveDependencies: dispara só na chegada com stateAutomationId
 	useEffect(() => {
 		if (stateAutomationId) {
 			setFilter("all");
 			setQuery("");
-			setDefaultAutomation(stateAutomationId);
+			selectAutomation(stateAutomationId);
 		}
-	}, [stateAutomationId]);
+	}, [stateAutomationId, selectAutomation, setFilter, setQuery]);
 
 	// Chegada via `location.state` com openCreate (ex: Dashboard "criar automação" ou slot vazio)
 	useEffect(() => {
@@ -200,41 +179,18 @@ export function AutomationsView() {
 		}
 	}, [stateOpenCreate, openCreateWizard]);
 
-	// Auto-seleção do primeiro item só acontece em telas desktop master-detail (lg+)
-	useEffect(() => {
-		if (
-			isDesktopMasterDetail &&
-			!selectedAutomationId &&
-			automationViews.length > 0
-		) {
-			setDefaultAutomation(automationViews[0].id);
+	// Em desktop (split-view), a primeira automação visível é a selecionada ativa caso
+	// nenhuma esteja especificada na URL. Não dispara setSearchParams no mount para evitar corridas.
+	const activeAutomationId = useMemo(() => {
+		if (selectedAutomationId) {
+			const exists = automationViews.some((a) => a.id === selectedAutomationId);
+			if (exists) return selectedAutomationId;
 		}
-	}, [
-		isDesktopMasterDetail,
-		selectedAutomationId,
-		automationViews,
-		setDefaultAutomation,
-	]);
-
-	// Se a automação selecionada não existir mais no conjunto filtrado/excluído (em desktop)
-	useEffect(() => {
-		if (
-			isDesktopMasterDetail &&
-			selectedAutomationId &&
-			automationViews.length > 0 &&
-			!automationViews.some((a) => a.id === selectedAutomationId)
-		) {
-			setDefaultAutomation(automationViews[0].id);
-		}
-	}, [
-		isDesktopMasterDetail,
-		selectedAutomationId,
-		automationViews,
-		setDefaultAutomation,
-	]);
+		return isDesktopMasterDetail ? (automationViews[0]?.id ?? null) : null;
+	}, [selectedAutomationId, automationViews, isDesktopMasterDetail]);
 
 	const selectedAutomation =
-		automationViews.find((a) => a.id === selectedAutomationId) ?? null;
+		automationViews.find((a) => a.id === activeAutomationId) ?? null;
 
 	const handleToggle = (id: string, nextValue: boolean) => {
 		const automation = automationViews.find((a) => a.id === id);
@@ -251,12 +207,7 @@ export function AutomationsView() {
 
 	const handleDelete = (id: string) => {
 		if (selectedAutomationId === id) {
-			if (isDesktopMasterDetail) {
-				const remaining = automationViews.filter((a) => a.id !== id);
-				setDefaultAutomation(remaining.length > 0 ? remaining[0].id : null);
-			} else {
-				clearSelection();
-			}
+			clearSelection();
 		}
 		deleteAutomation.mutate(id);
 	};
@@ -358,7 +309,7 @@ export function AutomationsView() {
 							<div className="h-full min-w-0 flex-1 w-full">
 								<AutomationListPanel
 									automations={automationViews}
-									selectedId={selectedAutomationId}
+									selectedId={activeAutomationId}
 									onSelect={selectAutomation}
 									viewMode={viewMode}
 									onViewModeChange={setViewMode}

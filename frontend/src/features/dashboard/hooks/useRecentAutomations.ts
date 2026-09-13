@@ -5,7 +5,7 @@ import { dashboardKeys } from "./dashboard.keys";
 export function useRecentAutomations() {
 	return useQuery({
 		queryKey: dashboardKeys.automationsSummary(),
-		queryFn: fetchAutomationsSummary,
+		queryFn: ({ signal }) => fetchAutomationsSummary(signal),
 		staleTime: 1000 * 60,
 	});
 }

@@ -7,7 +7,7 @@ import { devicesKeys } from "./devices.keys";
 export function useDeviceAutomations(deviceId: string) {
 	return useQuery<DeviceLinkedAutomation[], Error>({
 		queryKey: devicesKeys.linkedAutomationsFor(deviceId),
-		queryFn: () => fetchDeviceAutomations(deviceId),
+		queryFn: ({ signal }) => fetchDeviceAutomations(deviceId, signal),
 		staleTime: 1000 * 60,
 		retry: 1,
 	});

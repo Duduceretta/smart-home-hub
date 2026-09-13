@@ -7,7 +7,7 @@ import { devicesKeys } from "./devices.keys";
 export function useDeviceActivityLog(deviceId: string) {
 	return useQuery<DeviceActivityEntry[], Error>({
 		queryKey: devicesKeys.activityLog(deviceId),
-		queryFn: () => fetchDeviceActivityLog(deviceId),
+		queryFn: ({ signal }) => fetchDeviceActivityLog(deviceId, signal),
 		staleTime: 1000 * 30,
 		retry: 1,
 	});

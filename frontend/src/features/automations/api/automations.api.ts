@@ -22,15 +22,18 @@ export interface FetchAutomationsParams extends AutomationsListFilters {
  * server-side, sem filtragem/paginação client-side (mesmo padrão de
  * `fetchDevices`).
  */
-export async function fetchAutomations({
-	search,
-	status,
-	triggerKind,
-	isDraft,
-	sort,
-	page = 1,
-	pageSize = 10,
-}: FetchAutomationsParams = {}): Promise<PagedResponse<Automation>> {
+export async function fetchAutomations(
+	{
+		search,
+		status,
+		triggerKind,
+		isDraft,
+		sort,
+		page = 1,
+		pageSize = 10,
+	}: FetchAutomationsParams = {},
+	signal?: AbortSignal,
+): Promise<PagedResponse<Automation>> {
 	try {
 		const { data } = await apiClient.get<PagedResponse<Automation>>(
 			"/automations",
@@ -44,6 +47,7 @@ export async function fetchAutomations({
 					page,
 					pageSize,
 				},
+				signal,
 			},
 		);
 		return data;
@@ -60,10 +64,13 @@ export async function fetchAutomations({
  * sensor/rascunhos) — independente da paginação, usado pela trilha de
  * filtro e pela barra de resumo.
  */
-export async function fetchAutomationFilterCounts(): Promise<AutomationFilterCounts> {
+export async function fetchAutomationFilterCounts(
+	signal?: AbortSignal,
+): Promise<AutomationFilterCounts> {
 	try {
 		const { data } = await apiClient.get<AutomationFilterCounts>(
 			"/automations/counts",
+			{ signal },
 		);
 		return data;
 	} catch (error: unknown) {
@@ -98,11 +105,15 @@ export async function fetchAutomationExecutionHistory(
 	automationId: string,
 	page = 1,
 	pageSize = 10,
+	signal?: AbortSignal,
 ): Promise<PagedResponse<AutomationExecutionEvent>> {
 	try {
 		const { data } = await apiClient.get<
 			PagedResponse<AutomationExecutionEvent>
-		>(`/automations/${automationId}/history`, { params: { page, pageSize } });
+		>(`/automations/${automationId}/history`, {
+			params: { page, pageSize },
+			signal,
+		});
 		return data;
 	} catch (error: unknown) {
 		throw handleApplicationError(
@@ -118,11 +129,12 @@ export async function fetchAutomationExecutionHistory(
 export async function fetchAutomationWeekdayExecutions(
 	automationId: string,
 	sinceDays = 30,
+	signal?: AbortSignal,
 ): Promise<AutomationWeekdayExecutionCount[]> {
 	try {
 		const { data } = await apiClient.get<AutomationWeekdayExecutionCount[]>(
 			`/automations/${automationId}/executions/by-weekday`,
-			{ params: { days: sinceDays } },
+			{ params: { days: sinceDays }, signal },
 		);
 		return data;
 	} catch (error: unknown) {

@@ -9,12 +9,15 @@ import type { PickerDevice } from "../types/automations.types";
  * feature (FSD isolation) and from automations.api.ts, same pattern as
  * device-groups/api/picker-devices.api.ts.
  */
-export async function fetchPickerDevices(): Promise<PickerDevice[]> {
+export async function fetchPickerDevices(
+	signal?: AbortSignal,
+): Promise<PickerDevice[]> {
 	try {
 		const { data } = await apiClient.get<
 			PagedResponse<PickerDevice> | PickerDevice[]
 		>("/devices", {
 			params: { pageSize: 200 },
+			signal,
 		});
 
 		if (

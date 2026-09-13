@@ -10,7 +10,7 @@ import { devicesKeys } from "./devices.keys";
 export function useDeviceWorkMode(deviceId: string, enabled: boolean) {
 	return useQuery<DeviceWorkMode, Error>({
 		queryKey: devicesKeys.workMode(deviceId),
-		queryFn: () => fetchDeviceWorkMode(deviceId),
+		queryFn: ({ signal }) => fetchDeviceWorkMode(deviceId, signal),
 		enabled: Boolean(deviceId) && enabled,
 		staleTime: 0,
 		retry: 1,

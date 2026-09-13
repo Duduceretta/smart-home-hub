@@ -12,7 +12,7 @@ import { automationsKeys } from "./automations.keys";
 export function useAutomationFilterCounts() {
 	return useQuery<AutomationFilterCounts, Error>({
 		queryKey: automationsKeys.filterCounts(),
-		queryFn: fetchAutomationFilterCounts,
+		queryFn: ({ signal }) => fetchAutomationFilterCounts(signal),
 		staleTime: 1000 * 30,
 		retry: 1,
 	});
