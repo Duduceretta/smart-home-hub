@@ -272,3 +272,39 @@ A coleção segue o ciclo de vida do recurso e cardinalidade (plural/singular):
       PUT    Update Room        /api/rooms/{{room_id}}
       DELETE Delete Room        /api/rooms/{{room_id}}
 ```
+
+---
+
+## 7. Autenticação e Segurança (Firebase Auth + Resend + Anti-Enumeração)
+
+### 7.1. Arquitetura Híbrida de Identidade (Firebase + Postgres)
+
+A autenticação é dividida entre provedor externo de identidade e persistência local:
+- **Firebase Auth (IdP)**: Gerencia credenciais (e-mail/senha, Google OAuth), tokens JWT (`Bearer`), fluxos de redefinição de senha e verificação de e-mail. O backend valida os tokens JWT criptograficamente via chave pública do Firebase.
+- **PostgreSQL (`User`)**: Mantém os dados cadastrais locais e relacionamentos de domínio (`Rooms`, `Devices`, `DeviceGroups`). O vínculo é mantido pelo campo `User.ExternalAuthUid` com índice único parcial ativo (`IsDeleted = false`).
+
+### 7.2. Sincronização Idempotente de Usuário (`SyncUserCommand`)
+
+Após a autenticação bem-sucedida no front-end, a aplicação sincroniza o usuário no banco de dados local através de `POST /api/users/sync`:
+1. **Busca Rápida**: Verifica se o usuário com `ExternalAuthUid == FirebaseUid` já existe (`AsNoTracking`). Se existir, retorna imediatamente `WasCreated = false` com o `UserId`.
+2. **Criação Segura**: Caso não exista, persiste uma nova entidade `User` e retorna `WasCreated = true`.
+3. **Resiliência a Condições de Corrida**: Em rajadas de requisições simultâneas pós-login, se duas threads tentarem inserir o mesmo usuário concorrentemente, o PostgreSQL rejeita a segunda inserção com violação de chave única. O handler intercepta `DbUpdateException`, busca o registro vencedor (`raceWinner`) e retorna sucesso com `WasCreated = false`, garantindo idempotência estrita sem falhas 500 para o cliente.
+
+### 7.3. E-mails Transacionais com Resend e Links de Ação Customizados
+
+O envio de e-mails para recuperação de senha e confirmação de conta não utiliza as mensagens genéricas padrão do Firebase:
+1. **Geração Segura**: O backend invoca o Firebase Admin SDK (`GeneratePasswordResetLinkAsync` / `GenerateEmailVerificationLinkAsync`) fornecendo a URL de destino da aplicação (`https://nexushub.page/reset-password` ou `/verify-email`).
+2. **Construção de URL Direta (`AuthActionLinkHelper.BuildDirectActionUrl`)**: O handler extrai o token de ação seguro (`oobCode`) do link bruto retornado pelo Firebase e monta a URL padronizada no domínio do hub (`?mode={mode}&oobCode={code}`), evitando redirecionamentos intermediários em domínios de terceiros.
+3. **Despacho via Resend**: O e-mail transacional é formatado em HTML responsivo com tipografia web-safe unificada e disparado via API REST do Resend (`IEmailService`).
+4. **Proteção de Segredos**: O link de ação gerado e as credenciais de API nunca são expostos em logs, telemetria ou respostas HTTP.
+
+### 7.4. Defesas Contra Enumeração de Contas e Análise de Timing (Timing Attacks)
+
+Para impedir que agentes maliciosos descubram se determinado endereço de e-mail possui cadastro no sistema:
+- **Respostas HTTP Uniformes**: Os endpoints públicos `/api/auth/forgot-password` e `/api/auth/send-verification-email` retornam **sempre** `HTTP 200 OK` genérico (`Result.Success`), independente do e-mail existir ou não na base do Firebase.
+- **Jitter Temporal Estocástico (`AuthActionLinkHelper.SimulateUniformLatencyAsync`)**: Quando o e-mail não existe, o Firebase Admin SDK retorna imediatamente nulo em poucos milissegundos, enquanto um e-mail existente leva entre 200-300ms devido à chamada de rede para geração do link e despacho via Resend. Para eliminar esse canal lateral de medição de tempo, o backend injeta uma pausa estocástica uniforme de 200-300ms antes de responder requisições de contas inexistentes.
+- **Logs Sanitizados (`AuthActionLinkHelper.MaskEmail`)**: E-mails nunca são logados em texto claro nos eventos de auditoria e aplicação. Endereços são sempre mascarados (ex: `a***n@nexushub.page`), cumprindo diretrizes de privacidade e LGPD/GDPR.
+
+### 7.5. Proteção Contra Força Bruta e DoS (`AuthRateLimit`)
+
+Os endpoints de autenticação pública são protegidos pela política de Rate Limiting `AuthRateLimit` registrada no ASP.NET Core, limitando o número de requisições por IP em janelas deslizantes para prevenir abusos de disparo de e-mails e exaustão de cota no Resend/Firebase.
