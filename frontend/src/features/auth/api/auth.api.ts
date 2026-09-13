@@ -101,9 +101,7 @@ export const loginWithGoogle = async (): Promise<User | null> => {
 			Logger.error("Falha crítica desconhecida no login com Google", error);
 		}
 
-		throw new Error(
-			"Falha ao autenticar com o Google. Verifique sua conexão e tente novamente.",
-		);
+		throw new AuthError("google.error");
 	}
 };
 

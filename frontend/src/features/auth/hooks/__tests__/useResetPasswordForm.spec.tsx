@@ -137,7 +137,7 @@ describe("useResetPasswordForm Hook Unit Tests", () => {
 
 		expect(submitSpy).toHaveBeenCalledWith("valid-code", "StrongPass1@");
 		expect(toast.success).toHaveBeenCalled();
-		expect(mockNavigate).toHaveBeenCalledWith("/login");
+		expect(mockNavigate).toHaveBeenCalledWith("/login", { replace: true });
 	});
 
 	it("useResetPasswordForm_SubmitNewPassword_AuthError_ShouldSetRootError", async () => {

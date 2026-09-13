@@ -41,16 +41,17 @@ export function GoogleAuthButton({ actionText }: GoogleAuthButtonProps) {
 
 			navigate(destination, { replace: true });
 		} catch (error: unknown) {
-			if (error instanceof Error) {
-				toast.error(error.message);
-			} else {
-				toast.error(
+			const messageKey =
+				error instanceof Error ? error.message : "google.error";
+			toast.error(
+				t(
+					messageKey,
 					t(
 						"google.error",
 						"Ocorreu um erro inesperado ao conectar com o Google.",
 					),
-				);
-			}
+				),
+			);
 		} finally {
 			setIsLoading(false);
 		}

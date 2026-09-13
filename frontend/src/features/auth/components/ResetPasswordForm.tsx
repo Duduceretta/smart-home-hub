@@ -4,6 +4,7 @@ import { Link, useSearchParams } from "react-router-dom";
 import { FormGlobalError } from "@/core/components/forms/FormGlobalError";
 import { PasswordInput } from "@/core/components/forms/PasswordInput";
 import { Button } from "@/core/components/ui/button";
+import { useAuthErrorTranslator } from "../hooks/useAuthErrorTranslator";
 import { useResetPasswordForm } from "../hooks/useResetPasswordForm";
 
 export function ResetPasswordSkeleton() {
@@ -42,6 +43,7 @@ export function ResetPasswordSkeleton() {
 
 export function ResetPasswordForm() {
 	const { t } = useTranslation("auth");
+	const translateError = useAuthErrorTranslator();
 	const [searchParams] = useSearchParams();
 	const email = searchParams.get("email") || "";
 
@@ -54,11 +56,6 @@ export function ResetPasswordForm() {
 		email: userEmail,
 		tokenError,
 	} = useResetPasswordForm();
-
-	const translateError = (errorKey?: string) => {
-		if (!errorKey) return undefined;
-		return t(errorKey, errorKey);
-	};
 
 	const displayEmail = email || userEmail;
 

@@ -6,12 +6,14 @@ import { Button } from "@/core/components/ui/button";
 import { useCurrentUser } from "@/core/hooks/useCurrentUser";
 import { auth } from "@/core/lib/firebase";
 import { verifyEmailToken } from "../api/auth.api";
+import { useAuthErrorTranslator } from "../hooks/useAuthErrorTranslator";
 import { useAuthStore } from "../store/useAuthStore";
 
 type VerificationStatus = "verifying" | "success" | "error";
 
 export function VerifyEmailContent() {
 	const { t } = useTranslation("auth");
+	const translateError = useAuthErrorTranslator();
 	const [searchParams] = useSearchParams();
 	const { user } = useCurrentUser();
 	const setUser = useAuthStore((s) => s.setUser);
@@ -52,11 +54,6 @@ export function VerifyEmailContent() {
 
 		verify();
 	}, [oobCode, setUser]);
-
-	const translateError = (errorKey?: string | null) => {
-		if (!errorKey) return undefined;
-		return t(errorKey, errorKey);
-	};
 
 	return (
 		<div className="relative w-full max-w-95 overflow-hidden rounded-2xl border border-border-subtle bg-surface-low/80 p-5 sm:p-7 shadow-2xl backdrop-blur-xl animate-fade-up text-center">

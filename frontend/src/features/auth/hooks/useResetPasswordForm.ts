@@ -68,7 +68,7 @@ export function useResetPasswordForm() {
 					"Senha redefinida com sucesso! Faça login para continuar.",
 				),
 			);
-			navigate("/login");
+			navigate("/login", { replace: true });
 		} catch (error: unknown) {
 			if (error instanceof AuthError) {
 				formMethods.setError("root", {

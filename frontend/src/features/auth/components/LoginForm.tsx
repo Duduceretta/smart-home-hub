@@ -5,22 +5,19 @@ import { FormGlobalError } from "@/core/components/forms/FormGlobalError";
 import { FormInput } from "@/core/components/forms/FormInput";
 import { PasswordInput } from "@/core/components/forms/PasswordInput";
 import { Button } from "@/core/components/ui/button";
+import { useAuthErrorTranslator } from "../hooks/useAuthErrorTranslator";
 import { useLoginForm } from "../hooks/useLoginForm";
 import { GoogleAuthButton } from "./GoogleAuthButton";
 
 export function LoginForm() {
 	const { t } = useTranslation("auth");
+	const translateError = useAuthErrorTranslator();
 	const {
 		register,
 		handleFormSubmit,
 		formState: { errors },
 		isSubmitting,
 	} = useLoginForm();
-
-	const translateError = (errorKey?: string) => {
-		if (!errorKey) return undefined;
-		return t(errorKey, errorKey);
-	};
 
 	return (
 		<div

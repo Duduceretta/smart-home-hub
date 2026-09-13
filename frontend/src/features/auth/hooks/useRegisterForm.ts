@@ -76,7 +76,7 @@ export function useRegisterForm() {
 			} else {
 				formMethods.setError("root", {
 					type: "manual",
-					message: "Ocorreu um erro crítico e inesperado ao cadastrar.",
+					message: "register.errors.generic",
 				});
 			}
 		}

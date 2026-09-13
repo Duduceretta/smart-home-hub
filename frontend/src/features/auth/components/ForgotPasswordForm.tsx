@@ -4,10 +4,12 @@ import { Link } from "react-router-dom";
 import { FormGlobalError } from "@/core/components/forms/FormGlobalError";
 import { FormInput } from "@/core/components/forms/FormInput";
 import { Button } from "@/core/components/ui/button";
+import { useAuthErrorTranslator } from "../hooks/useAuthErrorTranslator";
 import { useForgotPasswordForm } from "../hooks/useForgotPasswordForm";
 
 export function ForgotPasswordForm() {
 	const { t } = useTranslation("auth");
+	const translateError = useAuthErrorTranslator();
 	const {
 		register,
 		handleFormSubmit,
@@ -15,11 +17,6 @@ export function ForgotPasswordForm() {
 		isSubmitting,
 		isSuccess,
 	} = useForgotPasswordForm();
-
-	const translateError = (errorKey?: string) => {
-		if (!errorKey) return undefined;
-		return t(errorKey, errorKey);
-	};
 
 	return (
 		<div
