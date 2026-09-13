@@ -1,10 +1,13 @@
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Options;
 using NSubstitute;
 using SmartHomeHub.Application.Common.Interfaces;
 using SmartHomeHub.Infrastructure.Persistence;
@@ -116,6 +119,25 @@ public class IntegrationTestWebAppFactory : WebApplicationFactory<Program>, IAsy
             services.AddSingleton(_ => Substitute.For<IFirebaseAuthService>());
             services.RemoveAll<IEmailService>();
             services.AddSingleton(_ => Substitute.For<IEmailService>());
+
+            // Rate Limiter: os testes de uma mesma coleção compartilham a mesma instância de
+            // app (mesmo IP de TestServer), então o AuthRateLimit real (10 req/min) esgota
+            // sua cota com os testes anteriores da suíte e derruba os testes seguintes com
+            // 429 mesmo eles não tendo relação com rate limiting.
+            services.RemoveAll<IConfigureOptions<RateLimiterOptions>>();
+            services.Configure<RateLimiterOptions>(options =>
+            {
+                options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+                options.AddPolicy(
+                    "AuthRateLimit",
+                    _ => System.Threading.RateLimiting.RateLimitPartition.GetNoLimiter("test-auth")
+                );
+                options.AddPolicy(
+                    "DeviceMutationRateLimit",
+                    _ =>
+                        System.Threading.RateLimiting.RateLimitPartition.GetNoLimiter("test-device")
+                );
+            });
 
             var serviceProvider = services.BuildServiceProvider();
             using var scope = serviceProvider.CreateScope();
