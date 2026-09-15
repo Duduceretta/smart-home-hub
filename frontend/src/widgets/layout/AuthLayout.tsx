@@ -47,7 +47,11 @@ export function AuthLayout({ children }: AuthLayoutProps) {
 				<div className="relative z-10 h-full w-full pointer-events-none">
 					<div
 						className={cn(
-							"opacity-0-init absolute top-12 left-[5.5%] flex items-center pointer-events-auto w-fit",
+							// Ancorado em % (não px) nos dois eixos: a ilustração usa preserveAspectRatio="none"
+							// e estica de forma não-uniforme para preencher o container, então qualquer offset
+							// fixo em px desalinha da ilustração assim que a altura do container muda (zoom da
+							// página, DPI fracionário). % nos dois eixos acompanha esse mesmo esticamento.
+							"opacity-0-init absolute top-[5.3%] left-[5.5%] flex items-center pointer-events-auto w-fit",
 							mounted && "animate-slide-left",
 						)}
 					>
@@ -57,7 +61,7 @@ export function AuthLayout({ children }: AuthLayoutProps) {
 
 					<div
 						className={cn(
-							"opacity-0-init pointer-events-auto absolute bottom-2.75 left-3 sm:bottom-3.25 sm:left-4 z-20",
+							"opacity-0-init pointer-events-auto absolute bottom-[1.4%] left-[1.4%] z-20",
 							mounted && "animate-fade-up delay-400",
 						)}
 					>
