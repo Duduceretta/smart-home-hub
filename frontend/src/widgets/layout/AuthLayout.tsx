@@ -53,6 +53,7 @@ export function AuthLayout({ children }: AuthLayoutProps) {
 
 				<div className="relative z-10 h-full w-full pointer-events-none">
 					<div
+						data-testid="auth-wordmark"
 						className={cn(
 							// Ancorado em % (não px) nos dois eixos: a ilustração usa preserveAspectRatio="none"
 							// e estica de forma não-uniforme para preencher o container, então qualquer offset
@@ -62,19 +63,27 @@ export function AuthLayout({ children }: AuthLayoutProps) {
 							mounted && "animate-slide-left",
 						)}
 					>
-						<NexusHubWordmark className="h-6 w-auto text-foreground" />
+						{/* Largura em vw (não px fixo, não %): o wrapper é w-fit (shrink-to-fit),
+						então % não tem base estável pra resolver contra — vw sim, e o painel é
+						sempre exatos 7/12 da viewport (lg:w-7/12), então 14% de (7/12 * 100vw)
+						acompanha a mesma escala do fio da luminária dentro do SVG ao lado. */}
+						<NexusHubWordmark className="w-[8.167vw] h-auto text-foreground" />
 						<h1 className="sr-only">Nexus Hub</h1>
 					</div>
 
 					<div
+						data-testid="auth-status-badge"
 						className={cn(
 							"opacity-0-init pointer-events-auto absolute bottom-[1.4%] left-[1.4%] z-20",
 							mounted && "animate-fade-up delay-400",
 						)}
 					>
-						<div className="inline-flex items-center gap-2 rounded-full border border-border-subtle bg-surface-low/80 px-3.5 py-1.5 backdrop-blur-md">
-							<span className="h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.25)]" />
-							<span className="text-xs font-medium text-muted-foreground">
+						{/* Mesmo tratamento em vw do wordmark: gap/padding/ponto em em (herdam do
+						font-size do próprio container), então tudo escala junto na mesma taxa
+						da ilustração ao lado, sem salto de breakpoint. */}
+						<div className="inline-flex items-center gap-[0.417vw] rounded-full border border-border-subtle bg-surface-low/80 px-[0.729vw] py-[0.313vw] backdrop-blur-md text-[0.625vw]">
+							<span className="h-[0.417vw] w-[0.417vw] rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.25)]" />
+							<span className="text-[1em] font-medium text-muted-foreground">
 								{t(
 									"illustration.allSystemsOperational",
 									"Todos os sistemas operacionais",

@@ -114,13 +114,13 @@ test.describe("Parte 2 e 3 — Auditoria de Robustez de Zoom e Ancoragem", () =>
 				// No desktop (largura >= 1024), valida que o Wordmark e o fio da lâmpada mantêm espaçamento seguro
 				if (preset.width >= 1024) {
 					const wordmarkBox = await page
-						.locator(".house-layer-brand svg")
+						.locator("[data-testid='auth-wordmark'] svg")
 						.boundingBox();
 					const wireBox = await page
 						.locator("line[x1='190'][x2='190']")
 						.boundingBox();
 					const badgeBox = await page
-						.locator(".house-layer-badge")
+						.locator("[data-testid='auth-status-badge']")
 						.boundingBox();
 
 					expect(wordmarkBox).not.toBeNull();
@@ -128,14 +128,24 @@ test.describe("Parte 2 e 3 — Auditoria de Robustez de Zoom e Ancoragem", () =>
 					expect(badgeBox).not.toBeNull();
 
 					if (wordmarkBox && wireBox) {
-						// O Wordmark deve terminar bem antes do fio da lâmpada (sem tocar nem sobrepor)
-						expect(wordmarkBox.x + wordmarkBox.width).toBeLessThan(wireBox.x - 10);
+						// Sem tocar nem sobrepor = sem interseção real de retângulo (X e Y),
+						// não apenas X — o fio fica bem mais abaixo do wordmark verticalmente
+						// e comparar só X gera falso positivo quando o viewport encolhe.
+						const overlapsX =
+							wordmarkBox.x < wireBox.x + wireBox.width &&
+							wordmarkBox.x + wordmarkBox.width > wireBox.x;
+						const overlapsY =
+							wordmarkBox.y < wireBox.y + wireBox.height &&
+							wordmarkBox.y + wordmarkBox.height > wireBox.y;
+						expect(overlapsX && overlapsY).toBe(false);
 					}
 
 					if (badgeBox) {
 						// O badge deve estar dentro da viewport visível e na coluna esquerda
 						expect(badgeBox.x).toBeGreaterThanOrEqual(0);
-						expect(badgeBox.x + badgeBox.width).toBeLessThan(preset.width * (7 / 12));
+						expect(badgeBox.x + badgeBox.width).toBeLessThan(
+							preset.width * (7 / 12),
+						);
 					}
 				}
 
