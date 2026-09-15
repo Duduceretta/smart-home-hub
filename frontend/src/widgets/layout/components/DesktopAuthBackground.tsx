@@ -1,3 +1,4 @@
+import { useReducedGraphics } from "@/core/hooks/useReducedGraphics";
 import { cn } from "@/core/utils";
 
 interface DesktopAuthBackgroundProps {
@@ -7,6 +8,8 @@ interface DesktopAuthBackgroundProps {
 export function DesktopAuthBackground({
 	className,
 }: DesktopAuthBackgroundProps) {
+	const { isReducedGraphics } = useReducedGraphics();
+
 	return (
 		<svg
 			viewBox="0 0 600 1000"
@@ -15,6 +18,7 @@ export function DesktopAuthBackground({
 			xmlns="http://www.w3.org/2000/svg"
 			className={cn(
 				"pointer-events-none absolute inset-0 z-0 h-full w-full overflow-hidden hidden lg:block",
+				isReducedGraphics && "static-graphics",
 				className,
 			)}
 			aria-hidden="true"
@@ -77,6 +81,16 @@ export function DesktopAuthBackground({
 							transform: none !important;
 							opacity: 0.6 !important;
 						}
+					}
+					.static-graphics .desktop-drift-layer-slow,
+					.static-graphics .desktop-drift-layer-mid,
+					.static-graphics .desktop-twinkle-a,
+					.static-graphics .desktop-twinkle-b,
+					.static-graphics .desktop-twinkle-c,
+					.static-graphics .desktop-ambient-breath {
+						animation: none !important;
+						transform: none !important;
+						opacity: 0.6 !important;
 					}
 				`}</style>
 

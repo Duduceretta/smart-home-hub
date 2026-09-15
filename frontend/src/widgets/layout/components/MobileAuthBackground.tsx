@@ -1,3 +1,4 @@
+import { useReducedGraphics } from "@/core/hooks/useReducedGraphics";
 import { cn } from "@/core/utils";
 
 interface MobileAuthBackgroundProps {
@@ -5,6 +6,8 @@ interface MobileAuthBackgroundProps {
 }
 
 export function MobileAuthBackground({ className }: MobileAuthBackgroundProps) {
+	const { isReducedGraphics } = useReducedGraphics();
+
 	return (
 		<svg
 			viewBox="0 0 400 800"
@@ -13,6 +16,7 @@ export function MobileAuthBackground({ className }: MobileAuthBackgroundProps) {
 			xmlns="http://www.w3.org/2000/svg"
 			className={cn(
 				"pointer-events-none absolute inset-0 z-0 h-full w-full overflow-hidden lg:hidden",
+				isReducedGraphics && "static-graphics",
 				className,
 			)}
 			aria-hidden="true"
@@ -63,6 +67,14 @@ export function MobileAuthBackground({ className }: MobileAuthBackgroundProps) {
 							opacity: 0.6 !important;
 							transform: none !important;
 						}
+					}
+					.static-graphics .mobile-twinkle-a,
+					.static-graphics .mobile-twinkle-b,
+					.static-graphics .mobile-twinkle-c,
+					.static-graphics .mobile-ambient-breath {
+						animation: none !important;
+						opacity: 0.6 !important;
+						transform: none !important;
 					}
 				`}</style>
 

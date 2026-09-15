@@ -1,6 +1,10 @@
 import { MemoryRouter } from "react-router-dom";
 import { beforeEach, describe, expect, it } from "vitest";
 import i18n from "@/core/i18n";
+import {
+	_resetHardwareCapabilitiesCache,
+	_setMockHardwareCapabilities,
+} from "@/core/utils/hardware";
 import { useAuthIllustrationUIStore } from "@/features/auth/store/auth-illustration-ui.store";
 import {
 	renderWithProviders,
@@ -24,6 +28,7 @@ describe("AuthLayout Integration Tests", () => {
 		await i18n.changeLanguage("pt-BR");
 		document.documentElement.removeAttribute("data-theme");
 		useAuthIllustrationUIStore.getState().resetLamps();
+		_resetHardwareCapabilitiesCache();
 	});
 
 	it("AuthLayout_Rendering_ShouldRenderNexusHubBrandingOnBothDesktopAndMobile", () => {
@@ -226,5 +231,28 @@ describe("AuthLayout Integration Tests", () => {
 		const brandHeadings = screen.getAllByText("Nexus Hub");
 		const mobileBrandContainer = brandHeadings[1]?.closest("div");
 		expect(mobileBrandContainer?.className).toContain("lg:hidden");
+	});
+
+	it("AuthLayout_SoftwareRenderer_ShouldApplyStaticGraphicsAndDisableToggleButtons", () => {
+		_setMockHardwareCapabilities({
+			isSoftwareRenderer: true,
+			isLowConcurrency: false,
+			isLowEndHardware: true,
+			renderer: "Google SwiftShader",
+			hardwareConcurrency: 8,
+		});
+
+		renderAuthLayout(<div>Form Content</div>);
+
+		const illustration = screen.getByLabelText(
+			"Corte arquitetônico da residência",
+		);
+		expect(illustration.getAttribute("class")).toContain("static-graphics");
+
+		// Em modo de renderização por software, os hotspots deixam de ser botões interativos
+		const livingLampButton = screen.queryByRole("button", {
+			name: "Alternar luz da sala (decorativo)",
+		});
+		expect(livingLampButton).toBeNull();
 	});
 });

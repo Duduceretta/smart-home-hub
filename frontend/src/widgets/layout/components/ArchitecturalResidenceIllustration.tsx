@@ -1,4 +1,6 @@
 import { useTranslation } from "react-i18next";
+import { useReducedGraphics } from "@/core/hooks/useReducedGraphics";
+import { cn } from "@/core/utils";
 import { useAuthIllustrationUIStore } from "@/features/auth/store/auth-illustration-ui.store";
 
 interface ArchitecturalResidenceIllustrationProps {
@@ -9,6 +11,7 @@ export function ArchitecturalResidenceIllustration({
 	className,
 }: ArchitecturalResidenceIllustrationProps) {
 	const { t } = useTranslation("auth");
+	const { isReducedGraphics } = useReducedGraphics();
 	const {
 		isLivingLampOn,
 		isBedroomLampOn,
@@ -18,13 +21,23 @@ export function ArchitecturalResidenceIllustration({
 		toggleOfficeLamp,
 	} = useAuthIllustrationUIStore();
 
+	// Em modo gráfico reduzido (renderização por software / sem GPU ou prefers-reduced-motion):
+	// renderiza no estado final com luzes acesas, sem animação nem interatividade de clique.
+	const effectiveLivingLampOn = isReducedGraphics ? true : isLivingLampOn;
+	const effectiveBedroomLampOn = isReducedGraphics ? true : isBedroomLampOn;
+	const effectiveOfficeLampOn = isReducedGraphics ? true : isOfficeLampOn;
+
+	const handleToggleLiving = isReducedGraphics ? undefined : toggleLivingLamp;
+	const handleToggleBedroom = isReducedGraphics ? undefined : toggleBedroomLamp;
+	const handleToggleOffice = isReducedGraphics ? undefined : toggleOfficeLamp;
+
 	return (
 		<svg
 			viewBox="15 165 810 715"
 			preserveAspectRatio="none"
 			fill="none"
 			xmlns="http://www.w3.org/2000/svg"
-			className={className}
+			className={cn(className, isReducedGraphics && "static-graphics")}
 			aria-label={t(
 				"illustration.crossSectionAria",
 				"Corte arquitetônico da residência",
@@ -180,6 +193,26 @@ export function ArchitecturalResidenceIllustration({
 							opacity: 1 !important;
 						}
 					}
+					.static-graphics .house-layer-ground,
+					.static-graphics .house-layer-structure,
+					.static-graphics .house-layer-architecture,
+					.static-graphics .house-layer-furniture,
+					.static-graphics .house-layer-items,
+					.static-graphics .house-layer-lights,
+					.static-graphics .window-drift-layer-slow,
+					.static-graphics .window-drift-layer-mid,
+					.static-graphics .window-twinkle-a,
+					.static-graphics .window-twinkle-b,
+					.static-graphics .window-twinkle-c {
+						animation: none !important;
+						transition: none !important;
+						transform: none !important;
+						opacity: 1 !important;
+					}
+					/* Desativa sombras SVG compostas pesadas (feDropShadow) em modo estático/software para poupar CPU */
+					.static-graphics [filter*="soft-contact-shadow"] {
+						filter: none !important;
+					}
 				`}</style>
 
 				{/* 1. Sombras de contato e profundidade */}
@@ -271,6 +304,21 @@ export function ArchitecturalResidenceIllustration({
 				<radialGradient id="ambient-room-warmth" cx="50%" cy="45%" r="60%">
 					<stop offset="0%" stopColor="var(--warm)" stopOpacity="0.3" />
 					<stop offset="50%" stopColor="var(--warm)" stopOpacity="0.1" />
+					<stop offset="100%" stopColor="var(--warm)" stopOpacity="0" />
+				</radialGradient>
+
+				{/* Halos suaves e graduais de iluminação para lâmpadas (sem filtro de blur nem discos chapados) */}
+				<radialGradient id="lamp-halo-warm" cx="50%" cy="50%" r="50%">
+					<stop offset="0%" stopColor="var(--warm)" stopOpacity="0.8" />
+					<stop offset="25%" stopColor="var(--warm)" stopOpacity="0.45" />
+					<stop offset="60%" stopColor="var(--warm)" stopOpacity="0.15" />
+					<stop offset="85%" stopColor="var(--warm)" stopOpacity="0.03" />
+					<stop offset="100%" stopColor="var(--warm)" stopOpacity="0" />
+				</radialGradient>
+				<radialGradient id="spot-halo-warm" cx="50%" cy="50%" r="50%">
+					<stop offset="0%" stopColor="var(--warm)" stopOpacity="0.85" />
+					<stop offset="30%" stopColor="var(--warm)" stopOpacity="0.4" />
+					<stop offset="65%" stopColor="var(--warm)" stopOpacity="0.12" />
 					<stop offset="100%" stopColor="var(--warm)" stopOpacity="0" />
 				</radialGradient>
 
@@ -2427,7 +2475,7 @@ export function ArchitecturalResidenceIllustration({
 						points="190,285 130,490 250,490"
 						fill="url(#interactive-bedroom-cone)"
 						className="transition-light"
-						style={{ opacity: isBedroomLampOn ? 1 : 0 }}
+						style={{ opacity: effectiveBedroomLampOn ? 1 : 0 }}
 					/>
 
 					{/* Fio e Cúpula do pendente reposicionado mais para cima */}
@@ -2446,17 +2494,26 @@ export function ArchitecturalResidenceIllustration({
 						strokeWidth="0.8"
 					/>
 
-					{/* Hotspot de clique do Pendente do Quarto (tabIndex=-1, não distrai tab do login) */}
-					{/* biome-ignore lint/a11y/useSemanticElements: SVG group used as interactive vector hotspot */}
+					{/* Hotspot de clique do Pendente do Quarto */}
+					{/* biome-ignore lint/a11y/noStaticElementInteractions: Hotspot is non-interactive in static graphics mode */}
 					<g
-						role="button"
-						tabIndex={-1}
-						aria-label={t(
-							"illustration.toggleBedroom",
-							"Alternar luz do quarto (decorativo)",
+						role={isReducedGraphics ? undefined : "button"}
+						tabIndex={isReducedGraphics ? undefined : -1}
+						aria-label={
+							isReducedGraphics
+								? undefined
+								: t(
+										"illustration.toggleBedroom",
+										"Alternar luz do quarto (decorativo)",
+									)
+						}
+						onClick={handleToggleBedroom}
+						className={cn(
+							"group outline-none select-none",
+							isReducedGraphics
+								? "cursor-default"
+								: "cursor-pointer focus:outline-none focus-visible:outline-none",
 						)}
-						onClick={toggleBedroomLamp}
-						className="cursor-pointer group outline-none focus:outline-none focus-visible:outline-none select-none"
 					>
 						{/* Área de toque expandida invisível */}
 						<circle cx="190" cy="285" r="22" fill="transparent" />
@@ -2464,18 +2521,31 @@ export function ArchitecturalResidenceIllustration({
 						<circle
 							cx="190"
 							cy="287"
-							r="4"
-							fill={isBedroomLampOn ? "var(--warm)" : "var(--border)"}
+							r={isReducedGraphics ? "3.5" : "4"}
+							fill={effectiveBedroomLampOn ? "var(--warm)" : "var(--border)"}
 							className="transition-light"
 						/>
-						<circle
-							cx="190"
-							cy="287"
-							r="10"
-							fill="var(--warm)"
-							className="transition-light"
-							style={{ opacity: isBedroomLampOn ? 0.35 : 0 }}
-						/>
+						{isReducedGraphics ? (
+							/* Em modo software renderer: halo difuso em radial-gradient */
+							<circle
+								cx="190"
+								cy="287"
+								r="16"
+								fill="url(#lamp-halo-warm)"
+								className="transition-light pointer-events-none"
+								style={{ opacity: effectiveBedroomLampOn ? 1 : 0 }}
+							/>
+						) : (
+							/* Em modo GPU padrão: preserva rigorosamente as camadas e glow originais */
+							<circle
+								cx="190"
+								cy="287"
+								r="10"
+								fill="var(--warm)"
+								className="transition-light"
+								style={{ opacity: isBedroomLampOn ? 0.35 : 0 }}
+							/>
+						)}
 					</g>
 				</g>
 
@@ -2487,7 +2557,7 @@ export function ArchitecturalResidenceIllustration({
 						points="661,221.5 671,221.5 730,490 602,490"
 						fill="url(#interactive-office-cone)"
 						className="transition-light"
-						style={{ opacity: isOfficeLampOn ? 1 : 0 }}
+						style={{ opacity: effectiveOfficeLampOn ? 1 : 0 }}
 					/>
 					{/* Poça de luz na bancada de trabalho */}
 					<ellipse
@@ -2497,20 +2567,29 @@ export function ArchitecturalResidenceIllustration({
 						ry="3.5"
 						fill="var(--warm)"
 						className="transition-light"
-						style={{ opacity: isOfficeLampOn ? 0.18 : 0 }}
+						style={{ opacity: effectiveOfficeLampOn ? 0.18 : 0 }}
 					/>
 
 					{/* Hotspot de clique e Luminária spot contemporânea de sobrepor (grudada no teto a y=205, alinhada a x=666) */}
-					{/* biome-ignore lint/a11y/useSemanticElements: SVG group used as interactive vector hotspot */}
+					{/* biome-ignore lint/a11y/noStaticElementInteractions: Hotspot is non-interactive in static graphics mode */}
 					<g
-						role="button"
-						tabIndex={-1}
-						aria-label={t(
-							"illustration.toggleOffice",
-							"Alternar luz do escritório (decorativo)",
+						role={isReducedGraphics ? undefined : "button"}
+						tabIndex={isReducedGraphics ? undefined : -1}
+						aria-label={
+							isReducedGraphics
+								? undefined
+								: t(
+										"illustration.toggleOffice",
+										"Alternar luz do escritório (decorativo)",
+									)
+						}
+						onClick={handleToggleOffice}
+						className={cn(
+							"group outline-none select-none",
+							isReducedGraphics
+								? "cursor-default"
+								: "cursor-pointer focus:outline-none focus-visible:outline-none",
 						)}
-						onClick={toggleOfficeLamp}
-						className="cursor-pointer group outline-none focus:outline-none focus-visible:outline-none select-none"
 					>
 						{/* Área de toque expandida invisível centrada geometricamente na luminária (x=666, y=213.5) */}
 						<circle
@@ -2569,30 +2648,44 @@ export function ArchitecturalResidenceIllustration({
 						<ellipse
 							cx="666"
 							cy="221.5"
-							rx="5"
-							ry="1.6"
-							fill={isOfficeLampOn ? "var(--warm)" : "var(--border)"}
+							rx={isReducedGraphics ? "4.5" : "5"}
+							ry={isReducedGraphics ? "1.5" : "1.6"}
+							fill={effectiveOfficeLampOn ? "var(--warm)" : "var(--border)"}
 							className="transition-light"
 						/>
-						{/* Brilho imediato quando acesa */}
-						<ellipse
-							cx="666"
-							cy="221.5"
-							rx="9"
-							ry="2.8"
-							fill="var(--warm)"
-							className="transition-light pointer-events-none"
-							style={{ opacity: isOfficeLampOn ? 0.4 : 0 }}
-						/>
-						{/* Halo atmosférico difuso (pointer-events-none para não desviar o clique para baixo) */}
-						<circle
-							cx="666"
-							cy="222"
-							r="16"
-							fill="var(--warm)"
-							className="transition-light pointer-events-none"
-							style={{ opacity: isOfficeLampOn ? 0.15 : 0 }}
-						/>
+						{isReducedGraphics ? (
+							/* Em modo software renderer: halo difuso suave com radial-gradient sem filtros */
+							<ellipse
+								cx="666"
+								cy="222"
+								rx="20"
+								ry="14"
+								fill="url(#spot-halo-warm)"
+								className="transition-light pointer-events-none"
+								style={{ opacity: effectiveOfficeLampOn ? 0.95 : 0 }}
+							/>
+						) : (
+							/* Em modo GPU padrão: preserva rigorosamente as camadas e glow originais */
+							<>
+								<ellipse
+									cx="666"
+									cy="221.5"
+									rx="9"
+									ry="2.8"
+									fill="var(--warm)"
+									className="transition-light pointer-events-none"
+									style={{ opacity: isOfficeLampOn ? 0.4 : 0 }}
+								/>
+								<circle
+									cx="666"
+									cy="222"
+									r="16"
+									fill="var(--warm)"
+									className="transition-light pointer-events-none"
+									style={{ opacity: isOfficeLampOn ? 0.15 : 0 }}
+								/>
+							</>
+						)}
 					</g>
 				</g>
 
@@ -3460,7 +3553,7 @@ export function ArchitecturalResidenceIllustration({
 					{/* Efeito de luz logo abaixo da lâmpada quando ligada */}
 					<g
 						className="transition-light"
-						style={{ opacity: isLivingLampOn ? 1 : 0 }}
+						style={{ opacity: effectiveLivingLampOn ? 1 : 0 }}
 					>
 						{/* Feixe cônico de luz descendo diretamente sob a cúpula */}
 						<polygon
@@ -3601,17 +3694,26 @@ export function ArchitecturalResidenceIllustration({
 						strokeLinecap="round"
 					/>
 
-					{/* Hotspot de clique da Luminária Arco (tabIndex=-1, não distrai formulário) */}
-					{/* biome-ignore lint/a11y/useSemanticElements: SVG group used as interactive vector hotspot */}
+					{/* Hotspot de clique da Luminária Arco */}
+					{/* biome-ignore lint/a11y/noStaticElementInteractions: Hotspot is non-interactive in static graphics mode */}
 					<g
-						role="button"
-						tabIndex={-1}
-						aria-label={t(
-							"illustration.toggleLiving",
-							"Alternar luz da sala (decorativo)",
+						role={isReducedGraphics ? undefined : "button"}
+						tabIndex={isReducedGraphics ? undefined : -1}
+						aria-label={
+							isReducedGraphics
+								? undefined
+								: t(
+										"illustration.toggleLiving",
+										"Alternar luz da sala (decorativo)",
+									)
+						}
+						onClick={handleToggleLiving}
+						className={cn(
+							"group outline-none select-none",
+							isReducedGraphics
+								? "cursor-default"
+								: "cursor-pointer focus:outline-none focus-visible:outline-none",
 						)}
-						onClick={toggleLivingLamp}
-						className="cursor-pointer group outline-none focus:outline-none focus-visible:outline-none select-none"
 					>
 						{/* Área de toque expandida invisível */}
 						<circle cx="210" cy="655" r="26" fill="transparent" />
@@ -3622,31 +3724,45 @@ export function ArchitecturalResidenceIllustration({
 							stroke="var(--border)"
 							strokeWidth="1"
 						/>
-						{/* Ponto de luz interativo */}
+						{/* Ponto de luz físico da lâmpada */}
 						<circle
 							cx="210"
 							cy="658"
 							r="4"
-							fill={isLivingLampOn ? "var(--warm)" : "var(--border)"}
+							fill={effectiveLivingLampOn ? "var(--warm)" : "var(--border)"}
 							className="transition-light"
 						/>
-						{/* Glow suave ao redor da lâmpada */}
-						<circle
-							cx="210"
-							cy="658"
-							r="12"
-							fill="var(--warm)"
-							className="transition-light"
-							style={{ opacity: isLivingLampOn ? 0.45 : 0 }}
-						/>
-						<circle
-							cx="210"
-							cy="658"
-							r="24"
-							fill="var(--warm)"
-							className="transition-light"
-							style={{ opacity: isLivingLampOn ? 0.15 : 0 }}
-						/>
+						{isReducedGraphics ? (
+							/* Em modo software renderer: halo difuso em radial-gradient sem depender de filtros */
+							<circle
+								cx="210"
+								cy="658"
+								r="26"
+								fill="url(#lamp-halo-warm)"
+								className="transition-light pointer-events-none"
+								style={{ opacity: effectiveLivingLampOn ? 1 : 0 }}
+							/>
+						) : (
+							/* Em modo GPU padrão: preserva rigorosamente as camadas e glow originais */
+							<>
+								<circle
+									cx="210"
+									cy="658"
+									r="12"
+									fill="var(--warm)"
+									className="transition-light"
+									style={{ opacity: isLivingLampOn ? 0.45 : 0 }}
+								/>
+								<circle
+									cx="210"
+									cy="658"
+									r="24"
+									fill="var(--warm)"
+									className="transition-light"
+									style={{ opacity: isLivingLampOn ? 0.15 : 0 }}
+								/>
+							</>
+						)}
 					</g>
 				</g>
 

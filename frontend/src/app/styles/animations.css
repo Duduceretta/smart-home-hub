@@ -249,8 +249,23 @@
 	*,
 	*::before,
 	*::after {
-		animation-duration: 0.01ms;
-		animation-delay: 0.01ms;
-		transition-duration: 0.01ms;
+		animation-duration: 0.01ms !important;
+		animation-delay: 0.01ms !important;
+		transition-duration: 0.01ms !important;
 	}
+	.opacity-0-init {
+		opacity: 1 !important;
+	}
+}
+
+.static-graphics .opacity-0-init {
+	opacity: 1 !important;
+}
+
+.static-graphics *,
+.static-graphics *::before,
+.static-graphics *::after {
+	animation-duration: 0.01ms !important;
+	animation-delay: 0.01ms !important;
+	transition-duration: 0.01ms !important;
 }

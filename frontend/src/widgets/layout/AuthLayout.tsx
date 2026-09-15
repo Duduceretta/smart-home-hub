@@ -2,6 +2,7 @@ import { type ReactNode, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Outlet, useLocation } from "react-router-dom";
 import { NexusHubWordmark } from "@/core/components/brand";
+import { useReducedGraphics } from "@/core/hooks/useReducedGraphics";
 import { cn } from "@/core/utils";
 import { LanguageSelector } from "@/features/settings/components/LanguageSelector";
 import { ThemePresetSelector } from "@/features/settings/components/ThemePresetSelector";
@@ -17,22 +18,28 @@ interface AuthLayoutProps {
 export function AuthLayout({ children }: AuthLayoutProps) {
 	const { t } = useTranslation("auth");
 	const location = useLocation();
+	const { isReducedGraphics } = useReducedGraphics();
 	const [mounted, setMounted] = useState(false);
 
 	useEffect(() => {
-		const t = setTimeout(() => setMounted(true), 80);
-		return () => clearTimeout(t);
+		const timer = setTimeout(() => setMounted(true), 80);
+		return () => clearTimeout(timer);
 	}, []);
 
 	return (
-		<main className="relative flex min-h-screen w-full flex-col bg-background selection:bg-primary/30 lg:flex-row antialiased">
+		<main
+			className={cn(
+				"relative flex min-h-screen w-full flex-col bg-background selection:bg-primary/30 lg:flex-row antialiased",
+				isReducedGraphics && "static-graphics",
+			)}
+		>
 			{/* LADO ESQUERDO: Painel Decorativo de Corte Arquitetônico (Fixo para Desktop) */}
 			<section className="sticky top-0 z-20 hidden h-screen overflow-hidden border-r border-border-subtle bg-background shadow-[15px_0_50px_rgba(0,0,0,0.5)] lg:flex lg:w-7/12">
 				<div className="absolute inset-0 z-0 overflow-hidden">
 					{/* Ilustração arquitetônica com montagem progressiva sequencial */}
 					<div
 						data-testid="auth-illustration-container"
-						className="h-full w-full"
+						className="relative h-full w-full"
 					>
 						<ArchitecturalResidenceIllustration
 							key={location.pathname}
@@ -78,8 +85,8 @@ export function AuthLayout({ children }: AuthLayoutProps) {
 				</div>
 			</section>
 
-			{/* LADO DIREITO (Dinâmico, recebe os formulários) */}
-			<section className="relative z-10 flex min-h-screen w-full flex-col items-center justify-between overflow-y-auto bg-background p-4 py-4 sm:p-8 lg:p-8 2xl:p-12 lg:w-5/12">
+			{/* LADO DIREITO (Dinâmico, recebe os formulários com escalabilidade proporcional) */}
+			<section className="relative z-10 flex min-h-screen w-full flex-col items-center justify-between overflow-y-auto bg-background p-4 sm:p-6 lg:p-8 2xl:p-12 lg:w-5/12">
 				{/* Fundo dinâmico/sutil reaproveitando o céu noturno e calor da residência (mobile e desktop) */}
 				<MobileAuthBackground />
 				<DesktopAuthBackground />
@@ -101,10 +108,8 @@ export function AuthLayout({ children }: AuthLayoutProps) {
 					</div>
 				</header>
 
-				{/* Espaçador superior para alinhamento vertical equilibrado no desktop */}
-				<div className="hidden lg:block w-full h-4" aria-hidden="true" />
-
-				<div className="relative z-10 flex w-full flex-1 flex-col items-center justify-center my-auto">
+				{/* Área central do formulário com preenchimento vertical proporcional para acomodar zoom */}
+				<div className="relative z-10 flex w-full flex-1 flex-col items-center justify-center py-6 sm:py-8 lg:py-10">
 					<div className="flex w-full justify-center">
 						{children ?? <Outlet />}
 					</div>
