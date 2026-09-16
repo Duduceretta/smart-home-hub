@@ -1,0 +1,46 @@
+{
+	"greeting": {
+		"morning": "Bom dia",
+		"afternoon": "Boa tarde",
+		"evening": "Boa noite",
+		"fallbackName": "por aqui"
+	},
+	"projectTitle": "Nexus Hub",
+	"header": {
+		"statusConnected": "Online",
+		"switchProject": "Alternar residência",
+		"addProject": "Adicionar residência (em breve)",
+		"activeCount_one": "{{count}} ativo",
+		"activeCount_other": "{{count}} ativos",
+		"allQuiet": "Tudo tranquilo"
+	},
+	"devices": {
+		"title": "Dispositivos",
+		"empty": "Nenhum dispositivo cadastrado ainda.",
+		"viewAll": "Ver todos",
+		"filterAll": "Todos",
+		"filterActive": "Ligados",
+		"actionManage": "Gerenciar dispositivos"
+	},
+	"scenes": {
+		"title": "Cenas & Ações Rápidas",
+		"emptyTitle": "Nenhuma cena favorita configurada",
+		"emptyDescription": "Atalhos rápidos para executar rotinas com um toque estarão disponíveis aqui.",
+		"actionExplore": "Ver automações"
+	},
+	"activity": {
+		"title": "Atividade recente",
+		"empty": "Nenhuma atividade recente.",
+		"viewAll": "Ver tudo",
+		"justNow": "Agora mesmo"
+	},
+	"alerts": {
+		"title_one": "{{count}} alerta ativo",
+		"title_other": "{{count}} alertas ativos",
+		"viewAll": "Ver detalhes"
+	},
+	"errors": {
+		"loadFailed": "Não foi possível carregar a Início",
+		"retry": "Tentar novamente"
+	}
+}

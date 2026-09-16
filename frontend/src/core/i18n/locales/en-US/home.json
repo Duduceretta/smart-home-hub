@@ -1,0 +1,46 @@
+{
+	"greeting": {
+		"morning": "Good morning",
+		"afternoon": "Good afternoon",
+		"evening": "Good evening",
+		"fallbackName": "there"
+	},
+	"projectTitle": "Nexus Hub",
+	"header": {
+		"statusConnected": "Online",
+		"switchProject": "Switch residence",
+		"addProject": "Add residence (coming soon)",
+		"activeCount_one": "{{count}} active",
+		"activeCount_other": "{{count}} active",
+		"allQuiet": "All quiet"
+	},
+	"devices": {
+		"title": "Devices",
+		"empty": "No devices registered yet.",
+		"viewAll": "View all",
+		"filterAll": "All",
+		"filterActive": "Active",
+		"actionManage": "Manage devices"
+	},
+	"scenes": {
+		"title": "Scenes & Quick Actions",
+		"emptyTitle": "No favorite scenes configured",
+		"emptyDescription": "Quick one-tap shortcuts to trigger routines will appear here.",
+		"actionExplore": "View automations"
+	},
+	"activity": {
+		"title": "Recent activity",
+		"empty": "No recent activity.",
+		"viewAll": "View all",
+		"justNow": "Just now"
+	},
+	"alerts": {
+		"title_one": "{{count}} active alert",
+		"title_other": "{{count}} active alerts",
+		"viewAll": "View details"
+	},
+	"errors": {
+		"loadFailed": "Couldn't load Home",
+		"retry": "Retry"
+	}
+}

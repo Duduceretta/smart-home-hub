@@ -3,6 +3,7 @@ import {
 	Bot,
 	DoorOpen,
 	History,
+	Home,
 	Layers,
 	LayoutDashboard,
 	Router,
@@ -42,6 +43,12 @@ export const NAV_SECTIONS: NavSection[] = [
 		id: "main",
 		title: "Principal",
 		items: [
+			{
+				id: "home",
+				name: "Início",
+				path: "/home",
+				icon: Home,
+			},
 			{
 				id: "dashboard",
 				name: "Dashboard",
@@ -108,8 +115,11 @@ export function isRouteActive(
 	currentPath: string,
 	targetPath: string,
 ): boolean {
+	if (targetPath === "/home") {
+		return currentPath === "/home" || currentPath === "/";
+	}
 	if (targetPath === "/dashboard") {
-		return currentPath === "/dashboard" || currentPath === "/";
+		return currentPath === "/dashboard";
 	}
 	return currentPath === targetPath || currentPath.startsWith(`${targetPath}/`);
 }

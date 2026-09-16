@@ -9,6 +9,7 @@ import enDashboard from "./locales/en-US/dashboard.json";
 import enDeviceGroups from "./locales/en-US/device-groups.json";
 import enDevices from "./locales/en-US/devices.json";
 import enHistory from "./locales/en-US/history.json";
+import enHome from "./locales/en-US/home.json";
 import enIntegrations from "./locales/en-US/integrations.json";
 import enLegal from "./locales/en-US/legal.json";
 import enRooms from "./locales/en-US/rooms.json";
@@ -20,6 +21,7 @@ import ptDashboard from "./locales/pt-BR/dashboard.json";
 import ptDeviceGroups from "./locales/pt-BR/device-groups.json";
 import ptDevices from "./locales/pt-BR/devices.json";
 import ptHistory from "./locales/pt-BR/history.json";
+import ptHome from "./locales/pt-BR/home.json";
 import ptIntegrations from "./locales/pt-BR/integrations.json";
 import ptLegal from "./locales/pt-BR/legal.json";
 import ptRooms from "./locales/pt-BR/rooms.json";
@@ -32,6 +34,7 @@ export const resources = {
 		common: ptCommon,
 		devices: ptDevices,
 		dashboard: ptDashboard,
+		home: ptHome,
 		rooms: ptRooms,
 		"device-groups": ptDeviceGroups,
 		auth: ptAuth,
@@ -45,6 +48,7 @@ export const resources = {
 		common: enCommon,
 		devices: enDevices,
 		dashboard: enDashboard,
+		home: enHome,
 		rooms: enRooms,
 		"device-groups": enDeviceGroups,
 		auth: enAuth,
@@ -67,6 +71,7 @@ i18n
 			"common",
 			"devices",
 			"dashboard",
+			"home",
 			"rooms",
 			"device-groups",
 			"auth",

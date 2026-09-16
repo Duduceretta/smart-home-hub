@@ -42,6 +42,7 @@ const VerifyEmailPage = lazy(
 );
 const PrivacyPage = lazy(() => import("@/pages/legal/privacy/PrivacyPage"));
 const TermsPage = lazy(() => import("@/pages/legal/terms/TermsPage"));
+const HomePage = lazy(() => import("@/pages/home/HomePage"));
 const DashboardPage = lazy(() => import("@/pages/dashboard/DashboardPage"));
 const DevicesPage = lazy(() => import("@/pages/devices/DevicesPage"));
 const RoomsPage = lazy(() => import("@/pages/rooms/RoomsPage"));
@@ -104,6 +105,10 @@ export const router = createBrowserRouter([
 				element: <AppLayout />,
 				children: [
 					{
+						path: "/home",
+						element: withFallback(<HomePage />),
+					},
+					{
 						path: "/dashboard",
 						element: <DashboardPage />,
 					},
@@ -162,7 +167,7 @@ export const router = createBrowserRouter([
 	},
 	{
 		path: "/",
-		element: <Navigate to="/dashboard" replace />,
+		element: <Navigate to="/home" replace />,
 	},
 ]);
 
