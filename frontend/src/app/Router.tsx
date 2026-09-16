@@ -9,12 +9,26 @@ import { RouteErrorBoundary } from "@/core/components/feedback/PageErrorBoundary
 import { ProtectedRoute } from "@/features/auth/guards/ProtectedRoute";
 import { PublicRoute } from "@/features/auth/guards/PublicRoute";
 import { AppLayout } from "@/widgets/layout/AppLayout";
+import { AuthLayout } from "@/widgets/layout/AuthLayout";
+import { AuthRoutePendingFallback } from "./AuthRoutePendingFallback";
 import { RoutePendingFallback } from "./RoutePendingFallback";
 
 // Cada página vira seu próprio chunk — sem isso, /login baixava o mesmo
 // bundle de 1.6MB de /dashboard (recharts, SignalR, todas as features),
 // mesmo sem precisar de nenhum deles antes do usuário autenticar.
-const AuthLayout = lazy(() => import("@/widgets/layout/AuthLayout"));
+//
+// AuthLayout (o shell visual, não as páginas) fica de fora do lazy loading
+// de propósito: ele não carrega nada do dashboard (isso já é resolvido pelas
+// páginas abaixo serem separadas), e é praticamente garantido que qualquer
+// visitante não autenticado vai precisar dele de imediato. Deixá-lo lazy só
+// adicionava uma viagem de rede a mais e um Suspense fallback genérico
+// (centralizado na viewport inteira) que não conhece o layout de 2 colunas
+// do AuthLayout — no load a frio, o spinner aparecia centralizado na tela
+// inteira e, ao resolver o chunk, o formulário "pulava" pra coluna direita
+// (~29% da largura da viewport, mensurado). Com AuthLayout estático, o shell
+// (e a posição onde o card vai cair) já existe desde o primeiro frame — o
+// Suspense de cada página (abaixo) permanece, mas agora renderiza dentro do
+// slot certo, sem salto.
 const LoginPage = lazy(() => import("@/pages/login/LoginPage"));
 const RegisterPage = lazy(() => import("@/pages/register/RegisterPage"));
 const ForgotPasswordPage = lazy(
@@ -48,29 +62,35 @@ function withFallback(element: React.ReactNode) {
 	return <Suspense fallback={<RoutePendingFallback />}>{element}</Suspense>;
 }
 
+// Só pras 5 páginas de auth, que renderizam dentro do outlet já centralizado
+// do AuthLayout — ver AuthRoutePendingFallback.tsx pro porquê.
+function withAuthFallback(element: React.ReactNode) {
+	return <Suspense fallback={<AuthRoutePendingFallback />}>{element}</Suspense>;
+}
+
 export const router = createBrowserRouter([
 	{
 		element: <PublicRoute />,
 		errorElement: <RouteErrorBoundary />,
 		children: [
 			{
-				element: withFallback(<AuthLayout />),
+				element: <AuthLayout />,
 				children: [
 					{
 						path: "/login",
-						element: withFallback(<LoginPage />),
+						element: withAuthFallback(<LoginPage />),
 					},
 					{
 						path: "/register",
-						element: withFallback(<RegisterPage />),
+						element: withAuthFallback(<RegisterPage />),
 					},
 					{
 						path: "/forgot-password",
-						element: withFallback(<ForgotPasswordPage />),
+						element: withAuthFallback(<ForgotPasswordPage />),
 					},
 					{
 						path: "/reset-password",
-						element: withFallback(<ResetPasswordPage />),
+						element: withAuthFallback(<ResetPasswordPage />),
 					},
 				],
 			},
@@ -124,11 +144,11 @@ export const router = createBrowserRouter([
 		],
 	},
 	{
-		element: withFallback(<AuthLayout />),
+		element: <AuthLayout />,
 		children: [
 			{
 				path: "/verify-email",
-				element: withFallback(<VerifyEmailPage />),
+				element: withAuthFallback(<VerifyEmailPage />),
 			},
 		],
 	},
