@@ -29,7 +29,13 @@ export function AuthLayout({ children }: AuthLayoutProps) {
 	return (
 		<main
 			className={cn(
-				"relative flex min-h-screen w-full flex-col bg-background selection:bg-primary/30 lg:flex-row antialiased",
+				// min-h-svh (não min-h-screen): na carga inicial mobile a barra de endereço
+				// ainda está visível, então 100vh assume mais altura do que a área realmente
+				// visível — o conteúdo "vaza" e exige scroll pra assentar. svh assume o menor
+				// tamanho garantido (barra sempre visível), então já nasce do tamanho certo.
+				// Só aqui no AuthLayout — o dashboard mantém min-h-screen de propósito, por
+				// causa do comportamento do teclado virtual.
+				"relative flex min-h-svh w-full flex-col bg-background selection:bg-primary/30 lg:flex-row antialiased",
 				isReducedGraphics && "static-graphics",
 			)}
 		>
@@ -95,7 +101,7 @@ export function AuthLayout({ children }: AuthLayoutProps) {
 			</section>
 
 			{/* LADO DIREITO (Dinâmico, recebe os formulários com escalabilidade proporcional) */}
-			<section className="relative z-10 flex min-h-screen w-full flex-col items-center justify-between overflow-y-auto bg-background p-4 sm:p-6 lg:p-8 2xl:p-12 lg:w-5/12">
+			<section className="relative z-10 flex min-h-svh w-full flex-col items-center justify-between overflow-y-auto bg-background px-5 py-4 sm:p-6 lg:p-8 2xl:p-12 lg:w-5/12">
 				{/* Fundo dinâmico/sutil reaproveitando o céu noturno e calor da residência (mobile e desktop) */}
 				<MobileAuthBackground />
 				<DesktopAuthBackground />
