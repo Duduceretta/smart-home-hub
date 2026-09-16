@@ -56,107 +56,116 @@ export function VerifyEmailContent() {
 	}, [oobCode, setUser]);
 
 	return (
-		<div className="relative w-full max-w-95 overflow-hidden rounded-2xl border border-border-subtle bg-surface-low/80 p-5 sm:p-7 shadow-2xl backdrop-blur-xl animate-fade-up text-center">
+		<div className="relative w-full max-w-95 overflow-hidden rounded-2xl border border-border-subtle bg-surface-low/80 p-6 sm:p-8 shadow-2xl backdrop-blur-xl animate-fade-up text-center">
 			<div className="shimmer-line absolute left-0 right-0 top-0 h-px" />
 
-			{status === "verifying" && (
-				<div className="flex flex-col items-center justify-center py-6">
-					<div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl border border-border-subtle bg-surface-container shadow-inner">
-						<Loader2 className="h-7 w-7 animate-spin text-primary" />
-					</div>
-					<h2 className="mb-2 text-xl sm:text-2xl font-semibold text-foreground">
-						{t("verifyEmail.page.verifyingTitle", "Verificando seu e-mail...")}
-					</h2>
-					<p className="text-sm text-muted-foreground leading-relaxed max-w-xs">
-						{t(
-							"verifyEmail.page.verifyingDescription",
-							"Aguarde um instante enquanto validamos a confirmação da sua conta.",
-						)}
-					</p>
-				</div>
-			)}
-
-			{status === "success" && (
-				<div className="flex flex-col items-center justify-center py-4 animate-fade-up">
-					<div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl border border-emerald-500/30 bg-emerald-500/10 shadow-[0_0_20px_rgba(16,185,129,0.15)]">
-						<CheckCircle2 className="h-7 w-7 text-emerald-500" />
-					</div>
-					<h2 className="mb-2 text-xl sm:text-2xl font-semibold text-foreground">
-						{t(
-							"verifyEmail.page.successTitle",
-							"E-mail confirmado com sucesso!",
-						)}
-					</h2>
-					<p className="mb-6 text-sm text-muted-foreground leading-relaxed">
-						{t(
-							"verifyEmail.page.successDescription",
-							"Sua conta foi validada com êxito. Agora você conta com proteção total e todas as notificações ativas.",
-						)}
-					</p>
-
-					<div className="w-full">
-						{user ? (
-							<Link to="/dashboard" className="w-full block">
-								<Button
-									type="button"
-									className="h-11 w-full rounded-lg border border-border bg-surface-high text-sm font-semibold text-foreground shadow-xs transition-all hover:border-foreground/40 hover:bg-surface-highest active:scale-[0.99] cursor-pointer"
-								>
-									{t("verifyEmail.page.goToDashboard", "Acessar Dashboard")}
-								</Button>
-							</Link>
-						) : (
-							<Link to="/login" className="w-full block">
-								<Button
-									type="button"
-									className="h-11 w-full rounded-lg border border-border bg-surface-high text-sm font-semibold text-foreground shadow-xs transition-all hover:border-foreground/40 hover:bg-surface-highest active:scale-[0.99] cursor-pointer"
-								>
-									{t("verifyEmail.page.goToLogin", "Ir para o Login")}
-								</Button>
-							</Link>
-						)}
-					</div>
-				</div>
-			)}
-
-			{status === "error" && (
-				<div className="flex flex-col items-center justify-center py-4 animate-fade-up">
-					<div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl border border-destructive/30 bg-destructive/10 shadow-[0_0_20px_rgba(239,68,68,0.15)]">
-						<XCircle className="h-7 w-7 text-destructive" />
-					</div>
-					<h2 className="mb-2 text-xl sm:text-2xl font-semibold text-foreground">
-						{t("verifyEmail.page.errorTitle", "Link inválido ou expirado")}
-					</h2>
-					<p className="mb-6 text-sm text-muted-foreground leading-relaxed">
-						{translateError(errorMessage) ||
-							t(
-								"verifyEmail.page.errorDescription",
-								"Este link de confirmação não é mais válido ou já foi utilizado.",
+			{/* role="status" (implica aria-live="polite"): a troca de verificando
+			para sucesso/erro precisa ser anunciada — não é um "alert" urgente,
+			mas sem isso quem usa leitor de tela não sabe quando o resultado
+			chega, só o visual muda. */}
+			<div role="status" aria-atomic="true">
+				{status === "verifying" && (
+					<div className="flex flex-col items-center justify-center py-6">
+						<div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl border border-border-subtle bg-surface-container shadow-inner">
+							<Loader2 className="h-7 w-7 animate-spin text-primary" />
+						</div>
+						<h2 className="mb-2 text-xl sm:text-2xl font-semibold text-foreground">
+							{t(
+								"verifyEmail.page.verifyingTitle",
+								"Verificando seu e-mail...",
 							)}
-					</p>
-
-					<div className="w-full space-y-3">
-						{user ? (
-							<Link to="/dashboard" className="w-full block">
-								<Button
-									type="button"
-									className="h-11 w-full rounded-lg border border-border bg-surface-high text-sm font-semibold text-foreground shadow-xs transition-all hover:border-foreground/40 hover:bg-surface-highest active:scale-[0.99] cursor-pointer"
-								>
-									{t("verifyEmail.page.goToDashboard", "Acessar Dashboard")}
-								</Button>
-							</Link>
-						) : (
-							<Link to="/login" className="w-full block">
-								<Button
-									type="button"
-									className="h-11 w-full rounded-lg border border-border bg-surface-high text-sm font-semibold text-foreground shadow-xs transition-all hover:border-foreground/40 hover:bg-surface-highest active:scale-[0.99] cursor-pointer"
-								>
-									{t("verifyEmail.page.goToLogin", "Ir para o Login")}
-								</Button>
-							</Link>
-						)}
+						</h2>
+						<p className="text-sm text-muted-foreground leading-relaxed max-w-xs">
+							{t(
+								"verifyEmail.page.verifyingDescription",
+								"Aguarde um instante enquanto validamos a confirmação da sua conta.",
+							)}
+						</p>
 					</div>
-				</div>
-			)}
+				)}
+
+				{status === "success" && (
+					<div className="flex flex-col items-center justify-center py-4 animate-fade-up">
+						<div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl border border-emerald-500/30 bg-emerald-500/10 shadow-[0_0_20px_rgba(16,185,129,0.15)]">
+							<CheckCircle2 className="h-7 w-7 text-emerald-500" />
+						</div>
+						<h2 className="mb-2 text-xl sm:text-2xl font-semibold text-foreground">
+							{t(
+								"verifyEmail.page.successTitle",
+								"E-mail confirmado com sucesso!",
+							)}
+						</h2>
+						<p className="mb-6 text-sm text-muted-foreground leading-relaxed">
+							{t(
+								"verifyEmail.page.successDescription",
+								"Sua conta foi validada com êxito. Agora você conta com proteção total e todas as notificações ativas.",
+							)}
+						</p>
+
+						<div className="w-full">
+							{user ? (
+								<Link to="/dashboard" className="w-full block">
+									<Button
+										type="button"
+										className="h-11 w-full rounded-lg border border-border bg-surface-high text-sm font-semibold text-foreground shadow-xs transition-all hover:border-foreground/40 hover:bg-surface-highest active:scale-[0.99] cursor-pointer"
+									>
+										{t("verifyEmail.page.goToDashboard", "Acessar Dashboard")}
+									</Button>
+								</Link>
+							) : (
+								<Link to="/login" className="w-full block">
+									<Button
+										type="button"
+										className="h-11 w-full rounded-lg border border-border bg-surface-high text-sm font-semibold text-foreground shadow-xs transition-all hover:border-foreground/40 hover:bg-surface-highest active:scale-[0.99] cursor-pointer"
+									>
+										{t("verifyEmail.page.goToLogin", "Ir para o Login")}
+									</Button>
+								</Link>
+							)}
+						</div>
+					</div>
+				)}
+
+				{status === "error" && (
+					<div className="flex flex-col items-center justify-center py-4 animate-fade-up">
+						<div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl border border-destructive/30 bg-destructive/10 shadow-[0_0_20px_rgba(239,68,68,0.15)]">
+							<XCircle className="h-7 w-7 text-destructive" />
+						</div>
+						<h2 className="mb-2 text-xl sm:text-2xl font-semibold text-foreground">
+							{t("verifyEmail.page.errorTitle", "Link inválido ou expirado")}
+						</h2>
+						<p className="mb-6 text-sm text-muted-foreground leading-relaxed">
+							{translateError(errorMessage) ||
+								t(
+									"verifyEmail.page.errorDescription",
+									"Este link de confirmação não é mais válido ou já foi utilizado.",
+								)}
+						</p>
+
+						<div className="w-full space-y-3">
+							{user ? (
+								<Link to="/dashboard" className="w-full block">
+									<Button
+										type="button"
+										className="h-11 w-full rounded-lg border border-border bg-surface-high text-sm font-semibold text-foreground shadow-xs transition-all hover:border-foreground/40 hover:bg-surface-highest active:scale-[0.99] cursor-pointer"
+									>
+										{t("verifyEmail.page.goToDashboard", "Acessar Dashboard")}
+									</Button>
+								</Link>
+							) : (
+								<Link to="/login" className="w-full block">
+									<Button
+										type="button"
+										className="h-11 w-full rounded-lg border border-border bg-surface-high text-sm font-semibold text-foreground shadow-xs transition-all hover:border-foreground/40 hover:bg-surface-highest active:scale-[0.99] cursor-pointer"
+									>
+										{t("verifyEmail.page.goToLogin", "Ir para o Login")}
+									</Button>
+								</Link>
+							)}
+						</div>
+					</div>
+				)}
+			</div>
 		</div>
 	);
 }

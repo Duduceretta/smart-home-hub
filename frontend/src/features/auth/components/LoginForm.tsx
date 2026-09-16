@@ -21,7 +21,7 @@ export function LoginForm() {
 
 	return (
 		<div
-			className="relative w-full max-w-95 overflow-hidden rounded-2xl border border-border-subtle bg-surface-low/80 p-5 sm:p-7 shadow-2xl backdrop-blur-xl animate-fade-up delay-100 opacity-0-init"
+			className="relative w-full max-w-95 overflow-hidden rounded-2xl border border-border-subtle bg-surface-low/80 p-6 sm:p-8 shadow-2xl backdrop-blur-xl animate-fade-up delay-100 opacity-0-init"
 			style={{ animationFillMode: "forwards" }}
 		>
 			<div className="shimmer-line absolute left-0 right-0 top-0 h-px" />
@@ -61,7 +61,10 @@ export function LoginForm() {
 					labelRight={
 						<Link
 							to="/forgot-password"
-							className="text-xs text-primary/90 transition-colors hover:text-primary hover:underline focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-ring rounded-xs"
+							// -m-1 p-1: alvo de toque de ao menos 24x24px (WCAG 2.2 AA Target
+							// Size) sem deslocar o texto visualmente (padding pra dentro,
+							// margem negativa pra fora cancela o espaço extra).
+							className="inline-block -m-1 p-1 text-xs text-primary/90 transition-colors hover:text-primary hover:underline focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-ring rounded-xs"
 						>
 							{t("login.forgotPassword")}
 						</Link>

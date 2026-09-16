@@ -109,6 +109,7 @@ export function PasswordInput({
 					{error && (
 						<motion.p
 							id={errorId}
+							role="alert"
 							{...errorAnimation}
 							className="pl-1 text-xs font-medium text-destructive truncate w-full leading-tight"
 						>
