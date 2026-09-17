@@ -125,12 +125,12 @@
 	}
 }
 
-@keyframes shimmer {
+@keyframes shimmerSweep {
 	0% {
-		background-position: -200% center;
+		transform: translateX(-100%);
 	}
 	100% {
-		background-position: 200% center;
+		transform: translateX(100%);
 	}
 }
 
@@ -190,15 +190,30 @@
 		opacity: 0;
 	}
 
+	/* Antes: animava background-position direto no elemento — propriedade cara
+	 (repaint a cada frame, não composita em GPU). Refeito com pseudo-elemento
+	 que só anima `transform` (composita em GPU), mesmo efeito visual de
+	 varredura de brilho. */
+	/* Sem `position` aqui: cada uso já traz `absolute` do Tailwind (mesma
+	 especificidade) — sobrescrever com `relative` aqui tirava o elemento
+	 do posicionamento absoluto (ordem do bundle vencia a utilidade),
+	 jogando a linha pro fluxo normal do documento. */
 	.shimmer-line {
+		overflow: hidden;
+	}
+	.shimmer-line::before {
+		content: "";
+		position: absolute;
+		inset: 0;
 		background: linear-gradient(
 			90deg,
 			transparent 0%,
 			rgba(99, 102, 241, 0.5) 50%,
 			transparent 100%
 		);
-		background-size: 200% 100%;
-		animation: shimmer 3s ease infinite;
+		transform: translateX(-100%);
+		animation: shimmerSweep 3s ease infinite;
+		will-change: transform;
 	}
 
 	.animate-sheet-in {
@@ -256,6 +271,13 @@
 	.opacity-0-init {
 		opacity: 1 !important;
 	}
+	/* Duração 0.01ms sozinha não basta pra animação infinita — ela continua
+	 em loop (só ultrarrápido), o que em hardware fraco ainda gera o mesmo
+	 jank/flicker que essa regra tenta evitar. Estado final estático explícito. */
+	.shimmer-line::before {
+		animation: none !important;
+		transform: translateX(0) !important;
+	}
 }
 
 .static-graphics .opacity-0-init {
@@ -268,4 +290,11 @@
 	animation-duration: 0.01ms !important;
 	animation-delay: 0.01ms !important;
 	transition-duration: 0.01ms !important;
+}
+
+/* Mesmo motivo do bloco prefers-reduced-motion acima: sobrescreve o
+ catch-all genérico com estado final parado (glow fixo, sem pulso). */
+.static-graphics .shimmer-line::before {
+	animation: none !important;
+	transform: translateX(0) !important;
 }
