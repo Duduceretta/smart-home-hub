@@ -1,6 +1,7 @@
 import { cva, type VariantProps } from "class-variance-authority";
 import { Slot } from "radix-ui";
 
+import { Ripple, useRipple } from "@/core/components/feedback/Ripple";
 import { cn } from "@/core/utils/index";
 
 const buttonVariants = cva(
@@ -45,21 +46,52 @@ function Button({
 	variant = "default",
 	size = "default",
 	asChild = false,
+	ripple = false,
+	onPointerDown,
+	children,
 	...props
 }: React.ComponentProps<"button"> &
 	VariantProps<typeof buttonVariants> & {
 		asChild?: boolean;
+		/** Onda circular estilo MUI ao clicar (mesmo efeito já usado na Sidebar). `asChild` não suporta — `Slot.Root` exige filho único. */
+		ripple?: boolean;
 	}) {
 	const Comp = asChild ? Slot.Root : "button";
+	const { ripples, createRipple, removeRipple } = useRipple();
+
+	if (asChild || !ripple) {
+		return (
+			<Comp
+				data-slot="button"
+				data-variant={variant}
+				data-size={size}
+				className={cn(buttonVariants({ variant, size, className }))}
+				onPointerDown={onPointerDown}
+				{...props}
+			>
+				{children}
+			</Comp>
+		);
+	}
 
 	return (
 		<Comp
 			data-slot="button"
 			data-variant={variant}
 			data-size={size}
-			className={cn(buttonVariants({ variant, size, className }))}
+			className={cn(
+				buttonVariants({ variant, size, className }),
+				"relative overflow-hidden",
+			)}
+			onPointerDown={(event: React.PointerEvent<HTMLButtonElement>) => {
+				createRipple(event);
+				onPointerDown?.(event);
+			}}
 			{...props}
-		/>
+		>
+			<Ripple ripples={ripples} onClear={removeRipple} />
+			{children}
+		</Comp>
 	);
 }
 

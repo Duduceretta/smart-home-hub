@@ -63,6 +63,7 @@ export function GoogleAuthButton({ actionText }: GoogleAuthButtonProps) {
 			variant="outline"
 			onClick={handleGoogleLogin}
 			disabled={isLoading}
+			ripple
 			className="h-11 w-full border-border-subtle bg-surface-container/60 text-foreground transition-colors hover:bg-surface-high disabled:opacity-50 cursor-pointer"
 		>
 			{isLoading ? (

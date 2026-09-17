@@ -78,6 +78,7 @@ export function LoginForm() {
 					<Button
 						type="submit"
 						disabled={isSubmitting}
+						ripple
 						className="h-11 w-full rounded-lg border border-border bg-surface-high text-sm font-semibold text-foreground shadow-xs transition-all hover:border-foreground/40 hover:bg-surface-highest active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer flex items-center justify-center"
 					>
 						{isSubmitting ? (

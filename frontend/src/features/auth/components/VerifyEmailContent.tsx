@@ -107,6 +107,7 @@ export function VerifyEmailContent() {
 								<Link to="/dashboard" className="w-full block">
 									<Button
 										type="button"
+										ripple
 										className="h-11 w-full rounded-lg border border-border bg-surface-high text-sm font-semibold text-foreground shadow-xs transition-all hover:border-foreground/40 hover:bg-surface-highest active:scale-[0.99] cursor-pointer"
 									>
 										{t("verifyEmail.page.goToDashboard", "Acessar Dashboard")}
@@ -116,6 +117,7 @@ export function VerifyEmailContent() {
 								<Link to="/login" className="w-full block">
 									<Button
 										type="button"
+										ripple
 										className="h-11 w-full rounded-lg border border-border bg-surface-high text-sm font-semibold text-foreground shadow-xs transition-all hover:border-foreground/40 hover:bg-surface-highest active:scale-[0.99] cursor-pointer"
 									>
 										{t("verifyEmail.page.goToLogin", "Ir para o Login")}
@@ -147,6 +149,7 @@ export function VerifyEmailContent() {
 								<Link to="/dashboard" className="w-full block">
 									<Button
 										type="button"
+										ripple
 										className="h-11 w-full rounded-lg border border-border bg-surface-high text-sm font-semibold text-foreground shadow-xs transition-all hover:border-foreground/40 hover:bg-surface-highest active:scale-[0.99] cursor-pointer"
 									>
 										{t("verifyEmail.page.goToDashboard", "Acessar Dashboard")}
@@ -156,6 +159,7 @@ export function VerifyEmailContent() {
 								<Link to="/login" className="w-full block">
 									<Button
 										type="button"
+										ripple
 										className="h-11 w-full rounded-lg border border-border bg-surface-high text-sm font-semibold text-foreground shadow-xs transition-all hover:border-foreground/40 hover:bg-surface-highest active:scale-[0.99] cursor-pointer"
 									>
 										{t("verifyEmail.page.goToLogin", "Ir para o Login")}
