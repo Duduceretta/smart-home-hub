@@ -10,7 +10,13 @@ import { ProtectedRoute } from "@/features/auth/guards/ProtectedRoute";
 import { PublicRoute } from "@/features/auth/guards/PublicRoute";
 import { AppLayout } from "@/widgets/layout/AppLayout";
 import { AuthLayout } from "@/widgets/layout/AuthLayout";
-import { AuthRoutePendingFallback } from "./AuthRoutePendingFallback";
+import {
+	ForgotPasswordSkeleton,
+	LoginSkeleton,
+	RegisterSkeleton,
+	ResetPasswordSkeleton,
+	VerifyEmailSkeleton,
+} from "./AuthRouteSkeletons";
 import { RoutePendingFallback } from "./RoutePendingFallback";
 
 // Cada página vira seu próprio chunk — sem isso, /login baixava o mesmo
@@ -64,9 +70,12 @@ function withFallback(element: React.ReactNode) {
 }
 
 // Só pras 5 páginas de auth, que renderizam dentro do outlet já centralizado
-// do AuthLayout — ver AuthRoutePendingFallback.tsx pro porquê.
-function withAuthFallback(element: React.ReactNode) {
-	return <Suspense fallback={<AuthRoutePendingFallback />}>{element}</Suspense>;
+// do AuthLayout. Cada uma leva seu próprio skeleton campo-a-campo (ver
+// AuthRouteSkeletons.tsx) em vez de um spinner genérico — as 5 rotas são um
+// conjunto fixo e conhecido, então dá pra espelhar a forma final exata sem
+// aproximação.
+function withAuthFallback(element: React.ReactNode, fallback: React.ReactNode) {
+	return <Suspense fallback={fallback}>{element}</Suspense>;
 }
 
 export const router = createBrowserRouter([
@@ -79,19 +88,25 @@ export const router = createBrowserRouter([
 				children: [
 					{
 						path: "/login",
-						element: withAuthFallback(<LoginPage />),
+						element: withAuthFallback(<LoginPage />, <LoginSkeleton />),
 					},
 					{
 						path: "/register",
-						element: withAuthFallback(<RegisterPage />),
+						element: withAuthFallback(<RegisterPage />, <RegisterSkeleton />),
 					},
 					{
 						path: "/forgot-password",
-						element: withAuthFallback(<ForgotPasswordPage />),
+						element: withAuthFallback(
+							<ForgotPasswordPage />,
+							<ForgotPasswordSkeleton />,
+						),
 					},
 					{
 						path: "/reset-password",
-						element: withAuthFallback(<ResetPasswordPage />),
+						element: withAuthFallback(
+							<ResetPasswordPage />,
+							<ResetPasswordSkeleton />,
+						),
 					},
 				],
 			},
@@ -153,7 +168,7 @@ export const router = createBrowserRouter([
 		children: [
 			{
 				path: "/verify-email",
-				element: withAuthFallback(<VerifyEmailPage />),
+				element: withAuthFallback(<VerifyEmailPage />, <VerifyEmailSkeleton />),
 			},
 		],
 	},
