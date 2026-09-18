@@ -8,44 +8,28 @@ import { setUnauthorizedRedirectHandler } from "@/core/api/api.client";
 import { RouteErrorBoundary } from "@/core/components/feedback/PageErrorBoundary";
 import { ProtectedRoute } from "@/features/auth/guards/ProtectedRoute";
 import { PublicRoute } from "@/features/auth/guards/PublicRoute";
+import { ForgotPasswordPage } from "@/pages/forgot-password/ForgotPasswordPage";
+import { LoginPage } from "@/pages/login/LoginPage";
+import { RegisterPage } from "@/pages/register/RegisterPage";
+import { ResetPasswordPage } from "@/pages/reset-password/ResetPasswordPage";
+import { VerifyEmailPage } from "@/pages/verify-email/VerifyEmailPage";
 import { AppLayout } from "@/widgets/layout/AppLayout";
 import { AuthLayout } from "@/widgets/layout/AuthLayout";
-import {
-	ForgotPasswordSkeleton,
-	LoginSkeleton,
-	RegisterSkeleton,
-	ResetPasswordSkeleton,
-	VerifyEmailSkeleton,
-} from "./AuthRouteSkeletons";
 import { RoutePendingFallback } from "./RoutePendingFallback";
 
-// Cada página vira seu próprio chunk — sem isso, /login baixava o mesmo
-// bundle de 1.6MB de /dashboard (recharts, SignalR, todas as features),
-// mesmo sem precisar de nenhum deles antes do usuário autenticar.
+// AuthLayout (o shell visual) fica de fora do lazy loading de propósito: ele
+// não carrega nada do dashboard, e é praticamente garantido que qualquer
+// visitante não autenticado vai precisar dele de imediato.
 //
-// AuthLayout (o shell visual, não as páginas) fica de fora do lazy loading
-// de propósito: ele não carrega nada do dashboard (isso já é resolvido pelas
-// páginas abaixo serem separadas), e é praticamente garantido que qualquer
-// visitante não autenticado vai precisar dele de imediato. Deixá-lo lazy só
-// adicionava uma viagem de rede a mais e um Suspense fallback genérico
-// (centralizado na viewport inteira) que não conhece o layout de 2 colunas
-// do AuthLayout — no load a frio, o spinner aparecia centralizado na tela
-// inteira e, ao resolver o chunk, o formulário "pulava" pra coluna direita
-// (~29% da largura da viewport, mensurado). Com AuthLayout estático, o shell
-// (e a posição onde o card vai cair) já existe desde o primeiro frame — o
-// Suspense de cada página (abaixo) permanece, mas agora renderiza dentro do
-// slot certo, sem salto.
-const LoginPage = lazy(() => import("@/pages/login/LoginPage"));
-const RegisterPage = lazy(() => import("@/pages/register/RegisterPage"));
-const ForgotPasswordPage = lazy(
-	() => import("@/pages/forgot-password/ForgotPasswordPage"),
-);
-const ResetPasswordPage = lazy(
-	() => import("@/pages/reset-password/ResetPasswordPage"),
-);
-const VerifyEmailPage = lazy(
-	() => import("@/pages/verify-email/VerifyEmailPage"),
-);
+// As 5 páginas de auth (login/register/forgot-password/reset-password/
+// verify-email), importadas acima, também ficam de fora do lazy loading —
+// cada uma é só um form fininho (react-hook-form + zod + firebase), sem
+// nada do peso pesado do dashboard (recharts, SignalR), então dividir em
+// chunk não economiza bytes que importam e só troca esse ganho por um
+// Suspense boundary que precisa de fallback (skeleton ou spinner) e sempre
+// acaba com uma troca perceptível quando o chunk resolve. Sem lazy aqui,
+// essas páginas já existem prontas desde o primeiro frame — sem fallback,
+// sem salto.
 const PrivacyPage = lazy(() => import("@/pages/legal/privacy/PrivacyPage"));
 const TermsPage = lazy(() => import("@/pages/legal/terms/TermsPage"));
 const HomePage = lazy(() => import("@/pages/home/HomePage"));
@@ -69,15 +53,6 @@ function withFallback(element: React.ReactNode) {
 	return <Suspense fallback={<RoutePendingFallback />}>{element}</Suspense>;
 }
 
-// Só pras 5 páginas de auth, que renderizam dentro do outlet já centralizado
-// do AuthLayout. Cada uma leva seu próprio skeleton campo-a-campo (ver
-// AuthRouteSkeletons.tsx) em vez de um spinner genérico — as 5 rotas são um
-// conjunto fixo e conhecido, então dá pra espelhar a forma final exata sem
-// aproximação.
-function withAuthFallback(element: React.ReactNode, fallback: React.ReactNode) {
-	return <Suspense fallback={fallback}>{element}</Suspense>;
-}
-
 export const router = createBrowserRouter([
 	{
 		element: <PublicRoute />,
@@ -88,25 +63,19 @@ export const router = createBrowserRouter([
 				children: [
 					{
 						path: "/login",
-						element: withAuthFallback(<LoginPage />, <LoginSkeleton />),
+						element: <LoginPage />,
 					},
 					{
 						path: "/register",
-						element: withAuthFallback(<RegisterPage />, <RegisterSkeleton />),
+						element: <RegisterPage />,
 					},
 					{
 						path: "/forgot-password",
-						element: withAuthFallback(
-							<ForgotPasswordPage />,
-							<ForgotPasswordSkeleton />,
-						),
+						element: <ForgotPasswordPage />,
 					},
 					{
 						path: "/reset-password",
-						element: withAuthFallback(
-							<ResetPasswordPage />,
-							<ResetPasswordSkeleton />,
-						),
+						element: <ResetPasswordPage />,
 					},
 				],
 			},
@@ -168,7 +137,7 @@ export const router = createBrowserRouter([
 		children: [
 			{
 				path: "/verify-email",
-				element: withAuthFallback(<VerifyEmailPage />, <VerifyEmailSkeleton />),
+				element: <VerifyEmailPage />,
 			},
 		],
 	},
