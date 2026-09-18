@@ -20,10 +20,7 @@ export function RegisterForm() {
 	} = useRegisterForm();
 
 	return (
-		<div
-			className="relative w-full max-w-102 overflow-hidden rounded-2xl border border-border-subtle bg-surface-low/80 p-6 sm:p-8 shadow-2xl backdrop-blur-xl animate-fade-up delay-100 opacity-0-init"
-			style={{ animationFillMode: "forwards" }}
-		>
+		<div className="relative w-full p-6 sm:p-8">
 			<div className="shimmer-line absolute left-0 right-0 top-0 h-px" />
 
 			<div className="mb-4 sm:mb-5">
@@ -131,17 +128,14 @@ export function RegisterForm() {
 			</form>
 
 			<div
-				className="relative mt-2.5 animate-fade-up delay-600 opacity-0-init"
+				className="flex items-center gap-3 my-2.5 animate-fade-up delay-600 opacity-0-init text-xs uppercase text-muted-foreground"
 				style={{ animationFillMode: "forwards" }}
 			>
-				<div className="absolute inset-0 flex items-center">
-					<span className="w-full border-t border-border-subtle" />
-				</div>
-				<div className="relative flex justify-center text-xs uppercase">
-					<span className="bg-surface-low px-2 text-muted-foreground backdrop-blur-sm">
-						{t("register.orContinueWith")}
-					</span>
-				</div>
+				<span className="h-px flex-1 bg-border-subtle" />
+				<span className="shrink-0 font-medium tracking-wider">
+					{t("register.orContinueWith")}
+				</span>
+				<span className="h-px flex-1 bg-border-subtle" />
 			</div>
 
 			<div

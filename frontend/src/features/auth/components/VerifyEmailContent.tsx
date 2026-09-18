@@ -56,7 +56,7 @@ export function VerifyEmailContent() {
 	}, [oobCode, setUser]);
 
 	return (
-		<div className="relative w-full max-w-95 overflow-hidden rounded-2xl border border-border-subtle bg-surface-low/80 p-6 sm:p-8 shadow-2xl backdrop-blur-xl animate-fade-up text-center">
+		<div className="relative w-full p-6 sm:p-8 text-center">
 			<div className="shimmer-line absolute left-0 right-0 top-0 h-px" />
 
 			{/* role="status" (implica aria-live="polite"): a troca de verificando

@@ -101,7 +101,7 @@ export function AuthLayout({ children }: AuthLayoutProps) {
 			</section>
 
 			{/* LADO DIREITO (Dinâmico, recebe os formulários com escalabilidade proporcional) */}
-			<section className="relative z-10 flex min-h-svh w-full flex-col items-center justify-between overflow-y-auto bg-background px-5 py-4 sm:p-6 lg:p-8 2xl:p-12 lg:w-5/12">
+			<section className="relative z-10 flex min-h-svh w-full flex-col items-center justify-between overflow-x-hidden overflow-y-auto bg-background px-5 py-4 sm:p-6 lg:p-8 2xl:p-12 lg:w-5/12">
 				{/* Fundo dinâmico/sutil reaproveitando o céu noturno e calor da residência (mobile e desktop) */}
 				<MobileAuthBackground />
 				<DesktopAuthBackground />
@@ -125,8 +125,37 @@ export function AuthLayout({ children }: AuthLayoutProps) {
 
 				{/* Área central do formulário com preenchimento vertical proporcional para acomodar zoom */}
 				<div className="relative z-10 flex w-full flex-1 flex-col items-center justify-center py-6 sm:py-8 lg:py-10">
-					<div className="flex w-full justify-center">
-						{children ?? <Outlet />}
+					<div className="relative flex w-full justify-center">
+						<div className="relative w-full max-w-94 flex flex-col items-center">
+							{/* Container do Card com Borda Cibernética Neon Esmeralda e Halo Atmosférico */}
+							<div className="relative w-full z-10">
+								{/* Halo esmeralda atmosférico de profundidade atrás do card */}
+								<div
+									className="pointer-events-none absolute -inset-10 sm:-inset-14 rounded-[40px] bg-emerald-500/15 blur-3xl hidden lg:block -z-10"
+									aria-hidden="true"
+								/>
+								<div
+									className="pointer-events-none absolute -inset-4 rounded-3xl bg-emerald-400/10 blur-xl hidden lg:block -z-10"
+									aria-hidden="true"
+								/>
+
+								{/* Contorno neon esmeralda no desktop que replica o brilho verde do card na referência */}
+								<div className="pointer-events-none absolute -inset-0.5 rounded-2xl border-2 border-emerald-500/60 shadow-[0_0_25px_rgba(16,185,129,0.35),inset_0_0_15px_rgba(16,185,129,0.12)] hidden lg:block z-20" />
+
+								{/* Casca opaca do card: fica fixa aqui (nunca desmonta) em vez de em cada
+								    Form — a troca de rota desmonta/remonta só o conteúdo interno, e por uma
+								    fração de segundo o backdrop-blur de um nó recém-montado ainda não
+								    compositou, deixando o planeta atrás aparecer sem nenhum filtro. Com o
+								    fundo/blur persistente aqui, a cobertura nunca é removida.
+								    Troca de página é instantânea de propósito (sem crossfade, sem largura
+								    variável por rota) — é assim que fluxos de auth de referência (Google,
+								    GitHub, Auth0, Vercel) fazem: card de largura fixa, sem animação de
+								    transição entre login/registro/etc. */}
+								<div className="relative overflow-hidden rounded-2xl border border-border-subtle bg-surface-low/80 shadow-2xl backdrop-blur-xl">
+									{children ?? <Outlet />}
+								</div>
+							</div>
+						</div>
 					</div>
 				</div>
 
