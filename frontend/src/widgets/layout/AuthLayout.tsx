@@ -155,6 +155,31 @@ export function AuthLayout({ children }: AuthLayoutProps) {
 									{children ?? <Outlet />}
 								</div>
 							</div>
+
+							{/* Marca Nexus Hub vertical ao lado do formulário */}
+							<div
+								data-testid="auth-side-brand"
+								className={cn(
+									"pointer-events-none absolute right-[calc(100%+0.75rem)] 2xl:right-[calc(100%+1.25rem)] top-1/2 -translate-y-1/2 z-10 hidden xl:flex flex-col items-center select-none opacity-0-init",
+									mounted && "animate-fade-up delay-300",
+								)}
+								aria-hidden="true"
+							>
+								<div className="flex flex-col items-center gap-5 2xl:gap-6 text-xl 2xl:text-2xl font-semibold tracking-wider mb-7 2xl:mb-9">
+									<span className="text-brand-accent drop-shadow-[0_0_8px_rgba(18,150,122,0.35)]">
+										N
+									</span>
+									<span className="text-foreground/75">E</span>
+									<span className="text-foreground/75">X</span>
+									<span className="text-foreground/75">U</span>
+									<span className="text-foreground/75">S</span>
+								</div>
+								<div className="flex flex-col items-center gap-5 2xl:gap-6 text-xl 2xl:text-2xl font-semibold tracking-wider">
+									<span className="text-foreground/75">H</span>
+									<span className="text-foreground/75">U</span>
+									<span className="text-foreground/75">B</span>
+								</div>
+							</div>
 						</div>
 					</div>
 				</div>

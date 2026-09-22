@@ -255,4 +255,14 @@ describe("AuthLayout Integration Tests", () => {
 		});
 		expect(livingLampButton).toBeNull();
 	});
+
+	it("AuthLayout_SideBrand_ShouldRenderVerticalNexusHubBrandBesideForm", () => {
+		renderAuthLayout(<div data-testid="auth-form-content">Form Content</div>);
+
+		const sideBrand = screen.getByTestId("auth-side-brand");
+		expect(sideBrand).toBeInTheDocument();
+		expect(sideBrand).toHaveAttribute("aria-hidden", "true");
+		expect(sideBrand.className).toContain("xl:flex");
+		expect(sideBrand).toHaveTextContent("NEXUSHUB");
+	});
 });
