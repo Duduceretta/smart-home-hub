@@ -16,31 +16,7 @@ src/
 
 > **Regra de Ouro**: Features **nunca** importam componentes ou hooks entre si diretamente. A comunicação entre domínios é feita via Zustand store ou pela camada de `widgets/`.
 
-### 2. Esteira Unidirecional de Implementação de Features
-Toda nova feature deve seguir estritamente os 5 passos:
-1. `types/`: Interfaces que espelham os DTOs em camelCase do C# + Schemas Zod espelhando o FluentValidation.
-2. `api/`: Funções assíncronas puras com `apiClient` (Axios) tipadas e com tratamento via `handleApplicationError` (proibido importar hooks aqui).
-3. `hooks/`: Query Key Factory (`[feature].keys.ts` com `as const`) + Hooks TanStack Query (`useQuery` / `useMutation`), nomeados com prefixo `use` (ex: `useEventHistory.ts` — não sufixo `.hooks.ts`).
-4. `store/`: Store Zustand (`[feature]-ui.store.ts`) para estado de UI efêmero (modais, busca, abas). Exceção histórica: `auth` usa `useAuthStore.ts`.
-5. `components/` & `pages/`: Componentes visuais com formulários (RHF + Zod), Skeletons e modais/Sheets laterais.
-
-### 3. Gerenciamento de Estado
-- **Server State (TanStack Query v5)**: Único responsável por chamadas HTTP, cache, polling e Optimistic UI com rollback em erros.
-- **Client State (Zustand)**: Apenas estado efêmero e síncrono da UI. **Zero requisições HTTP dentro do Zustand**.
-- **SignalR** (`/hubs/telemetry`, hook único `useRealtimeListener.ts`): eventos reais hoje são `DeviceStatusChanged`, `DeviceMediaChanged`, `SpotifyPlaybackChanged`, `ReceiveTelemetryUpdate` (debounce de 800ms — dispara em rajada) e `AutomationExecutionResult`. Não existe um evento genérico de "novo SystemEvent"; features que precisam reagir a mudanças de histórico devem tratar esses sinais como gatilho para um refetch, não fabricar o dado a partir do payload.
-
-### 4. Boas Práticas de Código TypeScript & Biome
-- **Proibição do `any`**: Tipagem estrita com interfaces ou `unknown` + Type Guards.
-- **Compatibilidade com `erasableSyntaxOnly` (Vite)**:
-  - Declarar propriedades de classes explicitamente no corpo antes do construtor (sem modificadores `public readonly` direto nos parâmetros do construtor) — ver `AppError` em `core/errors/app.errors.ts` como referência real.
-  - Usar Optional Chaining (`data?.property`) em vez de checagens redundantes.
-- **Formulários**:
-  - React Hook Form com `mode: "onSubmit"` e `reValidateMode: "onChange"`.
-  - Tag obrigatória `<form noValidate>`.
-  - Prevenção de Layout Shift (CLS): reservar `min-h-[18px]` para áreas de mensagens de erro.
-- **Renderização e Listas**:
-  - Sempre usar identificadores reais e únicos (`key={item.id}`) em `.map()` — **proibido usar `index` como key**.
-- **Observabilidade**: Proibido `console.log`/`console.error`. Usar a fachada `Logger` (importado de `core/logger/app.logger.ts` como `import { Logger } from "@/core/logger/app.logger"`).
+> Esteira de implementação de feature, Server/Client State, SignalR, regras TS/Biome: ver `.claude/rules/frontend-fsd.md` (carrega junto ao editar `.ts`/`.tsx`).
 
 ---
 

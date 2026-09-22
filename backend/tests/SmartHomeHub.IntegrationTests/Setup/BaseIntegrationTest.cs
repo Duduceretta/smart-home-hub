@@ -23,7 +23,6 @@ public abstract class BaseIntegrationTest : IAsyncLifetime
     protected BaseIntegrationTest(IntegrationTestWebAppFactory factory)
     {
         Factory = factory;
-        Client = factory.CreateClient();
         Client = factory.CreateClient(
             new WebApplicationFactoryClientOptions { AllowAutoRedirect = false }
         );
@@ -52,6 +51,7 @@ public abstract class BaseIntegrationTest : IAsyncLifetime
 
     public async ValueTask DisposeAsync()
     {
+        Client.Dispose();
         await _dbConnection.CloseAsync();
         Scope.Dispose();
         await DbContext.DisposeAsync();

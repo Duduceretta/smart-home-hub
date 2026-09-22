@@ -19,7 +19,7 @@ namespace SmartHomeHub.IntegrationTests.Setup;
 public class IntegrationTestWebAppFactory : WebApplicationFactory<Program>, IAsyncLifetime
 {
     private readonly PostgreSqlContainer _dbContainer = new PostgreSqlBuilder(
-        "timescale/timescaledb:latest-pg15"
+        "timescale/timescaledb:2.28.3-pg15"
     )
         .WithDatabase("smarthomehub_test_db")
         .WithUsername("postgres")

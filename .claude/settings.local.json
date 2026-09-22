@@ -1,0 +1,6 @@
+{
+  "enabledPlugins": {
+    "engineering@synced": false,
+    "skill-creator@claude-plugins-official": false
+  }
+}

@@ -14,23 +14,8 @@
 - `SmartHomeHub.IntegrationTests`: Testes E2E com **Testcontainers** (um container Docker por coleção de testes + **Respawn** resetando as tabelas entre cada `[Fact]`) no padrão AAA.
 
 ### 2. Padrões de Código e CQRS
+
+> Convenções de nomenclatura, Result Pattern, NRTs, paginação e logs: ver `.claude/rules/backend-csharp.md` (carrega junto ao editar `.cs`).
+
 - **Biblioteca Mediator**: Utiliza o pacote `Mediator` com Source Generators em tempo de compilação (não usar o MediatR clássico baseado em Reflection).
-- **Nomenclatura**:
-  - Command: `[Verbo][Substantivo]Command` (ex: `SetDeviceStateCommand`)
-  - Query: `[Verbo][Substantivo]Query` (ex: `GetEventHistoryQuery`)
-  - Handler: `[NomeDoCommandOuQuery]Handler` — **no mesmo arquivo** do Command/Query e do Validator, não em arquivos separados.
-- **Tratamento de Erros Híbrido**:
-  - Falhas de negócio esperadas: `Result` / `Result<T>` via Result Pattern.
-  - Falhas inesperadas/infraestrutura: Exceptions capturadas pelo `GlobalExceptionHandler`.
-  - Ambos retornam `ProblemDetails` (RFC 7807) padronizado para o frontend (`400`, `403`, `404`, `409`, `422`, `500`).
-- **Validação de Entrada (Strict In, Tolerant Out)**:
-  - FluentValidation no pipeline behavior intercepta requests antes dos Handlers.
-  - DTOs e Requests **não** utilizam `required` para permitir que o FluentValidation controle o erro `422/400` padronizado.
-  - Entidades: propriedades de navegação usam `= null!`; escalares imutáveis podem usar `required`.
-- **Paginação Obrigatória**:
-  - Proibido retorno de listas infinitas. Toda listagem implementa `IPagedQuery` (`Page`, `PageSize`) e retorna `PagedResult<T>` ordenado obrigatoriamente com `.OrderBy()` no EF Core.
-  - Exceção deliberada: queries de estatística agregada (ex: `GetEventHistoryStatsQuery`) somam/contam sobre todo o conjunto filtrado de propósito e não seguem `IPagedQuery`.
-- **Logs Estruturados (Serilog)**:
-  - Estritamente **proibida** interpolação de strings (`$"{Var}"`) nos logs. Sempre usar Message Templates (`"Processando {DeviceName}", name`).
-- **Telemetria IoT**: `DeviceTelemetryLog` e `SystemEvent` seguem padrão *Append-Only* no TimescaleDB (não usam Soft Delete).
 - **MQTT**: telemetria de entrada em `home/telemetry/{externalId}`; comandos de saída em `home/commands/{externalId}` — `{externalId}` é sempre o `Device.ExternalId`, nunca o `deviceId` interno, nos dois tópicos — só aplicável a hardware MQTT genérico (Sonoff/Tasmota). Dispositivos Tuya usam TCP/UDP direto (AES-GCM), não passam por esse tópico.
