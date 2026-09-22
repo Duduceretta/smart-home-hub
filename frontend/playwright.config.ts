@@ -16,6 +16,11 @@ export default defineConfig({
 		// pick English instead of the app's pt-BR fallback. Pin it so tests
 		// are deterministic regardless of the host machine's locale.
 		locale: "pt-BR",
+		// Resolução de referência do design (bate com auth-atmosphere-visual.spec.ts).
+		// Sem isso, specs que não chamam setViewportSize herdam o 1280x720 padrão do
+		// devices["Desktop Chrome"], que corta o background SVG (preserveAspectRatio
+		// slice) numa proporção diferente da usada pra desenhar/validar a composição.
+		viewport: { width: 1440, height: 900 },
 	},
 	projects: [
 		{

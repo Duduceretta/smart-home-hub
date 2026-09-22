@@ -26,6 +26,7 @@ coverage
 
 # Playwright
 e2e/screenshots/
+screenshots/
 playwright-report/
 test-results/
 

@@ -497,4 +497,7 @@ blob-report/
 # (scratchpad da sessão), mas isso cobre o caso de alguém criar um aqui dentro.
 **/tuya-diag*/
 **/*.tuya-e2e.py
+
+# Backups locais de sessão (fora do fluxo de commits)
+.backup/
 **/gen_golden_vectors.py.bak
