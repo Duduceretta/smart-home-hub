@@ -1481,1727 +1481,492 @@ export function DesktopAuthBackground({
 			</g>
 
 			{/* ========================================================================= */}
-			{/* PONTOS ESTÁTICOS (pontos redondos + estrelas de 4 pontas, amostragem     */}
-			{/* Poisson-disc/blue-noise: distância mínima garantida, sem alinhar em      */}
-			{/* grade, sem aglomerado nem buraco vazio em nenhuma janela de crop)         */}
+			{/* PONTOS ESTÁTICOS (mesmo formato de ponto redondo simples/halo+core da    */}
+			{/* janela em ArchitecturalResidenceIllustration.tsx). Distribuição via grid */}
+			{/* jittered: células de 56px, ~70% preenchidas, jitter interno — cobertura  */}
+			{/* uniforme sem aglomerado nem buraco, evitando planeta/lua/Saturno/mesh.   */}
 			{/* ========================================================================= */}
 			<g data-testid="auth-static-points">
-				<g transform="translate(40, 40)">
-					<g className="desktop-float-b">
-						<circle
-							cx="0"
-							cy="0"
-							r="7.8"
-							fill="#38bdf8"
-							opacity="0.3"
-							filter="url(#star-halo-blur)"
-						/>
-						<g className="desktop-twinkle-a">
-							<path
-								d="M 0 -14.5 Q 2 -2 14.5 0 Q 2 2 0 14.5 Q -2 2 -14.5 0 Q -2 -2 0 -14.5 Z"
-								fill="#7dd3fc"
-								opacity="0.85"
-							/>
-							<line
-								x1="-12.3"
-								y1="0"
-								x2="12.3"
-								y2="0"
-								stroke="#ffffff"
-								strokeWidth="0.8"
-								opacity="0.85"
-								strokeLinecap="round"
-							/>
-							<line
-								x1="0"
-								y1="-12.3"
-								x2="0"
-								y2="12.3"
-								stroke="#ffffff"
-								strokeWidth="0.8"
-								opacity="0.85"
-								strokeLinecap="round"
-							/>
-							<circle cx="0" cy="0" r="1.6" fill="#ffffff" />
-						</g>
-					</g>
-				</g>
-
-				<g className="desktop-float-c">
+				<g className="desktop-twinkle-b">
 					<circle
-						cx="560"
-						cy="40"
-						r="4.7"
-						fill="#34d399"
-						opacity="0.41"
-						filter="url(#star-halo-blur)"
-					/>
-					<circle cx="560" cy="40" r="2.5" fill="#6ee7b7" opacity="0.9" />
-					<circle cx="560" cy="40" r="1.2" fill="#ffffff" />
-				</g>
-
-				<g transform="translate(300, 40)">
-					<g className="desktop-float-a">
-						<circle
-							cx="0"
-							cy="0"
-							r="5.8"
-							fill="#67e8f9"
-							opacity="0.3"
-							filter="url(#star-halo-blur)"
-						/>
-						<g className="desktop-twinkle-a">
-							<path
-								d="M 0 -10.8 Q 1.5 -1.5 10.8 0 Q 1.5 1.5 0 10.8 Q -1.5 1.5 -10.8 0 Q -1.5 -1.5 0 -10.8 Z"
-								fill="#a5f3fc"
-								opacity="0.85"
-							/>
-							<line
-								x1="-9.2"
-								y1="0"
-								x2="9.2"
-								y2="0"
-								stroke="#ffffff"
-								strokeWidth="0.8"
-								opacity="0.85"
-								strokeLinecap="round"
-							/>
-							<line
-								x1="0"
-								y1="-9.2"
-								x2="0"
-								y2="9.2"
-								stroke="#ffffff"
-								strokeWidth="0.8"
-								opacity="0.85"
-								strokeLinecap="round"
-							/>
-							<circle cx="0" cy="0" r="1.2" fill="#ffffff" />
-						</g>
-					</g>
-				</g>
-
-				<g className="desktop-float-a">
-					<circle
-						cx="40"
-						cy="950"
-						r="3.9"
-						fill="#38bdf8"
-						opacity="0.39"
-						filter="url(#star-halo-blur)"
-					/>
-					<circle cx="40" cy="950" r="2.1" fill="#7dd3fc" opacity="0.9" />
-					<circle cx="40" cy="950" r="1" fill="#ffffff" />
-				</g>
-
-				<g transform="translate(300, 950)">
-					<g className="desktop-float-c">
-						<circle
-							cx="0"
-							cy="0"
-							r="6.2"
-							fill="#67e8f9"
-							opacity="0.3"
-							filter="url(#star-halo-blur)"
-						/>
-						<g className="desktop-twinkle-c">
-							<path
-								d="M 0 -11.4 Q 1.6 -1.6 11.4 0 Q 1.6 1.6 0 11.4 Q -1.6 1.6 -11.4 0 Q -1.6 -1.6 0 -11.4 Z"
-								fill="#a5f3fc"
-								opacity="0.85"
-							/>
-							<line
-								x1="-9.7"
-								y1="0"
-								x2="9.7"
-								y2="0"
-								stroke="#ffffff"
-								strokeWidth="0.8"
-								opacity="0.85"
-								strokeLinecap="round"
-							/>
-							<line
-								x1="0"
-								y1="-9.7"
-								x2="0"
-								y2="9.7"
-								stroke="#ffffff"
-								strokeWidth="0.8"
-								opacity="0.85"
-								strokeLinecap="round"
-							/>
-							<circle cx="0" cy="0" r="1.2" fill="#ffffff" />
-						</g>
-					</g>
-				</g>
-
-				<g transform="translate(560, 950)">
-					<g className="desktop-float-b">
-						<circle
-							cx="0"
-							cy="0"
-							r="7.1"
-							fill="#38bdf8"
-							opacity="0.3"
-							filter="url(#star-halo-blur)"
-						/>
-						<g className="desktop-twinkle-b">
-							<path
-								d="M 0 -13.2 Q 1.8 -1.8 13.2 0 Q 1.8 1.8 0 13.2 Q -1.8 1.8 -13.2 0 Q -1.8 -1.8 0 -13.2 Z"
-								fill="#7dd3fc"
-								opacity="0.85"
-							/>
-							<line
-								x1="-11.2"
-								y1="0"
-								x2="11.2"
-								y2="0"
-								stroke="#ffffff"
-								strokeWidth="0.8"
-								opacity="0.85"
-								strokeLinecap="round"
-							/>
-							<line
-								x1="0"
-								y1="-11.2"
-								x2="0"
-								y2="11.2"
-								stroke="#ffffff"
-								strokeWidth="0.8"
-								opacity="0.85"
-								strokeLinecap="round"
-							/>
-							<circle cx="0" cy="0" r="1.4" fill="#ffffff" />
-						</g>
-					</g>
-				</g>
-
-				<g transform="translate(61.9, 113.1)">
-					<g className="desktop-float-a">
-						<circle
-							cx="0"
-							cy="0"
-							r="6.8"
-							fill="#67e8f9"
-							opacity="0.3"
-							filter="url(#star-halo-blur)"
-						/>
-						<g className="desktop-twinkle-a">
-							<path
-								d="M 0 -12.6 Q 1.8 -1.8 12.6 0 Q 1.8 1.8 0 12.6 Q -1.8 1.8 -12.6 0 Q -1.8 -1.8 0 -12.6 Z"
-								fill="#a5f3fc"
-								opacity="0.85"
-							/>
-							<line
-								x1="-10.7"
-								y1="0"
-								x2="10.7"
-								y2="0"
-								stroke="#ffffff"
-								strokeWidth="0.8"
-								opacity="0.85"
-								strokeLinecap="round"
-							/>
-							<line
-								x1="0"
-								y1="-10.7"
-								x2="0"
-								y2="10.7"
-								stroke="#ffffff"
-								strokeWidth="0.8"
-								opacity="0.85"
-								strokeLinecap="round"
-							/>
-							<circle cx="0" cy="0" r="1.4" fill="#ffffff" />
-						</g>
-					</g>
-				</g>
-
-				<g className="desktop-float-b">
-					<circle
-						cx="104.1"
-						cy="54.3"
-						r="4.7"
-						fill="#34d399"
-						opacity="0.39"
-						filter="url(#star-halo-blur)"
-					/>
-					<circle cx="104.1" cy="54.3" r="2.5" fill="#6ee7b7" opacity="0.9" />
-					<circle cx="104.1" cy="54.3" r="1.2" fill="#ffffff" />
-				</g>
-
-				<g className="desktop-float-b">
-					<circle
-						cx="19.3"
-						cy="83.8"
-						r="3.7"
-						fill="#67e8f9"
-						opacity="0.39"
-						filter="url(#star-halo-blur)"
-					/>
-					<circle cx="19.3" cy="83.8" r="2" fill="#a5f3fc" opacity="0.9" />
-					<circle cx="19.3" cy="83.8" r="1" fill="#ffffff" />
-				</g>
-
-				<g className="desktop-float-c">
-					<circle
-						cx="286"
-						cy="884.4"
-						r="3.6"
-						fill="#34d399"
-						opacity="0.43"
-						filter="url(#star-halo-blur)"
-					/>
-					<circle cx="286" cy="884.4" r="1.9" fill="#6ee7b7" opacity="0.9" />
-					<circle cx="286" cy="884.4" r="0.9" fill="#ffffff" />
-				</g>
-
-				<g className="desktop-float-b">
-					<circle
-						cx="241.7"
-						cy="966.1"
-						r="3.6"
-						fill="#34d399"
-						opacity="0.39"
-						filter="url(#star-halo-blur)"
-					/>
-					<circle cx="241.7" cy="966.1" r="1.9" fill="#6ee7b7" opacity="0.9" />
-					<circle cx="241.7" cy="966.1" r="1" fill="#ffffff" />
-				</g>
-
-				<g className="desktop-float-b">
-					<circle
-						cx="340.4"
-						cy="913.3"
+						cx="15.4"
+						cy="34.8"
 						r="3.4"
-						fill="#34d399"
-						opacity="0.39"
-						filter="url(#star-halo-blur)"
+						fill="var(--primary)"
+						opacity="0.22"
 					/>
-					<circle cx="340.4" cy="913.3" r="1.8" fill="#6ee7b7" opacity="0.9" />
-					<circle cx="340.4" cy="913.3" r="0.9" fill="#ffffff" />
-				</g>
-
-				<g transform="translate(231.6, 903.3)">
-					<g className="desktop-float-a">
-						<circle
-							cx="0"
-							cy="0"
-							r="7.1"
-							fill="#38bdf8"
-							opacity="0.3"
-							filter="url(#star-halo-blur)"
-						/>
-						<g className="desktop-twinkle-a">
-							<path
-								d="M 0 -13.1 Q 1.8 -1.8 13.1 0 Q 1.8 1.8 0 13.1 Q -1.8 1.8 -13.1 0 Q -1.8 -1.8 0 -13.1 Z"
-								fill="#7dd3fc"
-								opacity="0.85"
-							/>
-							<line
-								x1="-11.1"
-								y1="0"
-								x2="11.1"
-								y2="0"
-								stroke="#ffffff"
-								strokeWidth="0.8"
-								opacity="0.85"
-								strokeLinecap="round"
-							/>
-							<line
-								x1="0"
-								y1="-11.1"
-								x2="0"
-								y2="11.1"
-								stroke="#ffffff"
-								strokeWidth="0.8"
-								opacity="0.85"
-								strokeLinecap="round"
-							/>
-							<circle cx="0" cy="0" r="1.4" fill="#ffffff" />
-						</g>
-					</g>
-				</g>
-
-				<g transform="translate(376.6, 947.8)">
-					<g className="desktop-float-b">
-						<circle
-							cx="0"
-							cy="0"
-							r="5.9"
-							fill="#67e8f9"
-							opacity="0.3"
-							filter="url(#star-halo-blur)"
-						/>
-						<g className="desktop-twinkle-c">
-							<path
-								d="M 0 -11 Q 1.5 -1.5 11 0 Q 1.5 1.5 0 11 Q -1.5 1.5 -11 0 Q -1.5 -1.5 0 -11 Z"
-								fill="#a5f3fc"
-								opacity="0.85"
-							/>
-							<line
-								x1="-9.4"
-								y1="0"
-								x2="9.4"
-								y2="0"
-								stroke="#ffffff"
-								strokeWidth="0.8"
-								opacity="0.85"
-								strokeLinecap="round"
-							/>
-							<line
-								x1="0"
-								y1="-9.4"
-								x2="0"
-								y2="9.4"
-								stroke="#ffffff"
-								strokeWidth="0.8"
-								opacity="0.85"
-								strokeLinecap="round"
-							/>
-							<circle cx="0" cy="0" r="1.2" fill="#ffffff" />
-						</g>
-					</g>
-				</g>
-
-				<g transform="translate(523.5, 72.8)">
-					<g className="desktop-float-a">
-						<circle
-							cx="0"
-							cy="0"
-							r="6.3"
-							fill="#67e8f9"
-							opacity="0.3"
-							filter="url(#star-halo-blur)"
-						/>
-						<g className="desktop-twinkle-b">
-							<path
-								d="M 0 -11.7 Q 1.6 -1.6 11.7 0 Q 1.6 1.6 0 11.7 Q -1.6 1.6 -11.7 0 Q -1.6 -1.6 0 -11.7 Z"
-								fill="#a5f3fc"
-								opacity="0.85"
-							/>
-							<line
-								x1="-9.9"
-								y1="0"
-								x2="9.9"
-								y2="0"
-								stroke="#ffffff"
-								strokeWidth="0.8"
-								opacity="0.85"
-								strokeLinecap="round"
-							/>
-							<line
-								x1="0"
-								y1="-9.9"
-								x2="0"
-								y2="9.9"
-								stroke="#ffffff"
-								strokeWidth="0.8"
-								opacity="0.85"
-								strokeLinecap="round"
-							/>
-							<circle cx="0" cy="0" r="1.3" fill="#ffffff" />
-						</g>
-					</g>
-				</g>
-
-				<g transform="translate(511.4, 15.2)">
-					<g className="desktop-float-a">
-						<circle
-							cx="0"
-							cy="0"
-							r="5.4"
-							fill="#67e8f9"
-							opacity="0.3"
-							filter="url(#star-halo-blur)"
-						/>
-						<g className="desktop-twinkle-c">
-							<path
-								d="M 0 -10.1 Q 1.4 -1.4 10.1 0 Q 1.4 1.4 0 10.1 Q -1.4 1.4 -10.1 0 Q -1.4 -1.4 0 -10.1 Z"
-								fill="#a5f3fc"
-								opacity="0.85"
-							/>
-							<line
-								x1="-8.6"
-								y1="0"
-								x2="8.6"
-								y2="0"
-								stroke="#ffffff"
-								strokeWidth="0.8"
-								opacity="0.85"
-								strokeLinecap="round"
-							/>
-							<line
-								x1="0"
-								y1="-8.6"
-								x2="0"
-								y2="8.6"
-								stroke="#ffffff"
-								strokeWidth="0.8"
-								opacity="0.85"
-								strokeLinecap="round"
-							/>
-							<circle cx="0" cy="0" r="1.1" fill="#ffffff" />
-						</g>
-					</g>
-				</g>
-
-				<g transform="translate(575.1, 84.7)">
-					<g className="desktop-float-b">
-						<circle
-							cx="0"
-							cy="0"
-							r="7.9"
-							fill="#67e8f9"
-							opacity="0.3"
-							filter="url(#star-halo-blur)"
-						/>
-						<g className="desktop-twinkle-b">
-							<path
-								d="M 0 -14.7 Q 2.1 -2.1 14.7 0 Q 2.1 2.1 0 14.7 Q -2.1 2.1 -14.7 0 Q -2.1 -2.1 0 -14.7 Z"
-								fill="#a5f3fc"
-								opacity="0.85"
-							/>
-							<line
-								x1="-12.5"
-								y1="0"
-								x2="12.5"
-								y2="0"
-								stroke="#ffffff"
-								strokeWidth="0.8"
-								opacity="0.85"
-								strokeLinecap="round"
-							/>
-							<line
-								x1="0"
-								y1="-12.5"
-								x2="0"
-								y2="12.5"
-								stroke="#ffffff"
-								strokeWidth="0.8"
-								opacity="0.85"
-								strokeLinecap="round"
-							/>
-							<circle cx="0" cy="0" r="1.6" fill="#ffffff" />
-						</g>
-					</g>
-				</g>
-
-				<g transform="translate(392.9, 861.3)">
-					<g className="desktop-float-b">
-						<circle
-							cx="0"
-							cy="0"
-							r="7.6"
-							fill="#34d399"
-							opacity="0.3"
-							filter="url(#star-halo-blur)"
-						/>
-						<g className="desktop-twinkle-c">
-							<path
-								d="M 0 -14 Q 2 -2 14 0 Q 2 2 0 14 Q -2 2 -14 0 Q -2 -2 0 -14 Z"
-								fill="#6ee7b7"
-								opacity="0.85"
-							/>
-							<line
-								x1="-11.9"
-								y1="0"
-								x2="11.9"
-								y2="0"
-								stroke="#ffffff"
-								strokeWidth="0.8"
-								opacity="0.85"
-								strokeLinecap="round"
-							/>
-							<line
-								x1="0"
-								y1="-11.9"
-								x2="0"
-								y2="11.9"
-								stroke="#ffffff"
-								strokeWidth="0.8"
-								opacity="0.85"
-								strokeLinecap="round"
-							/>
-							<circle cx="0" cy="0" r="1.5" fill="#ffffff" />
-						</g>
-					</g>
-				</g>
-
-				<g className="desktop-float-a">
 					<circle
-						cx="440.8"
-						cy="956.7"
-						r="4.4"
-						fill="#34d399"
-						opacity="0.48"
-						filter="url(#star-halo-blur)"
+						cx="15.4"
+						cy="34.8"
+						r="1.4"
+						fill="var(--primary)"
+						opacity="0.82"
 					/>
-					<circle cx="440.8" cy="956.7" r="2.3" fill="#6ee7b7" opacity="0.9" />
-					<circle cx="440.8" cy="956.7" r="1.2" fill="#ffffff" />
 				</g>
-
-				<g className="desktop-float-c">
+				<g className="desktop-twinkle-b">
+					<circle cx="63.5" cy="47" r="2.6" fill="var(--warm)" opacity="0.20" />
+					<circle cx="63.5" cy="47" r="1.1" fill="var(--warm)" opacity="0.97" />
+				</g>
+				<g className="desktop-twinkle-c">
 					<circle
-						cx="436.2"
-						cy="898.1"
-						r="4"
-						fill="#38bdf8"
-						opacity="0.40"
-						filter="url(#star-halo-blur)"
+						cx="121.8"
+						cy="39.9"
+						r="2.4"
+						fill="var(--warm)"
+						opacity="0.22"
 					/>
-					<circle cx="436.2" cy="898.1" r="2.1" fill="#7dd3fc" opacity="0.9" />
-					<circle cx="436.2" cy="898.1" r="1.1" fill="#ffffff" />
-				</g>
-
-				<g className="desktop-float-b">
 					<circle
-						cx="493.1"
-						cy="984.7"
-						r="4.4"
-						fill="#67e8f9"
-						opacity="0.44"
-						filter="url(#star-halo-blur)"
+						cx="121.8"
+						cy="39.9"
+						r="1"
+						fill="var(--warm)"
+						opacity="0.80"
 					/>
-					<circle cx="493.1" cy="984.7" r="2.3" fill="#a5f3fc" opacity="0.9" />
-					<circle cx="493.1" cy="984.7" r="1.1" fill="#ffffff" />
 				</g>
-
-				<g className="desktop-float-b">
+				<g className="desktop-twinkle-a">
 					<circle
-						cx="490.8"
-						cy="914.6"
+						cx="249.5"
+						cy="43.3"
+						r="3.6"
+						fill="var(--primary)"
+						opacity="0.24"
+					/>
+					<circle
+						cx="249.5"
+						cy="43.3"
+						r="1.5"
+						fill="var(--primary)"
+						opacity="0.77"
+					/>
+				</g>
+				<circle cx="296.1" cy="48.2" r="1.7" fill="#34d399" opacity="0.41" />
+				<circle cx="429" cy="8.5" r="1.9" fill="var(--warm)" opacity="0.55" />
+				<circle cx="544" cy="24.6" r="1.3" fill="var(--warm)" opacity="0.59" />
+				<circle cx="586.5" cy="37.2" r="1.8" fill="#a7f3d0" opacity="0.41" />
+				<circle cx="26.2" cy="76.1" r="1" fill="var(--warm)" opacity="0.61" />
+				<circle cx="149.4" cy="79.3" r="0.9" fill="#a7f3d0" opacity="0.51" />
+				<circle cx="204.1" cy="81.7" r="0.8" fill="#34d399" opacity="0.40" />
+				<g className="desktop-twinkle-c">
+					<circle cx="255" cy="65.8" r="4.3" fill="#34d399" opacity="0.22" />
+					<circle cx="255" cy="65.8" r="1.8" fill="#34d399" opacity="0.95" />
+				</g>
+				<g className="desktop-twinkle-b">
+					<circle
+						cx="318.5"
+						cy="79.2"
+						r="4.8"
+						fill="var(--primary)"
+						opacity="0.23"
+					/>
+					<circle
+						cx="318.5"
+						cy="79.2"
+						r="2"
+						fill="var(--primary)"
+						opacity="0.90"
+					/>
+				</g>
+				<circle
+					cx="374.6"
+					cy="90.8"
+					r="1.7"
+					fill="var(--warm)"
+					opacity="0.60"
+				/>
+				<circle
+					cx="406.2"
+					cy="66.1"
+					r="1.7"
+					fill="var(--primary)"
+					opacity="0.41"
+				/>
+				<circle
+					cx="488"
+					cy="104.2"
+					r="1.5"
+					fill="var(--primary)"
+					opacity="0.38"
+				/>
+				<g className="desktop-twinkle-b">
+					<circle cx="541.9" cy="104.3" r="4.3" fill="#a7f3d0" opacity="0.16" />
+					<circle cx="541.9" cy="104.3" r="1.8" fill="#a7f3d0" opacity="0.84" />
+				</g>
+				<g className="desktop-twinkle-c">
+					<circle
+						cx="31.2"
+						cy="126.6"
+						r="2.2"
+						fill="var(--warm)"
+						opacity="0.21"
+					/>
+					<circle
+						cx="31.2"
+						cy="126.6"
+						r="0.9"
+						fill="var(--warm)"
+						opacity="0.92"
+					/>
+				</g>
+				<circle
+					cx="94.8"
+					cy="128.6"
+					r="1.2"
+					fill="var(--primary)"
+					opacity="0.43"
+				/>
+				<g className="desktop-twinkle-a">
+					<circle
+						cx="247.8"
+						cy="160.8"
+						r="3.6"
+						fill="var(--warm)"
+						opacity="0.15"
+					/>
+					<circle
+						cx="247.8"
+						cy="160.8"
+						r="1.5"
+						fill="var(--warm)"
+						opacity="0.95"
+					/>
+				</g>
+				<g className="desktop-twinkle-c">
+					<circle cx="326.2" cy="158" r="3.8" fill="#a7f3d0" opacity="0.20" />
+					<circle cx="326.2" cy="158" r="1.6" fill="#a7f3d0" opacity="0.87" />
+				</g>
+				<g className="desktop-twinkle-b">
+					<circle
+						cx="382.6"
+						cy="145"
+						r="3.6"
+						fill="var(--warm)"
+						opacity="0.25"
+					/>
+					<circle
+						cx="382.6"
+						cy="145"
+						r="1.5"
+						fill="var(--warm)"
+						opacity="0.90"
+					/>
+				</g>
+				<circle
+					cx="590.4"
+					cy="129.4"
+					r="1.5"
+					fill="var(--warm)"
+					opacity="0.38"
+				/>
+				<g className="desktop-twinkle-a">
+					<circle
+						cx="13.7"
+						cy="211.4"
+						r="3.1"
+						fill="var(--primary)"
+						opacity="0.25"
+					/>
+					<circle
+						cx="13.7"
+						cy="211.4"
+						r="1.3"
+						fill="var(--primary)"
+						opacity="0.77"
+					/>
+				</g>
+				<circle cx="81.8" cy="179.7" r="1.1" fill="#34d399" opacity="0.52" />
+				<g className="desktop-twinkle-a">
+					<circle
+						cx="132.9"
+						cy="182.3"
 						r="4.3"
-						fill="#38bdf8"
-						opacity="0.42"
-						filter="url(#star-halo-blur)"
+						fill="var(--primary)"
+						opacity="0.23"
 					/>
-					<circle cx="490.8" cy="914.6" r="2.2" fill="#7dd3fc" opacity="0.9" />
-					<circle cx="490.8" cy="914.6" r="1.1" fill="#ffffff" />
-				</g>
-
-				<g transform="translate(331.7, 822.6)">
-					<g className="desktop-float-a">
-						<circle
-							cx="0"
-							cy="0"
-							r="8"
-							fill="#38bdf8"
-							opacity="0.3"
-							filter="url(#star-halo-blur)"
-						/>
-						<g className="desktop-twinkle-a">
-							<path
-								d="M 0 -14.9 Q 2.1 -2.1 14.9 0 Q 2.1 2.1 0 14.9 Q -2.1 2.1 -14.9 0 Q -2.1 -2.1 0 -14.9 Z"
-								fill="#7dd3fc"
-								opacity="0.85"
-							/>
-							<line
-								x1="-12.7"
-								y1="0"
-								x2="12.7"
-								y2="0"
-								stroke="#ffffff"
-								strokeWidth="0.8"
-								opacity="0.85"
-								strokeLinecap="round"
-							/>
-							<line
-								x1="0"
-								y1="-12.7"
-								x2="0"
-								y2="12.7"
-								stroke="#ffffff"
-								strokeWidth="0.8"
-								opacity="0.85"
-								strokeLinecap="round"
-							/>
-							<circle cx="0" cy="0" r="1.6" fill="#ffffff" />
-						</g>
-					</g>
-				</g>
-
-				<g className="desktop-float-b">
 					<circle
-						cx="461.2"
-						cy="51.7"
-						r="4.7"
-						fill="#67e8f9"
-						opacity="0.42"
-						filter="url(#star-halo-blur)"
+						cx="132.9"
+						cy="182.3"
+						r="1.8"
+						fill="var(--primary)"
+						opacity="0.94"
 					/>
-					<circle cx="461.2" cy="51.7" r="2.5" fill="#a5f3fc" opacity="0.9" />
-					<circle cx="461.2" cy="51.7" r="1.2" fill="#ffffff" />
 				</g>
-
-				<g transform="translate(391.7, 72.9)">
-					<g className="desktop-float-b">
-						<circle
-							cx="0"
-							cy="0"
-							r="6.9"
-							fill="#34d399"
-							opacity="0.3"
-							filter="url(#star-halo-blur)"
-						/>
-						<g className="desktop-twinkle-b">
-							<path
-								d="M 0 -12.8 Q 1.8 -1.8 12.8 0 Q 1.8 1.8 0 12.8 Q -1.8 1.8 -12.8 0 Q -1.8 -1.8 0 -12.8 Z"
-								fill="#6ee7b7"
-								opacity="0.85"
-							/>
-							<line
-								x1="-10.9"
-								y1="0"
-								x2="10.9"
-								y2="0"
-								stroke="#ffffff"
-								strokeWidth="0.8"
-								opacity="0.85"
-								strokeLinecap="round"
-							/>
-							<line
-								x1="0"
-								y1="-10.9"
-								x2="0"
-								y2="10.9"
-								stroke="#ffffff"
-								strokeWidth="0.8"
-								opacity="0.85"
-								strokeLinecap="round"
-							/>
-							<circle cx="0" cy="0" r="1.4" fill="#ffffff" />
-						</g>
-					</g>
-				</g>
-
-				<g className="desktop-float-c">
+				<circle cx="372.4" cy="204.1" r="2" fill="#34d399" opacity="0.46" />
+				<circle
+					cx="399.3"
+					cy="179.3"
+					r="0.7"
+					fill="var(--warm)"
+					opacity="0.57"
+				/>
+				<circle cx="366" cy="234.4" r="1.6" fill="var(--warm)" opacity="0.48" />
+				<g className="desktop-twinkle-b">
 					<circle
-						cx="408.8"
-						cy="27.2"
-						r="4"
-						fill="#38bdf8"
-						opacity="0.41"
-						filter="url(#star-halo-blur)"
+						cx="406.4"
+						cy="321.6"
+						r="2.6"
+						fill="var(--primary)"
+						opacity="0.19"
 					/>
-					<circle cx="408.8" cy="27.2" r="2.1" fill="#7dd3fc" opacity="0.9" />
-					<circle cx="408.8" cy="27.2" r="1" fill="#ffffff" />
-				</g>
-
-				<g className="desktop-float-c">
 					<circle
-						cx="190.7"
-						cy="35.9"
-						r="3.9"
-						fill="#38bdf8"
-						opacity="0.42"
-						filter="url(#star-halo-blur)"
+						cx="406.4"
+						cy="321.6"
+						r="1.1"
+						fill="var(--primary)"
+						opacity="0.89"
 					/>
-					<circle cx="190.7" cy="35.9" r="2" fill="#7dd3fc" opacity="0.9" />
-					<circle cx="190.7" cy="35.9" r="1" fill="#ffffff" />
 				</g>
-
-				<g className="desktop-float-a">
+				<g className="desktop-twinkle-b">
 					<circle
-						cx="117"
-						cy="143.7"
-						r="4.7"
-						fill="#38bdf8"
-						opacity="0.40"
-						filter="url(#star-halo-blur)"
+						cx="528.3"
+						cy="302.5"
+						r="2.4"
+						fill="var(--primary)"
+						opacity="0.19"
 					/>
-					<circle cx="117" cy="143.7" r="2.4" fill="#7dd3fc" opacity="0.9" />
-					<circle cx="117" cy="143.7" r="1.2" fill="#ffffff" />
-				</g>
-
-				<g transform="translate(167.9, 88)">
-					<g className="desktop-float-a">
-						<circle
-							cx="0"
-							cy="0"
-							r="6.3"
-							fill="#38bdf8"
-							opacity="0.3"
-							filter="url(#star-halo-blur)"
-						/>
-						<g className="desktop-twinkle-a">
-							<path
-								d="M 0 -11.7 Q 1.6 -1.6 11.7 0 Q 1.6 1.6 0 11.7 Q -1.6 1.6 -11.7 0 Q -1.6 -1.6 0 -11.7 Z"
-								fill="#7dd3fc"
-								opacity="0.85"
-							/>
-							<line
-								x1="-9.9"
-								y1="0"
-								x2="9.9"
-								y2="0"
-								stroke="#ffffff"
-								strokeWidth="0.8"
-								opacity="0.85"
-								strokeLinecap="round"
-							/>
-							<line
-								x1="0"
-								y1="-9.9"
-								x2="0"
-								y2="9.9"
-								stroke="#ffffff"
-								strokeWidth="0.8"
-								opacity="0.85"
-								strokeLinecap="round"
-							/>
-							<circle cx="0" cy="0" r="1.3" fill="#ffffff" />
-						</g>
-					</g>
-				</g>
-
-				<g transform="translate(176.4, 898.8)">
-					<g className="desktop-float-b">
-						<circle
-							cx="0"
-							cy="0"
-							r="5.7"
-							fill="#67e8f9"
-							opacity="0.3"
-							filter="url(#star-halo-blur)"
-						/>
-						<g className="desktop-twinkle-b">
-							<path
-								d="M 0 -10.5 Q 1.5 -1.5 10.5 0 Q 1.5 1.5 0 10.5 Q -1.5 1.5 -10.5 0 Q -1.5 -1.5 0 -10.5 Z"
-								fill="#a5f3fc"
-								opacity="0.85"
-							/>
-							<line
-								x1="-8.9"
-								y1="0"
-								x2="8.9"
-								y2="0"
-								stroke="#ffffff"
-								strokeWidth="0.8"
-								opacity="0.85"
-								strokeLinecap="round"
-							/>
-							<line
-								x1="0"
-								y1="-8.9"
-								x2="0"
-								y2="8.9"
-								stroke="#ffffff"
-								strokeWidth="0.8"
-								opacity="0.85"
-								strokeLinecap="round"
-							/>
-							<circle cx="0" cy="0" r="1.1" fill="#ffffff" />
-						</g>
-					</g>
-				</g>
-
-				<g className="desktop-float-c">
 					<circle
-						cx="164.3"
-						cy="842.5"
-						r="4.4"
-						fill="#67e8f9"
-						opacity="0.40"
-						filter="url(#star-halo-blur)"
+						cx="528.3"
+						cy="302.5"
+						r="1"
+						fill="var(--primary)"
+						opacity="0.82"
 					/>
-					<circle cx="164.3" cy="842.5" r="2.3" fill="#a5f3fc" opacity="0.9" />
-					<circle cx="164.3" cy="842.5" r="1.2" fill="#ffffff" />
 				</g>
-
-				<g transform="translate(242.8, 832.7)">
-					<g className="desktop-float-a">
-						<circle
-							cx="0"
-							cy="0"
-							r="7.1"
-							fill="#38bdf8"
-							opacity="0.3"
-							filter="url(#star-halo-blur)"
-						/>
-						<g className="desktop-twinkle-b">
-							<path
-								d="M 0 -13.1 Q 1.8 -1.8 13.1 0 Q 1.8 1.8 0 13.1 Q -1.8 1.8 -13.1 0 Q -1.8 -1.8 0 -13.1 Z"
-								fill="#7dd3fc"
-								opacity="0.85"
-							/>
-							<line
-								x1="-11.1"
-								y1="0"
-								x2="11.1"
-								y2="0"
-								stroke="#ffffff"
-								strokeWidth="0.8"
-								opacity="0.85"
-								strokeLinecap="round"
-							/>
-							<line
-								x1="0"
-								y1="-11.1"
-								x2="0"
-								y2="11.1"
-								stroke="#ffffff"
-								strokeWidth="0.8"
-								opacity="0.85"
-								strokeLinecap="round"
-							/>
-							<circle cx="0" cy="0" r="1.4" fill="#ffffff" />
-						</g>
-					</g>
-				</g>
-
-				<g transform="translate(184.9, 980.7)">
-					<g className="desktop-float-c">
-						<circle
-							cx="0"
-							cy="0"
-							r="5.5"
-							fill="#38bdf8"
-							opacity="0.3"
-							filter="url(#star-halo-blur)"
-						/>
-						<g className="desktop-twinkle-b">
-							<path
-								d="M 0 -10.3 Q 1.4 -1.4 10.3 0 Q 1.4 1.4 0 10.3 Q -1.4 1.4 -10.3 0 Q -1.4 -1.4 0 -10.3 Z"
-								fill="#7dd3fc"
-								opacity="0.85"
-							/>
-							<line
-								x1="-8.8"
-								y1="0"
-								x2="8.8"
-								y2="0"
-								stroke="#ffffff"
-								strokeWidth="0.8"
-								opacity="0.85"
-								strokeLinecap="round"
-							/>
-							<line
-								x1="0"
-								y1="-8.8"
-								x2="0"
-								y2="8.8"
-								stroke="#ffffff"
-								strokeWidth="0.8"
-								opacity="0.85"
-								strokeLinecap="round"
-							/>
-							<circle cx="0" cy="0" r="1.1" fill="#ffffff" />
-						</g>
-					</g>
-				</g>
-
-				<g transform="translate(104, 968.6)">
-					<g className="desktop-float-b">
-						<circle
-							cx="0"
-							cy="0"
-							r="6.2"
-							fill="#67e8f9"
-							opacity="0.3"
-							filter="url(#star-halo-blur)"
-						/>
-						<g className="desktop-twinkle-a">
-							<path
-								d="M 0 -11.5 Q 1.6 -1.6 11.5 0 Q 1.6 1.6 0 11.5 Q -1.6 1.6 -11.5 0 Q -1.6 -1.6 0 -11.5 Z"
-								fill="#a5f3fc"
-								opacity="0.85"
-							/>
-							<line
-								x1="-9.8"
-								y1="0"
-								x2="9.8"
-								y2="0"
-								stroke="#ffffff"
-								strokeWidth="0.8"
-								opacity="0.85"
-								strokeLinecap="round"
-							/>
-							<line
-								x1="0"
-								y1="-9.8"
-								x2="0"
-								y2="9.8"
-								stroke="#ffffff"
-								strokeWidth="0.8"
-								opacity="0.85"
-								strokeLinecap="round"
-							/>
-							<circle cx="0" cy="0" r="1.2" fill="#ffffff" />
-						</g>
-					</g>
-				</g>
-
-				<g className="desktop-float-c">
+				<g className="desktop-twinkle-c">
 					<circle
-						cx="125.4"
-						cy="922.8"
-						r="3.6"
-						fill="#34d399"
-						opacity="0.41"
-						filter="url(#star-halo-blur)"
-					/>
-					<circle cx="125.4" cy="922.8" r="1.9" fill="#6ee7b7" opacity="0.9" />
-					<circle cx="125.4" cy="922.8" r="0.9" fill="#ffffff" />
-				</g>
-
-				<g transform="translate(57.3, 895.1)">
-					<g className="desktop-float-c">
-						<circle
-							cx="0"
-							cy="0"
-							r="5.7"
-							fill="#67e8f9"
-							opacity="0.3"
-							filter="url(#star-halo-blur)"
-						/>
-						<g className="desktop-twinkle-c">
-							<path
-								d="M 0 -10.6 Q 1.5 -1.5 10.6 0 Q 1.5 1.5 0 10.6 Q -1.5 1.5 -10.6 0 Q -1.5 -1.5 0 -10.6 Z"
-								fill="#a5f3fc"
-								opacity="0.85"
-							/>
-							<line
-								x1="-9"
-								y1="0"
-								x2="9"
-								y2="0"
-								stroke="#ffffff"
-								strokeWidth="0.8"
-								opacity="0.85"
-								strokeLinecap="round"
-							/>
-							<line
-								x1="0"
-								y1="-9"
-								x2="0"
-								y2="9"
-								stroke="#ffffff"
-								strokeWidth="0.8"
-								opacity="0.85"
-								strokeLinecap="round"
-							/>
-							<circle cx="0" cy="0" r="1.1" fill="#ffffff" />
-						</g>
-					</g>
-				</g>
-
-				<g transform="translate(107.4, 880)">
-					<g className="desktop-float-a">
-						<circle
-							cx="0"
-							cy="0"
-							r="6.8"
-							fill="#34d399"
-							opacity="0.3"
-							filter="url(#star-halo-blur)"
-						/>
-						<g className="desktop-twinkle-b">
-							<path
-								d="M 0 -12.7 Q 1.8 -1.8 12.7 0 Q 1.8 1.8 0 12.7 Q -1.8 1.8 -12.7 0 Q -1.8 -1.8 0 -12.7 Z"
-								fill="#6ee7b7"
-								opacity="0.85"
-							/>
-							<line
-								x1="-10.8"
-								y1="0"
-								x2="10.8"
-								y2="0"
-								stroke="#ffffff"
-								strokeWidth="0.8"
-								opacity="0.85"
-								strokeLinecap="round"
-							/>
-							<line
-								x1="0"
-								y1="-10.8"
-								x2="0"
-								y2="10.8"
-								stroke="#ffffff"
-								strokeWidth="0.8"
-								opacity="0.85"
-								strokeLinecap="round"
-							/>
-							<circle cx="0" cy="0" r="1.4" fill="#ffffff" />
-						</g>
-					</g>
-				</g>
-
-				<g className="desktop-float-b">
-					<circle
-						cx="271.3"
-						cy="78.8"
-						r="4.3"
-						fill="#34d399"
-						opacity="0.44"
-						filter="url(#star-halo-blur)"
-					/>
-					<circle cx="271.3" cy="78.8" r="2.2" fill="#6ee7b7" opacity="0.9" />
-					<circle cx="271.3" cy="78.8" r="1.1" fill="#ffffff" />
-				</g>
-
-				<g transform="translate(133.1, 16.5)">
-					<g className="desktop-float-c">
-						<circle
-							cx="0"
-							cy="0"
-							r="6.3"
-							fill="#34d399"
-							opacity="0.3"
-							filter="url(#star-halo-blur)"
-						/>
-						<g className="desktop-twinkle-b">
-							<path
-								d="M 0 -11.7 Q 1.6 -1.6 11.7 0 Q 1.6 1.6 0 11.7 Q -1.6 1.6 -11.7 0 Q -1.6 -1.6 0 -11.7 Z"
-								fill="#6ee7b7"
-								opacity="0.85"
-							/>
-							<line
-								x1="-9.9"
-								y1="0"
-								x2="9.9"
-								y2="0"
-								stroke="#ffffff"
-								strokeWidth="0.8"
-								opacity="0.85"
-								strokeLinecap="round"
-							/>
-							<line
-								x1="0"
-								y1="-9.9"
-								x2="0"
-								y2="9.9"
-								stroke="#ffffff"
-								strokeWidth="0.8"
-								opacity="0.85"
-								strokeLinecap="round"
-							/>
-							<circle cx="0" cy="0" r="1.3" fill="#ffffff" />
-						</g>
-					</g>
-				</g>
-
-				<g className="desktop-float-a">
-					<circle
-						cx="217.6"
-						cy="116.7"
-						r="3.4"
-						fill="#38bdf8"
-						opacity="0.44"
-						filter="url(#star-halo-blur)"
-					/>
-					<circle cx="217.6" cy="116.7" r="1.8" fill="#7dd3fc" opacity="0.9" />
-					<circle cx="217.6" cy="116.7" r="0.9" fill="#ffffff" />
-				</g>
-
-				<g className="desktop-float-c">
-					<circle
-						cx="247.1"
-						cy="21.3"
-						r="4.4"
-						fill="#67e8f9"
-						opacity="0.44"
-						filter="url(#star-halo-blur)"
-					/>
-					<circle cx="247.1" cy="21.3" r="2.3" fill="#a5f3fc" opacity="0.9" />
-					<circle cx="247.1" cy="21.3" r="1.1" fill="#ffffff" />
-				</g>
-
-				<g transform="translate(556.6, 876)">
-					<g className="desktop-float-c">
-						<circle
-							cx="0"
-							cy="0"
-							r="6.2"
-							fill="#67e8f9"
-							opacity="0.3"
-							filter="url(#star-halo-blur)"
-						/>
-						<g className="desktop-twinkle-c">
-							<path
-								d="M 0 -11.5 Q 1.6 -1.6 11.5 0 Q 1.6 1.6 0 11.5 Q -1.6 1.6 -11.5 0 Q -1.6 -1.6 0 -11.5 Z"
-								fill="#a5f3fc"
-								opacity="0.85"
-							/>
-							<line
-								x1="-9.8"
-								y1="0"
-								x2="9.8"
-								y2="0"
-								stroke="#ffffff"
-								strokeWidth="0.8"
-								opacity="0.85"
-								strokeLinecap="round"
-							/>
-							<line
-								x1="0"
-								y1="-9.8"
-								x2="0"
-								y2="9.8"
-								stroke="#ffffff"
-								strokeWidth="0.8"
-								opacity="0.85"
-								strokeLinecap="round"
-							/>
-							<circle cx="0" cy="0" r="1.2" fill="#ffffff" />
-						</g>
-					</g>
-				</g>
-
-				<g transform="translate(60.8, 159.8)">
-					<g className="desktop-float-b">
-						<circle
-							cx="0"
-							cy="0"
-							r="17"
-							fill="#10b981"
-							opacity="0.3"
-							filter="url(#star-halo-blur)"
-						/>
-						<circle
-							cx="0"
-							cy="0"
-							r="8.5"
-							fill="#34d399"
-							opacity="0.5"
-							filter="url(#star-halo-blur)"
-						/>
-						<g className="desktop-twinkle-b">
-							<path
-								d="M 0 -8 Q 1.2 -1.2 8 0 Q 1.2 1.2 0 8 Q -1.2 1.2 -8 0 Q -1.2 -1.2 0 -8 Z"
-								transform="rotate(45)"
-								fill="#ffffff"
-								opacity="0.75"
-							/>
-							<path
-								d="M 0 -16 Q 2.3 -2.3 16 0 Q 2.3 2.3 0 16 Q -2.3 2.3 -16 0 Q -2.3 -2.3 0 -16 Z"
-								fill="#6ee7b7"
-								opacity="0.95"
-							/>
-							<line
-								x1="-15"
-								y1="0"
-								x2="15"
-								y2="0"
-								stroke="#ffffff"
-								strokeWidth="0.9"
-								opacity="0.95"
-								strokeLinecap="round"
-							/>
-							<line
-								x1="0"
-								y1="-15"
-								x2="0"
-								y2="15"
-								stroke="#ffffff"
-								strokeWidth="0.9"
-								opacity="0.95"
-								strokeLinecap="round"
-							/>
-							<circle cx="0" cy="0" r="2.1" fill="#ffffff" />
-						</g>
-					</g>
-				</g>
-
-				<g className="desktop-float-b">
-					<circle
-						cx="187.6"
-						cy="156.2"
-						r="3.4"
-						fill="#38bdf8"
-						opacity="0.40"
-						filter="url(#star-halo-blur)"
-					/>
-					<circle cx="187.6" cy="156.2" r="1.8" fill="#7dd3fc" opacity="0.9" />
-					<circle cx="187.6" cy="156.2" r="0.9" fill="#ffffff" />
-				</g>
-
-				<g className="desktop-float-c">
-					<circle
-						cx="460.3"
-						cy="841.6"
-						r="3.6"
-						fill="#67e8f9"
-						opacity="0.41"
-						filter="url(#star-halo-blur)"
-					/>
-					<circle cx="460.3" cy="841.6" r="1.9" fill="#a5f3fc" opacity="0.9" />
-					<circle cx="460.3" cy="841.6" r="0.9" fill="#ffffff" />
-				</g>
-
-				<g className="desktop-float-c">
-					<circle
-						cx="506.5"
-						cy="869.8"
-						r="4.6"
-						fill="#38bdf8"
-						opacity="0.42"
-						filter="url(#star-halo-blur)"
-					/>
-					<circle cx="506.5" cy="869.8" r="2.4" fill="#7dd3fc" opacity="0.9" />
-					<circle cx="506.5" cy="869.8" r="1.2" fill="#ffffff" />
-				</g>
-
-				<g transform="translate(85.9, 831.1)">
-					<g className="desktop-float-a">
-						<circle
-							cx="0"
-							cy="0"
-							r="17"
-							fill="#3b82f6"
-							opacity="0.3"
-							filter="url(#star-halo-blur)"
-						/>
-						<circle
-							cx="0"
-							cy="0"
-							r="8.5"
-							fill="#67e8f9"
-							opacity="0.5"
-							filter="url(#star-halo-blur)"
-						/>
-						<g className="desktop-twinkle-a">
-							<path
-								d="M 0 -8 Q 1.2 -1.2 8 0 Q 1.2 1.2 0 8 Q -1.2 1.2 -8 0 Q -1.2 -1.2 0 -8 Z"
-								transform="rotate(45)"
-								fill="#ffffff"
-								opacity="0.75"
-							/>
-							<path
-								d="M 0 -16 Q 2.3 -2.3 16 0 Q 2.3 2.3 0 16 Q -2.3 2.3 -16 0 Q -2.3 -2.3 0 -16 Z"
-								fill="#a5f3fc"
-								opacity="0.95"
-							/>
-							<line
-								x1="-15"
-								y1="0"
-								x2="15"
-								y2="0"
-								stroke="#ffffff"
-								strokeWidth="0.9"
-								opacity="0.95"
-								strokeLinecap="round"
-							/>
-							<line
-								x1="0"
-								y1="-15"
-								x2="0"
-								y2="15"
-								stroke="#ffffff"
-								strokeWidth="0.9"
-								opacity="0.95"
-								strokeLinecap="round"
-							/>
-							<circle cx="0" cy="0" r="2.1" fill="#ffffff" />
-						</g>
-					</g>
-				</g>
-
-				<g className="desktop-float-a">
-					<circle
-						cx="20.3"
-						cy="194.1"
-						r="4.7"
-						fill="#34d399"
-						opacity="0.39"
-						filter="url(#star-halo-blur)"
-					/>
-					<circle cx="20.3" cy="194.1" r="2.5" fill="#6ee7b7" opacity="0.9" />
-					<circle cx="20.3" cy="194.1" r="1.2" fill="#ffffff" />
-				</g>
-
-				<g className="desktop-float-a">
-					<circle
-						cx="273.4"
-						cy="185.4"
-						r="4.5"
-						fill="#38bdf8"
-						opacity="0.44"
-						filter="url(#star-halo-blur)"
-					/>
-					<circle cx="273.4" cy="185.4" r="2.3" fill="#7dd3fc" opacity="0.9" />
-					<circle cx="273.4" cy="185.4" r="1.2" fill="#ffffff" />
-				</g>
-
-				<g transform="translate(305.4, 132.2)">
-					<g className="desktop-float-b">
-						<circle
-							cx="0"
-							cy="0"
-							r="7.3"
-							fill="#38bdf8"
-							opacity="0.3"
-							filter="url(#star-halo-blur)"
-						/>
-						<g className="desktop-twinkle-a">
-							<path
-								d="M 0 -13.6 Q 1.9 -1.9 13.6 0 Q 1.9 1.9 0 13.6 Q -1.9 1.9 -13.6 0 Q -1.9 -1.9 0 -13.6 Z"
-								fill="#7dd3fc"
-								opacity="0.85"
-							/>
-							<line
-								x1="-11.6"
-								y1="0"
-								x2="11.6"
-								y2="0"
-								stroke="#ffffff"
-								strokeWidth="0.8"
-								opacity="0.85"
-								strokeLinecap="round"
-							/>
-							<line
-								x1="0"
-								y1="-11.6"
-								x2="0"
-								y2="11.6"
-								stroke="#ffffff"
-								strokeWidth="0.8"
-								opacity="0.85"
-								strokeLinecap="round"
-							/>
-							<circle cx="0" cy="0" r="1.5" fill="#ffffff" />
-						</g>
-					</g>
-				</g>
-
-				<g transform="translate(344.6, 28.4)">
-					<g className="desktop-float-b">
-						<circle
-							cx="0"
-							cy="0"
-							r="7.3"
-							fill="#67e8f9"
-							opacity="0.3"
-							filter="url(#star-halo-blur)"
-						/>
-						<g className="desktop-twinkle-a">
-							<path
-								d="M 0 -13.5 Q 1.9 -1.9 13.5 0 Q 1.9 1.9 0 13.5 Q -1.9 1.9 -13.5 0 Q -1.9 -1.9 0 -13.5 Z"
-								fill="#a5f3fc"
-								opacity="0.85"
-							/>
-							<line
-								x1="-11.5"
-								y1="0"
-								x2="11.5"
-								y2="0"
-								stroke="#ffffff"
-								strokeWidth="0.8"
-								opacity="0.85"
-								strokeLinecap="round"
-							/>
-							<line
-								x1="0"
-								y1="-11.5"
-								x2="0"
-								y2="11.5"
-								stroke="#ffffff"
-								strokeWidth="0.8"
-								opacity="0.85"
-								strokeLinecap="round"
-							/>
-							<circle cx="0" cy="0" r="1.5" fill="#ffffff" />
-						</g>
-					</g>
-				</g>
-
-				<g className="desktop-float-c">
-					<circle
-						cx="587.6"
-						cy="810.1"
-						r="4.7"
-						fill="#38bdf8"
-						opacity="0.44"
-						filter="url(#star-halo-blur)"
-					/>
-					<circle cx="587.6" cy="810.1" r="2.5" fill="#7dd3fc" opacity="0.9" />
-					<circle cx="587.6" cy="810.1" r="1.2" fill="#ffffff" />
-				</g>
-
-				<g className="desktop-float-a">
-					<circle
-						cx="323.7"
-						cy="84.5"
+						cx="521.3"
+						cy="365.4"
 						r="3.8"
-						fill="#67e8f9"
-						opacity="0.40"
-						filter="url(#star-halo-blur)"
+						fill="var(--primary)"
+						opacity="0.20"
 					/>
-					<circle cx="323.7" cy="84.5" r="2" fill="#a5f3fc" opacity="0.9" />
-					<circle cx="323.7" cy="84.5" r="1" fill="#ffffff" />
-				</g>
-
-				<g transform="translate(26.3, 820.8)">
-					<g className="desktop-float-a">
-						<circle
-							cx="0"
-							cy="0"
-							r="6.8"
-							fill="#67e8f9"
-							opacity="0.3"
-							filter="url(#star-halo-blur)"
-						/>
-						<g className="desktop-twinkle-a">
-							<path
-								d="M 0 -12.7 Q 1.8 -1.8 12.7 0 Q 1.8 1.8 0 12.7 Q -1.8 1.8 -12.7 0 Q -1.8 -1.8 0 -12.7 Z"
-								fill="#a5f3fc"
-								opacity="0.85"
-							/>
-							<line
-								x1="-10.8"
-								y1="0"
-								x2="10.8"
-								y2="0"
-								stroke="#ffffff"
-								strokeWidth="0.8"
-								opacity="0.85"
-								strokeLinecap="round"
-							/>
-							<line
-								x1="0"
-								y1="-10.8"
-								x2="0"
-								y2="10.8"
-								stroke="#ffffff"
-								strokeWidth="0.8"
-								opacity="0.85"
-								strokeLinecap="round"
-							/>
-							<circle cx="0" cy="0" r="1.4" fill="#ffffff" />
-						</g>
-					</g>
-				</g>
-
-				<g transform="translate(14, 873.1)">
-					<g className="desktop-float-a">
-						<circle
-							cx="0"
-							cy="0"
-							r="6.5"
-							fill="#67e8f9"
-							opacity="0.3"
-							filter="url(#star-halo-blur)"
-						/>
-						<g className="desktop-twinkle-c">
-							<path
-								d="M 0 -12.2 Q 1.7 -1.7 12.2 0 Q 1.7 1.7 0 12.2 Q -1.7 1.7 -12.2 0 Q -1.7 -1.7 0 -12.2 Z"
-								fill="#a5f3fc"
-								opacity="0.85"
-							/>
-							<line
-								x1="-10.4"
-								y1="0"
-								x2="10.4"
-								y2="0"
-								stroke="#ffffff"
-								strokeWidth="0.8"
-								opacity="0.85"
-								strokeLinecap="round"
-							/>
-							<line
-								x1="0"
-								y1="-10.4"
-								x2="0"
-								y2="10.4"
-								stroke="#ffffff"
-								strokeWidth="0.8"
-								opacity="0.85"
-								strokeLinecap="round"
-							/>
-							<circle cx="0" cy="0" r="1.3" fill="#ffffff" />
-						</g>
-					</g>
-				</g>
-
-				<g transform="translate(365.1, 132.9)">
-					<g className="desktop-float-b">
-						<circle
-							cx="0"
-							cy="0"
-							r="6.9"
-							fill="#38bdf8"
-							opacity="0.3"
-							filter="url(#star-halo-blur)"
-						/>
-						<g className="desktop-twinkle-c">
-							<path
-								d="M 0 -12.7 Q 1.8 -1.8 12.7 0 Q 1.8 1.8 0 12.7 Q -1.8 1.8 -12.7 0 Q -1.8 -1.8 0 -12.7 Z"
-								fill="#7dd3fc"
-								opacity="0.85"
-							/>
-							<line
-								x1="-10.8"
-								y1="0"
-								x2="10.8"
-								y2="0"
-								stroke="#ffffff"
-								strokeWidth="0.8"
-								opacity="0.85"
-								strokeLinecap="round"
-							/>
-							<line
-								x1="0"
-								y1="-10.8"
-								x2="0"
-								y2="10.8"
-								stroke="#ffffff"
-								strokeWidth="0.8"
-								opacity="0.85"
-								strokeLinecap="round"
-							/>
-							<circle cx="0" cy="0" r="1.4" fill="#ffffff" />
-						</g>
-					</g>
-				</g>
-
-				<g transform="translate(351.2, 183.7)">
-					<g className="desktop-float-b">
-						<circle
-							cx="0"
-							cy="0"
-							r="6.6"
-							fill="#38bdf8"
-							opacity="0.3"
-							filter="url(#star-halo-blur)"
-						/>
-						<g className="desktop-twinkle-a">
-							<path
-								d="M 0 -12.3 Q 1.7 -1.7 12.3 0 Q 1.7 1.7 0 12.3 Q -1.7 1.7 -12.3 0 Q -1.7 -1.7 0 -12.3 Z"
-								fill="#7dd3fc"
-								opacity="0.85"
-							/>
-							<line
-								x1="-10.5"
-								y1="0"
-								x2="10.5"
-								y2="0"
-								stroke="#ffffff"
-								strokeWidth="0.8"
-								opacity="0.85"
-								strokeLinecap="round"
-							/>
-							<line
-								x1="0"
-								y1="-10.5"
-								x2="0"
-								y2="10.5"
-								stroke="#ffffff"
-								strokeWidth="0.8"
-								opacity="0.85"
-								strokeLinecap="round"
-							/>
-							<circle cx="0" cy="0" r="1.3" fill="#ffffff" />
-						</g>
-					</g>
-				</g>
-
-				<g transform="translate(16.3, 144.6)">
-					<g className="desktop-float-b">
-						<circle
-							cx="0"
-							cy="0"
-							r="6.1"
-							fill="#38bdf8"
-							opacity="0.3"
-							filter="url(#star-halo-blur)"
-						/>
-						<g className="desktop-twinkle-c">
-							<path
-								d="M 0 -11.3 Q 1.6 -1.6 11.3 0 Q 1.6 1.6 0 11.3 Q -1.6 1.6 -11.3 0 Q -1.6 -1.6 0 -11.3 Z"
-								fill="#7dd3fc"
-								opacity="0.85"
-							/>
-							<line
-								x1="-9.6"
-								y1="0"
-								x2="9.6"
-								y2="0"
-								stroke="#ffffff"
-								strokeWidth="0.8"
-								opacity="0.85"
-								strokeLinecap="round"
-							/>
-							<line
-								x1="0"
-								y1="-9.6"
-								x2="0"
-								y2="9.6"
-								stroke="#ffffff"
-								strokeWidth="0.8"
-								opacity="0.85"
-								strokeLinecap="round"
-							/>
-							<circle cx="0" cy="0" r="1.2" fill="#ffffff" />
-						</g>
-					</g>
-				</g>
-
-				<g className="desktop-float-a">
 					<circle
-						cx="546"
-						cy="830.8"
-						r="3.5"
-						fill="#67e8f9"
-						opacity="0.41"
-						filter="url(#star-halo-blur)"
+						cx="521.3"
+						cy="365.4"
+						r="1.6"
+						fill="var(--primary)"
+						opacity="0.98"
 					/>
-					<circle cx="546" cy="830.8" r="1.8" fill="#a5f3fc" opacity="0.9" />
-					<circle cx="546" cy="830.8" r="0.9" fill="#ffffff" />
 				</g>
-
-				<g transform="translate(258.8, 138.1)">
-					<g className="desktop-float-b">
-						<circle
-							cx="0"
-							cy="0"
-							r="6.4"
-							fill="#67e8f9"
-							opacity="0.3"
-							filter="url(#star-halo-blur)"
-						/>
-						<g className="desktop-twinkle-a">
-							<path
-								d="M 0 -11.9 Q 1.7 -1.7 11.9 0 Q 1.7 1.7 0 11.9 Q -1.7 1.7 -11.9 0 Q -1.7 -1.7 0 -11.9 Z"
-								fill="#a5f3fc"
-								opacity="0.85"
-							/>
-							<line
-								x1="-10.1"
-								y1="0"
-								x2="10.1"
-								y2="0"
-								stroke="#ffffff"
-								strokeWidth="0.8"
-								opacity="0.85"
-								strokeLinecap="round"
-							/>
-							<line
-								x1="0"
-								y1="-10.1"
-								x2="0"
-								y2="10.1"
-								stroke="#ffffff"
-								strokeWidth="0.8"
-								opacity="0.85"
-								strokeLinecap="round"
-							/>
-							<circle cx="0" cy="0" r="1.3" fill="#ffffff" />
-						</g>
-					</g>
+				<g className="desktop-twinkle-b">
+					<circle cx="533.3" cy="420.8" r="4.8" fill="#34d399" opacity="0.21" />
+					<circle cx="533.3" cy="420.8" r="2" fill="#34d399" opacity="0.76" />
 				</g>
-
-				<g className="desktop-float-c">
+				<circle cx="566.8" cy="440.2" r="2" fill="#67e8f9" opacity="0.45" />
+				<circle
+					cx="495.7"
+					cy="487.2"
+					r="1.4"
+					fill="var(--primary)"
+					opacity="0.45"
+				/>
+				<circle
+					cx="526.3"
+					cy="455.7"
+					r="1"
+					fill="var(--primary)"
+					opacity="0.61"
+				/>
+				<circle cx="574.3" cy="477.1" r="1.3" fill="#67e8f9" opacity="0.41" />
+				<circle cx="437.7" cy="637" r="1.6" fill="var(--warm)" opacity="0.36" />
+				<circle cx="466.5" cy="636.5" r="0.8" fill="#34d399" opacity="0.55" />
+				<g className="desktop-twinkle-a">
+					<circle cx="532.5" cy="626" r="4.3" fill="#34d399" opacity="0.25" />
+					<circle cx="532.5" cy="626" r="1.8" fill="#34d399" opacity="0.86" />
+				</g>
+				<g className="desktop-twinkle-c">
 					<circle
-						cx="394.3"
-						cy="216.4"
-						r="4.3"
-						fill="#67e8f9"
-						opacity="0.45"
-						filter="url(#star-halo-blur)"
+						cx="43.3"
+						cy="800.6"
+						r="4.6"
+						fill="var(--primary)"
+						opacity="0.23"
 					/>
-					<circle cx="394.3" cy="216.4" r="2.3" fill="#a5f3fc" opacity="0.9" />
-					<circle cx="394.3" cy="216.4" r="1.1" fill="#ffffff" />
+					<circle
+						cx="43.3"
+						cy="800.6"
+						r="1.9"
+						fill="var(--primary)"
+						opacity="0.97"
+					/>
 				</g>
+				<g className="desktop-twinkle-b">
+					<circle
+						cx="158.6"
+						cy="831.7"
+						r="3.4"
+						fill="var(--primary)"
+						opacity="0.21"
+					/>
+					<circle
+						cx="158.6"
+						cy="831.7"
+						r="1.4"
+						fill="var(--primary)"
+						opacity="0.80"
+					/>
+				</g>
+				<circle cx="238.1" cy="817" r="1" fill="var(--warm)" opacity="0.59" />
+				<g className="desktop-twinkle-c">
+					<circle
+						cx="302.5"
+						cy="830.3"
+						r="2.9"
+						fill="var(--primary)"
+						opacity="0.16"
+					/>
+					<circle
+						cx="302.5"
+						cy="830.3"
+						r="1.2"
+						fill="var(--primary)"
+						opacity="0.93"
+					/>
+				</g>
+				<circle cx="349.6" cy="792.8" r="1.4" fill="#67e8f9" opacity="0.34" />
+				<g className="desktop-twinkle-c">
+					<circle
+						cx="420.1"
+						cy="827.9"
+						r="4.6"
+						fill="var(--primary)"
+						opacity="0.18"
+					/>
+					<circle
+						cx="420.1"
+						cy="827.9"
+						r="1.9"
+						fill="var(--primary)"
+						opacity="0.79"
+					/>
+				</g>
+				<circle cx="48.4" cy="864.2" r="0.7" fill="#a7f3d0" opacity="0.62" />
+				<g className="desktop-twinkle-c">
+					<circle
+						cx="100.3"
+						cy="846.9"
+						r="4.8"
+						fill="var(--warm)"
+						opacity="0.16"
+					/>
+					<circle
+						cx="100.3"
+						cy="846.9"
+						r="2"
+						fill="var(--warm)"
+						opacity="0.87"
+					/>
+				</g>
+				<circle
+					cx="143.2"
+					cy="885.2"
+					r="1.1"
+					fill="var(--warm)"
+					opacity="0.40"
+				/>
+				<circle cx="212.5" cy="882.5" r="1.6" fill="#67e8f9" opacity="0.54" />
+				<circle
+					cx="308.2"
+					cy="848"
+					r="0.7"
+					fill="var(--primary)"
+					opacity="0.36"
+				/>
+				<g className="desktop-twinkle-a">
+					<circle cx="491.1" cy="857.6" r="3.8" fill="#67e8f9" opacity="0.18" />
+					<circle cx="491.1" cy="857.6" r="1.6" fill="#67e8f9" opacity="0.97" />
+				</g>
+				<circle
+					cx="548.2"
+					cy="887.9"
+					r="1.1"
+					fill="var(--warm)"
+					opacity="0.40"
+				/>
+				<circle cx="24.1" cy="919" r="1.8" fill="#67e8f9" opacity="0.65" />
+				<g className="desktop-twinkle-c">
+					<circle
+						cx="83.8"
+						cy="942"
+						r="4.8"
+						fill="var(--warm)"
+						opacity="0.21"
+					/>
+					<circle cx="83.8" cy="942" r="2" fill="var(--warm)" opacity="0.98" />
+				</g>
+				<circle
+					cx="140.6"
+					cy="941.4"
+					r="1.6"
+					fill="var(--primary)"
+					opacity="0.50"
+				/>
+				<circle
+					cx="181.3"
+					cy="918.9"
+					r="1.8"
+					fill="var(--primary)"
+					opacity="0.56"
+				/>
+				<circle cx="314.4" cy="921" r="1.4" fill="var(--warm)" opacity="0.59" />
+				<circle cx="366.9" cy="922.6" r="1.2" fill="#67e8f9" opacity="0.48" />
+				<g className="desktop-twinkle-a">
+					<circle
+						cx="425.8"
+						cy="934.1"
+						r="2.9"
+						fill="var(--primary)"
+						opacity="0.17"
+					/>
+					<circle
+						cx="425.8"
+						cy="934.1"
+						r="1.2"
+						fill="var(--primary)"
+						opacity="0.85"
+					/>
+				</g>
+				<circle
+					cx="476.6"
+					cy="911.4"
+					r="1.2"
+					fill="var(--primary)"
+					opacity="0.34"
+				/>
+				<circle cx="552" cy="930.4" r="0.6" fill="#34d399" opacity="0.43" />
+				<circle
+					cx="574"
+					cy="941.4"
+					r="0.9"
+					fill="var(--primary)"
+					opacity="0.45"
+				/>
+				<circle
+					cx="126.2"
+					cy="991.7"
+					r="1.1"
+					fill="var(--primary)"
+					opacity="0.64"
+				/>
+				<circle cx="205.9" cy="982.1" r="1.4" fill="#a7f3d0" opacity="0.34" />
+				<circle cx="304.8" cy="982.2" r="1" fill="#34d399" opacity="0.41" />
+				<circle cx="348.9" cy="991.1" r="1.2" fill="#67e8f9" opacity="0.46" />
+				<g className="desktop-twinkle-c">
+					<circle
+						cx="420.7"
+						cy="972.6"
+						r="2.4"
+						fill="var(--primary)"
+						opacity="0.19"
+					/>
+					<circle
+						cx="420.7"
+						cy="972.6"
+						r="1"
+						fill="var(--primary)"
+						opacity="0.78"
+					/>
+				</g>
+				<circle cx="538.7" cy="969.2" r="1.9" fill="#34d399" opacity="0.64" />
 			</g>
 
 			{/* ========================================================================= */}
