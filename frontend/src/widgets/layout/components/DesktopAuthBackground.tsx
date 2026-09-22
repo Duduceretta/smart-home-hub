@@ -1487,183 +1487,260 @@ export function DesktopAuthBackground({
 			{/* uniforme sem aglomerado nem buraco, evitando planeta/lua/Saturno/mesh.   */}
 			{/* ========================================================================= */}
 			<g data-testid="auth-static-points">
+				<circle cx="72.2" cy="35.6" r="1.7" fill="#a7f3d0" opacity="0.38" />
 				<g className="desktop-twinkle-a">
-					<circle cx="8.8" cy="15.4" r="4.1" fill="var(--warm)" opacity="0.16" />
-					<circle cx="8.8" cy="15.4" r="1.7" fill="var(--warm)" opacity="0.97" />
+					<circle cx="118.3" cy="8.4" r="4.3" fill="var(--warm)" opacity="0.16" />
+					<circle cx="118.3" cy="8.4" r="1.8" fill="var(--warm)" opacity="0.82" />
 				</g>
+				<circle cx="204.8" cy="28" r="2" fill="#34d399" opacity="0.35" />
 				<g className="desktop-twinkle-a">
-					<circle cx="64.2" cy="24.9" r="4.3" fill="#34d399" opacity="0.25" />
-					<circle cx="64.2" cy="24.9" r="1.8" fill="#34d399" opacity="0.86" />
+					<circle cx="233.7" cy="6" r="3.6" fill="#a7f3d0" opacity="0.24" />
+					<circle cx="233.7" cy="6" r="1.5" fill="#a7f3d0" opacity="0.92" />
 				</g>
-				<circle cx="149.9" cy="6.8" r="1.2" fill="#34d399" opacity="0.33" />
-				<circle cx="306.2" cy="30.7" r="0.6" fill="var(--primary)" opacity="0.36" />
-				<g className="desktop-twinkle-b">
-					<circle cx="358.4" cy="9.8" r="2.6" fill="var(--primary)" opacity="0.15" />
-					<circle cx="358.4" cy="9.8" r="1.1" fill="var(--primary)" opacity="0.85" />
-				</g>
-				<g className="desktop-twinkle-b">
-					<circle cx="412.4" cy="9" r="2.9" fill="#a7f3d0" opacity="0.19" />
-					<circle cx="412.4" cy="9" r="1.2" fill="#a7f3d0" opacity="0.96" />
-				</g>
-				<g className="desktop-twinkle-c">
-					<circle cx="552.1" cy="14.3" r="3.8" fill="var(--primary)" opacity="0.21" />
-					<circle cx="552.1" cy="14.3" r="1.6" fill="var(--primary)" opacity="0.85" />
-				</g>
-				<circle cx="65.9" cy="71.8" r="1.2" fill="#a7f3d0" opacity="0.55" />
-				<g className="desktop-twinkle-b">
-					<circle cx="128.1" cy="104.2" r="4.6" fill="var(--primary)" opacity="0.17" />
-					<circle cx="128.1" cy="104.2" r="1.9" fill="var(--primary)" opacity="0.88" />
-				</g>
-				<circle cx="273.2" cy="68.6" r="1.9" fill="var(--primary)" opacity="0.37" />
-				<circle cx="373.5" cy="86.3" r="0.6" fill="#67e8f9" opacity="0.64" />
-				<circle cx="429.6" cy="62.9" r="0.9" fill="var(--primary)" opacity="0.55" />
+				<circle cx="306.6" cy="28.1" r="1.4" fill="var(--warm)" opacity="0.46" />
+				<circle cx="372.8" cy="8.8" r="1.8" fill="#67e8f9" opacity="0.33" />
 				<g className="desktop-twinkle-a">
-					<circle cx="531.5" cy="97.9" r="3.4" fill="var(--warm)" opacity="0.21" />
-					<circle cx="531.5" cy="97.9" r="1.4" fill="var(--warm)" opacity="0.88" />
-				</g>
-				<circle cx="577.4" cy="82.5" r="1.4" fill="#67e8f9" opacity="0.46" />
-				<circle cx="26.2" cy="154.2" r="0.7" fill="var(--warm)" opacity="0.60" />
-				<g className="desktop-twinkle-c">
-					<circle cx="94" cy="143.7" r="4.6" fill="var(--primary)" opacity="0.23" />
-					<circle cx="94" cy="143.7" r="1.9" fill="var(--primary)" opacity="0.97" />
-				</g>
-				<circle cx="132.1" cy="152.1" r="1.3" fill="#34d399" opacity="0.63" />
-				<g className="desktop-twinkle-b">
-					<circle cx="256" cy="149.4" r="3.4" fill="var(--primary)" opacity="0.21" />
-					<circle cx="256" cy="149.4" r="1.4" fill="var(--primary)" opacity="0.80" />
-				</g>
-				<circle cx="315.2" cy="128.3" r="1.4" fill="#67e8f9" opacity="0.36" />
-				<circle cx="376.8" cy="126.5" r="1" fill="var(--warm)" opacity="0.59" />
-				<circle cx="531.7" cy="143" r="1.1" fill="var(--primary)" opacity="0.63" />
-				<g className="desktop-twinkle-a">
-					<circle cx="96.1" cy="202.1" r="4.3" fill="#a7f3d0" opacity="0.16" />
-					<circle cx="96.1" cy="202.1" r="1.8" fill="#a7f3d0" opacity="0.78" />
-				</g>
-				<g className="desktop-twinkle-c">
-					<circle cx="235.8" cy="189.6" r="2.4" fill="var(--primary)" opacity="0.20" />
-					<circle cx="235.8" cy="189.6" r="1" fill="var(--primary)" opacity="0.87" />
+					<circle cx="441.2" cy="37.3" r="4.3" fill="#67e8f9" opacity="0.22" />
+					<circle cx="441.2" cy="37.3" r="1.8" fill="#67e8f9" opacity="0.82" />
 				</g>
 				<g className="desktop-twinkle-a">
-					<circle cx="318.6" cy="202.8" r="3.6" fill="#34d399" opacity="0.18" />
-					<circle cx="318.6" cy="202.8" r="1.5" fill="#34d399" opacity="0.95" />
+					<circle cx="493.1" cy="11.6" r="4.1" fill="var(--warm)" opacity="0.20" />
+					<circle cx="493.1" cy="11.6" r="1.7" fill="var(--warm)" opacity="0.83" />
+				</g>
+				<circle cx="581.4" cy="8.5" r="1" fill="#67e8f9" opacity="0.60" />
+				<circle cx="35.9" cy="73" r="0.9" fill="#67e8f9" opacity="0.54" />
+				<circle cx="67.4" cy="53.4" r="1.4" fill="var(--warm)" opacity="0.44" />
+				<g className="desktop-twinkle-b">
+					<circle cx="150.5" cy="78.6" r="3.1" fill="var(--warm)" opacity="0.16" />
+					<circle cx="150.5" cy="78.6" r="1.3" fill="var(--warm)" opacity="0.78" />
+				</g>
+				<circle cx="182.3" cy="54.5" r="0.7" fill="var(--primary)" opacity="0.33" />
+				<circle cx="240" cy="47.1" r="0.8" fill="var(--primary)" opacity="0.38" />
+				<circle cx="311.7" cy="75" r="1.6" fill="#ffffff" opacity="0.63" />
+				<circle cx="341" cy="69.5" r="2" fill="#ffffff" opacity="0.75" />
+				<g className="desktop-twinkle-c">
+					<circle cx="444.6" cy="78.5" r="2.6" fill="#ffffff" opacity="0.20" />
+					<circle cx="444.6" cy="78.5" r="1.1" fill="#ffffff" opacity="0.98" />
 				</g>
 				<g className="desktop-twinkle-b">
-					<circle cx="376.6" cy="211.3" r="3.1" fill="#67e8f9" opacity="0.25" />
-					<circle cx="376.6" cy="211.3" r="1.3" fill="#67e8f9" opacity="0.91" />
+					<circle cx="494.6" cy="67.6" r="2.2" fill="#ffffff" opacity="0.20" />
+					<circle cx="494.6" cy="67.6" r="0.9" fill="#ffffff" opacity="0.98" />
+				</g>
+				<circle cx="578.2" cy="72.5" r="2" fill="var(--primary)" opacity="0.41" />
+				<circle cx="61.2" cy="101.6" r="1.5" fill="#67e8f9" opacity="0.52" />
+				<g className="desktop-twinkle-c">
+					<circle cx="121.5" cy="107" r="2.9" fill="var(--primary)" opacity="0.23" />
+					<circle cx="121.5" cy="107" r="1.2" fill="var(--primary)" opacity="0.92" />
+				</g>
+				<circle cx="198" cy="92.2" r="1.1" fill="#34d399" opacity="0.32" />
+				<g className="desktop-twinkle-b">
+					<circle cx="240.7" cy="119" r="4.6" fill="#ffffff" opacity="0.20" />
+					<circle cx="240.7" cy="119" r="1.9" fill="#ffffff" opacity="0.98" />
+				</g>
+				<circle cx="319.1" cy="103.6" r="1.7" fill="#ffffff" opacity="0.66" />
+				<circle cx="356.4" cy="121.8" r="1.2" fill="#ffffff" opacity="0.58" />
+				<circle cx="436.7" cy="109" r="1.4" fill="#ffffff" opacity="0.95" />
+				<circle cx="485.1" cy="114" r="1.5" fill="#ffffff" opacity="0.69" />
+				<circle cx="567.4" cy="116.9" r="1.9" fill="#ffffff" opacity="0.95" />
+				<circle cx="35.3" cy="139.5" r="1.7" fill="#a7f3d0" opacity="0.60" />
+				<g className="desktop-twinkle-c">
+					<circle cx="54.4" cy="138.3" r="3.6" fill="var(--primary)" opacity="0.16" />
+					<circle cx="54.4" cy="138.3" r="1.5" fill="var(--primary)" opacity="0.84" />
 				</g>
 				<g className="desktop-twinkle-c">
-					<circle cx="405.1" cy="182.2" r="3.6" fill="var(--primary)" opacity="0.17" />
-					<circle cx="405.1" cy="182.2" r="1.5" fill="var(--primary)" opacity="0.92" />
+					<circle cx="130.3" cy="154.4" r="4.6" fill="#67e8f9" opacity="0.23" />
+					<circle cx="130.3" cy="154.4" r="1.9" fill="#67e8f9" opacity="0.87" />
 				</g>
-				<circle cx="303" cy="233.6" r="1.2" fill="#34d399" opacity="0.34" />
-				<circle cx="359.5" cy="270.8" r="1" fill="var(--primary)" opacity="0.61" />
-				<g className="desktop-twinkle-c">
-					<circle cx="588.7" cy="266.2" r="4.8" fill="var(--warm)" opacity="0.16" />
-					<circle cx="588.7" cy="266.2" r="2" fill="var(--warm)" opacity="0.87" />
+				<circle cx="205.7" cy="158.5" r="1.2" fill="#ffffff" opacity="0.84" />
+				<g className="desktop-twinkle-a">
+					<circle cx="271.9" cy="160" r="3.4" fill="#ffffff" opacity="0.24" />
+					<circle cx="271.9" cy="160" r="1.4" fill="#ffffff" opacity="0.98" />
 				</g>
-				<circle cx="399.2" cy="309.2" r="1.4" fill="#34d399" opacity="0.62" />
-				<circle cx="513.2" cy="313.3" r="1" fill="var(--primary)" opacity="0.38" />
-				<circle cx="589.9" cy="318.1" r="1.8" fill="#67e8f9" opacity="0.58" />
-				<circle cx="468.2" cy="343.1" r="1.4" fill="#67e8f9" opacity="0.64" />
-				<circle cx="534.4" cy="353.4" r="0.6" fill="var(--primary)" opacity="0.63" />
-				<g className="desktop-twinkle-c">
-					<circle cx="593.6" cy="352.7" r="2.9" fill="var(--primary)" opacity="0.22" />
-					<circle cx="593.6" cy="352.7" r="1.2" fill="var(--primary)" opacity="0.95" />
-				</g>
+				<circle cx="325.3" cy="160.6" r="1.2" fill="#ffffff" opacity="0.89" />
+				<circle cx="342.9" cy="132" r="1.8" fill="#ffffff" opacity="0.85" />
+				<circle cx="451.7" cy="157" r="1.4" fill="#ffffff" opacity="0.73" />
+				<circle cx="491.9" cy="135" r="0.7" fill="#ffffff" opacity="0.68" />
+				<circle cx="553.8" cy="155.3" r="1.9" fill="#ffffff" opacity="0.77" />
 				<g className="desktop-twinkle-b">
-					<circle cx="477.3" cy="412.9" r="2.4" fill="var(--warm)" opacity="0.25" />
-					<circle cx="477.3" cy="412.9" r="1" fill="var(--warm)" opacity="0.90" />
+					<circle cx="61.7" cy="191.9" r="3.6" fill="#ffffff" opacity="0.18" />
+					<circle cx="61.7" cy="191.9" r="1.5" fill="#ffffff" opacity="0.98" />
 				</g>
-				<g className="desktop-twinkle-b">
-					<circle cx="511.4" cy="432" r="2.9" fill="#34d399" opacity="0.25" />
-					<circle cx="511.4" cy="432" r="1.2" fill="#34d399" opacity="0.95" />
-				</g>
-				<g className="desktop-twinkle-b">
-					<circle cx="487.1" cy="463.4" r="3.6" fill="var(--primary)" opacity="0.15" />
-					<circle cx="487.1" cy="463.4" r="1.5" fill="var(--primary)" opacity="0.97" />
-				</g>
-				<circle cx="544.4" cy="463.8" r="1.8" fill="#67e8f9" opacity="0.65" />
-				<circle cx="476.7" cy="522.3" r="1.3" fill="var(--warm)" opacity="0.62" />
-				<circle cx="459.9" cy="581.9" r="2" fill="var(--warm)" opacity="0.51" />
-				<circle cx="552.7" cy="600.3" r="1.4" fill="#34d399" opacity="0.48" />
-				<circle cx="592.5" cy="582.3" r="1.6" fill="var(--primary)" opacity="0.50" />
-				<circle cx="547.1" cy="640.5" r="0.8" fill="var(--primary)" opacity="0.43" />
-				<circle cx="589.4" cy="693.4" r="1.6" fill="#34d399" opacity="0.30" />
-				<g className="desktop-twinkle-c">
-					<circle cx="328.9" cy="765.8" r="3.8" fill="#67e8f9" opacity="0.19" />
-					<circle cx="328.9" cy="765.8" r="1.6" fill="#67e8f9" opacity="0.85" />
-				</g>
-				<circle cx="589.3" cy="756.8" r="0.7" fill="var(--warm)" opacity="0.50" />
-				<circle cx="48.8" cy="792.2" r="1.2" fill="#67e8f9" opacity="0.48" />
-				<g className="desktop-twinkle-b">
-					<circle cx="103.1" cy="814.4" r="3.8" fill="var(--warm)" opacity="0.17" />
-					<circle cx="103.1" cy="814.4" r="1.6" fill="var(--warm)" opacity="0.92" />
+				<circle cx="110.9" cy="177.8" r="1.4" fill="#34d399" opacity="0.64" />
+				<circle cx="193.1" cy="175.6" r="1.1" fill="#34d399" opacity="0.49" />
+				<circle cx="233.6" cy="198" r="1.5" fill="#ffffff" opacity="0.71" />
+				<circle cx="309.3" cy="179.5" r="0.7" fill="#ffffff" opacity="0.81" />
+				<circle cx="343.2" cy="172.4" r="1.6" fill="#ffffff" opacity="0.86" />
+				<circle cx="436.1" cy="185.4" r="1.1" fill="#ffffff" opacity="0.61" />
+				<g className="desktop-twinkle-a">
+					<circle cx="467.9" cy="175.1" r="4.1" fill="#ffffff" opacity="0.18" />
+					<circle cx="467.9" cy="175.1" r="1.7" fill="#ffffff" opacity="0.98" />
 				</g>
 				<g className="desktop-twinkle-a">
-					<circle cx="118.8" cy="832.2" r="2.9" fill="var(--warm)" opacity="0.19" />
-					<circle cx="118.8" cy="832.2" r="1.2" fill="var(--warm)" opacity="0.78" />
+					<circle cx="573.5" cy="188.9" r="3.6" fill="#ffffff" opacity="0.18" />
+					<circle cx="573.5" cy="188.9" r="1.5" fill="#ffffff" opacity="0.98" />
 				</g>
-				<circle cx="216.1" cy="808.7" r="1.2" fill="var(--primary)" opacity="0.34" />
-				<circle cx="375.5" cy="811.1" r="2" fill="#67e8f9" opacity="0.53" />
-				<g className="desktop-twinkle-c">
-					<circle cx="416.7" cy="822.5" r="3.1" fill="var(--warm)" opacity="0.19" />
-					<circle cx="416.7" cy="822.5" r="1.3" fill="var(--warm)" opacity="0.97" />
-				</g>
-				<circle cx="475.6" cy="819.9" r="0.9" fill="var(--primary)" opacity="0.45" />
-				<circle cx="548.1" cy="828.2" r="1.8" fill="var(--warm)" opacity="0.36" />
-				<circle cx="20.6" cy="887.7" r="1.4" fill="#34d399" opacity="0.42" />
+				<circle cx="18.4" cy="224.7" r="1.9" fill="#ffffff" opacity="0.66" />
 				<g className="desktop-twinkle-b">
-					<circle cx="98.7" cy="871.2" r="2.9" fill="var(--warm)" opacity="0.20" />
-					<circle cx="98.7" cy="871.2" r="1.2" fill="var(--warm)" opacity="0.92" />
+					<circle cx="68.3" cy="216.1" r="3.4" fill="#ffffff" opacity="0.22" />
+					<circle cx="68.3" cy="216.1" r="1.4" fill="#ffffff" opacity="0.98" />
+				</g>
+				<g className="desktop-twinkle-a">
+					<circle cx="342.2" cy="216.5" r="2.2" fill="#ffffff" opacity="0.16" />
+					<circle cx="342.2" cy="216.5" r="0.9" fill="#ffffff" opacity="0.98" />
+				</g>
+				<circle cx="386.7" cy="222.1" r="1.7" fill="#ffffff" opacity="0.60" />
+				<g className="desktop-twinkle-c">
+					<circle cx="430.5" cy="223.8" r="2.4" fill="#ffffff" opacity="0.22" />
+					<circle cx="430.5" cy="223.8" r="1" fill="#ffffff" opacity="0.98" />
+				</g>
+				<circle cx="582.6" cy="214.8" r="1.8" fill="#ffffff" opacity="0.94" />
+				<circle cx="407.4" cy="303" r="1.7" fill="#ffffff" opacity="0.79" />
+				<g className="desktop-twinkle-b">
+					<circle cx="531.3" cy="360.8" r="2.9" fill="var(--primary)" opacity="0.19" />
+					<circle cx="531.3" cy="360.8" r="1.2" fill="var(--primary)" opacity="0.88" />
+				</g>
+				<circle cx="467.5" cy="391.1" r="1" fill="#34d399" opacity="0.54" />
+				<circle cx="508.7" cy="415.4" r="1.2" fill="#ffffff" opacity="0.58" />
+				<circle cx="536.8" cy="453.1" r="0.6" fill="#ffffff" opacity="0.72" />
+				<circle cx="576.8" cy="427.7" r="0.7" fill="#ffffff" opacity="0.58" />
+				<circle cx="474.9" cy="493.4" r="1.4" fill="#ffffff" opacity="0.74" />
+				<circle cx="539.2" cy="476.1" r="1.3" fill="#ffffff" opacity="0.75" />
+				<circle cx="495.1" cy="581.6" r="1.2" fill="#ffffff" opacity="0.74" />
+				<g className="desktop-twinkle-c">
+					<circle cx="495.5" cy="613.3" r="4.1" fill="#ffffff" opacity="0.22" />
+					<circle cx="495.5" cy="613.3" r="1.7" fill="#ffffff" opacity="0.98" />
+				</g>
+				<g className="desktop-twinkle-c">
+					<circle cx="564.2" cy="602.6" r="2.6" fill="#ffffff" opacity="0.17" />
+					<circle cx="564.2" cy="602.6" r="1.1" fill="#ffffff" opacity="0.98" />
+				</g>
+				<circle cx="438.2" cy="651.8" r="1.7" fill="var(--warm)" opacity="0.46" />
+				<circle cx="484.2" cy="643.7" r="1.9" fill="#ffffff" opacity="0.80" />
+				<circle cx="551.9" cy="640.9" r="0.9" fill="#ffffff" opacity="0.69" />
+				<g className="desktop-twinkle-b">
+					<circle cx="352.4" cy="742.1" r="2.9" fill="#ffffff" opacity="0.24" />
+					<circle cx="352.4" cy="742.1" r="1.2" fill="#ffffff" opacity="0.98" />
+				</g>
+				<g className="desktop-twinkle-c">
+					<circle cx="233" cy="792.3" r="4.3" fill="#ffffff" opacity="0.17" />
+					<circle cx="233" cy="792.3" r="1.8" fill="#ffffff" opacity="0.98" />
+				</g>
+				<circle cx="261.2" cy="789.8" r="0.9" fill="#ffffff" opacity="0.76" />
+				<circle cx="363.7" cy="776.5" r="1.8" fill="#ffffff" opacity="0.76" />
+				<circle cx="568.6" cy="786.1" r="0.9" fill="#ffffff" opacity="0.78" />
+				<circle cx="70.5" cy="828.4" r="1.8" fill="#ffffff" opacity="0.63" />
+				<g className="desktop-twinkle-b">
+					<circle cx="121.6" cy="826.1" r="4.3" fill="#ffffff" opacity="0.20" />
+					<circle cx="121.6" cy="826.1" r="1.8" fill="#ffffff" opacity="0.98" />
+				</g>
+				<g className="desktop-twinkle-c">
+					<circle cx="189" cy="806.2" r="2.6" fill="#ffffff" opacity="0.19" />
+					<circle cx="189" cy="806.2" r="1.1" fill="#ffffff" opacity="0.98" />
+				</g>
+				<circle cx="240.2" cy="833.2" r="1" fill="#ffffff" opacity="0.80" />
+				<circle cx="309.3" cy="825.1" r="2" fill="#ffffff" opacity="0.81" />
+				<circle cx="371.8" cy="823.6" r="1.6" fill="#ffffff" opacity="0.83" />
+				<g className="desktop-twinkle-b">
+					<circle cx="476.8" cy="826.4" r="4.8" fill="#ffffff" opacity="0.15" />
+					<circle cx="476.8" cy="826.4" r="2" fill="#ffffff" opacity="0.98" />
+				</g>
+				<circle cx="537.5" cy="814.1" r="0.7" fill="#ffffff" opacity="0.88" />
+				<circle cx="19.5" cy="849.3" r="0.6" fill="#ffffff" opacity="0.59" />
+				<circle cx="58.9" cy="877.2" r="1.3" fill="#ffffff" opacity="0.87" />
+				<circle cx="145.5" cy="851.3" r="1" fill="#ffffff" opacity="0.80" />
+				<circle cx="203.6" cy="848" r="0.6" fill="#ffffff" opacity="0.56" />
+				<g className="desktop-twinkle-b">
+					<circle cx="245.4" cy="863.3" r="3.6" fill="#ffffff" opacity="0.16" />
+					<circle cx="245.4" cy="863.3" r="1.5" fill="#ffffff" opacity="0.98" />
+				</g>
+				<g className="desktop-twinkle-a">
+					<circle cx="299.7" cy="856.3" r="4.8" fill="#ffffff" opacity="0.15" />
+					<circle cx="299.7" cy="856.3" r="2" fill="#ffffff" opacity="0.98" />
+				</g>
+				<circle cx="365.7" cy="865" r="1.8" fill="#ffffff" opacity="0.68" />
+				<circle cx="426" cy="856" r="1.7" fill="#ffffff" opacity="0.81" />
+				<circle cx="474.7" cy="863.9" r="1.5" fill="#ffffff" opacity="0.74" />
+				<circle cx="561.9" cy="850.8" r="1.4" fill="var(--warm)" opacity="0.49" />
+				<circle cx="78.6" cy="902.5" r="1.1" fill="#ffffff" opacity="0.83" />
+				<circle cx="104.2" cy="900.8" r="0.7" fill="#ffffff" opacity="0.55" />
+				<g className="desktop-twinkle-c">
+					<circle cx="205.5" cy="914" r="3.1" fill="#ffffff" opacity="0.24" />
+					<circle cx="205.5" cy="914" r="1.3" fill="#ffffff" opacity="0.98" />
 				</g>
 				<g className="desktop-twinkle-b">
-					<circle cx="119.3" cy="875.1" r="4.3" fill="#34d399" opacity="0.17" />
-					<circle cx="119.3" cy="875.1" r="1.8" fill="#34d399" opacity="0.84" />
+					<circle cx="240.5" cy="915.3" r="4.6" fill="#ffffff" opacity="0.24" />
+					<circle cx="240.5" cy="915.3" r="1.9" fill="#ffffff" opacity="0.98" />
 				</g>
-				<circle cx="175.7" cy="864.5" r="1.4" fill="var(--primary)" opacity="0.59" />
-				<g className="desktop-twinkle-c">
-					<circle cx="268.6" cy="851.5" r="4.8" fill="#a7f3d0" opacity="0.16" />
-					<circle cx="268.6" cy="851.5" r="2" fill="#a7f3d0" opacity="0.85" />
-				</g>
-				<circle cx="294.3" cy="869.1" r="1.2" fill="var(--primary)" opacity="0.55" />
-				<circle cx="364.1" cy="859.6" r="1.1" fill="var(--primary)" opacity="0.41" />
 				<g className="desktop-twinkle-a">
-					<circle cx="428.7" cy="876.4" r="3.1" fill="#34d399" opacity="0.25" />
-					<circle cx="428.7" cy="876.4" r="1.3" fill="#34d399" opacity="0.82" />
+					<circle cx="321.5" cy="900" r="2.4" fill="#ffffff" opacity="0.22" />
+					<circle cx="321.5" cy="900" r="1" fill="#ffffff" opacity="0.98" />
 				</g>
-				<circle cx="490.3" cy="870.7" r="0.9" fill="#34d399" opacity="0.61" />
-				<circle cx="10.3" cy="903.7" r="1.9" fill="var(--primary)" opacity="0.41" />
-				<circle cx="102" cy="940.1" r="0.9" fill="#a7f3d0" opacity="0.34" />
-				<circle cx="156.8" cy="918" r="1.3" fill="var(--warm)" opacity="0.56" />
+				<circle cx="359.8" cy="914.7" r="2" fill="#ffffff" opacity="0.58" />
+				<circle cx="443.9" cy="895.6" r="0.9" fill="#ffffff" opacity="0.72" />
+				<circle cx="482.9" cy="894.7" r="0.9" fill="#ffffff" opacity="0.78" />
+				<circle cx="565" cy="908.4" r="1" fill="#a7f3d0" opacity="0.47" />
+				<g className="desktop-twinkle-a">
+					<circle cx="12.2" cy="943.1" r="3.8" fill="#67e8f9" opacity="0.23" />
+					<circle cx="12.2" cy="943.1" r="1.6" fill="#67e8f9" opacity="0.90" />
+				</g>
 				<g className="desktop-twinkle-b">
-					<circle cx="186.1" cy="912.7" r="2.4" fill="var(--primary)" opacity="0.19" />
-					<circle cx="186.1" cy="912.7" r="1" fill="var(--primary)" opacity="0.89" />
+					<circle cx="67.2" cy="961.8" r="4.1" fill="#ffffff" opacity="0.24" />
+					<circle cx="67.2" cy="961.8" r="1.7" fill="#ffffff" opacity="0.98" />
 				</g>
-				<circle cx="269.4" cy="913.4" r="1" fill="#a7f3d0" opacity="0.36" />
+				<g className="desktop-twinkle-b">
+					<circle cx="94.8" cy="956.6" r="4.1" fill="#ffffff" opacity="0.24" />
+					<circle cx="94.8" cy="956.6" r="1.7" fill="#ffffff" opacity="0.98" />
+				</g>
+				<circle cx="181.7" cy="958.2" r="1.3" fill="#ffffff" opacity="0.85" />
+				<g className="desktop-twinkle-b">
+					<circle cx="225.7" cy="937" r="3.1" fill="#ffffff" opacity="0.23" />
+					<circle cx="225.7" cy="937" r="1.3" fill="#ffffff" opacity="0.98" />
+				</g>
+				<g className="desktop-twinkle-b">
+					<circle cx="307.4" cy="957.6" r="4.3" fill="#ffffff" opacity="0.24" />
+					<circle cx="307.4" cy="957.6" r="1.8" fill="#ffffff" opacity="0.98" />
+				</g>
+				<circle cx="357" cy="948.4" r="2" fill="#ffffff" opacity="0.92" />
+				<circle cx="443.2" cy="934.1" r="1.1" fill="#ffffff" opacity="0.62" />
+				<circle cx="475.5" cy="954.5" r="0.9" fill="var(--warm)" opacity="0.49" />
+				<circle cx="550.6" cy="928.4" r="1" fill="var(--primary)" opacity="0.45" />
 				<g className="desktop-twinkle-c">
-					<circle cx="288" cy="907.7" r="4.8" fill="#a7f3d0" opacity="0.24" />
-					<circle cx="288" cy="907.7" r="2" fill="#a7f3d0" opacity="0.78" />
+					<circle cx="24.4" cy="979.9" r="4.3" fill="var(--warm)" opacity="0.22" />
+					<circle cx="24.4" cy="979.9" r="1.8" fill="var(--warm)" opacity="0.86" />
 				</g>
-				<circle cx="346.4" cy="906.6" r="2" fill="#34d399" opacity="0.58" />
-				<circle cx="417" cy="925.5" r="0.6" fill="#67e8f9" opacity="0.53" />
+				<circle cx="120.4" cy="979.5" r="1.4" fill="#ffffff" opacity="0.56" />
+				<circle cx="173.3" cy="975.5" r="1.7" fill="#ffffff" opacity="0.92" />
+				<circle cx="219.8" cy="983.7" r="1.5" fill="#ffffff" opacity="0.73" />
+				<circle cx="300.1" cy="982.9" r="1.3" fill="#ffffff" opacity="0.91" />
+				<circle cx="363.5" cy="971.9" r="1.8" fill="#ffffff" opacity="0.70" />
+				<circle cx="446.4" cy="985.3" r="1.3" fill="#a7f3d0" opacity="0.61" />
 				<g className="desktop-twinkle-a">
-					<circle cx="511.5" cy="904.4" r="4.6" fill="#34d399" opacity="0.23" />
-					<circle cx="511.5" cy="904.4" r="1.9" fill="#34d399" opacity="0.88" />
+					<circle cx="487.1" cy="977.1" r="4.8" fill="var(--primary)" opacity="0.16" />
+					<circle cx="487.1" cy="977.1" r="2" fill="var(--primary)" opacity="0.83" />
 				</g>
-				<circle cx="151.4" cy="981.3" r="0.9" fill="var(--primary)" opacity="0.57" />
 				<g className="desktop-twinkle-a">
-					<circle cx="271.1" cy="961.9" r="4.3" fill="var(--primary)" opacity="0.19" />
-					<circle cx="271.1" cy="961.9" r="1.8" fill="var(--primary)" opacity="0.95" />
+					<circle cx="550.3" cy="976.4" r="4.3" fill="#67e8f9" opacity="0.18" />
+					<circle cx="550.3" cy="976.4" r="1.8" fill="#67e8f9" opacity="0.92" />
 				</g>
-				<circle cx="309" cy="965.9" r="1.4" fill="var(--primary)" opacity="0.34" />
 				<g className="desktop-twinkle-c">
-					<circle cx="353.6" cy="974.2" r="2.4" fill="var(--primary)" opacity="0.19" />
-					<circle cx="353.6" cy="974.2" r="1" fill="var(--primary)" opacity="0.84" />
+					<circle cx="420" cy="175" r="4.7" fill="#ffffff" opacity="0.28" />
+					<circle cx="420" cy="175" r="1.8" fill="#ffffff" opacity="0.98" />
 				</g>
-				<circle cx="469" cy="993.5" r="1.3" fill="#a7f3d0" opacity="0.34" />
 				<g className="desktop-twinkle-a">
-					<circle cx="518.2" cy="982.1" r="2.2" fill="#34d399" opacity="0.18" />
-					<circle cx="518.2" cy="982.1" r="0.9" fill="#34d399" opacity="0.91" />
+					<circle cx="470" cy="195" r="3.6" fill="#ffffff" opacity="0.28" />
+					<circle cx="470" cy="195" r="1.4" fill="#ffffff" opacity="0.98" />
+				</g>
+				<g className="desktop-twinkle-c">
+					<circle cx="520" cy="172" r="3.9" fill="#ffffff" opacity="0.28" />
+					<circle cx="520" cy="172" r="1.5" fill="#ffffff" opacity="0.98" />
+				</g>
+				<g className="desktop-twinkle-c">
+					<circle cx="560" cy="205" r="4.4" fill="#ffffff" opacity="0.28" />
+					<circle cx="560" cy="205" r="1.7" fill="#ffffff" opacity="0.98" />
+				</g>
+				<g className="desktop-twinkle-b">
+					<circle cx="440" cy="215" r="4.7" fill="#ffffff" opacity="0.28" />
+					<circle cx="440" cy="215" r="1.8" fill="#ffffff" opacity="0.98" />
 				</g>
 			</g>
 
