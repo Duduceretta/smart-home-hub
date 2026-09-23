@@ -20,11 +20,17 @@ export const LEGACY_THEME_PRESET_MAP: Record<
 export interface ThemePresetOption {
 	id: ThemePresetId;
 	label: string;
-	/** Prévia de 3 cores do preset: fundo, card e cor de destaque (primary). */
+	/**
+	 * Prévia do preset: fundo/card fiéis à superfície real (`surface`/
+	 * `surface-container`), e as 3 cores do "scheme swatch" M3 (padrão
+	 * Android 12+ "Wallpaper & style"): primary, secondary, tertiary.
+	 */
 	swatch: {
 		background: string;
 		card: string;
 		primary: string;
+		secondary: string;
+		tertiary: string;
 	};
 }
 
@@ -32,32 +38,57 @@ export const THEME_PRESET_OPTIONS: ThemePresetOption[] = [
 	{
 		id: "teal",
 		label: "Verde Nexus",
-		// design-token-lint-ignore: prévia fixa do preset, não segue o tema ativo
-		swatch: { background: "#0f1512", card: "#1b211e", primary: "#5ce4b1" },
+		swatch: {
+			background: "#0f1512", // design-token-lint-ignore: prévia fixa, não segue o tema ativo
+			card: "#1b211e", // design-token-lint-ignore
+			primary: "#5ce4b1", // design-token-lint-ignore
+			secondary: "#acd1c0", // design-token-lint-ignore
+			tertiary: "#96d2ea", // design-token-lint-ignore
+		},
 	},
 	{
 		id: "indigo",
 		label: "Índigo",
-		// design-token-lint-ignore: prévia fixa do preset, não segue o tema ativo
-		swatch: { background: "#131318", card: "#1f1e24", primary: "#c4bfff" },
+		swatch: {
+			background: "#131318", // design-token-lint-ignore: prévia fixa, não segue o tema ativo
+			card: "#1f1e24", // design-token-lint-ignore
+			primary: "#c4bfff", // design-token-lint-ignore
+			secondary: "#c5c3e3", // design-token-lint-ignore
+			tertiary: "#e9b6cf", // design-token-lint-ignore
+		},
 	},
 	{
 		id: "cyan",
 		label: "Ciano",
-		// design-token-lint-ignore: prévia fixa do preset, não segue o tema ativo
-		swatch: { background: "#0e1515", card: "#1a2021", primary: "#51deec" },
+		swatch: {
+			background: "#0e1515", // design-token-lint-ignore: prévia fixa, não segue o tema ativo
+			card: "#1a2021", // design-token-lint-ignore
+			primary: "#51deec", // design-token-lint-ignore
+			secondary: "#aacfd4", // design-token-lint-ignore
+			tertiary: "#b4c7ef", // design-token-lint-ignore
+		},
 	},
 	{
 		id: "blue",
 		label: "Azul",
-		// design-token-lint-ignore: prévia fixa do preset, não segue o tema ativo
-		swatch: { background: "#101418", card: "#1b1f24", primary: "#9acdff" },
+		swatch: {
+			background: "#101418", // design-token-lint-ignore: prévia fixa, não segue o tema ativo
+			card: "#1b1f24", // design-token-lint-ignore
+			primary: "#9acdff", // design-token-lint-ignore
+			secondary: "#b4cae1", // design-token-lint-ignore
+			tertiary: "#d3bde6", // design-token-lint-ignore
+		},
 	},
 	{
 		id: "orchid",
 		label: "Orquídea",
-		// design-token-lint-ignore: prévia fixa do preset, não segue o tema ativo
-		swatch: { background: "#161215", card: "#221d21", primary: "#f4abec" },
+		swatch: {
+			background: "#161215", // design-token-lint-ignore: prévia fixa, não segue o tema ativo
+			card: "#221d21", // design-token-lint-ignore
+			primary: "#f4abec", // design-token-lint-ignore
+			secondary: "#d7bed4", // design-token-lint-ignore
+			tertiary: "#ecb9b0", // design-token-lint-ignore
+		},
 	},
 ];
 

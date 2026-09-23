@@ -14,10 +14,24 @@ import {
 } from "@/core/components/ui/tooltip";
 import { cn } from "@/core/utils";
 import { useThemeUIStore } from "../store/theme-ui.store";
-import { THEME_PRESET_OPTIONS, type ThemePresetId } from "../types/theme.types";
+import {
+	THEME_PRESET_OPTIONS,
+	type ThemePresetId,
+	type ThemePresetOption,
+} from "../types/theme.types";
 
 interface ThemePresetSelectorProps {
 	variant?: "grid" | "dropdown";
+}
+
+/**
+ * "Scheme swatch" M3 (padrão Android 12+ "Wallpaper & style"): metade de
+ * cima = primary, quarto inferior esquerdo = secondary, quarto inferior
+ * direito = tertiary. Mais informativo que um dot só de primary — dois
+ * presets com primary parecido ainda se distinguem pelo secondary/tertiary.
+ */
+function schemeSwatchBackground(swatch: ThemePresetOption["swatch"]) {
+	return `conic-gradient(from -90deg, ${swatch.primary} 0deg 180deg, ${swatch.tertiary} 180deg 270deg, ${swatch.secondary} 270deg 360deg)`;
 }
 
 export function ThemePresetSelector({
@@ -68,7 +82,9 @@ export function ThemePresetSelector({
 							>
 								<span
 									className="size-3.5 rounded-full border border-border-subtle shrink-0"
-									style={{ backgroundColor: option.swatch.primary }}
+									style={{
+										backgroundImage: schemeSwatchBackground(option.swatch),
+									}}
 									aria-hidden="true"
 								/>
 								<span className="text-sm font-medium text-foreground">
@@ -119,14 +135,15 @@ export function ThemePresetSelector({
 								style={{ backgroundColor: option.swatch.card }}
 							/>
 							<div
-								className="absolute right-2 top-2 size-3.5 rounded-full"
-								style={{ backgroundColor: option.swatch.primary }}
+								className="absolute right-2 top-2 size-4 rounded-full ring-1 ring-black/20"
+								style={{
+									backgroundImage: schemeSwatchBackground(option.swatch),
+								}}
 							/>
 							{selected ? (
 								<div className="absolute inset-0 flex items-center justify-center bg-black/20">
 									<CheckIcon
-										className="size-5 drop-shadow"
-										style={{ color: option.swatch.primary }}
+										className="size-5 text-foreground drop-shadow"
 										aria-hidden="true"
 									/>
 								</div>
