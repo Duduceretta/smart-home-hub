@@ -16,3 +16,4 @@ paths:
 - **Formulários**: `mode: "onSubmit"` + `reValidateMode: "onChange"`, `<form noValidate>`, erro reserva `min-h-[18px]`.
 - **KPIs agregados**: sempre de uma query dedicada de estatística no backend, nunca derivados só da página atual de uma lista paginada (bug já corrigido uma vez — ver `GetEventHistoryStatsQuery`).
 - **SignalR** (`useRealtimeListener.ts`): eventos reais são `DeviceStatusChanged`, `DeviceMediaChanged`, `SpotifyPlaybackChanged`, `ReceiveTelemetryUpdate` (debounce 800ms), `AutomationExecutionResult`. Não existe evento genérico de "novo SystemEvent" — trate como gatilho de refetch, não fabrique o dado do payload.
+- **Cores**: somente tokens semânticos (ver `frontend/CLAUDE.md` › UI/UX). Status (`success`/`warning`/`info`/`alert`) sempre com ícone ou texto; categorias usam `chart-1..5`; `accent` é hover, não marca. Mudança em `index.css` exige `npm run check:theme` com 0 falhas.

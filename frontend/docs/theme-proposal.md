@@ -1,6 +1,6 @@
 # Proposta de paleta — presets dark
 
-> **Status:** proposta **não aplicada**. `index.css`, componentes e docs continuam intactos.
+> **Status:** **aplicada** em 2026-09-23 (branch `feat/theme-inicio`): tokens em `index.css`, migração visual da tela Início, correções de regressão global e docs do §10. Notas da aplicação na §12; pendências fora da Início em [`theme-followups.md`](./theme-followups.md).
 > **Base:** [`theme-audit.md`](./theme-audit.md) (achados R1–R9, Y1–Y14, B1–B7).
 > **Revisão v2 (2026-09-23) — daltonismo:** primaries diferenciadas por L e C, e não só por matiz; charts com escada de luminosidade + matiz (padrão IBM Carbon / Okabe-Ito); status separados por L. Critério "bom para todos": visão normal, deuteranopia, protanopia e tritanopia.
 > **Verificação:** `npm run check:theme -- docs/theme-proposal.md` → **0 falhas** (365 checagens, 73 por preset, + 4 entre presets). Os mesmos blocos CSS deste documento são a entrada do checker.
@@ -1505,3 +1505,13 @@ Substituir o parágrafo atual por:
 - **`border` ≥ 3:1 fica visivelmente mais forte.** Por isso o tile usa `border-subtle`, e `border` fica restrito a componentes interativos (input, outline).
 - **github-dimmed fica mais claro que o Primer em texto:** `foreground` vira L 0.93 contra 0.783 no Primer, porque o `fg.muted` do Primer (3.29:1 sobre overlay) não passa no nosso mínimo.
 - **`:root` (light) fora do escopo:** os novos `--color-success/warning/info` apontam para variáveis que o `:root` não define. Hoje é inofensivo porque `<html class="dark">` é fixo (`index.html:2`), mas precisa ser tratado se o modo claro for ativado.
+
+---
+
+## 12. Notas da aplicação (2026-09-23)
+
+- **Ícone categórico em poço `bg-muted`.** `chart-1`/`chart-2` (ponta escura da escada) ficam entre 2.1:1 e 2.9:1 sobre `popover`/`surface-highest`; a garantia de 3:1 do checker é contra `card`. Em vez de mexer na paleta, todo ícone categórico da Início fica num poço `bg-muted` (mais escuro que `card`), e o mapeamento família → classe literal vive em `src/widgets/home/constants/home-categories.ts`. Ícones decorativos que ficavam direto sobre `popover` (clima, próxima rotina) passaram a neutros.
+- **Seleção ≠ status.** Os modos do `HomeSecurityTile` usavam âmbar/azul para "desarmado"/"noite". Agora os 3 modos usam a mesma receita de selecionado (`primary/15` + borda + peso + `aria-pressed`), e o sentido de aviso fica no badge de status com texto.
+- **CTA do banner de alerta** virou sólido (`bg-alert text-alert-foreground`): é o único lugar da Início em que `alert-foreground` aparece, sempre sobre o sólido.
+- **Regressão global** (fora da Início): 5 usos de `alert-foreground`/`destructive-foreground` como cor de texto sobre fundo escuro ficariam ilegíveis com o `-foreground` escuro, e foram trocados por `text-alert`/`text-destructive`. Screenshots antes/depois das 8 rotas da sidebar (preset zinc) estão em `theme-screens/regression/`.
+- **Dropdown "aberto" nos screenshots.** O único `DropdownMenu` da Início (seletor de residência) só renderiza com mais de um projeto, o que o app ainda não suporta. As capturas `theme-screens/dropdown-open-*.png` usam o mesmo componente shadcn no menu "⋮" do card de dispositivo da Dashboard.
