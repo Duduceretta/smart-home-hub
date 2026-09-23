@@ -58,3 +58,23 @@
 		transparent 4px
 	);
 }
+
+/*
+ * State layers M3: opacidade sobre `currentColor` (a cor de texto do próprio
+ * elemento) — um botão `text-on-primary` ganha layer de on-primary, uma
+ * superfície `text-foreground` (= on-surface) ganha layer de on-surface,
+ * sem precisar declarar qual token de conteúdo é. Só tokens/utilitários
+ * aqui — nenhum componente adota isso ainda (P2).
+ */
+.state-layer-hover:hover {
+	background-color: color-mix(in oklch, currentColor 8%, transparent);
+}
+.state-layer-focus:focus-visible {
+	background-color: color-mix(in oklch, currentColor 10%, transparent);
+}
+.state-layer-pressed:active {
+	background-color: color-mix(in oklch, currentColor 10%, transparent);
+}
+.state-layer-dragged {
+	background-color: color-mix(in oklch, currentColor 16%, transparent);
+}
