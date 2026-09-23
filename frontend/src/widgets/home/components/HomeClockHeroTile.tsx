@@ -44,26 +44,22 @@ export function HomeClockHeroTile({ summary }: HomeClockHeroTileProps) {
 	const temp = summary?.averageTemperatureCelsius ?? 23.0;
 
 	return (
-		// Hero: único tile com padding maior e borda tingida de --primary — dá
-		// peso visual real ao invés de repetir o mesmo tratamento dos 6 tiles
-		// satélite (hierarquia por tamanho, não só por lg:col-span-8).
-		<section className="relative flex h-full flex-col justify-between overflow-hidden rounded-xl border border-primary/15 bg-surface-low p-5 sm:p-6 shadow-2xs">
-			{/* Gradiente sutil decorativo de fundo */}
-			<div className="pointer-events-none absolute -right-16 -top-16 h-56 w-56 rounded-full bg-primary/8 blur-3xl" />
-
+		// Hero: único tile com padding maior — hierarquia por tamanho, não por
+		// cor (regra 60/30/10: acento só em ação, item ativo, estado e dado).
+		<section className="relative flex h-full flex-col justify-between overflow-hidden rounded-xl border border-border-subtle bg-card p-5 sm:p-6 shadow-2xs">
 			{/* Linha Superior: Status da Malha e Data Completa */}
 			<div className="flex flex-wrap items-center justify-between gap-2 border-b border-border-subtle/50 pb-3">
 				<div className="flex items-center gap-2">
 					<span className="relative flex h-2 w-2">
-						<span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
-						<span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
+						<span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-success opacity-75" />
+						<span className="relative inline-flex h-2 w-2 rounded-full bg-success" />
 					</span>
 					<span className="font-mono text-xs font-medium uppercase tracking-wider text-muted-foreground">
 						Rede Residencial Ativa
 					</span>
-					<span className="text-border-subtle">•</span>
+					<span className="text-muted-foreground">•</span>
 					<span className="flex items-center gap-1 font-mono text-xs text-muted-foreground">
-						<Wifi className="h-3 w-3 text-emerald-400" />
+						<Wifi className="h-3 w-3 text-success" />
 						<span>12ms</span>
 					</span>
 				</div>
@@ -86,8 +82,8 @@ export function HomeClockHeroTile({ summary }: HomeClockHeroTileProps) {
 				</div>
 
 				{/* Cápsula de Clima Detalhado */}
-				<div className="flex items-center gap-4 rounded-lg border border-border-subtle bg-surface-container/60 px-3.5 py-2">
-					<CloudSun className="h-6 w-6 text-warm" />
+				<div className="flex items-center gap-4 rounded-lg border border-border-subtle bg-popover px-3.5 py-2">
+					<CloudSun className="h-6 w-6 text-muted-foreground" />
 					<div className="flex flex-col">
 						<div className="flex items-baseline gap-1.5">
 							<span className="text-lg font-semibold text-foreground">
@@ -99,11 +95,11 @@ export function HomeClockHeroTile({ summary }: HomeClockHeroTileProps) {
 						</div>
 						<div className="flex items-center gap-3 text-xs text-muted-foreground">
 							<span className="flex items-center gap-1">
-								<Droplets className="h-3 w-3 text-sky-400" />
+								<Droplets className="h-3 w-3" />
 								<span>58%</span>
 							</span>
 							<span className="flex items-center gap-1">
-								<Wind className="h-3 w-3 text-cool" />
+								<Wind className="h-3 w-3" />
 								<span>14 km/h</span>
 							</span>
 						</div>
@@ -112,15 +108,15 @@ export function HomeClockHeroTile({ summary }: HomeClockHeroTileProps) {
 			</div>
 
 			{/* Rodapé: Próxima Automação Programada */}
-			<div className="flex items-center justify-between gap-2 rounded-lg border border-border-subtle/60 bg-surface-container/40 px-3.5 py-2 text-xs text-muted-foreground">
+			<div className="flex items-center justify-between gap-2 rounded-lg border border-border-subtle bg-popover px-3.5 py-2 text-xs text-muted-foreground">
 				<div className="flex items-center gap-2 truncate">
-					<Sparkles className="h-3.5 w-3.5 text-primary shrink-0" />
+					<Sparkles className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
 					<span className="truncate font-medium text-foreground">
 						Próxima rotina:
 					</span>
 					<span className="truncate">Modo Noturno & Trancas</span>
 				</div>
-				<div className="flex items-center gap-1.5 shrink-0 font-mono text-xs text-primary">
+				<div className="flex items-center gap-1.5 shrink-0 font-mono text-xs text-foreground">
 					<Clock className="h-3 w-3" />
 					<span>23:00</span>
 				</div>

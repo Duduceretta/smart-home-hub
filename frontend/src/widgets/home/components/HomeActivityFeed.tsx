@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import { cn } from "@/core/utils";
 import { getRelativeTime } from "@/features/dashboard/lib/relativeTime";
 import type { ActivityLogEntry } from "@/features/dashboard/types/dashboard.types";
+import { CATEGORY_ICON_CLASS } from "../constants/home-categories";
 
 const VISIBLE_ENTRIES_LIMIT = 5;
 
@@ -23,19 +24,19 @@ export function HomeActivityFeed({ entries }: HomeActivityFeedProps) {
 
 	const getEventIcon = (entry: ActivityLogEntry) => {
 		if (entry.isAlert) {
-			return <AlertTriangle className="h-4 w-4 text-alert-foreground" />;
+			return <AlertTriangle className="h-4 w-4 text-alert" />;
 		}
 		if (
 			entry.title.toLowerCase().includes("automação") ||
 			entry.description.toLowerCase().includes("automação")
 		) {
-			return <Bot className="h-4 w-4 text-primary" />;
+			return <Bot className={cn("h-4 w-4", CATEGORY_ICON_CLASS.monitoring)} />;
 		}
 		return <Activity className="h-4 w-4 text-muted-foreground" />;
 	};
 
 	return (
-		<section className="flex h-full flex-col justify-between gap-3 rounded-xl border border-border-subtle bg-surface-low p-4 sm:p-5 shadow-2xs">
+		<section className="flex h-full flex-col justify-between gap-3 rounded-xl border border-border-subtle bg-card p-4 sm:p-5 shadow-2xs">
 			<div className="flex items-center justify-between">
 				<h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
 					{t("activity.title", "Atividade recente")}
@@ -50,22 +51,22 @@ export function HomeActivityFeed({ entries }: HomeActivityFeedProps) {
 			</div>
 
 			{visibleEntries.length === 0 ? (
-				<div className="flex flex-1 items-center justify-center rounded-lg border border-dashed border-border-subtle bg-surface-container/30 p-6 text-center text-xs text-muted-foreground">
+				<div className="flex flex-1 items-center justify-center rounded-lg border border-dashed border-border-subtle bg-popover p-6 text-center text-xs text-muted-foreground">
 					{t("activity.empty", "Nenhuma atividade recente.")}
 				</div>
 			) : (
-				<ul className="flex flex-1 flex-col divide-y divide-border-subtle/60 rounded-lg border border-border-subtle bg-surface-container/50 overflow-hidden shadow-2xs">
+				<ul className="flex flex-1 flex-col divide-y divide-border-subtle/60 rounded-lg border border-border-subtle bg-popover overflow-hidden shadow-2xs">
 					{visibleEntries.map((entry) => (
 						<li
 							key={entry.id}
-							className="flex items-center gap-3 px-3.5 py-2.5 sm:px-4 sm:py-3 transition-colors hover:bg-surface-high/40"
+							className="flex items-center gap-3 px-3.5 py-2.5 sm:px-4 sm:py-3 transition-colors hover:bg-surface-highest"
 						>
 							<div
 								className={cn(
 									"flex h-8 w-8 shrink-0 items-center justify-center rounded-md border",
 									entry.isAlert
 										? "border-alert/30 bg-alert/15"
-										: "border-border-subtle bg-surface-low",
+										: "border-border-subtle bg-muted",
 								)}
 							>
 								{getEventIcon(entry)}

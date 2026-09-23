@@ -49,7 +49,7 @@ export function AppLayout() {
 			<Sidebar />
 
 			{/* Área Principal */}
-			<main className="flex-1 flex flex-col h-full min-w-0 relative bg-linear-to-b from-muted to-background">
+			<main className="flex-1 flex flex-col h-full min-w-0 relative bg-background">
 				<Header
 					onMenuClick={() => setIsMobileNavOpen(true)}
 					isMenuOpen={isMobileNavOpen}

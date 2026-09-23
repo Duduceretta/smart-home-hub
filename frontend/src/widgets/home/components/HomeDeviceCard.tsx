@@ -8,6 +8,10 @@ import {
 	DeviceTypeEnum,
 	isActuatorDevice,
 } from "@/features/devices/types/devices.types";
+import {
+	CATEGORY_ICON_CLASS,
+	DEVICE_CATEGORY,
+} from "../constants/home-categories";
 
 interface HomeDeviceCardProps {
 	device: Device;
@@ -29,6 +33,8 @@ export function HomeDeviceCard({ device }: HomeDeviceCardProps) {
 	const config =
 		DEVICE_CONFIG[device.type] ?? DEVICE_CONFIG[DeviceTypeEnum.Light];
 	const IconComponent = config.icon;
+	const categoryIconClass =
+		CATEGORY_ICON_CLASS[DEVICE_CATEGORY[device.type] ?? "lighting"];
 	const isActuator = isActuatorDevice(device.type);
 	const isOnline = device.isOnline;
 	const isOn = device.isOn && isOnline;
@@ -102,10 +108,10 @@ export function HomeDeviceCard({ device }: HomeDeviceCardProps) {
 			className={cn(
 				"group relative flex flex-col justify-between gap-3 rounded-xl border p-3.5 sm:p-4 text-left transition-all duration-200 cursor-pointer select-none outline-none focus-visible:ring-2 focus-visible:ring-ring",
 				!isOnline
-					? "border-border-subtle/50 bg-surface-low/60 opacity-60 grayscale-[0.3]"
+					? "border-border-subtle bg-popover opacity-60 grayscale-[0.3]"
 					: isOn
-						? "border-border-subtle/80 bg-surface-high shadow-2xs hover:border-border"
-						: "border-border-subtle bg-surface-container hover:border-border hover:bg-surface-high/60",
+						? "border-primary/40 bg-surface-highest shadow-2xs hover:border-primary/60"
+						: "border-border-subtle bg-popover hover:border-border",
 			)}
 		>
 			{/* Topo do Card: Ícone e Ação Rápida */}
@@ -114,10 +120,10 @@ export function HomeDeviceCard({ device }: HomeDeviceCardProps) {
 					className={cn(
 						"flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-lg transition-colors",
 						!isOnline
-							? "bg-surface-low text-muted-foreground"
+							? "bg-muted text-muted-foreground"
 							: isOn
-								? "bg-primary/20 text-primary border border-primary/30 shadow-xs"
-								: "bg-surface-low text-muted-foreground border border-border-subtle",
+								? cn("bg-muted border border-border-subtle", categoryIconClass)
+								: "bg-muted text-muted-foreground border border-border-subtle",
 					)}
 				>
 					<IconComponent className="h-4 w-4 sm:h-5 sm:w-5" />
@@ -137,15 +143,15 @@ export function HomeDeviceCard({ device }: HomeDeviceCardProps) {
 							onClick={handleToggle}
 							className={cn(
 								"relative inline-flex h-6 w-11 shrink-0 rounded-full transition-colors cursor-pointer disabled:cursor-not-allowed focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring",
-								isOn
-									? "bg-primary"
-									: "bg-surface-low border border-border-subtle",
+								isOn ? "bg-primary" : "bg-muted border border-border",
 							)}
 						>
 							<span
 								className={cn(
-									"pointer-events-none inline-block h-5 w-5 rounded-full bg-background shadow-xs transition-transform duration-200 ease-in-out",
-									isOn ? "translate-x-5.5" : "translate-x-0.5",
+									"pointer-events-none inline-block h-5 w-5 rounded-full shadow-xs transition-transform duration-200 ease-in-out",
+									isOn
+										? "translate-x-5.5 bg-primary-foreground"
+										: "translate-x-0.5 bg-muted-foreground",
 								)}
 							/>
 						</button>
@@ -155,8 +161,8 @@ export function HomeDeviceCard({ device }: HomeDeviceCardProps) {
 						className={cn(
 							"inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold tracking-wider uppercase",
 							isOnline
-								? "bg-primary/10 text-primary border border-primary/20"
-								: "bg-surface-low text-muted-foreground border border-border-subtle",
+								? "bg-primary/15 text-primary border border-primary/30"
+								: "bg-muted text-muted-foreground border border-border-subtle",
 						)}
 					>
 						{isOnline ? "Ativo" : "Off"}

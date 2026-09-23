@@ -31,7 +31,7 @@ function DeviceGridSkeleton() {
 			{SKELETON_KEYS.map((key) => (
 				<div
 					key={key}
-					className="h-36 rounded-xl border border-border-subtle bg-surface-container"
+					className="h-36 rounded-xl border border-border-subtle bg-muted"
 				/>
 			))}
 		</div>
@@ -91,28 +91,28 @@ export function HomeDeviceGrid({
 	);
 
 	return (
-		<section className="flex h-full flex-col gap-4 rounded-xl border border-border-subtle bg-surface-low p-4 sm:p-5">
+		<section className="flex h-full flex-col gap-4 rounded-xl border border-border-subtle bg-card p-4 sm:p-5">
 			{/* Cabeçalho da Seção com Filtros Rápidos */}
 			<div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
 				<div className="flex items-center gap-2">
 					<h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
 						{t("devices.title", "Dispositivos")}
 					</h2>
-					<span className="rounded-full bg-surface-container px-2 py-0.5 text-xs font-medium text-muted-foreground border border-border-subtle">
+					<span className="rounded-full bg-popover px-2 py-0.5 text-xs font-medium text-muted-foreground border border-border-subtle">
 						{devices.length}
 					</span>
 				</div>
 
 				{/* Chips de filtro rápido de conveniência */}
 				<div className="flex items-center justify-between sm:justify-end gap-2">
-					<div className="flex items-center gap-1.5 rounded-lg border border-border-subtle bg-surface-container p-1 shadow-2xs">
+					<div className="flex items-center gap-1.5 rounded-lg border border-border-subtle bg-muted p-1 shadow-2xs">
 						<button
 							type="button"
 							onClick={() => setActiveFilter("all")}
 							className={cn(
 								"rounded-md px-2.5 py-1 text-xs font-medium transition-colors cursor-pointer",
 								activeFilter === "all"
-									? "bg-surface-high text-foreground shadow-xs"
+									? "bg-popover text-foreground shadow-xs"
 									: "text-muted-foreground hover:text-foreground",
 							)}
 						>
@@ -124,7 +124,7 @@ export function HomeDeviceGrid({
 							className={cn(
 								"rounded-md px-2.5 py-1 text-xs font-medium transition-colors cursor-pointer",
 								activeFilter === "active"
-									? "bg-surface-high text-primary shadow-xs"
+									? "bg-popover text-primary shadow-xs"
 									: "text-muted-foreground hover:text-foreground",
 							)}
 						>
@@ -154,8 +154,8 @@ export function HomeDeviceGrid({
 					onRetry={onRetry}
 				/>
 			) : filteredDevices.length === 0 ? (
-				<div className="flex flex-col items-center justify-center gap-3 rounded-lg border border-dashed border-border-subtle bg-surface-container/30 p-8 text-center">
-					<div className="flex h-10 w-10 items-center justify-center rounded-lg bg-surface-container text-muted-foreground border border-border-subtle">
+				<div className="flex flex-col items-center justify-center gap-3 rounded-lg border border-dashed border-border-subtle bg-popover p-8 text-center">
+					<div className="flex h-10 w-10 items-center justify-center rounded-lg bg-surface-highest text-muted-foreground border border-border-subtle">
 						<Layers className="h-5 w-5" />
 					</div>
 					<div className="flex flex-col gap-1">
@@ -173,7 +173,7 @@ export function HomeDeviceGrid({
 					{activeFilter === "all" && (
 						<Link
 							to="/devices"
-							className="mt-2 inline-flex items-center justify-center rounded-lg border border-border-subtle bg-surface-container px-3.5 py-1.5 text-xs font-medium text-foreground hover:bg-surface-high transition-colors shadow-2xs"
+							className="mt-2 inline-flex items-center justify-center rounded-lg border border-border-subtle bg-surface-highest px-3.5 py-1.5 text-xs font-medium text-foreground hover:brightness-110 transition-colors shadow-2xs"
 						>
 							{t("devices.actionManage", "Gerenciar dispositivos")}
 						</Link>

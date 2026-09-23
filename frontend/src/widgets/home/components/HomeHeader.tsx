@@ -75,7 +75,7 @@ export function HomeHeader({
 						</DropdownMenuTrigger>
 						<DropdownMenuContent
 							align="start"
-							className="w-56 border-border-subtle bg-surface-container text-foreground shadow-lg"
+							className="w-56 text-foreground shadow-lg"
 						>
 							{projects.map((project) => (
 								<DropdownMenuItem
@@ -110,13 +110,13 @@ export function HomeHeader({
 
 			{/* Status "At a Glance" sutil (Google Home / Apple Home style) */}
 			<div className="flex items-center gap-2 self-start sm:self-auto">
-				<div className="inline-flex items-center gap-2 rounded-full border border-border-subtle bg-surface-container px-3 py-1 text-xs font-medium text-foreground shadow-2xs">
+				<div className="inline-flex items-center gap-2 rounded-full border border-border-subtle bg-card px-3 py-1 text-xs font-medium text-foreground shadow-2xs">
 					<span className="relative flex h-2 w-2">
-						<span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-60" />
-						<span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
+						<span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-success opacity-60" />
+						<span className="relative inline-flex h-2 w-2 rounded-full bg-success" />
 					</span>
 					<span>{t("header.statusConnected", "Online")}</span>
-					<span className="text-border-subtle">•</span>
+					<span className="text-muted-foreground">•</span>
 					<span className="text-muted-foreground">
 						{activeDevicesCount > 0
 							? t("header.activeCount", { count: activeDevicesCount })

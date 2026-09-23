@@ -11,6 +11,7 @@ import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
 import { cn } from "@/core/utils";
+import { CATEGORY_ICON_CLASS } from "../constants/home-categories";
 
 export interface QuickSceneItem {
 	id: string;
@@ -51,26 +52,31 @@ export function HomeQuickActions({ scenes }: HomeQuickActionsProps) {
 		}, 1200);
 	};
 
+	// Cenas → famílias categóricas (docs/theme-proposal.md §7)
 	const renderIcon = (id: string) => {
 		switch (id) {
 			case "cinema":
-				return <Clapperboard className="h-4 w-4 text-purple-400" />;
+				return (
+					<Clapperboard className={cn("h-4 w-4", CATEGORY_ICON_CLASS.media)} />
+				);
 			case "morning":
-				return <Sun className="h-4 w-4 text-amber-400" />;
+				return <Sun className={cn("h-4 w-4", CATEGORY_ICON_CLASS.lighting)} />;
 			case "night":
-				return <Moon className="h-4 w-4 text-sky-400" />;
+				return <Moon className={cn("h-4 w-4", CATEGORY_ICON_CLASS.climate)} />;
 			case "away":
-				return <LogOut className="h-4 w-4 text-rose-400" />;
+				return (
+					<LogOut className={cn("h-4 w-4", CATEGORY_ICON_CLASS.security)} />
+				);
 			default:
-				return <Sparkles className="h-4 w-4 text-primary" />;
+				return <Sparkles className="h-4 w-4 text-muted-foreground" />;
 		}
 	};
 
 	return (
-		<section className="flex h-full flex-col justify-between gap-3 rounded-xl border border-border-subtle bg-surface-low p-4 sm:p-5 shadow-2xs">
+		<section className="flex h-full flex-col justify-between gap-3 rounded-xl border border-border-subtle bg-card p-4 sm:p-5 shadow-2xs">
 			<div className="flex items-center justify-between">
 				<div className="flex items-center gap-2">
-					<Sparkles className="h-4 w-4 text-primary" />
+					<Sparkles className="h-4 w-4 text-muted-foreground" />
 					<h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
 						{t("scenes.title", "Cenas Rápidas")}
 					</h2>
@@ -96,16 +102,16 @@ export function HomeQuickActions({ scenes }: HomeQuickActionsProps) {
 							className={cn(
 								"group flex items-center gap-2.5 rounded-lg border p-2.5 sm:p-3 text-left transition-all cursor-pointer select-none",
 								isRunning
-									? "border-primary bg-primary/20 scale-[0.98] shadow-sm"
-									: "border-border-subtle bg-surface-container hover:border-border hover:bg-surface-high shadow-2xs",
+									? "border-primary/40 bg-primary/15 scale-[0.98] shadow-sm"
+									: "border-border-subtle bg-popover hover:border-border hover:bg-surface-highest shadow-2xs",
 							)}
 						>
 							<div
 								className={cn(
 									"flex h-8 w-8 shrink-0 items-center justify-center rounded-md border transition-colors",
 									isRunning
-										? "border-primary bg-primary/30"
-										: "border-border-subtle bg-surface-low group-hover:border-border",
+										? "border-primary/40 bg-muted"
+										: "border-border-subtle bg-muted group-hover:border-border",
 								)}
 							>
 								{renderIcon(scene.id)}
