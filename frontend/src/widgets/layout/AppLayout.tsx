@@ -1,4 +1,4 @@
-import { Bot, LayoutDashboard, Router, Settings } from "lucide-react";
+import { Bot, Home, Router, Settings } from "lucide-react";
 import { Suspense, useEffect, useState } from "react";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import { RoutePendingFallback } from "@/app/RoutePendingFallback";
@@ -36,7 +36,7 @@ export function AppLayout() {
 	}, []);
 
 	const mobileNavItems = [
-		{ name: "Início", path: "/dashboard", icon: LayoutDashboard },
+		{ name: "Início", path: "/home", icon: Home },
 		{ name: "Equip.", path: "/devices", icon: Router },
 		{ name: "Rotinas", path: "/automations", icon: Bot },
 		{ name: "Ajustes", path: "/settings", icon: Settings },
