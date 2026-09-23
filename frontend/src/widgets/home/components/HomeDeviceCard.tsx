@@ -142,7 +142,7 @@ export function HomeDeviceCard({ device }: HomeDeviceCardProps) {
 							disabled={!isOnline || isToggling}
 							onClick={handleToggle}
 							className={cn(
-								"relative inline-flex h-6 w-11 shrink-0 rounded-full transition-colors cursor-pointer disabled:cursor-not-allowed focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring",
+								"relative inline-flex h-6 w-11 shrink-0 rounded-full transition-colors cursor-pointer disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring",
 								isOn ? "bg-primary" : "bg-muted border border-border",
 							)}
 						>

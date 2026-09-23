@@ -77,7 +77,7 @@ export function HomeCameraTile() {
 					type="button"
 					onClick={handleSnapshot}
 					// design-token-lint-ignore: HUD sobre vídeo (ver comentário acima)
-					className="absolute bottom-2 right-2 flex h-6 w-6 items-center justify-center rounded bg-black/60 text-white/80 transition-colors hover:bg-black/80 hover:text-white cursor-pointer"
+					className="absolute bottom-2 right-2 flex h-6 w-6 items-center justify-center rounded bg-black/60 text-white/80 transition-colors hover:bg-black/80 hover:text-white cursor-pointer focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring"
 					aria-label="Expandir câmera"
 				>
 					<Maximize2 className="h-3 w-3" />

@@ -115,7 +115,7 @@ export function HomeMediaTile() {
 					<button
 						type="button"
 						onClick={prevTrack}
-						className="flex h-8 w-8 items-center justify-center rounded-md border border-border-subtle bg-popover text-muted-foreground transition-colors hover:bg-surface-highest hover:text-foreground cursor-pointer"
+						className="flex h-8 w-8 items-center justify-center rounded-md border border-border-subtle bg-popover text-muted-foreground transition-colors hover:bg-surface-highest hover:text-foreground cursor-pointer focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring"
 						aria-label="Faixa anterior"
 					>
 						<SkipBack className="h-3.5 w-3.5" />
@@ -124,7 +124,7 @@ export function HomeMediaTile() {
 					<button
 						type="button"
 						onClick={togglePlay}
-						className="flex h-8 w-8 items-center justify-center rounded-md border border-primary/30 bg-primary/15 text-primary transition-colors hover:bg-primary/25 cursor-pointer"
+						className="flex h-8 w-8 items-center justify-center rounded-md border border-primary/30 bg-primary/15 text-primary transition-colors hover:bg-primary/25 cursor-pointer focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring"
 						aria-label={isPlaying ? "Pausar" : "Reproduzir"}
 					>
 						{isPlaying ? (
@@ -137,7 +137,7 @@ export function HomeMediaTile() {
 					<button
 						type="button"
 						onClick={nextTrack}
-						className="flex h-8 w-8 items-center justify-center rounded-md border border-border-subtle bg-popover text-muted-foreground transition-colors hover:bg-surface-highest hover:text-foreground cursor-pointer"
+						className="flex h-8 w-8 items-center justify-center rounded-md border border-border-subtle bg-popover text-muted-foreground transition-colors hover:bg-surface-highest hover:text-foreground cursor-pointer focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring"
 						aria-label="Próxima faixa"
 					>
 						<SkipForward className="h-3.5 w-3.5" />
@@ -153,7 +153,7 @@ export function HomeMediaTile() {
 						max="100"
 						value={volume}
 						onChange={(e) => setVolume(Number(e.target.value))}
-						className="h-1.5 w-16 sm:w-20 cursor-pointer accent-primary"
+						className="h-1.5 w-16 sm:w-20 cursor-pointer rounded-full accent-primary focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring"
 						aria-label="Volume"
 					/>
 					<span className="w-6 text-right font-mono text-xs">{volume}%</span>

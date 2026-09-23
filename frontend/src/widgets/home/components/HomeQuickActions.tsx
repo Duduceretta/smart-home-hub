@@ -83,7 +83,7 @@ export function HomeQuickActions({ scenes }: HomeQuickActionsProps) {
 				</div>
 				<Link
 					to="/automations"
-					className="group flex items-center gap-1 text-xs font-medium text-muted-foreground transition-colors hover:text-primary"
+					className="group flex items-center gap-1 rounded-sm text-xs font-medium text-muted-foreground transition-colors hover:text-primary focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring"
 				>
 					<span>{t("scenes.actionExplore", "Ver automações")}</span>
 					<ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-0.5" />
@@ -100,7 +100,7 @@ export function HomeQuickActions({ scenes }: HomeQuickActionsProps) {
 							type="button"
 							onClick={() => handleTrigger(scene)}
 							className={cn(
-								"group flex items-center gap-2.5 rounded-lg border p-2.5 sm:p-3 text-left transition-all cursor-pointer select-none",
+								"group flex items-center gap-2.5 rounded-lg border p-2.5 sm:p-3 text-left transition-all cursor-pointer select-none focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring",
 								isRunning
 									? "border-primary/40 bg-primary/15 scale-[0.98] shadow-sm"
 									: "border-border-subtle bg-popover hover:border-border hover:bg-surface-highest shadow-2xs",

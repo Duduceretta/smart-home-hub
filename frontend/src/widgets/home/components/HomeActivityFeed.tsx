@@ -43,7 +43,7 @@ export function HomeActivityFeed({ entries }: HomeActivityFeedProps) {
 				</h2>
 				<Link
 					to="/history"
-					className="group flex items-center gap-1 text-xs font-medium text-muted-foreground transition-colors hover:text-primary"
+					className="group flex items-center gap-1 rounded-sm text-xs font-medium text-muted-foreground transition-colors hover:text-primary focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring"
 				>
 					<span>{t("activity.viewAll", "Ver tudo")}</span>
 					<ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-0.5" />

@@ -5,6 +5,16 @@ import { cn } from "@/core/utils";
 
 export type SecurityMode = "disarmed" | "home" | "night" | "away";
 
+const SECURITY_MODE_BUTTONS: {
+	id: SecurityMode;
+	label: string;
+	Icon: typeof Shield;
+}[] = [
+	{ id: "disarmed", label: "Desarmar", Icon: Shield },
+	{ id: "home", label: "Casa", Icon: ShieldCheck },
+	{ id: "night", label: "Noite", Icon: Moon },
+];
+
 /**
  * Bento Tile: Perímetro de Segurança e Alarme Residencial.
  *
@@ -79,48 +89,32 @@ export function HomeSecurityTile() {
 			</div>
 
 			{/* Controles Táteis de 1 toque */}
+			{/*
+			 * Seleção = estado, não status: mesma receita (primary/15 + borda +
+			 * peso) para os 3 modos, exposta via aria-pressed. O significado de
+			 * "desarmado" (aviso) fica no badge de status acima, com texto.
+			 */}
 			<div className="grid grid-cols-3 gap-2">
-				<button
-					type="button"
-					onClick={() => handleModeChange("disarmed")}
-					className={cn(
-						"flex flex-col items-center justify-center gap-1 rounded-lg border p-2 text-center transition-all cursor-pointer",
-						mode === "disarmed"
-							? "border-warning/40 bg-warning/15 text-warning font-semibold"
-							: "border-border-subtle bg-popover text-muted-foreground hover:bg-surface-highest hover:text-foreground",
-					)}
-				>
-					<Shield className="h-4 w-4" />
-					<span className="text-xs uppercase tracking-wider">Desarmar</span>
-				</button>
-
-				<button
-					type="button"
-					onClick={() => handleModeChange("home")}
-					className={cn(
-						"flex flex-col items-center justify-center gap-1 rounded-lg border p-2 text-center transition-all cursor-pointer",
-						mode === "home"
-							? "border-primary/40 bg-primary/15 text-primary font-semibold"
-							: "border-border-subtle bg-popover text-muted-foreground hover:bg-surface-highest hover:text-foreground",
-					)}
-				>
-					<ShieldCheck className="h-4 w-4" />
-					<span className="text-xs uppercase tracking-wider">Casa</span>
-				</button>
-
-				<button
-					type="button"
-					onClick={() => handleModeChange("night")}
-					className={cn(
-						"flex flex-col items-center justify-center gap-1 rounded-lg border p-2 text-center transition-all cursor-pointer",
-						mode === "night"
-							? "border-info/40 bg-info/15 text-info font-semibold"
-							: "border-border-subtle bg-popover text-muted-foreground hover:bg-surface-highest hover:text-foreground",
-					)}
-				>
-					<Moon className="h-4 w-4" />
-					<span className="text-xs uppercase tracking-wider">Noite</span>
-				</button>
+				{SECURITY_MODE_BUTTONS.map(({ id, label, Icon }) => {
+					const isSelected = mode === id;
+					return (
+						<button
+							key={id}
+							type="button"
+							aria-pressed={isSelected}
+							onClick={() => handleModeChange(id)}
+							className={cn(
+								"flex flex-col items-center justify-center gap-1 rounded-lg border p-2 text-center transition-colors cursor-pointer focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring",
+								isSelected
+									? "border-primary/40 bg-primary/15 text-primary font-semibold"
+									: "border-border-subtle bg-popover text-muted-foreground hover:bg-surface-highest hover:text-foreground",
+							)}
+						>
+							<Icon className="h-4 w-4" />
+							<span className="text-xs uppercase tracking-wider">{label}</span>
+						</button>
+					);
+				})}
 			</div>
 		</section>
 	);
