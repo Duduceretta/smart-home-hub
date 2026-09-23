@@ -81,11 +81,12 @@ public class CreateAutomationCommandHandler(
             Name = request.Name,
             RulePayload = request.RulePayload,
             IsActive = request.IsActive,
-            TriggerKind =
-                trigger is TimeTrigger
-                    ? AutomationTriggerKind.Schedule
-                    : AutomationTriggerKind.Sensor,
-            IsDraft = trigger is null || payload?.Actions is null || payload.Actions.Count == 0,
+            TriggerKind = trigger switch
+            {
+                TimeTrigger => AutomationTriggerKind.Schedule,
+                _ => AutomationTriggerKind.Sensor,
+            },
+            IsDraft = trigger is null || payload?.Actions is not { Count: > 0 },
         };
 
         dbContext.Automations.Add(automation);
