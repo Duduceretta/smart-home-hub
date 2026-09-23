@@ -76,11 +76,11 @@ describe("AuthLayout Integration Tests", () => {
 
 		// Assert - check options visible
 		const indigoOption = await screen.findByRole("menuitemradio", {
-			name: "Indigo",
+			name: "Índigo",
 		});
 		expect(indigoOption).toBeInTheDocument();
 
-		// Act - select Indigo
+		// Act - select Índigo
 		await user.click(indigoOption);
 
 		// Assert

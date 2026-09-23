@@ -7,18 +7,16 @@ describe("ThemePresetSelector Integration Tests", () => {
 	beforeEach(() => {
 		localStorage.clear();
 		document.documentElement.removeAttribute("data-theme");
-		useThemeUIStore.setState({ preset: "zinc-minimalist" });
+		useThemeUIStore.setState({ preset: "teal" });
 	});
 
-	it("ThemePresetSelector_DefaultState_ShouldMarkZincMinimalistAsChecked", () => {
+	it("ThemePresetSelector_DefaultState_ShouldMarkTealAsChecked", () => {
 		// Act
 		renderWithProviders(<ThemePresetSelector />);
 
 		// Assert
-		expect(
-			screen.getByRole("radio", { name: "Zinc Minimalist" }),
-		).toBeChecked();
-		expect(screen.getByRole("radio", { name: "Indigo" })).not.toBeChecked();
+		expect(screen.getByRole("radio", { name: "Verde Nexus" })).toBeChecked();
+		expect(screen.getByRole("radio", { name: "Índigo" })).not.toBeChecked();
 	});
 
 	it("ThemePresetSelector_ClickIndigoOption_ShouldSelectItAndPersistToLocalStorage", async () => {
@@ -27,10 +25,10 @@ describe("ThemePresetSelector Integration Tests", () => {
 		renderWithProviders(<ThemePresetSelector />);
 
 		// Act
-		await user.click(screen.getByRole("radio", { name: "Indigo" }));
+		await user.click(screen.getByRole("radio", { name: "Índigo" }));
 
 		// Assert
-		expect(screen.getByRole("radio", { name: "Indigo" })).toBeChecked();
+		expect(screen.getByRole("radio", { name: "Índigo" })).toBeChecked();
 		expect(localStorage.getItem("app-theme-preset")).toBe("indigo");
 		expect(document.documentElement.getAttribute("data-theme")).toBe("indigo");
 	});
@@ -39,38 +37,28 @@ describe("ThemePresetSelector Integration Tests", () => {
 		// Arrange
 		const user = userEvent.setup();
 		renderWithProviders(<ThemePresetSelector />);
-		await user.click(screen.getByRole("radio", { name: "GitHub Dimmed" }));
+		await user.click(screen.getByRole("radio", { name: "Azul" }));
 
 		// Act
-		await user.click(screen.getByRole("radio", { name: "Zinc Minimalist" }));
+		await user.click(screen.getByRole("radio", { name: "Verde Nexus" }));
 
 		// Assert — reforço visual da seleção não depende só de cor (checked via input nativo)
-		expect(
-			screen.getByRole("radio", { name: "Zinc Minimalist" }),
-		).toBeChecked();
+		expect(screen.getByRole("radio", { name: "Verde Nexus" })).toBeChecked();
 		expect(document.documentElement.hasAttribute("data-theme")).toBe(false);
 	});
 
-	it("ThemePresetSelector_ClickContrastSafeGraphiteOption_ShouldSelectItAndPersistToLocalStorage", async () => {
+	it("ThemePresetSelector_ClickOrchidOption_ShouldSelectItAndPersistToLocalStorage", async () => {
 		// Arrange
 		const user = userEvent.setup();
 		renderWithProviders(<ThemePresetSelector />);
 
 		// Act
-		await user.click(
-			screen.getByRole("radio", { name: "Contrast Safe Graphite" }),
-		);
+		await user.click(screen.getByRole("radio", { name: "Orquídea" }));
 
 		// Assert
-		expect(
-			screen.getByRole("radio", { name: "Contrast Safe Graphite" }),
-		).toBeChecked();
-		expect(localStorage.getItem("app-theme-preset")).toBe(
-			"contrast-safe-graphite",
-		);
-		expect(document.documentElement.getAttribute("data-theme")).toBe(
-			"contrast-safe-graphite",
-		);
+		expect(screen.getByRole("radio", { name: "Orquídea" })).toBeChecked();
+		expect(localStorage.getItem("app-theme-preset")).toBe("orchid");
+		expect(document.documentElement.getAttribute("data-theme")).toBe("orchid");
 	});
 
 	it("ThemePresetSelector_DropdownVariant_ShouldRenderTriggerAndAllowSelectingPreset", async () => {
@@ -85,7 +73,7 @@ describe("ThemePresetSelector Integration Tests", () => {
 
 		// Assert menu items are visible
 		const indigoOption = await screen.findByRole("menuitemradio", {
-			name: "Indigo",
+			name: "Índigo",
 		});
 		expect(indigoOption).toBeInTheDocument();
 
