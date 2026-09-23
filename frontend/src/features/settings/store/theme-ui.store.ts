@@ -1,6 +1,8 @@
 import { create } from "zustand";
 import {
 	DEFAULT_THEME_PRESET,
+	LEGACY_THEME_PRESET_MAP,
+	type LegacyThemePresetId,
 	THEME_PRESET_OPTIONS,
 	THEME_PRESET_STORAGE_KEY,
 	type ThemePresetId,
@@ -15,10 +17,17 @@ function isValidPreset(value: string | null): value is ThemePresetId {
 	return THEME_PRESET_OPTIONS.some((option) => option.id === value);
 }
 
+function isLegacyPreset(value: string | null): value is LegacyThemePresetId {
+	return value !== null && value in LEGACY_THEME_PRESET_MAP;
+}
+
+/** Migra um ID salvo antes da renomeação M3 (P2) para o ID novo correspondente. */
 function readStoredPreset(): ThemePresetId {
 	try {
 		const stored = localStorage.getItem(THEME_PRESET_STORAGE_KEY);
-		return isValidPreset(stored) ? stored : DEFAULT_THEME_PRESET;
+		if (isValidPreset(stored)) return stored;
+		if (isLegacyPreset(stored)) return LEGACY_THEME_PRESET_MAP[stored];
+		return DEFAULT_THEME_PRESET;
 	} catch {
 		return DEFAULT_THEME_PRESET;
 	}

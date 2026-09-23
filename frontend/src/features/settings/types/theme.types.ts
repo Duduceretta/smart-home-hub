@@ -1,9 +1,21 @@
-export type ThemePresetId =
+export type ThemePresetId = "teal" | "indigo" | "cyan" | "blue" | "orchid";
+
+/** IDs antigos (pré-migração M3), aceitos por `readStoredPreset` para não quebrar quem já tinha um preset salvo. */
+export type LegacyThemePresetId =
 	| "zinc-minimalist"
-	| "indigo"
 	| "slate-cyan"
 	| "github-dimmed"
 	| "contrast-safe-graphite";
+
+export const LEGACY_THEME_PRESET_MAP: Record<
+	LegacyThemePresetId,
+	ThemePresetId
+> = {
+	"zinc-minimalist": "teal",
+	"slate-cyan": "cyan",
+	"github-dimmed": "blue",
+	"contrast-safe-graphite": "orchid",
+};
 
 export interface ThemePresetOption {
 	id: ThemePresetId;
@@ -18,37 +30,37 @@ export interface ThemePresetOption {
 
 export const THEME_PRESET_OPTIONS: ThemePresetOption[] = [
 	{
-		id: "zinc-minimalist",
-		label: "Zinc Minimalist",
+		id: "teal",
+		label: "Verde Nexus",
 		// design-token-lint-ignore: prévia fixa do preset, não segue o tema ativo
-		swatch: { background: "#09090b", card: "#18181b", primary: "#fafafa" },
+		swatch: { background: "#0f1512", card: "#1b211e", primary: "#5ce4b1" },
 	},
 	{
 		id: "indigo",
-		label: "Indigo",
+		label: "Índigo",
 		// design-token-lint-ignore: prévia fixa do preset, não segue o tema ativo
-		swatch: { background: "#08090d", card: "#151824", primary: "#5e6ad2" },
+		swatch: { background: "#131318", card: "#1f1e24", primary: "#c4bfff" },
 	},
 	{
-		id: "slate-cyan",
-		label: "Slate & Cyan",
+		id: "cyan",
+		label: "Ciano",
 		// design-token-lint-ignore: prévia fixa do preset, não segue o tema ativo
-		swatch: { background: "#0b0f17", card: "#172033", primary: "#06b6d4" },
+		swatch: { background: "#0e1515", card: "#1a2021", primary: "#51deec" },
 	},
 	{
-		id: "github-dimmed",
-		label: "GitHub Dimmed",
+		id: "blue",
+		label: "Azul",
 		// design-token-lint-ignore: prévia fixa do preset, não segue o tema ativo
-		swatch: { background: "#0d1117", card: "#21262d", primary: "#2f81f7" },
+		swatch: { background: "#101418", card: "#1b1f24", primary: "#9acdff" },
 	},
 	{
-		id: "contrast-safe-graphite",
-		label: "Contrast Safe Graphite",
+		id: "orchid",
+		label: "Orquídea",
 		// design-token-lint-ignore: prévia fixa do preset, não segue o tema ativo
-		swatch: { background: "#09090b", card: "#414141", primary: "#5e6ad2" },
+		swatch: { background: "#161215", card: "#221d21", primary: "#f4abec" },
 	},
 ];
 
-export const DEFAULT_THEME_PRESET: ThemePresetId = "zinc-minimalist";
+export const DEFAULT_THEME_PRESET: ThemePresetId = "teal";
 
 export const THEME_PRESET_STORAGE_KEY = "app-theme-preset";
