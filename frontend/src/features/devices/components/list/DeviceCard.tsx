@@ -188,8 +188,8 @@ export const DeviceCard: React.FC<DeviceCardProps> = ({ device }) => {
 					<div className="relative z-20 flex items-center gap-1">
 						{!isOnline ? (
 							<div className="flex items-center gap-1 mr-1">
-								<span className="h-1.5 w-1.5 rounded-full bg-alert-foreground shadow-[0_0_6px_rgba(255,180,171,0.5)]" />
-								<span className="text-xs font-medium tracking-wider text-alert-foreground">
+								<span className="h-1.5 w-1.5 rounded-full bg-alert shadow-[0_0_6px_rgba(255,180,171,0.5)]" />
+								<span className="text-xs font-medium tracking-wider text-alert">
 									{t("common:status.offline", "OFFLINE")}
 								</span>
 							</div>
@@ -234,7 +234,7 @@ export const DeviceCard: React.FC<DeviceCardProps> = ({ device }) => {
 								<DropdownMenuItem
 									onClick={handleDeleteClick}
 									disabled={isDeleting}
-									className="cursor-pointer gap-2 text-xs text-alert-foreground focus:bg-alert/20 focus:text-alert-foreground"
+									className="cursor-pointer gap-2 text-xs text-alert focus:bg-alert/20 focus:text-alert"
 								>
 									<Trash2 className="h-3.5 w-3.5" />
 									<span>{t("common:actions.delete")}</span>

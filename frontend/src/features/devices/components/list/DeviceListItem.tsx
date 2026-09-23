@@ -123,7 +123,7 @@ export function DeviceListItem({
 			</div>
 
 			{!isOnline && (
-				<span className="flex shrink-0 items-center gap-1 text-xs font-medium text-alert-foreground">
+				<span className="flex shrink-0 items-center gap-1 text-xs font-medium text-alert">
 					<WifiOff className="h-3.5 w-3.5" />
 					{viewMode === "grid" && t("common:status.offline", "OFFLINE")}
 				</span>

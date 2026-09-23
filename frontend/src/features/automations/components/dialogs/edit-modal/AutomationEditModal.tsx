@@ -164,7 +164,7 @@ export function AutomationEditModal() {
 											isLoadingDevices={isLoadingDevices}
 										/>
 									) : (
-										<p className="rounded-lg border border-dashed border-alert/40 bg-alert/10 p-4 text-xs text-alert-foreground">
+										<p className="rounded-lg border border-dashed border-alert/40 bg-alert/10 p-4 text-xs text-alert">
 											{t("editModal.triggerParseError")}
 										</p>
 									)}
