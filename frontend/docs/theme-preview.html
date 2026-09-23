@@ -1,0 +1,962 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Theme Preview</title>
+<style>
+/* ── Paleta proposta (docs/theme-proposal.md §5) ── */
+.v-new .dark {
+	color-scheme: dark;
+	--radius: 0.75rem;
+
+	/* Superfícies (escada: background → muted → card → popover → surface-highest) */
+	--background: #0b0e0e;
+	--foreground: #f4f5f5;
+	--muted: #151818;
+	--card: #1f2222;
+	--card-foreground: #f4f5f5;
+	--popover: #2a2d2d;
+	--popover-foreground: #f4f5f5;
+	--surface-highest: #353939;
+
+	/* Ação */
+	--primary: #37c695;
+	--primary-foreground: #001d10;
+	--secondary: #353939;
+	--secondary-foreground: #f4f5f5;
+
+	/* Texto secundário e hover (accent = um degrau acima de popover) */
+	--muted-foreground: #a0a4a4;
+	--accent: #353939;
+	--accent-foreground: #f4f5f5;
+
+	/* Destrutivo (ação) */
+	--destructive: #ff8981;
+	--destructive-foreground: #290b0a;
+
+	/* Bordas e foco */
+	--border-subtle: #3d4141;
+	--border: #6a6e6e;
+	--input: #6a6e6e;
+	--ring: #37c695;
+
+	/* Gráficos */
+	--chart-1: #008d3c;
+	--chart-2: #c960aa;
+	--chart-3: #acac00;
+	--chart-4: #9fbaff;
+	--chart-5: #ffc59e;
+
+	/* Sidebar */
+	--sidebar: #0b0e0e;
+	--sidebar-foreground: #f4f5f5;
+	--sidebar-primary: #37c695;
+	--sidebar-primary-foreground: #001d10;
+	--sidebar-accent: #1f2222;
+	--sidebar-accent-foreground: #f4f5f5;
+	--sidebar-border: #3d4141;
+	--sidebar-ring: #37c695;
+
+	/* Status (texto/ícone usa a cor base; -foreground só sobre o sólido) */
+	--success: #7de797;
+	--success-foreground: #021c09;
+	--warning: #ffb846;
+	--warning-foreground: #231200;
+	--info: #33c2ff;
+	--info-foreground: #001929;
+	--alert: #ff8981;
+	--alert-foreground: #290b0a;
+
+	/* Marca */
+	--brand-accent: #12967a;
+	--brand-muted: #cdd7d2;
+
+	/* Aliases DEPRECATED — remover em task separada. Resolvem no mesmo elemento
+	 * (<html>), então acompanham o --warning / --primary do preset ativo. */
+	--warm: var(--warning);
+	--warm-foreground: var(--warning-foreground);
+	--cool: var(--primary);
+	--cool-foreground: var(--primary-foreground);
+}
+
+.v-new .dark[data-theme="indigo"] {
+	/* Superfícies (escada: background → muted → card → popover → surface-highest) */
+	--background: #0a0b15;
+	--foreground: #f2f3f9;
+	--muted: #14151f;
+	--card: #1e202a;
+	--card-foreground: #f2f3f9;
+	--popover: #292b35;
+	--popover-foreground: #f2f3f9;
+	--surface-highest: #343641;
+
+	/* Ação */
+	--primary: #aca2ff;
+	--primary-foreground: #15122b;
+	--secondary: #343641;
+	--secondary-foreground: #f2f3f9;
+
+	/* Texto secundário e hover (accent = um degrau acima de popover) */
+	--muted-foreground: #9fa1ac;
+	--accent: #343641;
+	--accent-foreground: #f2f3f9;
+
+	/* Destrutivo (ação) */
+	--destructive: #ff847d;
+	--destructive-foreground: #290b0a;
+
+	/* Bordas e foco */
+	--border-subtle: #3b3e49;
+	--border: #6a6c79;
+	--input: #6a6c79;
+	--ring: #aca2ff;
+
+	/* Gráficos */
+	--chart-1: #6463cd;
+	--chart-2: #d56817;
+	--chart-3: #00c394;
+	--chart-4: #dd9eff;
+	--chart-5: #cae763;
+
+	/* Sidebar */
+	--sidebar: #0a0b15;
+	--sidebar-foreground: #f2f3f9;
+	--sidebar-primary: #aca2ff;
+	--sidebar-primary-foreground: #15122b;
+	--sidebar-accent: #1e202a;
+	--sidebar-accent-foreground: #f2f3f9;
+	--sidebar-border: #3b3e49;
+	--sidebar-ring: #aca2ff;
+
+	/* Status (texto/ícone usa a cor base; -foreground só sobre o sólido) */
+	--success: #7ce695;
+	--success-foreground: #021c09;
+	--warning: #ffb948;
+	--warning-foreground: #231200;
+	--info: #2bbdff;
+	--info-foreground: #001929;
+	--alert: #ff847d;
+	--alert-foreground: #290b0a;
+
+	/* Marca */
+	--brand-accent: #5e6ad2;
+	--brand-muted: #d3d3dc;
+}
+
+.v-new .dark[data-theme="slate-cyan"] {
+	/* Superfícies (escada: background → muted → card → popover → surface-highest) */
+	--background: #070f19;
+	--foreground: #f1f6fc;
+	--muted: #101924;
+	--card: #1a232f;
+	--card-foreground: #f1f6fc;
+	--popover: #252f3b;
+	--popover-foreground: #f1f6fc;
+	--surface-highest: #303a47;
+
+	/* Ação */
+	--primary: #3fbfcc;
+	--primary-foreground: #001b1f;
+	--secondary: #303a47;
+	--secondary-foreground: #f1f6fc;
+
+	/* Texto secundário e hover (accent = um degrau acima de popover) */
+	--muted-foreground: #9ca6b2;
+	--accent: #303a47;
+	--accent-foreground: #f1f6fc;
+
+	/* Destrutivo (ação) */
+	--destructive: #ff8c84;
+	--destructive-foreground: #290b0a;
+
+	/* Bordas e foco */
+	--border-subtle: #38424f;
+	--border: #65707e;
+	--input: #65707e;
+	--ring: #3fbfcc;
+
+	/* Gráficos */
+	--chart-1: #00888f;
+	--chart-2: #d66919;
+	--chart-3: #9296ff;
+	--chart-4: #c5c632;
+	--chart-5: #41f9c7;
+
+	/* Sidebar */
+	--sidebar: #070f19;
+	--sidebar-foreground: #f1f6fc;
+	--sidebar-primary: #3fbfcc;
+	--sidebar-primary-foreground: #001b1f;
+	--sidebar-accent: #1a232f;
+	--sidebar-accent-foreground: #f1f6fc;
+	--sidebar-border: #38424f;
+	--sidebar-ring: #3fbfcc;
+
+	/* Status (texto/ícone usa a cor base; -foreground só sobre o sólido) */
+	--success: #81eb9a;
+	--success-foreground: #021c09;
+	--warning: #ffbd4b;
+	--warning-foreground: #231200;
+	--info: #36c4ff;
+	--info-foreground: #001929;
+	--alert: #ff8c84;
+	--alert-foreground: #290b0a;
+
+	/* Marca */
+	--brand-accent: #06b6d4;
+	--brand-muted: #ccd7d8;
+}
+
+.v-new .dark[data-theme="github-dimmed"] {
+	/* Superfícies (escada: background → muted → card → popover → surface-highest) */
+	--background: #1c2128;
+	--foreground: #e5e8ec;
+	--muted: #252b32;
+	--card: #2f353d;
+	--card-foreground: #e5e8ec;
+	--popover: #393f47;
+	--popover-foreground: #e5e8ec;
+	--surface-highest: #444a52;
+
+	/* Ação */
+	--primary: #9dceff;
+	--primary-foreground: #05162c;
+	--secondary: #444a52;
+	--secondary-foreground: #e5e8ec;
+
+	/* Texto secundário e hover (accent = um degrau acima de popover) */
+	--muted-foreground: #b5bbc3;
+	--accent: #444a52;
+	--accent-foreground: #e5e8ec;
+
+	/* Destrutivo (ação) */
+	--destructive: #ffb6ab;
+	--destructive-foreground: #290b09;
+
+	/* Bordas e foco */
+	--border-subtle: #4c525a;
+	--border: #7a818a;
+	--input: #7a818a;
+	--ring: #9dceff;
+
+	/* Gráficos */
+	--chart-1: #2389e2;
+	--chart-2: #e6772e;
+	--chart-3: #00cd9e;
+	--chart-4: #b4baff;
+	--chart-5: #ffd243;
+
+	/* Sidebar */
+	--sidebar: #1c2128;
+	--sidebar-foreground: #e5e8ec;
+	--sidebar-primary: #9dceff;
+	--sidebar-primary-foreground: #05162c;
+	--sidebar-accent: #2f353d;
+	--sidebar-accent-foreground: #e5e8ec;
+	--sidebar-border: #4c525a;
+	--sidebar-ring: #9dceff;
+
+	/* Status (texto/ícone usa a cor base; -foreground só sobre o sólido) */
+	--success: #82db82;
+	--success-foreground: #061c06;
+	--warning: #fdbc44;
+	--warning-foreground: #221200;
+	--info: #6cd4ff;
+	--info-foreground: #001929;
+	--alert: #ffb6ab;
+	--alert-foreground: #290b09;
+
+	/* Marca */
+	--brand-accent: #316dca;
+	--brand-muted: #cfd5dc;
+}
+
+/*
+ * contrast-safe-graphite — identidade = acessibilidade. Superfícies neutras
+ * (C = 0) e cor só em acento/status. Alvos mais altos que os demais presets
+ * (texto ≥ 5.5:1, UI ≥ 3.6:1). Números medidos por scripts/theme-contrast-check.mjs:
+ * muted-foreground vs surface-highest 5.61:1 (pior superfície) e vs card 7.85:1;
+ * primary como texto sobre primary/15 em popover 5.61:1;
+ * primary-foreground vs primary 10.70:1; alert-foreground vs alert 10.34:1;
+ * border vs card 3.65:1; ring vs background 11.51:1; ΔL tile (card) × página 0.100.
+ * Qualquer mudança aqui: rodar `npm run check:theme` antes de commitar.
+ */
+.v-new .dark[data-theme="contrast-safe-graphite"] {
+	/* Superfícies (escada: background → muted → card → popover → surface-highest) */
+	--background: #0b0b0b;
+	--foreground: #fafafa;
+	--muted: #161616;
+	--card: #222222;
+	--card-foreground: #fafafa;
+	--popover: #2e2e2e;
+	--popover-foreground: #fafafa;
+	--surface-highest: #3a3a3a;
+
+	/* Ação */
+	--primary: #f4b0ed;
+	--primary-foreground: #210e1f;
+	--secondary: #3a3a3a;
+	--secondary-foreground: #fafafa;
+
+	/* Texto secundário e hover (accent = um degrau acima de popover) */
+	--muted-foreground: #b6b6b6;
+	--accent: #3a3a3a;
+	--accent-foreground: #fafafa;
+
+	/* Destrutivo (ação) */
+	--destructive: #ffaea6;
+	--destructive-foreground: #290b0a;
+
+	/* Bordas e foco */
+	--border-subtle: #424242;
+	--border: #797979;
+	--input: #797979;
+	--ring: #f4b0ed;
+
+	/* Gráficos */
+	--chart-1: #a75ab9;
+	--chart-2: #df7126;
+	--chart-3: #22c886;
+	--chart-4: #b1b8ff;
+	--chart-5: #f0d947;
+
+	/* Sidebar */
+	--sidebar: #0b0b0b;
+	--sidebar-foreground: #fafafa;
+	--sidebar-primary: #f4b0ed;
+	--sidebar-primary-foreground: #210e1f;
+	--sidebar-accent: #222222;
+	--sidebar-accent-foreground: #fafafa;
+	--sidebar-border: #424242;
+	--sidebar-ring: #f4b0ed;
+
+	/* Status (texto/ícone usa a cor base; -foreground só sobre o sólido) */
+	--success: #95ffad;
+	--success-foreground: #021c09;
+	--warning: #ffd17b;
+	--warning-foreground: #231200;
+	--info: #7bd8ff;
+	--info-foreground: #001929;
+	--alert: #ffaea6;
+	--alert-foreground: #290b0a;
+
+	/* Marca */
+	--brand-accent: #b464ae;
+	--brand-muted: #d9d1d8;
+}
+
+/* ── Paleta atual (src/app/styles/index.css) ── */
+.v-old .dark  {
+	color-scheme: dark;
+
+	--background: #09090b;
+	--foreground: #fafafa;
+
+	--muted: #121215;
+	--card: #18181b;
+	--card-foreground: #fafafa;
+	--popover: #27272a;
+	--popover-foreground: #fafafa;
+	--surface-highest: #3f3f46;
+
+	--primary: #fafafa;
+	--primary-foreground: #18181b;
+
+	--secondary: #27272a;
+	--secondary-foreground: #fafafa;
+
+	--muted-foreground: #a1a1aa;
+	--accent: #18181b;
+	--accent-foreground: #fafafa;
+
+	--destructive: #ef4444;
+
+	--border-subtle: #27272a;
+	--border: #3f3f46;
+	--input: #52525b;
+	--ring: #d4d4d8;
+
+	--chart-1: #fafafa;
+	--chart-2: #a1a1aa;
+	--chart-3: #71717a;
+	--chart-4: #52525b;
+	--chart-5: #3f3f46;
+	--radius: 0.75rem;
+
+	--sidebar: #09090b;
+	--sidebar-foreground: #fafafa;
+	--sidebar-primary: #fafafa;
+	--sidebar-primary-foreground: #18181b;
+	--sidebar-accent: #18181b;
+	--sidebar-accent-foreground: #fafafa;
+	--sidebar-border: #27272a;
+	--sidebar-ring: #fafafa;
+
+	--warm: #d4d4d8;
+	--warm-foreground: #18181b;
+	--alert: #ef4444;
+	--alert-foreground: #ffffff;
+	--brand-accent: #12967a;
+	--brand-muted: #d6d3ce;
+}
+
+.v-old .dark[data-theme="indigo"]  {
+	--background: #08090d;
+	--foreground: #f2f4f8;
+	--muted: #0f1118;
+	--card: #151824;
+	--card-foreground: #f2f4f8;
+	--popover: #1f2334;
+	--popover-foreground: #f2f4f8;
+	--surface-highest: #2c324b;
+
+	--primary: #5e6ad2;
+	--primary-foreground: #ffffff;
+
+	--secondary: #1f2334;
+	--secondary-foreground: #f2f4f8;
+
+	--muted-foreground: #8a92a6;
+	--accent: #151824;
+	--accent-foreground: #f2f4f8;
+
+	--destructive: #f43f5e;
+
+	--border-subtle: #1e2233;
+	--border: #2e344e;
+	--input: #3d4566;
+	--ring: #5e6ad2;
+
+	--chart-1: #5e6ad2;
+	--chart-2: #38bdf8;
+	--chart-3: #34d399;
+	--chart-4: #f43f5e;
+	--chart-5: #fbbf24;
+
+	--sidebar: #08090d;
+	--sidebar-foreground: #f2f4f8;
+	--sidebar-primary: #5e6ad2;
+	--sidebar-primary-foreground: #ffffff;
+	--sidebar-accent: #151824;
+	--sidebar-accent-foreground: #f2f4f8;
+	--sidebar-border: #1e2233;
+	--sidebar-ring: #5e6ad2;
+
+	--warm: #fde68a;
+	--warm-foreground: #1c1917;
+	--alert: #f43f5e;
+	--alert-foreground: #ffffff;
+}
+
+.v-old .dark[data-theme="slate-cyan"]  {
+	--background: #0b0f17;
+	--foreground: #f8fafc;
+	--muted: #111827;
+	--card: #172033;
+	--card-foreground: #f8fafc;
+	--popover: #1f2b45;
+	--popover-foreground: #f8fafc;
+	--surface-highest: #2c3c5f;
+
+	--primary: #06b6d4;
+	--primary-foreground: #083344;
+
+	--secondary: #1f2b45;
+	--secondary-foreground: #f8fafc;
+
+	--muted-foreground: #94a3b8;
+	--accent: #172033;
+	--accent-foreground: #f8fafc;
+
+	--destructive: #f87171;
+
+	--border-subtle: #1f293d;
+	--border: #334155;
+	--input: #475569;
+	--ring: #06b6d4;
+
+	--chart-1: #06b6d4;
+	--chart-2: #3b82f6;
+	--chart-3: #10b981;
+	--chart-4: #f43f5e;
+	--chart-5: #eab308;
+
+	--sidebar: #0b0f17;
+	--sidebar-foreground: #f8fafc;
+	--sidebar-primary: #06b6d4;
+	--sidebar-primary-foreground: #083344;
+	--sidebar-accent: #172033;
+	--sidebar-accent-foreground: #f8fafc;
+	--sidebar-border: #1f293d;
+	--sidebar-ring: #06b6d4;
+
+	--warm: #fed7aa;
+	--warm-foreground: #1c1917;
+	--alert: #ef4444;
+	--alert-foreground: #ffffff;
+}
+
+.v-old .dark[data-theme="github-dimmed"]  {
+	--background: #0d1117;
+	--foreground: #e6edf3;
+	--muted: #161b22;
+	--card: #21262d;
+	--card-foreground: #e6edf3;
+	--popover: #30363d;
+	--popover-foreground: #e6edf3;
+	--surface-highest: #484f58;
+
+	--primary: #2f81f7;
+	--primary-foreground: #ffffff;
+
+	--secondary: #30363d;
+	--secondary-foreground: #e6edf3;
+
+	--muted-foreground: #8b949e;
+	--accent: #21262d;
+	--accent-foreground: #e6edf3;
+
+	--destructive: #f85149;
+
+	--border-subtle: #21262d;
+	--border: #30363d;
+	--input: #3b434d;
+	--ring: #2f81f7;
+
+	--chart-1: #2f81f7;
+	--chart-2: #3fb950;
+	--chart-3: #d29922;
+	--chart-4: #db61a2;
+	--chart-5: #a371f7;
+
+	--sidebar: #0d1117;
+	--sidebar-foreground: #e6edf3;
+	--sidebar-primary: #2f81f7;
+	--sidebar-primary-foreground: #ffffff;
+	--sidebar-accent: #161b22;
+	--sidebar-accent-foreground: #e6edf3;
+	--sidebar-border: #21262d;
+	--sidebar-ring: #2f81f7;
+
+	--warm: #d29922;
+	--warm-foreground: #1c1917;
+	--alert: #f85149;
+	--alert-foreground: #ffffff;
+}
+
+.v-old .dark[data-theme="contrast-safe-graphite"]  {
+	--background: #09090b;
+	--foreground: #f4f4f5;
+	--muted: #2b2b2b;
+	--card: #414141;
+	--card-foreground: #f4f4f5;
+	--popover: #575757;
+	--popover-foreground: #f4f4f5;
+	--surface-highest: #6d6d6d;
+
+	--primary: #5e6ad2;
+	--primary-foreground: #ffffff;
+
+	--secondary: #414141;
+	--secondary-foreground: #f4f4f5;
+
+	--muted-foreground: #acacac;
+	--accent: #414141;
+	--accent-foreground: #f4f4f5;
+
+	--destructive: #dc2626;
+	--destructive-foreground: #ffffff;
+
+	--border-subtle: #8c8c8c;
+	--border: #6d6d6d;
+	--input: #6d6d6d;
+	--ring: #5e6ad2;
+
+	--chart-1: #5e6ad2;
+	--chart-2: #38bdf8;
+	--chart-3: #10b981;
+	--chart-4: #dc2626;
+	--chart-5: #fbbf24;
+
+	--sidebar: #09090b;
+	--sidebar-foreground: #f4f4f5;
+	--sidebar-primary: #5e6ad2;
+	--sidebar-primary-foreground: #ffffff;
+	--sidebar-accent: #414141;
+	--sidebar-accent-foreground: #f4f4f5;
+	--sidebar-border: #6d6d6d;
+	--sidebar-ring: #5e6ad2;
+
+	--warm: #fbbf24;
+	--warm-foreground: #1c1917;
+	--alert: #dc2626;
+	--alert-foreground: #ffffff;
+}
+/* tokens que não existem hoje: valores crus que a Início usa (emerald-400 / amber-400 / sky-400) */
+.v-old .dark { --success: #00d492; --warning: #ffb900; --info: #00bcff; }
+
+/* Papéis de superfície: proposto × como a Início faz hoje */
+.v-new .dark { --page: var(--background); --tile: var(--card); --inner: var(--popover); --menu: var(--popover); --alert-text: var(--alert); }
+.v-old .dark { --page: linear-gradient(var(--muted), var(--background)); --tile: var(--muted); --inner: color-mix(in srgb, var(--card) 60%, var(--muted)); --menu: var(--card); --alert-text: var(--alert-foreground); }
+
+*, *::before, *::after { box-sizing: border-box; }
+:root { color-scheme: dark; }
+body { margin: 0; background: #050505; color: #e5e5e5; font: 14px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif; }
+header.top { display: flex; flex-wrap: wrap; gap: 12px 24px; align-items: center; justify-content: space-between; padding: 16px; }
+header.top h1 { margin: 0; font-size: 18px; font-weight: 600; }
+header.top p { margin: 4px 0 0; color: #a3a3a3; font-size: 13px; max-width: 70ch; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.toggle { margin: 0; display: inline-flex; border: 1px solid #404040; border-radius: 10px; padding: 3px; gap: 3px; }
+.controls { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.sim-label { float: left; padding: 6px 8px 6px 6px; font-size: 13px; color: #a3a3a3; }
+#sim-root { min-height: 100vh; background: #050505; }
+.toggle button { font: inherit; border: 0; border-radius: 7px; padding: 6px 12px; background: transparent; color: #d4d4d4; cursor: pointer; }
+.toggle button[aria-pressed="true"] { background: #e5e5e5; color: #111; }
+.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(290px, 1fr)); gap: 12px; padding: 0 16px 24px; }
+
+.preset { color: var(--foreground); border-radius: 14px; overflow: hidden; }
+.page { background: var(--page); padding: 16px; height: 100%; }
+.page h2 { margin: 0 0 12px; font-size: 14px; font-weight: 600; }
+.tile { background: var(--tile); border: 1px solid var(--border-subtle); border-radius: 14px; padding: 16px; display: flex; flex-direction: column; gap: 8px; }
+.label { margin: 8px 0 0; font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: .06em; color: var(--muted-foreground); }
+.label:first-child { margin-top: 0; }
+.inner { background: var(--inner); border-radius: 10px; padding: 12px; display: flex; flex-direction: column; gap: 4px; }
+.inner p { margin: 0; }
+.title { font-weight: 600; }
+.muted { color: var(--muted-foreground); font-size: 13px; }
+.on-highest { background: var(--surface-highest); border-radius: 6px; padding: 4px 8px; }
+.row { display: flex; flex-wrap: wrap; gap: 6px; }
+
+.btn { font: inherit; font-size: 13px; font-weight: 500; border: 0; border-radius: 8px; padding: 6px 12px; cursor: pointer; background: var(--primary); color: var(--primary-foreground); }
+.btn:hover, .btn.is-hover { background: color-mix(in oklab, var(--primary) 90%, var(--tile)); }
+.btn:active { background: color-mix(in oklab, var(--primary) 80%, var(--tile)); }
+.btn:focus-visible, .btn.is-focus { outline: none; box-shadow: 0 0 0 2px var(--tile), 0 0 0 4px var(--ring); }
+.btn:disabled { opacity: .5; cursor: not-allowed; }
+
+.badge { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 500; border-radius: 999px; padding: 2px 8px; border: 1px solid; }
+.s-success { color: var(--success); background: color-mix(in oklab, var(--success) 15%, transparent); border-color: color-mix(in oklab, var(--success) 30%, transparent); }
+.s-warning { color: var(--warning); background: color-mix(in oklab, var(--warning) 15%, transparent); border-color: color-mix(in oklab, var(--warning) 30%, transparent); }
+.s-info { color: var(--info); background: color-mix(in oklab, var(--info) 15%, transparent); border-color: color-mix(in oklab, var(--info) 30%, transparent); }
+.s-alert { color: var(--alert-text); background: color-mix(in oklab, var(--alert) 15%, transparent); border-color: color-mix(in oklab, var(--alert) 30%, transparent); }
+
+.modes { display: grid; grid-template-columns: repeat(3, 1fr); }
+.mode { font: inherit; font-size: 12px; text-transform: uppercase; letter-spacing: .05em; border-radius: 8px; padding: 8px 4px; cursor: pointer; background: var(--inner); color: var(--muted-foreground); border: 1px solid var(--border-subtle); }
+.mode:hover { background: var(--surface-highest); color: var(--foreground); }
+.mode.is-selected { font-weight: 600; color: var(--primary); background: color-mix(in oklab, var(--primary) 15%, var(--tile)); border-color: color-mix(in oklab, var(--primary) 40%, transparent); }
+
+.menu { background: var(--menu); color: var(--popover-foreground); border-radius: 10px; padding: 4px; box-shadow: 0 0 0 1px color-mix(in oklab, var(--foreground) 10%, transparent), 0 8px 24px rgb(0 0 0 / .35); }
+.menu-item { font-size: 13px; padding: 6px 8px; border-radius: 6px; }
+.menu-item.is-focused { background: var(--accent); color: var(--accent-foreground); }
+
+.chart { width: 100%; height: auto; display: block; }
+.legend { display: flex; gap: 10px; font-size: 12px; color: var(--muted-foreground); }
+.legend i { display: inline-block; width: 8px; height: 8px; border-radius: 2px; margin-right: 4px; }
+
+@media (prefers-reduced-motion: no-preference) { .btn, .mode { transition: background-color .15s; } }
+</style>
+</head>
+<body class="v-new">
+<!--
+	Simulação de daltonismo: Machado, Oliveira & Fernandes (2009), severidade 1.0 — mesmas
+	matrizes do culori usadas por scripts/theme-contrast-check.mjs. Aplicadas em sRGB
+	(color-interpolation-filters="sRGB"), como o culori faz, para o que se vê bater com o ΔE00 do checker.
+-->
+<svg class="sr-only" aria-hidden="true" focusable="false">
+	<filter id="cvd-deuteranopia" color-interpolation-filters="sRGB">
+		<feColorMatrix type="matrix" values="0.367322 0.860646 -0.227968 0 0  0.280085 0.672501 0.047413 0 0  -0.01182 0.04294 0.968881 0 0  0 0 0 1 0"/>
+	</filter>
+	<filter id="cvd-protanopia" color-interpolation-filters="sRGB">
+		<feColorMatrix type="matrix" values="0.152286 1.052583 -0.204868 0 0  0.114503 0.786281 0.099216 0 0  -0.003882 -0.048116 1.051998 0 0  0 0 0 1 0"/>
+	</filter>
+	<filter id="cvd-tritanopia" color-interpolation-filters="sRGB">
+		<feColorMatrix type="matrix" values="1.255528 -0.076749 -0.178779 0 0  -0.078411 0.930809 0.147602 0 0  0.004733 0.691367 0.3039 0 0  0 0 0 1 0"/>
+	</filter>
+</svg>
+<div id="sim-root">
+<header class="top">
+	<div>
+		<h1>Presets dark · proposta × atual</h1>
+		<p>Mesmos componentes da tela Início nos 5 presets. "Proposta" usa os blocos de <code>docs/theme-proposal.md</code> (tile = card, página = background). "Atual" reproduz o <code>index.css</code> de hoje e como a Início o usa (tile = muted, alerta com alert-foreground, status em emerald/amber/sky crus). "Simular" aplica a simulação de daltonismo à página inteira.</p>
+	</div>
+	<div class="controls">
+		<fieldset class="toggle" data-group="palette"><legend class="sr-only">Paleta</legend>
+			<button type="button" data-v="v-new" aria-pressed="true">Proposta</button>
+			<button type="button" data-v="v-old" aria-pressed="false">Atual</button>
+		</fieldset>
+		<fieldset class="toggle" data-group="sim"><legend class="sim-label">Simular</legend>
+			<button type="button" data-v="" aria-pressed="true">Normal</button>
+			<button type="button" data-v="deuteranopia" aria-pressed="false">Deuteranopia</button>
+			<button type="button" data-v="protanopia" aria-pressed="false">Protanopia</button>
+			<button type="button" data-v="tritanopia" aria-pressed="false">Tritanopia</button>
+		</fieldset>
+	</div>
+</header>
+<main class="grid">
+
+<section class="dark preset" >
+	<div class="page">
+		<h2>zinc-minimalist</h2>
+		<div class="tile">
+			<p class="label">Tile · card</p>
+			<div class="inner">
+				<p class="title">Sala de Estar</p>
+				<p class="muted">Card interno · popover — texto secundário</p>
+				<p class="muted on-highest">muted-foreground sobre surface-highest</p>
+			</div>
+
+			<p class="label">Botão primário</p>
+			<div class="row">
+				<button type="button" class="btn">Normal</button>
+				<button type="button" class="btn is-hover">Hover</button>
+				<button type="button" class="btn is-focus">Focus</button>
+				<button type="button" class="btn" disabled>Disabled</button>
+			</div>
+
+			<p class="label">Status (tint /15)</p>
+			<div class="row">
+				<span class="badge s-success">● Online</span>
+				<span class="badge s-warning">▲ Desarmado</span>
+				<span class="badge s-info">i Noite</span>
+				<span class="badge s-alert">! 2 alertas</span>
+			</div>
+
+			<p class="label">Modo selecionado</p>
+			<div class="row modes">
+				<button type="button" class="mode">Desarmar</button>
+				<button type="button" class="mode is-selected" aria-pressed="true">Casa</button>
+				<button type="button" class="mode">Noite</button>
+			</div>
+
+			<p class="label">Dropdown</p>
+			<div class="menu">
+				<div class="menu-item">Casa principal</div>
+				<div class="menu-item is-focused">Casa de praia (foco)</div>
+				<div class="menu-item">Adicionar residência</div>
+			</div>
+
+			<p class="label">Gráfico · chart-1 (escuro) → chart-5 (claro)</p>
+			<svg class="chart" viewBox="0 0 240 90" role="img" aria-label="Gráfico de barras com 5 séries">
+				<rect x="4" y="56" width="8" height="30" rx="1.5" style="fill:var(--chart-1)"/><rect x="14" y="44" width="8" height="42" rx="1.5" style="fill:var(--chart-2)"/><rect x="24" y="32" width="8" height="54" rx="1.5" style="fill:var(--chart-3)"/><rect x="34" y="20" width="8" height="66" rx="1.5" style="fill:var(--chart-4)"/><rect x="44" y="8" width="8" height="78" rx="1.5" style="fill:var(--chart-5)"/><rect x="64" y="14" width="8" height="72" rx="1.5" style="fill:var(--chart-1)"/><rect x="74" y="68" width="8" height="18" rx="1.5" style="fill:var(--chart-2)"/><rect x="84" y="56" width="8" height="30" rx="1.5" style="fill:var(--chart-3)"/><rect x="94" y="44" width="8" height="42" rx="1.5" style="fill:var(--chart-4)"/><rect x="104" y="32" width="8" height="54" rx="1.5" style="fill:var(--chart-5)"/><rect x="124" y="38" width="8" height="48" rx="1.5" style="fill:var(--chart-1)"/><rect x="134" y="26" width="8" height="60" rx="1.5" style="fill:var(--chart-2)"/><rect x="144" y="14" width="8" height="72" rx="1.5" style="fill:var(--chart-3)"/><rect x="154" y="68" width="8" height="18" rx="1.5" style="fill:var(--chart-4)"/><rect x="164" y="56" width="8" height="30" rx="1.5" style="fill:var(--chart-5)"/><rect x="184" y="62" width="8" height="24" rx="1.5" style="fill:var(--chart-1)"/><rect x="194" y="50" width="8" height="36" rx="1.5" style="fill:var(--chart-2)"/><rect x="204" y="38" width="8" height="48" rx="1.5" style="fill:var(--chart-3)"/><rect x="214" y="26" width="8" height="60" rx="1.5" style="fill:var(--chart-4)"/><rect x="224" y="14" width="8" height="72" rx="1.5" style="fill:var(--chart-5)"/>
+			</svg>
+			<div class="legend"><span><i style="background:var(--chart-1)"></i>1</span><span><i style="background:var(--chart-2)"></i>2</span><span><i style="background:var(--chart-3)"></i>3</span><span><i style="background:var(--chart-4)"></i>4</span><span><i style="background:var(--chart-5)"></i>5</span></div>
+		</div>
+	</div>
+</section>
+
+<section class="dark preset" data-theme="indigo">
+	<div class="page">
+		<h2>indigo</h2>
+		<div class="tile">
+			<p class="label">Tile · card</p>
+			<div class="inner">
+				<p class="title">Sala de Estar</p>
+				<p class="muted">Card interno · popover — texto secundário</p>
+				<p class="muted on-highest">muted-foreground sobre surface-highest</p>
+			</div>
+
+			<p class="label">Botão primário</p>
+			<div class="row">
+				<button type="button" class="btn">Normal</button>
+				<button type="button" class="btn is-hover">Hover</button>
+				<button type="button" class="btn is-focus">Focus</button>
+				<button type="button" class="btn" disabled>Disabled</button>
+			</div>
+
+			<p class="label">Status (tint /15)</p>
+			<div class="row">
+				<span class="badge s-success">● Online</span>
+				<span class="badge s-warning">▲ Desarmado</span>
+				<span class="badge s-info">i Noite</span>
+				<span class="badge s-alert">! 2 alertas</span>
+			</div>
+
+			<p class="label">Modo selecionado</p>
+			<div class="row modes">
+				<button type="button" class="mode">Desarmar</button>
+				<button type="button" class="mode is-selected" aria-pressed="true">Casa</button>
+				<button type="button" class="mode">Noite</button>
+			</div>
+
+			<p class="label">Dropdown</p>
+			<div class="menu">
+				<div class="menu-item">Casa principal</div>
+				<div class="menu-item is-focused">Casa de praia (foco)</div>
+				<div class="menu-item">Adicionar residência</div>
+			</div>
+
+			<p class="label">Gráfico · chart-1 (escuro) → chart-5 (claro)</p>
+			<svg class="chart" viewBox="0 0 240 90" role="img" aria-label="Gráfico de barras com 5 séries">
+				<rect x="4" y="56" width="8" height="30" rx="1.5" style="fill:var(--chart-1)"/><rect x="14" y="44" width="8" height="42" rx="1.5" style="fill:var(--chart-2)"/><rect x="24" y="32" width="8" height="54" rx="1.5" style="fill:var(--chart-3)"/><rect x="34" y="20" width="8" height="66" rx="1.5" style="fill:var(--chart-4)"/><rect x="44" y="8" width="8" height="78" rx="1.5" style="fill:var(--chart-5)"/><rect x="64" y="14" width="8" height="72" rx="1.5" style="fill:var(--chart-1)"/><rect x="74" y="68" width="8" height="18" rx="1.5" style="fill:var(--chart-2)"/><rect x="84" y="56" width="8" height="30" rx="1.5" style="fill:var(--chart-3)"/><rect x="94" y="44" width="8" height="42" rx="1.5" style="fill:var(--chart-4)"/><rect x="104" y="32" width="8" height="54" rx="1.5" style="fill:var(--chart-5)"/><rect x="124" y="38" width="8" height="48" rx="1.5" style="fill:var(--chart-1)"/><rect x="134" y="26" width="8" height="60" rx="1.5" style="fill:var(--chart-2)"/><rect x="144" y="14" width="8" height="72" rx="1.5" style="fill:var(--chart-3)"/><rect x="154" y="68" width="8" height="18" rx="1.5" style="fill:var(--chart-4)"/><rect x="164" y="56" width="8" height="30" rx="1.5" style="fill:var(--chart-5)"/><rect x="184" y="62" width="8" height="24" rx="1.5" style="fill:var(--chart-1)"/><rect x="194" y="50" width="8" height="36" rx="1.5" style="fill:var(--chart-2)"/><rect x="204" y="38" width="8" height="48" rx="1.5" style="fill:var(--chart-3)"/><rect x="214" y="26" width="8" height="60" rx="1.5" style="fill:var(--chart-4)"/><rect x="224" y="14" width="8" height="72" rx="1.5" style="fill:var(--chart-5)"/>
+			</svg>
+			<div class="legend"><span><i style="background:var(--chart-1)"></i>1</span><span><i style="background:var(--chart-2)"></i>2</span><span><i style="background:var(--chart-3)"></i>3</span><span><i style="background:var(--chart-4)"></i>4</span><span><i style="background:var(--chart-5)"></i>5</span></div>
+		</div>
+	</div>
+</section>
+
+<section class="dark preset" data-theme="slate-cyan">
+	<div class="page">
+		<h2>slate-cyan</h2>
+		<div class="tile">
+			<p class="label">Tile · card</p>
+			<div class="inner">
+				<p class="title">Sala de Estar</p>
+				<p class="muted">Card interno · popover — texto secundário</p>
+				<p class="muted on-highest">muted-foreground sobre surface-highest</p>
+			</div>
+
+			<p class="label">Botão primário</p>
+			<div class="row">
+				<button type="button" class="btn">Normal</button>
+				<button type="button" class="btn is-hover">Hover</button>
+				<button type="button" class="btn is-focus">Focus</button>
+				<button type="button" class="btn" disabled>Disabled</button>
+			</div>
+
+			<p class="label">Status (tint /15)</p>
+			<div class="row">
+				<span class="badge s-success">● Online</span>
+				<span class="badge s-warning">▲ Desarmado</span>
+				<span class="badge s-info">i Noite</span>
+				<span class="badge s-alert">! 2 alertas</span>
+			</div>
+
+			<p class="label">Modo selecionado</p>
+			<div class="row modes">
+				<button type="button" class="mode">Desarmar</button>
+				<button type="button" class="mode is-selected" aria-pressed="true">Casa</button>
+				<button type="button" class="mode">Noite</button>
+			</div>
+
+			<p class="label">Dropdown</p>
+			<div class="menu">
+				<div class="menu-item">Casa principal</div>
+				<div class="menu-item is-focused">Casa de praia (foco)</div>
+				<div class="menu-item">Adicionar residência</div>
+			</div>
+
+			<p class="label">Gráfico · chart-1 (escuro) → chart-5 (claro)</p>
+			<svg class="chart" viewBox="0 0 240 90" role="img" aria-label="Gráfico de barras com 5 séries">
+				<rect x="4" y="56" width="8" height="30" rx="1.5" style="fill:var(--chart-1)"/><rect x="14" y="44" width="8" height="42" rx="1.5" style="fill:var(--chart-2)"/><rect x="24" y="32" width="8" height="54" rx="1.5" style="fill:var(--chart-3)"/><rect x="34" y="20" width="8" height="66" rx="1.5" style="fill:var(--chart-4)"/><rect x="44" y="8" width="8" height="78" rx="1.5" style="fill:var(--chart-5)"/><rect x="64" y="14" width="8" height="72" rx="1.5" style="fill:var(--chart-1)"/><rect x="74" y="68" width="8" height="18" rx="1.5" style="fill:var(--chart-2)"/><rect x="84" y="56" width="8" height="30" rx="1.5" style="fill:var(--chart-3)"/><rect x="94" y="44" width="8" height="42" rx="1.5" style="fill:var(--chart-4)"/><rect x="104" y="32" width="8" height="54" rx="1.5" style="fill:var(--chart-5)"/><rect x="124" y="38" width="8" height="48" rx="1.5" style="fill:var(--chart-1)"/><rect x="134" y="26" width="8" height="60" rx="1.5" style="fill:var(--chart-2)"/><rect x="144" y="14" width="8" height="72" rx="1.5" style="fill:var(--chart-3)"/><rect x="154" y="68" width="8" height="18" rx="1.5" style="fill:var(--chart-4)"/><rect x="164" y="56" width="8" height="30" rx="1.5" style="fill:var(--chart-5)"/><rect x="184" y="62" width="8" height="24" rx="1.5" style="fill:var(--chart-1)"/><rect x="194" y="50" width="8" height="36" rx="1.5" style="fill:var(--chart-2)"/><rect x="204" y="38" width="8" height="48" rx="1.5" style="fill:var(--chart-3)"/><rect x="214" y="26" width="8" height="60" rx="1.5" style="fill:var(--chart-4)"/><rect x="224" y="14" width="8" height="72" rx="1.5" style="fill:var(--chart-5)"/>
+			</svg>
+			<div class="legend"><span><i style="background:var(--chart-1)"></i>1</span><span><i style="background:var(--chart-2)"></i>2</span><span><i style="background:var(--chart-3)"></i>3</span><span><i style="background:var(--chart-4)"></i>4</span><span><i style="background:var(--chart-5)"></i>5</span></div>
+		</div>
+	</div>
+</section>
+
+<section class="dark preset" data-theme="github-dimmed">
+	<div class="page">
+		<h2>github-dimmed</h2>
+		<div class="tile">
+			<p class="label">Tile · card</p>
+			<div class="inner">
+				<p class="title">Sala de Estar</p>
+				<p class="muted">Card interno · popover — texto secundário</p>
+				<p class="muted on-highest">muted-foreground sobre surface-highest</p>
+			</div>
+
+			<p class="label">Botão primário</p>
+			<div class="row">
+				<button type="button" class="btn">Normal</button>
+				<button type="button" class="btn is-hover">Hover</button>
+				<button type="button" class="btn is-focus">Focus</button>
+				<button type="button" class="btn" disabled>Disabled</button>
+			</div>
+
+			<p class="label">Status (tint /15)</p>
+			<div class="row">
+				<span class="badge s-success">● Online</span>
+				<span class="badge s-warning">▲ Desarmado</span>
+				<span class="badge s-info">i Noite</span>
+				<span class="badge s-alert">! 2 alertas</span>
+			</div>
+
+			<p class="label">Modo selecionado</p>
+			<div class="row modes">
+				<button type="button" class="mode">Desarmar</button>
+				<button type="button" class="mode is-selected" aria-pressed="true">Casa</button>
+				<button type="button" class="mode">Noite</button>
+			</div>
+
+			<p class="label">Dropdown</p>
+			<div class="menu">
+				<div class="menu-item">Casa principal</div>
+				<div class="menu-item is-focused">Casa de praia (foco)</div>
+				<div class="menu-item">Adicionar residência</div>
+			</div>
+
+			<p class="label">Gráfico · chart-1 (escuro) → chart-5 (claro)</p>
+			<svg class="chart" viewBox="0 0 240 90" role="img" aria-label="Gráfico de barras com 5 séries">
+				<rect x="4" y="56" width="8" height="30" rx="1.5" style="fill:var(--chart-1)"/><rect x="14" y="44" width="8" height="42" rx="1.5" style="fill:var(--chart-2)"/><rect x="24" y="32" width="8" height="54" rx="1.5" style="fill:var(--chart-3)"/><rect x="34" y="20" width="8" height="66" rx="1.5" style="fill:var(--chart-4)"/><rect x="44" y="8" width="8" height="78" rx="1.5" style="fill:var(--chart-5)"/><rect x="64" y="14" width="8" height="72" rx="1.5" style="fill:var(--chart-1)"/><rect x="74" y="68" width="8" height="18" rx="1.5" style="fill:var(--chart-2)"/><rect x="84" y="56" width="8" height="30" rx="1.5" style="fill:var(--chart-3)"/><rect x="94" y="44" width="8" height="42" rx="1.5" style="fill:var(--chart-4)"/><rect x="104" y="32" width="8" height="54" rx="1.5" style="fill:var(--chart-5)"/><rect x="124" y="38" width="8" height="48" rx="1.5" style="fill:var(--chart-1)"/><rect x="134" y="26" width="8" height="60" rx="1.5" style="fill:var(--chart-2)"/><rect x="144" y="14" width="8" height="72" rx="1.5" style="fill:var(--chart-3)"/><rect x="154" y="68" width="8" height="18" rx="1.5" style="fill:var(--chart-4)"/><rect x="164" y="56" width="8" height="30" rx="1.5" style="fill:var(--chart-5)"/><rect x="184" y="62" width="8" height="24" rx="1.5" style="fill:var(--chart-1)"/><rect x="194" y="50" width="8" height="36" rx="1.5" style="fill:var(--chart-2)"/><rect x="204" y="38" width="8" height="48" rx="1.5" style="fill:var(--chart-3)"/><rect x="214" y="26" width="8" height="60" rx="1.5" style="fill:var(--chart-4)"/><rect x="224" y="14" width="8" height="72" rx="1.5" style="fill:var(--chart-5)"/>
+			</svg>
+			<div class="legend"><span><i style="background:var(--chart-1)"></i>1</span><span><i style="background:var(--chart-2)"></i>2</span><span><i style="background:var(--chart-3)"></i>3</span><span><i style="background:var(--chart-4)"></i>4</span><span><i style="background:var(--chart-5)"></i>5</span></div>
+		</div>
+	</div>
+</section>
+
+<section class="dark preset" data-theme="contrast-safe-graphite">
+	<div class="page">
+		<h2>contrast-safe-graphite</h2>
+		<div class="tile">
+			<p class="label">Tile · card</p>
+			<div class="inner">
+				<p class="title">Sala de Estar</p>
+				<p class="muted">Card interno · popover — texto secundário</p>
+				<p class="muted on-highest">muted-foreground sobre surface-highest</p>
+			</div>
+
+			<p class="label">Botão primário</p>
+			<div class="row">
+				<button type="button" class="btn">Normal</button>
+				<button type="button" class="btn is-hover">Hover</button>
+				<button type="button" class="btn is-focus">Focus</button>
+				<button type="button" class="btn" disabled>Disabled</button>
+			</div>
+
+			<p class="label">Status (tint /15)</p>
+			<div class="row">
+				<span class="badge s-success">● Online</span>
+				<span class="badge s-warning">▲ Desarmado</span>
+				<span class="badge s-info">i Noite</span>
+				<span class="badge s-alert">! 2 alertas</span>
+			</div>
+
+			<p class="label">Modo selecionado</p>
+			<div class="row modes">
+				<button type="button" class="mode">Desarmar</button>
+				<button type="button" class="mode is-selected" aria-pressed="true">Casa</button>
+				<button type="button" class="mode">Noite</button>
+			</div>
+
+			<p class="label">Dropdown</p>
+			<div class="menu">
+				<div class="menu-item">Casa principal</div>
+				<div class="menu-item is-focused">Casa de praia (foco)</div>
+				<div class="menu-item">Adicionar residência</div>
+			</div>
+
+			<p class="label">Gráfico · chart-1 (escuro) → chart-5 (claro)</p>
+			<svg class="chart" viewBox="0 0 240 90" role="img" aria-label="Gráfico de barras com 5 séries">
+				<rect x="4" y="56" width="8" height="30" rx="1.5" style="fill:var(--chart-1)"/><rect x="14" y="44" width="8" height="42" rx="1.5" style="fill:var(--chart-2)"/><rect x="24" y="32" width="8" height="54" rx="1.5" style="fill:var(--chart-3)"/><rect x="34" y="20" width="8" height="66" rx="1.5" style="fill:var(--chart-4)"/><rect x="44" y="8" width="8" height="78" rx="1.5" style="fill:var(--chart-5)"/><rect x="64" y="14" width="8" height="72" rx="1.5" style="fill:var(--chart-1)"/><rect x="74" y="68" width="8" height="18" rx="1.5" style="fill:var(--chart-2)"/><rect x="84" y="56" width="8" height="30" rx="1.5" style="fill:var(--chart-3)"/><rect x="94" y="44" width="8" height="42" rx="1.5" style="fill:var(--chart-4)"/><rect x="104" y="32" width="8" height="54" rx="1.5" style="fill:var(--chart-5)"/><rect x="124" y="38" width="8" height="48" rx="1.5" style="fill:var(--chart-1)"/><rect x="134" y="26" width="8" height="60" rx="1.5" style="fill:var(--chart-2)"/><rect x="144" y="14" width="8" height="72" rx="1.5" style="fill:var(--chart-3)"/><rect x="154" y="68" width="8" height="18" rx="1.5" style="fill:var(--chart-4)"/><rect x="164" y="56" width="8" height="30" rx="1.5" style="fill:var(--chart-5)"/><rect x="184" y="62" width="8" height="24" rx="1.5" style="fill:var(--chart-1)"/><rect x="194" y="50" width="8" height="36" rx="1.5" style="fill:var(--chart-2)"/><rect x="204" y="38" width="8" height="48" rx="1.5" style="fill:var(--chart-3)"/><rect x="214" y="26" width="8" height="60" rx="1.5" style="fill:var(--chart-4)"/><rect x="224" y="14" width="8" height="72" rx="1.5" style="fill:var(--chart-5)"/>
+			</svg>
+			<div class="legend"><span><i style="background:var(--chart-1)"></i>1</span><span><i style="background:var(--chart-2)"></i>2</span><span><i style="background:var(--chart-3)"></i>3</span><span><i style="background:var(--chart-4)"></i>4</span><span><i style="background:var(--chart-5)"></i>5</span></div>
+		</div>
+	</div>
+</section>
+</main>
+</div>
+<script>
+const root = document.getElementById("sim-root");
+for (const group of document.querySelectorAll(".toggle")) {
+	const buttons = group.querySelectorAll("button");
+	for (const b of buttons) {
+		b.addEventListener("click", () => {
+			if (group.dataset.group === "palette") document.body.className = b.dataset.v;
+			else root.style.filter = b.dataset.v ? "url(#cvd-" + b.dataset.v + ")" : "";
+			for (const o of buttons) o.setAttribute("aria-pressed", String(o === b));
+		});
+	}
+}
+</script>
+</body>
+</html>

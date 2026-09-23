@@ -60,8 +60,7 @@ export const EVENT_SEVERITY_STYLES: Record<
 		dot: "bg-warm",
 	},
 	Error: {
-		badge:
-			"bg-destructive/15 text-destructive-foreground border-destructive/30",
+		badge: "bg-destructive/15 text-destructive border-destructive/30",
 		text: "text-destructive",
 		dot: "bg-destructive",
 	},

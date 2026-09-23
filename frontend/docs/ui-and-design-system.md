@@ -1,6 +1,6 @@
 # 🎨 Diretrizes de UI, Espaçamento e Design System
 
-> Estas diretrizes são **padrão universal do projeto**, não uma recomendação por feature. Nasceram de uma série de auditorias de consistência visual (Automações, `AppLayout`/Header/Sidebar, Dashboard, Dispositivos) que corrigiram desvios reais encontrados no código — ver seção 10 para exemplos de "antes → depois". **Nunca criar token novo de cor, espaçamento ou raio**: usar exclusivamente os já definidos em `src/app/styles/index.css`.
+> Estas diretrizes são **padrão universal do projeto**, não uma recomendação por feature. Nasceram de uma série de auditorias de consistência visual (Automações, `AppLayout`/Header/Sidebar, Dashboard, Dispositivos) que corrigiram desvios reais encontrados no código — ver seção 10 para exemplos de "antes → depois". **Nunca criar token novo de cor, espaçamento ou raio**: usar exclusivamente os já definidos em `src/app/styles/index.css` — exceção aprovada em 2026-09-23: `success`, `warning`, `info` (+ `-foreground`), ver `docs/theme-proposal.md` §0.
 >
 > Importante sobre a escada de superfícies: `--color-surface-low/container/high/highest` **não são cores novas** — são aliases semânticos, declarados em `@theme inline`, apontando para tokens do shadcn que já existiam (`--muted`, `--card`, `--popover`) mais um quarto nível novo (`--surface-highest`):
 > ```css
@@ -9,7 +9,7 @@
 > --color-surface-high: var(--popover);
 > --color-surface-highest: var(--surface-highest);
 > ```
-> Da mesma forma, `--color-warm`, `--color-alert` e `--color-cool` (este último é só um apelido pra `--primary`) são as cores de destaque semânticas do projeto. Use as classes Tailwind derivadas (`bg-surface-low`, `bg-card`, `bg-popover`, `text-muted-foreground`, `rounded-lg`, etc.) — nunca a variável CSS crua no componente.
+> As cores de status são `--color-success`, `--color-warning`, `--color-info` e `--color-alert` (texto/ícone na cor base; `-foreground` só sobre o sólido). `--color-warm`/`--color-cool` são aliases **deprecated** de `--warning`/`--primary` — não usar em código novo. Use as classes Tailwind derivadas (`bg-surface-low`, `bg-card`, `bg-popover`, `text-muted-foreground`, `rounded-lg`, etc.) — nunca a variável CSS crua no componente.
 
 ## 1. Sistema de Temas Alternativos (`data-theme`)
 
@@ -23,18 +23,9 @@ O `.dark` em `index.css` define o preset padrão ("zinc-minimalist" — o único
 | GitHub Dimmed | `github-dimmed` | `#2f81f7` |
 | Contrast Safe Graphite | `contrast-safe-graphite` | `#5e6ad2` |
 
-**Regra ao criar ou editar qualquer preset:** cada bloco `.dark[data-theme="..."]` redefine o conjunto **completo** de variáveis (`background` até `sidebar-ring`, incluindo `warm` e `alert`) — nunca redefina só uma variável isolada num preset novo, ou a escada de contraste quebra silenciosamente pra quem usa esse tema.
+**Regra ao criar ou editar qualquer preset:** cada bloco `.dark[data-theme="..."]` redefine o conjunto **completo** de variáveis (todos os tokens de `REQUIRED` em `scripts/theme-contrast-check.mjs`, incluindo `success` / `warning` / `info`, `destructive-foreground` e `brand-*`) — nunca redefina só uma variável isolada num preset novo, ou a escada de contraste quebra silenciosamente pra quem usa esse tema. Nenhum preset é mesclado sem `npm run check:theme` com 0 falhas.
 
-O `contrast-safe-graphite` é a referência de rigor do grupo: usa cinza neutro puro nas superfícies (zero tingimento de cor) especificamente para manter razões de contraste WCAG verificadas matematicamente — documentado em comentário no próprio `index.css`:
-
-- `background → card`: 1.96:1
-- `background → popover`: 2.74:1
-- `background → surface-highest`: 3.84:1 *(escada crescente de elevação)*
-- `border-subtle` vs `card`: 3.00:1 *(≥3:1, WCAG 1.4.11 — bordas/componentes não-textuais)*
-- `muted-foreground` vs `card`: 8.82:1 *(≥4.5:1, texto)*
-- `primary-foreground` vs `primary`: 4.70:1; `destructive-foreground` vs `destructive`: 4.83:1 *(ambos ≥4.5:1, texto sobre botão)*
-
-Ao criar um preset novo, **não adicione tingimento de cor às superfícies sem recalcular esses pares de contraste** — é fácil quebrar a acessibilidade escolhendo tons "por olho".
+O `contrast-safe-graphite` é a referência de rigor do grupo: superfícies em cinza neutro puro (C = 0) e alvos maiores que os demais presets (texto ≥ 5.5:1, UI ≥ 3.6:1). As razões medidas ficam no comentário do próprio `index.css` e na saída de `npm run check:theme` — que verifica, em todos os presets, texto sobre as 5 superfícies, `primary`/status como texto sobre card, popover e tint `/15`, sólidos e seus `-foreground` (incluindo hover `/90` e active `/80`), bordas, foco, a escada (ΔL tile × página ≥ 0.08) e os charts sob daltonismo. Nunca escolher tons "por olho": qualquer mudança passa pelo checker.
 
 ### 1.1. Identidade de Marca Nexus Hub (Logo & Favicon)
 
@@ -114,9 +105,13 @@ Exemplo de progressão correta: painel/lista externa `rounded-xl` → cards/bloc
 
 Container pai sempre numa superfície mais **escura**/baixa que o filho direto, seguindo esta escada (nunca o inverso):
 
-`bg-background` / `bg-muted` (surface-low) → `bg-popover` (surface-container) → `bg-card` (surface-high) → `bg-surface-highest`
+`bg-background` (página) → `bg-muted` (surface-low, poço/recuo) → `bg-card` (surface-container, **tile**) → `bg-popover` (surface-high, elemento interno do tile, menu, dialog) → `bg-surface-highest` (= `accent`, hover/selecionado dentro de popover)
 
-Atenção especial a Dialogs/modais: o `DialogContent` padrão já nasce em `bg-popover` (surface-container) — qualquer card/bloco dentro dele precisa subir pra `bg-surface-high` (ou mais), nunca repetir `bg-surface-container`, senão o filho fica no mesmo nível do próprio modal (chapado, sem profundidade).
+Atenção especial a Dialogs/modais: o `DialogContent` padrão já nasce em `bg-popover` (surface-high) — qualquer card/bloco dentro dele precisa subir pra `bg-surface-highest`, nunca `bg-card`/`bg-surface-container` (mais escuro que o próprio modal) nem `bg-popover` de novo (mesmo nível, chapado).
+
+**Tile × página:** ΔL OKLCH ≥ 0.08 entre `card` e `background` (checado por `npm run check:theme`); o tile se sustenta sem borda, e `border-subtle` é só reforço. A página usa `bg-background` sólido — um gradiente atrás de tiles nunca pode passar por `muted` nem por `card`.
+
+**Poços:** trilho de switch desligado, barra de progresso, skeleton e poço de ícone categórico usam `bg-muted`. Os `chart-*` têm ≥ 3:1 garantido só contra superfícies ≤ `card` — ícone categórico em `chart-*` fica sempre num poço `bg-muted`.
 
 Quando precisar de um efeito "mais claro que o tom mais claro definido" (ex.: hover num chip que já está em `surface-highest`), usar `hover:brightness-110`/`hover:brightness-95` em vez de inventar um hex mais claro/escuro.
 
@@ -157,6 +152,8 @@ Regressão de token de design (hex cru ou classe Tailwind de cor bruta com equiv
 
 Paletas Tailwind cruas bloqueadas (têm equivalente semântico no projeto): `zinc`, `indigo`, `slate`, `red` (`bg-`/`text-`/`border-`).
 
+**Paleta:** `npm run check:theme` (`scripts/theme-contrast-check.mjs`, também dentro de `npm run lint`) reprova qualquer par WCAG, regra de escada ou distância de chart sob daltonismo que falhe em `index.css`; também aceita um `.md` com blocos css (propostas antes de aplicar).
+
 **Exceção legítima** (cor de marca de terceiro, ex: o "G" colorido do Google em `GoogleAuthButton.tsx`, que não deve seguir o design system por ser identidade visual externa): comentário `// design-token-lint-ignore` na mesma linha ou na linha imediatamente anterior à ocorrência. Não abusar disso — é pra terceiros/casos excepcionais documentados, não pra "resolver" uma falha de lint sem migrar pro token certo.
 
 ## 10. Exemplos de Antes → Depois (auditorias já aplicadas)
@@ -165,8 +162,8 @@ Casos reais corrigidos nas auditorias de Automações/Layout/Dashboard/Dispositi
 
 | Componente | Antes | Depois | Por quê |
 |---|---|---|---|
-| Painel de detalhe (Automações) | `bg-card` no painel, `bg-surface-container` nos blocos internos | `bg-surface-low` no painel, `bg-surface-container` nos blocos | painel estava mais claro que seus próprios filhos (elevação invertida) |
-| Cards do wizard/modal de edição (Automações) | `bg-surface-container` dentro de um Dialog (`bg-popover` = mesmo valor) | `bg-surface-high` | filho no mesmo nível do próprio modal |
+| Painel de detalhe (Automações) | `bg-card` no painel, `bg-surface-container` nos blocos internos | `bg-card` no painel, `bg-popover` nos blocos | blocos internos precisam subir um degrau em relação ao painel (antes: `surface-container` = `card`, mesmo nível) |
+| Cards do wizard/modal de edição (Automações) | `bg-surface-container` (= `card`) dentro de um Dialog `bg-popover` | `bg-surface-highest` | o filho estava **mais escuro** que o modal (`surface-high` = `popover` seria o mesmo nível) |
 | Lista/painel externos (Automações) | `rounded-lg` no container E nos cards internos | `rounded-xl` no container, `rounded-lg` nos cards | raio idêntico entre pai e filho |
 | Linha de lista (modo lista) | `border-b` em cada `AutomationRow` | `divide-y` no container pai | borda sobrando depois do último item |
 | Labels de bloco ("GATILHO", "Dispositivos Online") | `text-[10px] font-semibold` | `text-xs font-medium uppercase tracking-wider` | tamanho fora da escala, peso reservado para títulos |

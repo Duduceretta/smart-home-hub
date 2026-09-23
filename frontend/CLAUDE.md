@@ -46,24 +46,24 @@ Toda nova feature deve seguir estritamente os 5 passos:
 
 ## 🎨 UI/UX & Design System (Dark Mode First)
 
-> Padrão **universal e obrigatório** para todo o frontend (não só telas novas) — validado e aplicado em auditorias de consistência sobre Automações, `AppLayout`/Header/Sidebar, Dashboard e Dispositivos. Tabela completa com exemplos de antes/depois em `frontend/docs/ui-and-design-system.md`. **Proibido criar token novo de cor/espaçamento/raio** — usar exclusivamente os já definidos em `index.css`/`@theme inline`.
+> Padrão **universal e obrigatório** para todo o frontend (não só telas novas) — validado e aplicado em auditorias de consistência sobre Automações, `AppLayout`/Header/Sidebar, Dashboard e Dispositivos. Tabela completa com exemplos de antes/depois em `frontend/docs/ui-and-design-system.md`. **Proibido criar token novo de cor/espaçamento/raio** — usar exclusivamente os já definidos em `index.css`/`@theme inline` — exceção aprovada em 2026-09-23: `success`, `warning`, `info` (+ `-foreground`), ver `docs/theme-proposal.md` §0. Qualquer outro token novo continua exigindo aprovação explícita.
 >
 > Os tokens de superfície não são cores brutas — são aliases semânticos sobre tokens do shadcn já existentes: `--color-surface-low: var(--muted)`, `--color-surface-container: var(--card)`, `--color-surface-high: var(--popover)`, `--color-surface-highest: var(--surface-highest)`.
 
-- **Paleta Oficial (Zinc Dark Surface, definida em `index.css`, classe `.dark` — preset padrão)**: `--background: #09090b`, `--muted: #121215`, `--card: #18181b`, `--popover: #27272a`, `--surface-highest: #3f3f46`, `--border: #3f3f46`, `--border-subtle: #27272a`, `--primary: #fafafa`/`--primary-foreground: #18181b`, `--foreground: #fafafa`, `--muted-foreground: #a1a1aa`, `--warm: #d4d4d8`/`--warm-foreground: #18181b`, `--alert: #ef4444`/`--alert-foreground: #ffffff` — todos confirmados direto no `index.css` real.
+- **Paleta Oficial**: valores em `index.css` (classe `.dark` = preset padrão zinc-minimalist, mais os 4 `[data-theme]`), verificados por `npm run check:theme` (`scripts/theme-contrast-check.mjs`, roda dentro de `npm run lint`). Não copiar hex para docs — ficam desatualizados; a derivação (OKLCH) e as razões medidas estão em `docs/theme-proposal.md`.
   - Feature `rooms/` é a referência viva mais recente (`RoomListItem.tsx`, `RoomDetailPanel.tsx`, `RoomKpiCard.tsx`, `RoomDeviceCard.tsx`).
   - Glows/gradientes: sutis (`shadow-[0_0_8px_rgba(...,0.2)]`), nunca `0.3+` de opacidade. Superfícies (cards, pills, botões) podem levar leve `bg-gradient-to-b`/`to-br` entre dois tons próximos da mesma camada, nunca gradientes contrastantes. **Nunca usar um stop de gradiente em hex arbitrário sem token equivalente** — achatar pra cor sólida do token mais próximo, ou `hover:brightness-110`/`95` quando precisar clarear/escurecer além do tom já definido na escada.
 
 - **Sistema de Temas Alternativos (`data-theme`)**: o `.dark` é só o preset padrão ("zinc-minimalist"). Existem 4 presets adicionais selecionáveis via atributo `data-theme` no elemento com classe `.dark` (provavelmente gerenciados pelo `theme-ui.store.ts` da feature `settings`, exibidos no `ThemePresetSelector`):
-  | Preset | `data-theme` | Cor primária |
-  |---|---|---|
-  | Zinc (padrão) | *(nenhum atributo)* | `#fafafa` (neutro) |
-  | Indigo | `indigo` | `#5e6ad2` |
-  | Slate Cyan | `slate-cyan` | `#06b6d4` |
-  | GitHub Dimmed | `github-dimmed` | `#2f81f7` |
-  | Contrast Safe Graphite | `contrast-safe-graphite` | `#5e6ad2` |
+  | Preset | `data-theme` | Cor primária | Neutros (H/C OKLCH) |
+  |---|---|---|---|
+  | Zinc (padrão) | *(nenhum atributo)* | `#37c695` (teal) | 200° / 0.005 |
+  | Indigo | `indigo` | `#aca2ff` | 277° / 0.02 |
+  | Slate Cyan | `slate-cyan` | `#3fbfcc` | 255° / 0.026 |
+  | GitHub Dimmed | `github-dimmed` | `#9dceff` | 256° / 0.016 |
+  | Contrast Safe Graphite | `contrast-safe-graphite` | `#f4b0ed` (orquídea) | — / 0 (neutro) |
 
-  **Regra ao criar/editar qualquer preset**: cada um redefine o conjunto completo de variáveis (`background` até `sidebar-ring`, `warm`, `alert`) — nunca redefina só uma variável isolada num novo preset, ou a escada de contraste quebra silenciosamente para quem usa esse tema. O preset `contrast-safe-graphite` é a referência de rigor: usa cinza neutro puro nas superfícies (zero tingimento de cor) especificamente para manter razões de contraste WCAG verificadas matematicamente (`background→card` 1.96:1, `muted-foreground` vs `card` 8.82:1, etc., documentado em comentário no próprio `index.css`) — ao criar um preset novo, não adicione tingimento de cor às superfícies sem recalcular esses pares de contraste.
+  **Regra ao criar/editar qualquer preset**: cada um redefine o conjunto completo de variáveis (todos os tokens de `REQUIRED` em `scripts/theme-contrast-check.mjs`, incluindo `success` / `warning` / `info`, `destructive-foreground` e `brand-*`) — nunca redefina só uma variável isolada num novo preset, ou a escada de contraste quebra silenciosamente para quem usa esse tema. Nenhum preset é mesclado sem `npm run check:theme` com 0 falhas. O preset `contrast-safe-graphite` é a referência de rigor: superfícies em cinza neutro puro (C = 0) e alvos maiores que os demais (texto ≥ 5.5:1, UI ≥ 3.6:1) — os números medidos estão no comentário do próprio `index.css`.
 - **Espaçamento (grid de 4px)** — todo padding/gap deve cair em uma destas 5 paradas; eliminar valores "quebrados" (`p-3`, `p-5`, `gap-1.5`, `py-1.5`, `mb-5`) sem justificativa específica:
   | Tamanho | Classes | Uso |
   |---|---|---|
@@ -75,7 +75,12 @@ Toda nova feature deve seguir estritamente os 5 passos:
 
   Exceções sancionadas (não são "quebradas"): Label ⇄ Input `gap-1.5`/`space-y-1.5`; campos da mesma seção de formulário `space-y-3` a `space-y-4`; Input ⇄ mensagem de erro `mt-1`.
 - **Raio aninhado**: o container externo usa sempre um raio maior que o do elemento filho — nunca o mesmo raio (fica "torto") nem um filho com raio maior que o pai. Ex.: painel/lista externa `rounded-xl` → cards/blocos internos `rounded-lg` → badges/pills internos `rounded-full`. Multiplicadores reais sobre `--radius` (0.75rem base): sm=0.6×, md=0.8×, lg=1×, xl=1.4×, 2xl=1.8×, 3xl=2.2×, 4xl=2.6×. Usar somente essa escada, nunca `rounded` bare nem valores arbitrários.
-- **Contraste de superfície (elevação)**: container pai sempre numa superfície mais escura que o filho direto, seguindo `background`/`muted` (surface-low) → `popover` (surface-container) → `card` (surface-high) → `surface-highest`, nunca o inverso. Um Dialog/modal já nasce em `bg-popover` (surface-container) — cards internos dele devem ser `bg-surface-high`, não `bg-surface-container` de novo (mesmo nível do próprio modal).
+- **Contraste de superfície (elevação)**: escada `background` (página) → `muted` (surface-low, poço/recuo) → `card` (surface-container, **tile**) → `popover` (surface-high, elemento interno do tile, menu, dialog) → `surface-highest` (= `accent`, hover/selecionado dentro de popover). O filho sobe sempre pelo menos um degrau em relação ao pai. Um Dialog nasce em `bg-popover`, então cards internos dele usam `bg-surface-highest`, nunca `bg-card` (mais escuro que o próprio Dialog) nem `bg-popover` (mesmo nível). Tile × página: ΔL OKLCH ≥ 0.08 (garantido pela escada e checado por `npm run check:theme`); `border-subtle` é reforço, nunca o único separador. Poços (trilho de switch/progresso, skeleton, poço de ícone categórico) usam `bg-muted`.
+- **Status × categoria**: `success` / `warning` / `info` / `alert` só comunicam estado real, e **sempre com ícone ou texto junto** (sob deuteranopia/protanopia a distância entre status fica em ΔE00 7–8, abaixo do limiar de distinção só por cor). Receita de badge: `bg-x/15 text-x border border-x/30`. Texto/ícone de alerta = `text-alert`; `alert-foreground`/`destructive-foreground` só sobre o sólido (`bg-alert`/`bg-destructive`). Categorias (tipo de dispositivo, cena, série de energia, categoria de atividade) usam `chart-1..5` conforme a tabela de famílias em `docs/theme-proposal.md` §7 — status nunca é categoria, e `primary` nunca é categoria. Ícone categórico fica num poço `bg-muted` (os `chart-*` têm ≥ 3:1 garantido só contra superfícies ≤ `card`).
+- **`accent` é hover, não marca**: `bg-accent` só em hover/foco de ghost/menu. Cor de marca = `brand-accent`.
+- **60/30/10**: neutros dominam; `primary` só em ação primária, item ativo/selecionado/ligado e foco. Ícones de cabeçalho de card e glows ficam neutros.
+- **Daltonismo**: séries de dados usam `chart-1..5` na ordem de luminosidade (chart-1 escuro → chart-5 claro) e nunca dependem só de matiz. Legendas sempre com rótulo; linhas com marcador ou traço distinto quando houver ≥ 3 séries.
+- **Estados**: hover/active por opacidade (`/90`, `/80`) ou `color-mix(in oklch, …)`, disabled por opacidade (`disabled:opacity-50`), seleção com `aria-pressed` + receita `border-primary/40 bg-primary/15 text-primary font-semibold`, e foco `focus-visible:ring-2 focus-visible:ring-ring` em todo controle.
 - **Escala tipográfica**:
   | Papel | Classes |
   |---|---|
@@ -88,7 +93,7 @@ Toda nova feature deve seguir estritamente os 5 passos:
 - **Componentização estrita**:
   - Pills de filtro: `h-8` fixo, `px-3` ou `px-4`, `text-sm`, `transition-colors` no hover — nunca altura variável via `py-*`.
   - Itens de lista (modo lista): `flex items-center justify-between`, `p-3` ou `p-4`, divisor via `divide-y` no container pai (não `border-b` por item — isso deixa borda sobrando no último item).
-  - KPIs (faixas de resumo/métricas): `flex flex-col gap-1`, label acima `text-xs uppercase text-muted-foreground` (com `truncate`/`min-w-0` se o rótulo for longo, pra não quebrar linha e desalinhar a grade), valor abaixo em destaque `text-2xl font-semibold` usando cor de destaque do design system (`text-primary`, `text-warm`, `text-cool`, `text-alert-foreground`) — nunca uma cor nova. **KPIs agregados devem vir de uma query dedicada de estatística no backend, nunca ser derivados só da página atual de uma lista paginada** (bug já corrigido uma vez neste projeto — ver `GetEventHistoryStatsQuery`).
+  - KPIs (faixas de resumo/métricas): `flex flex-col gap-1`, label acima `text-xs uppercase text-muted-foreground` (com `truncate`/`min-w-0` se o rótulo for longo, pra não quebrar linha e desalinhar a grade), valor abaixo em destaque `text-2xl font-semibold` usando cor de destaque do design system (`text-primary`, `text-success`, `text-warning`, `text-info`, `text-alert` — nunca `text-alert-foreground` fora de `bg-alert` sólido) — nunca uma cor nova. **KPIs agregados devem vir de uma query dedicada de estatística no backend, nunca ser derivados só da página atual de uma lista paginada** (bug já corrigido uma vez neste projeto — ver `GetEventHistoryStatsQuery`).
 - **Scroll**:
   - Listas/painéis internos com rolagem própria usam a utilidade `.scrollbar-thin` (definida em `animations.css`) em vez da scrollbar padrão do navegador.
   - Modais/wizards cujo conteúdo pode cortar ao rolar ganham um indicador de fade-out: `<div className="pointer-events-none absolute inset-x-0 bottom-0 h-8 bg-linear-to-t from-<superfície-ambiente> to-transparent" />` dentro de um wrapper `relative`, com o tom de origem igual ao `bg-*` do próprio container (`from-surface-low` num painel, `from-popover` dentro de um Dialog, etc.) — nunca uma cor fixa diferente da superfície real.

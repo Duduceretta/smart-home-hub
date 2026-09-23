@@ -6,8 +6,9 @@
 	"scripts": {
 		"dev": "vite",
 		"build": "tsc -b && vite build",
-		"lint": "biome check . && npm run lint:tokens",
+		"lint": "biome check . && npm run lint:tokens && npm run check:theme",
 		"lint:tokens": "node scripts/lint-tokens.mjs",
+		"check:theme": "node scripts/theme-contrast-check.mjs",
 		"format": "biome format --write .",
 		"preview": "vite preview",
 		"test": "vitest",
@@ -59,6 +60,7 @@
 		"@types/react-dom": "^19.2.5",
 		"@vitejs/plugin-react": "^6.0.5",
 		"@vitest/coverage-v8": "^4.1.11",
+		"culori": "^4.0.2",
 		"jsdom": "^30.0.1",
 		"msw": "^2.15.0",
 		"shadcn": "^4.19.0",

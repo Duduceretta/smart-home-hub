@@ -31,19 +31,19 @@ export function HomeAlertBanner({ activeAlertsCount }: HomeAlertBannerProps) {
 			className="group relative flex w-full items-center justify-between gap-3 overflow-hidden rounded-xl border border-alert/40 bg-alert/10 p-3.5 sm:p-4 shadow-sm transition-all hover:bg-alert/15"
 		>
 			<div className="flex items-center gap-3">
-				<div className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-alert/20 text-alert-foreground">
+				<div className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-alert/20 text-alert">
 					<span className="relative flex h-2.5 w-2.5">
 						<span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-alert opacity-75" />
 						<span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-alert" />
 					</span>
-					<TriangleAlert className="absolute h-4 w-4 text-alert-foreground" />
+					<TriangleAlert className="absolute h-4 w-4 text-alert" />
 				</div>
 
 				<div className="flex flex-col">
-					<span className="text-sm font-semibold text-alert-foreground">
+					<span className="text-sm font-semibold text-alert">
 						{t("alerts.title", { count: activeAlertsCount })}
 					</span>
-					<span className="text-xs text-alert-foreground/80">
+					<span className="text-xs text-muted-foreground">
 						Dispositivos ou rotinas necessitam de atenção imediata.
 					</span>
 				</div>
@@ -52,7 +52,7 @@ export function HomeAlertBanner({ activeAlertsCount }: HomeAlertBannerProps) {
 			<button
 				type="button"
 				onClick={handleNavigate}
-				className="flex items-center gap-1 rounded-md bg-alert/20 px-3 py-1.5 text-xs font-semibold text-alert-foreground transition-colors hover:bg-alert/30 cursor-pointer focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring shrink-0"
+				className="flex items-center gap-1 rounded-md bg-alert px-3 py-1.5 text-xs font-semibold text-alert-foreground transition-colors hover:bg-alert/90 cursor-pointer focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring shrink-0"
 			>
 				<span>{t("alerts.viewAll", "Ver detalhes")}</span>
 				<ChevronRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />

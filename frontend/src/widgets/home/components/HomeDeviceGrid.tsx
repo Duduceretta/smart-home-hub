@@ -25,13 +25,21 @@ const SKELETON_KEYS = [
 	"sk-8",
 ];
 
+// Receita de selecionado (docs/theme-proposal.md §6.1), exposta via aria-pressed
+const FILTER_BASE_CLASS =
+	"rounded-md border px-2.5 py-1 text-xs transition-colors cursor-pointer focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring";
+const FILTER_SELECTED_CLASS =
+	"border-primary/40 bg-primary/15 text-primary font-semibold";
+const FILTER_IDLE_CLASS =
+	"border-transparent font-medium text-muted-foreground hover:text-foreground";
+
 function DeviceGridSkeleton() {
 	return (
 		<div className="grid grid-cols-2 gap-3 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 animate-pulse">
 			{SKELETON_KEYS.map((key) => (
 				<div
 					key={key}
-					className="h-36 rounded-xl border border-border-subtle bg-surface-container"
+					className="h-36 rounded-xl border border-border-subtle bg-muted"
 				/>
 			))}
 		</div>
@@ -91,41 +99,43 @@ export function HomeDeviceGrid({
 	);
 
 	return (
-		<section className="flex h-full flex-col gap-4 rounded-xl border border-border-subtle bg-surface-low p-4 sm:p-5">
+		<section className="flex h-full flex-col gap-4 rounded-xl border border-border-subtle bg-card p-4 sm:p-5">
 			{/* Cabeçalho da Seção com Filtros Rápidos */}
 			<div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
 				<div className="flex items-center gap-2">
 					<h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
 						{t("devices.title", "Dispositivos")}
 					</h2>
-					<span className="rounded-full bg-surface-container px-2 py-0.5 text-xs font-medium text-muted-foreground border border-border-subtle">
+					<span className="rounded-full bg-popover px-2 py-0.5 text-xs font-medium text-muted-foreground border border-border-subtle">
 						{devices.length}
 					</span>
 				</div>
 
 				{/* Chips de filtro rápido de conveniência */}
 				<div className="flex items-center justify-between sm:justify-end gap-2">
-					<div className="flex items-center gap-1.5 rounded-lg border border-border-subtle bg-surface-container p-1 shadow-2xs">
+					<div className="flex items-center gap-1.5 rounded-lg border border-border-subtle bg-muted p-1 shadow-2xs">
 						<button
 							type="button"
+							aria-pressed={activeFilter === "all"}
 							onClick={() => setActiveFilter("all")}
 							className={cn(
-								"rounded-md px-2.5 py-1 text-xs font-medium transition-colors cursor-pointer",
+								FILTER_BASE_CLASS,
 								activeFilter === "all"
-									? "bg-surface-high text-foreground shadow-xs"
-									: "text-muted-foreground hover:text-foreground",
+									? FILTER_SELECTED_CLASS
+									: FILTER_IDLE_CLASS,
 							)}
 						>
 							{t("devices.filterAll", "Todos")} ({devices.length})
 						</button>
 						<button
 							type="button"
+							aria-pressed={activeFilter === "active"}
 							onClick={() => setActiveFilter("active")}
 							className={cn(
-								"rounded-md px-2.5 py-1 text-xs font-medium transition-colors cursor-pointer",
+								FILTER_BASE_CLASS,
 								activeFilter === "active"
-									? "bg-surface-high text-primary shadow-xs"
-									: "text-muted-foreground hover:text-foreground",
+									? FILTER_SELECTED_CLASS
+									: FILTER_IDLE_CLASS,
 							)}
 						>
 							{t("devices.filterActive", "Ligados")} ({activeCount})
@@ -134,7 +144,7 @@ export function HomeDeviceGrid({
 
 					<Link
 						to="/devices"
-						className="hidden sm:inline-flex items-center gap-1 text-xs font-medium text-muted-foreground hover:text-primary transition-colors"
+						className="hidden sm:inline-flex items-center gap-1 rounded-sm text-xs font-medium text-muted-foreground hover:text-primary transition-colors focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring"
 					>
 						<span>{t("devices.viewAll", "Ver todos")}</span>
 					</Link>
@@ -154,8 +164,8 @@ export function HomeDeviceGrid({
 					onRetry={onRetry}
 				/>
 			) : filteredDevices.length === 0 ? (
-				<div className="flex flex-col items-center justify-center gap-3 rounded-lg border border-dashed border-border-subtle bg-surface-container/30 p-8 text-center">
-					<div className="flex h-10 w-10 items-center justify-center rounded-lg bg-surface-container text-muted-foreground border border-border-subtle">
+				<div className="flex flex-col items-center justify-center gap-3 rounded-lg border border-dashed border-border-subtle bg-popover p-8 text-center">
+					<div className="flex h-10 w-10 items-center justify-center rounded-lg bg-surface-highest text-muted-foreground border border-border-subtle">
 						<Layers className="h-5 w-5" />
 					</div>
 					<div className="flex flex-col gap-1">
@@ -173,7 +183,7 @@ export function HomeDeviceGrid({
 					{activeFilter === "all" && (
 						<Link
 							to="/devices"
-							className="mt-2 inline-flex items-center justify-center rounded-lg border border-border-subtle bg-surface-container px-3.5 py-1.5 text-xs font-medium text-foreground hover:bg-surface-high transition-colors shadow-2xs"
+							className="mt-2 inline-flex items-center justify-center rounded-lg border border-border-subtle bg-surface-highest px-3.5 py-1.5 text-xs font-medium text-foreground hover:brightness-110 transition-colors shadow-2xs focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring"
 						>
 							{t("devices.actionManage", "Gerenciar dispositivos")}
 						</Link>

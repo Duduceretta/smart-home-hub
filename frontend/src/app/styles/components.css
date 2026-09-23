@@ -44,3 +44,17 @@
 	-webkit-backdrop-filter: none !important;
 }
 
+/*
+ * Scanlines do feed simulado da câmera (HomeCameraTile). O branco translúcido é
+ * exceção legítima ao design system: fica sobre o frame de vídeo, não sobre uma
+ * superfície do tema — precisa do mesmo efeito em qualquer preset.
+ */
+.camera-scanlines {
+	background-image: repeating-linear-gradient(
+		0deg,
+		rgba(255, 255, 255, 0.08) 0px,
+		rgba(255, 255, 255, 0.08) 1px,
+		transparent 1px,
+		transparent 4px
+	);
+}
