@@ -46,8 +46,7 @@ const TEXT_MIN = 4.5; // WCAG 1.4.3
 const UI_MIN = 3; // WCAG 1.4.11
 const CHART_DE_MIN = 12; // ΔE00 mínimo entre séries (normal, deuteranopia, protanopia, tritanopia)
 const CHART_DE_TARGET = 15; // meta informativa
-const TILE_MIN_DL = 0.08; // ΔL OKLCH mínimo tile (card) × página (background)
-const LADDER_MAX_RATIO = 1.5; // maior degrau / menor degrau da escada de superfície
+const LADDER_MAX_RATIO = 1.5; // maior degrau / menor degrau da escada de charts (não mais da superfície — ver M3 tone ladder)
 // faixa de L entre success/warning/info/alert: status podem se separar por L
 // (legibilidade sob daltonismo), mas continuam na mesma "banda" visual
 const SEMANTIC_MAX_DL = 0.15;
@@ -56,23 +55,62 @@ const HOVER_ALPHA = 0.9; // `hover:bg-primary/90`
 const ACTIVE_ALPHA = 0.8; // `active:bg-primary/80`
 
 const SURFACES = ["background", "muted", "card", "popover", "surface-highest"];
+// M3 tone ladder — 6 níveis (substitui a checagem antiga de ΔL≥0.08/ratio≤1.5)
+const M3_SURFACES = [
+	"surface-container-lowest",
+	"surface",
+	"surface-container-low",
+	"surface-container",
+	"surface-container-high",
+	"surface-container-highest",
+];
 const SEMANTICS = ["success", "warning", "info", "alert", "destructive"];
 const STATUS = ["success", "warning", "info", "alert"];
 const CHARTS = ["chart-1", "chart-2", "chart-3", "chart-4", "chart-5"];
+// Famílias tonais M3 (tone 80/20/30/90): role / on-role / role-container / on-role-container
+const TONE_FAMILIES = [
+	"primary",
+	"secondary",
+	"tertiary",
+	"error",
+	"success",
+	"warning",
+	"info",
+];
+const CATEGORIES = ["lighting", "climate", "monitoring", "media", "security"];
 const REQUIRED = [
 	...SURFACES,
+	...M3_SURFACES,
+	"on-surface",
+	"on-surface-variant",
+	"outline",
+	"outline-variant",
 	"foreground",
 	"card-foreground",
 	"popover-foreground",
 	"primary",
 	"primary-foreground",
+	"on-primary",
+	"primary-container",
+	"on-primary-container",
 	"secondary",
 	"secondary-foreground",
+	"on-secondary",
+	"secondary-container",
+	"on-secondary-container",
+	"tertiary",
+	"on-tertiary",
+	"tertiary-container",
+	"on-tertiary-container",
 	"muted-foreground",
 	"accent",
 	"accent-foreground",
 	"destructive",
 	"destructive-foreground",
+	"error",
+	"on-error",
+	"error-container",
+	"on-error-container",
 	"border",
 	"border-subtle",
 	"input",
@@ -88,14 +126,25 @@ const REQUIRED = [
 	"sidebar-ring",
 	"success",
 	"success-foreground",
+	"on-success",
+	"success-container",
+	"on-success-container",
 	"warning",
 	"warning-foreground",
+	"on-warning",
+	"warning-container",
+	"on-warning-container",
 	"info",
 	"info-foreground",
+	"on-info",
+	"info-container",
+	"on-info-container",
 	"alert",
 	"alert-foreground",
 	"brand-accent",
 	"brand-muted",
+	...CATEGORIES,
+	...CATEGORIES.flatMap((c) => [`${c}-container`, `on-${c}-container`]),
 ];
 const THEME_INLINE_REQUIRED = [
 	"--color-destructive-foreground",
@@ -132,7 +181,7 @@ if (!base) {
 	console.error(`✖ bloco .dark não encontrado em ${file}`);
 	process.exit(1);
 }
-const presets = { "zinc-minimalist": { ...base.vars } };
+const presets = { teal: { ...base.vars } };
 for (const b of all) {
 	const m = b.selector.match(/^\.dark\[data-theme="([\w-]+)"\]$/);
 	if (m) presets[m[1]] = { ...base.vars, ...b.vars };
@@ -254,21 +303,48 @@ function checkPreset(vars) {
 		steps.every((d) => d > 0),
 		steps.map((d) => f(d, 3)).join(" / "),
 	);
-	const r = Math.max(...steps) / Math.min(...steps);
-	push(
-		"escada",
-		`maior/menor degrau ΔL (≤ ${LADDER_MAX_RATIO})`,
-		r,
-		r <= LADDER_MAX_RATIO,
-	);
-	const tile = ls[2] - ls[0];
-	push(
-		"escada",
-		`ΔL tile (card) × página (background) (≥ ${TILE_MIN_DL})`,
-		tile,
-		tile >= TILE_MIN_DL,
-		f(tile, 3),
-	);
+
+	// M3 tone ladder: 6 níveis, cada um estritamente mais claro que o anterior
+	// (substitui a antiga regra ΔL tile×página≥0.08 / ratio≤1.5 — separação de
+	// card agora é degrau de tone pequeno + borda outline-variant, não um
+	// salto de luminosidade isolado).
+	if (M3_SURFACES.every(t)) {
+		const m3ls = M3_SURFACES.map((s) => L(t(s)));
+		const m3steps = m3ls.slice(1).map((l, i) => l - m3ls[i]);
+		push(
+			"escada m3",
+			"L crescente pelos 6 níveis do tone ladder",
+			0,
+			m3steps.every((d) => d > 0),
+			m3steps.map((d) => f(d, 3)).join(" / "),
+		);
+		ratio("escada m3", "outline", "surface", UI_MIN);
+		ratio("escada m3", "on-surface", "surface", TEXT_MIN);
+		ratio("escada m3", "on-surface-variant", "surface", TEXT_MIN);
+		for (const s of M3_SURFACES) {
+			ratio("escada m3", "on-surface", s, TEXT_MIN, t(s), s);
+			ratio("escada m3", "on-surface-variant", s, TEXT_MIN, t(s), s);
+			if (t("error")) ratio("escada m3", "error", s, TEXT_MIN, t(s), s);
+		}
+	}
+
+	// Famílias tonais M3 (tone 80/20/30/90): on-role/role e
+	// on-role-container/role-container ≥ 4.5:1.
+	for (const role of TONE_FAMILIES) {
+		if (!t(role)) continue;
+		ratio("tone m3", `on-${role}`, role, TEXT_MIN);
+		if (t(`${role}-container`) && t(`on-${role}-container`))
+			ratio("tone m3", `on-${role}-container`, `${role}-container`, TEXT_MIN);
+	}
+
+	// Categorias: ícone (tone80) ≥ 3:1 contra surface-container.
+	for (const cat of CATEGORIES) {
+		if (!t(cat) || !t("surface-container")) continue;
+		ratio("categorias", cat, "surface-container", UI_MIN);
+		if (t(`${cat}-container`) && t(`on-${cat}-container`))
+			ratio("categorias", `on-${cat}-container`, `${cat}-container`, TEXT_MIN);
+	}
+
 	if (t("accent")) {
 		const a = t("accent").toLowerCase();
 		const ok =
@@ -428,6 +504,10 @@ for (const [name, vars] of Object.entries(presets)) {
 }
 w();
 w("### ΔE00 entre os `primary` de presets diferentes");
+w();
+w(
+	"_Report-only — não reprova build. Só um preset fica ativo por vez; presets nunca aparecem lado a lado. Sem piso mínimo (decisão do usuário, 2026-09-23)._",
+);
 w();
 const names = Object.keys(presets);
 w(`| Par | ${Object.keys(VISIONS).join(" | ")} |`);
