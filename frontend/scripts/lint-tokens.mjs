@@ -18,6 +18,16 @@ const SRC_ROOT = path.resolve(__dirname, "..", "src");
 
 const EXCLUDED_DIRS = new Set(["node_modules", "dist"]);
 const EXCLUDED_PATH_SEGMENTS = [path.join("src", "app", "styles") + path.sep];
+// Exceção de arte: SVG estático do fundo de auth, hex intencional, não token de UI.
+const EXCLUDED_FILES = new Set([
+	path.join(
+		"src",
+		"widgets",
+		"layout",
+		"components",
+		"DesktopAuthBackground.tsx",
+	),
+]);
 
 const IGNORE_COMMENT = "design-token-lint-ignore";
 
@@ -40,7 +50,8 @@ function isExcludedFile(filePath) {
 	for (const segment of EXCLUDED_PATH_SEGMENTS) {
 		if (normalized.includes(segment)) return true;
 	}
-	return false;
+	const relative = path.relative(path.resolve(__dirname, ".."), filePath);
+	return EXCLUDED_FILES.has(relative);
 }
 
 function walk(dir, files = []) {
