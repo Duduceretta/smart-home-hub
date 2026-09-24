@@ -750,6 +750,42 @@
 	--brand-muted: #d9d1d8;
 }
 
+/*
+ * Alto contraste — modo ortogonal (`data-contrast="high"` no <html>,
+ * combina com qualquer um dos 5 presets). Mesma hue por papel, só tom
+ * empurrado o suficiente pra cravar os alvos: texto ≥7:1, não-texto
+ * (ícone/borda/anel de foco) ≥4.5:1, outline-variant ≥3:1 contra surface.
+ * Aliases (destructive/alert -> error, ring/sidebar-* -> primary etc.)
+ * já resolvem sozinhos por var() — só as variáveis abaixo mudam de valor
+ * de verdade em relação ao modo padrão; o resto herda do bloco .dark
+ * correspondente. Checado por `npm run check:theme`.
+ */
+.dark[data-contrast="high"] {
+	--on-secondary-container: #c5edda;
+	--on-tertiary-container: #b9eaff;
+	--error: #ffb1a9;
+	--outline-variant: #57655e;
+}
+
+.dark[data-theme="indigo"][data-contrast="high"] {
+	--outline-variant: #61606d;
+}
+
+.dark[data-theme="cyan"][data-contrast="high"] {
+	--error: #ffb1a9;
+	--outline-variant: #546567;
+}
+
+.dark[data-theme="blue"][data-contrast="high"] {
+	--error: #ffb1a9;
+	--outline-variant: #59636c;
+}
+
+.dark[data-theme="orchid"][data-contrast="high"] {
+	--primary: #f5abec;
+	--outline-variant: #695e67;
+}
+
 @layer base {
 	* {
 		@apply border-border outline-ring/50;

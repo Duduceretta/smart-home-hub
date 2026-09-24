@@ -95,3 +95,13 @@ export const THEME_PRESET_OPTIONS: ThemePresetOption[] = [
 export const DEFAULT_THEME_PRESET: ThemePresetId = "teal";
 
 export const THEME_PRESET_STORAGE_KEY = "app-theme-preset";
+
+/**
+ * Modo de contraste — ortogonal ao preset (`data-contrast` no `<html>`,
+ * combinável com qualquer um dos 5 presets). Mesmas hues, só tons/bordas mudam.
+ */
+export type ThemeContrast = "standard" | "high";
+
+export const DEFAULT_THEME_CONTRAST: ThemeContrast = "standard";
+
+export const THEME_CONTRAST_STORAGE_KEY = "app-theme-contrast";
