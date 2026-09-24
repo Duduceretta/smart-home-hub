@@ -42,8 +42,11 @@ const file = path.resolve(
 );
 
 // ── Limiares ────────────────────────────────────────────────────────────────
-const TEXT_MIN = 4.5; // WCAG 1.4.3
-const UI_MIN = 3; // WCAG 1.4.11
+const TEXT_MIN = 4.5; // WCAG 1.4.3 — padrão. Alto contraste usa 7 (AAA).
+const UI_MIN = 3; // WCAG 1.4.11 — padrão. Alto contraste usa 4.5.
+const OUTLINE_VARIANT_MIN = 3; // outline-variant vs surface — mesmo alvo nos dois modos
+const HC_TEXT_MIN = 7;
+const HC_UI_MIN = 4.5;
 const CHART_DE_MIN = 12; // ΔE00 mínimo entre séries (normal, deuteranopia, protanopia, tritanopia)
 const CHART_DE_TARGET = 15; // meta informativa
 const LADDER_MAX_RATIO = 1.5; // maior degrau / menor degrau da escada de charts (não mais da superfície — ver M3 tone ladder)
@@ -186,6 +189,22 @@ for (const b of all) {
 	const m = b.selector.match(/^\.dark\[data-theme="([\w-]+)"\]$/);
 	if (m) presets[m[1]] = { ...base.vars, ...b.vars };
 }
+
+// Alto contraste: `.dark[data-contrast="high"]` (default/teal) e
+// `.dark[data-theme="X"][data-contrast="high"]` (demais presets) — mescla
+// por cima do preset base correspondente, igual ao mecanismo de cascata real.
+const hcBase = all.find((b) => b.selector === '.dark[data-contrast="high"]');
+const hcPresets = {};
+if (hcBase) {
+	hcPresets.teal = { ...base.vars, ...hcBase.vars };
+	for (const b of all) {
+		const m = b.selector.match(
+			/^\.dark\[data-theme="([\w-]+)"\]\[data-contrast="high"\]$/,
+		);
+		if (m) hcPresets[m[1]] = { ...presets[m[1]], ...hcBase.vars, ...b.vars };
+	}
+}
+
 const themeInline = css.match(/@theme inline\s*\{([\s\S]*?)\n\}/)?.[1];
 
 function resolve(vars, name, depth = 0) {
@@ -218,7 +237,18 @@ function over(fg, alpha, bg) {
 const f = (n, d = 2) => (Number.isFinite(n) ? n.toFixed(d) : "—");
 
 // ── Checagens ───────────────────────────────────────────────────────────────
-function checkPreset(vars) {
+/**
+ * `textMin`/`uiMin` (7 / 4.5 em alto contraste) valem só pro texto puro e pro
+ * não-texto simples (ícone/borda/anel de foco) — os alvos que a P3 pediu.
+ * Tint `bg-x/15`, opacidade de hover/active e charts continuam no limiar
+ * padrão (TEXT_MIN/UI_MIN module-level): são recortes compostos derivados da
+ * própria cor do papel, sem headroom pra 7:1 sem redesenhar a receita (fora
+ * de escopo — "tone only fix" não resolve um teto matemático estrutural).
+ */
+function checkPreset(
+	vars,
+	{ textMin = TEXT_MIN, uiMin = UI_MIN, outlineVariantMin } = {},
+) {
 	const t = (name) => resolve(vars, name);
 	const rows = [];
 	const push = (group, label, value, ok, fmt = f(value)) =>
@@ -236,18 +266,20 @@ function checkPreset(vars) {
 	if (missing.some((n) => SURFACES.includes(n))) return rows;
 
 	for (const fg of ["foreground", "muted-foreground"])
-		for (const s of SURFACES) ratio("texto", fg, s, TEXT_MIN);
-	ratio("texto", "card-foreground", "card", TEXT_MIN);
-	ratio("texto", "popover-foreground", "popover", TEXT_MIN);
-	ratio("texto", "secondary-foreground", "secondary", TEXT_MIN);
-	ratio("texto", "accent-foreground", "accent", TEXT_MIN);
-	ratio("texto", "sidebar-foreground", "sidebar", TEXT_MIN);
-	ratio("texto", "sidebar-accent-foreground", "sidebar-accent", TEXT_MIN);
+		for (const s of SURFACES) ratio("texto", fg, s, textMin);
+	ratio("texto", "card-foreground", "card", textMin);
+	ratio("texto", "popover-foreground", "popover", textMin);
+	ratio("texto", "secondary-foreground", "secondary", textMin);
+	ratio("texto", "accent-foreground", "accent", textMin);
+	ratio("texto", "sidebar-foreground", "sidebar", textMin);
+	ratio("texto", "sidebar-accent-foreground", "sidebar-accent", textMin);
 
 	for (const role of ["primary", ...SEMANTICS]) {
 		if (!t(role)) continue;
-		ratio(`${role} como texto`, role, "card", TEXT_MIN);
-		ratio(`${role} como texto`, role, "popover", TEXT_MIN);
+		ratio(`${role} como texto`, role, "card", textMin);
+		ratio(`${role} como texto`, role, "popover", textMin);
+		// Tint `bg-x/15` fica no limiar padrão (TEXT_MIN) mesmo em alto contraste —
+		// ver comentário da função.
 		for (const s of ["card", "popover"]) {
 			const tint = over(t(role), TINT, t(s));
 			ratio(
@@ -261,8 +293,9 @@ function checkPreset(vars) {
 		}
 	}
 	for (const role of ["primary", "sidebar-primary", ...SEMANTICS])
-		ratio("sólido", `${role}-foreground`, role, TEXT_MIN);
-	// hover/active de botão sólido via opacidade (`hover:bg-primary/90`, `active:bg-primary/80`) sobre o tile
+		ratio("sólido", `${role}-foreground`, role, textMin);
+	// hover/active de botão sólido via opacidade (`hover:bg-primary/90`, `active:bg-primary/80`)
+	// sobre o tile — limiar padrão mesmo em alto contraste, ver comentário da função.
 	for (const role of ["primary", "destructive"])
 		for (const alpha of [HOVER_ALPHA, ACTIVE_ALPHA]) {
 			if (!t(role)) continue;
@@ -277,10 +310,13 @@ function checkPreset(vars) {
 			);
 		}
 
-	ratio("bordas e foco", "border", "card", UI_MIN);
-	ratio("bordas e foco", "input", "card", UI_MIN);
-	ratio("bordas e foco", "ring", "background", UI_MIN);
-	ratio("bordas e foco", "ring", "card", UI_MIN);
+	ratio("bordas e foco", "border", "card", uiMin);
+	ratio("bordas e foco", "input", "card", uiMin);
+	ratio("bordas e foco", "ring", "background", uiMin);
+	ratio("bordas e foco", "ring", "card", uiMin);
+	// brand-accent é identidade de marca (wordmark), fora do sistema de papéis
+	// M3 — fica no limiar padrão mesmo em alto contraste (mesmo racional do
+	// tint/hover/charts acima; já rastreado à parte no NH-8).
 	ratio("bordas e foco", "brand-accent", "background", UI_MIN);
 	if (t("border-subtle") && t("border")) {
 		const a = L(t("border-subtle"));
@@ -318,31 +354,35 @@ function checkPreset(vars) {
 			m3steps.every((d) => d > 0),
 			m3steps.map((d) => f(d, 3)).join(" / "),
 		);
-		ratio("escada m3", "outline", "surface", UI_MIN);
-		ratio("escada m3", "on-surface", "surface", TEXT_MIN);
-		ratio("escada m3", "on-surface-variant", "surface", TEXT_MIN);
+		ratio("escada m3", "outline", "surface", uiMin);
+		// Só checado quando um limiar é passado explicitamente (alto contraste) —
+		// o padrão nunca teve essa garantia antes da P3, não é escopo retroagir.
+		if (outlineVariantMin !== undefined)
+			ratio("escada m3", "outline-variant", "surface", outlineVariantMin);
+		ratio("escada m3", "on-surface", "surface", textMin);
+		ratio("escada m3", "on-surface-variant", "surface", textMin);
 		for (const s of M3_SURFACES) {
-			ratio("escada m3", "on-surface", s, TEXT_MIN, t(s), s);
-			ratio("escada m3", "on-surface-variant", s, TEXT_MIN, t(s), s);
-			if (t("error")) ratio("escada m3", "error", s, TEXT_MIN, t(s), s);
+			ratio("escada m3", "on-surface", s, textMin, t(s), s);
+			ratio("escada m3", "on-surface-variant", s, textMin, t(s), s);
+			if (t("error")) ratio("escada m3", "error", s, textMin, t(s), s);
 		}
 	}
 
 	// Famílias tonais M3 (tone 80/20/30/90): on-role/role e
-	// on-role-container/role-container ≥ 4.5:1.
+	// on-role-container/role-container.
 	for (const role of TONE_FAMILIES) {
 		if (!t(role)) continue;
-		ratio("tone m3", `on-${role}`, role, TEXT_MIN);
+		ratio("tone m3", `on-${role}`, role, textMin);
 		if (t(`${role}-container`) && t(`on-${role}-container`))
-			ratio("tone m3", `on-${role}-container`, `${role}-container`, TEXT_MIN);
+			ratio("tone m3", `on-${role}-container`, `${role}-container`, textMin);
 	}
 
-	// Categorias: ícone (tone80) ≥ 3:1 contra surface-container.
+	// Categorias: ícone (tone80, não-texto) contra surface-container.
 	for (const cat of CATEGORIES) {
 		if (!t(cat) || !t("surface-container")) continue;
-		ratio("categorias", cat, "surface-container", UI_MIN);
+		ratio("categorias", cat, "surface-container", uiMin);
 		if (t(`${cat}-container`) && t(`on-${cat}-container`))
-			ratio("categorias", `on-${cat}-container`, `${cat}-container`, TEXT_MIN);
+			ratio("categorias", `on-${cat}-container`, `${cat}-container`, textMin);
 	}
 
 	if (t("accent")) {
@@ -423,8 +463,8 @@ const w = (s = "") => out.push(s);
 w(`# theme-contrast-check — ${path.relative(process.cwd(), file)}`);
 w();
 
-for (const [name, vars] of Object.entries(presets)) {
-	const rows = checkPreset(vars);
+function reportPreset(name, vars, thresholds) {
+	const rows = checkPreset(vars, thresholds);
 	const failed = rows.filter((r) => !r.ok).length;
 	failures += failed;
 	w(
@@ -449,6 +489,31 @@ for (const [name, vars] of Object.entries(presets)) {
 		}
 		w();
 	}
+}
+
+for (const [name, vars] of Object.entries(presets)) {
+	reportPreset(name, vars);
+}
+
+if (Object.keys(hcPresets).length > 0) {
+	w('## Alto contraste (`data-contrast="high"`)');
+	w();
+	w(
+		`_Alvos elevados: texto ≥ ${HC_TEXT_MIN}:1, não-texto (ícone/borda/anel de foco) ≥ ${HC_UI_MIN}:1, outline-variant ≥ ${OUTLINE_VARIANT_MIN}:1 (inalterado)._`,
+	);
+	w();
+	for (const [name, vars] of Object.entries(hcPresets)) {
+		reportPreset(`${name} (alto contraste)`, vars, {
+			textMin: HC_TEXT_MIN,
+			uiMin: HC_UI_MIN,
+			outlineVariantMin: OUTLINE_VARIANT_MIN,
+		});
+	}
+} else {
+	w(
+		'## Alto contraste: bloco `.dark[data-contrast="high"]` não encontrado na entrada — não checado',
+	);
+	w();
 }
 
 w("## Entre presets");
