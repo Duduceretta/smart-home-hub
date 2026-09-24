@@ -10,6 +10,10 @@
 		"ariaLabel": "Application color theme",
 		"changeTheme": "Change theme"
 	},
+	"contrast": {
+		"label": "High contrast",
+		"description": "Crisper text and borders, works with any color theme."
+	},
 	"language": {
 		"label": "Language",
 		"description": "Language used in the hub's interface.",

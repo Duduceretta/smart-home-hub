@@ -1,6 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { SpotifyConnectCard } from "@/features/integrations/components/SpotifyConnectCard";
 import { SpotifyNowPlayingCard } from "@/features/integrations/components/SpotifyNowPlayingCard";
+import { HighContrastToggle } from "@/features/settings/components/HighContrastToggle";
 import { LanguageSettingRow } from "@/features/settings/components/LanguageSettingRow";
 import { ThemePresetSelector } from "@/features/settings/components/ThemePresetSelector";
 
@@ -21,6 +22,7 @@ export function SettingsPage() {
 					{t("sections.appearance")}
 				</h2>
 				<ThemePresetSelector />
+				<HighContrastToggle />
 			</section>
 
 			<section className="flex flex-col gap-4">

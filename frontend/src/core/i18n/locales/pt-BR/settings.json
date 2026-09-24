@@ -10,6 +10,10 @@
 		"ariaLabel": "Tema de cores do aplicativo",
 		"changeTheme": "Alterar o tema"
 	},
+	"contrast": {
+		"label": "Alto contraste",
+		"description": "Textos e bordas mais nítidos, combina com qualquer tema de cor."
+	},
 	"language": {
 		"label": "Idioma",
 		"description": "Idioma usado na interface do hub.",
