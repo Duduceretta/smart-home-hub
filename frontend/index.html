@@ -9,18 +9,28 @@
   <body class="antialiased selection:bg-primary/20 selection:text-primary">
     <script>
       (() => {
-        const VALID = [
-          "zinc-minimalist",
-          "indigo",
-          "slate-cyan",
-          "github-dimmed",
-          "contrast-safe-graphite",
-        ];
+        const VALID = ["teal", "indigo", "cyan", "blue", "orchid"];
+        // Migração de IDs pré-M3 — mesmo mapa de LEGACY_THEME_PRESET_MAP em theme.types.ts.
+        const LEGACY = {
+          "zinc-minimalist": "teal",
+          "slate-cyan": "cyan",
+          "github-dimmed": "blue",
+          "contrast-safe-graphite": "orchid",
+        };
         try {
-          const preset = localStorage.getItem("app-theme-preset");
-          if (preset && VALID.indexOf(preset) !== -1 && preset !== "zinc-minimalist") {
+          let preset = localStorage.getItem("app-theme-preset");
+          if (preset && LEGACY[preset]) preset = LEGACY[preset];
+          if (preset && VALID.indexOf(preset) !== -1 && preset !== "teal") {
             document.documentElement.setAttribute("data-theme", preset);
           }
+        } catch (_error) {}
+        try {
+          const stored = localStorage.getItem("app-theme-contrast");
+          const high =
+            stored === "high" ||
+            (stored !== "standard" &&
+              window.matchMedia("(prefers-contrast: more)").matches);
+          if (high) document.documentElement.setAttribute("data-contrast", "high");
         } catch (_error) {}
       })();
     </script>
