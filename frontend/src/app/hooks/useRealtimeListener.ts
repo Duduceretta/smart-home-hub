@@ -1,5 +1,7 @@
 import { useQueryClient } from "@tanstack/react-query";
+import { HubConnectionState } from "@microsoft/signalr";
 import { useEffect, useRef } from "react";
+import { useConnectionStatusStore } from "@/core/hooks/useConnectionStatusStore";
 import {
 	createSignalRConnection,
 	setActiveHubConnection,
@@ -19,6 +21,16 @@ import type {
 import { integrationsKeys } from "@/features/integrations/hooks/integrations.keys";
 import type { SpotifyPlaybackState } from "@/features/integrations/types/integrations.types";
 import { roomsKeys } from "@/features/rooms/hooks/rooms.keys";
+
+// Janela de graça antes de mostrar "Reconectando" pro usuário — um soluço
+// de wifi de menos de 1.5s que se resolve sozinho não deve piscar o badge
+// (mesmo padrão usado por Slack/Discord/Google Docs pra evitar ruído visual
+// em rede instável). onreconnected cancela esse timer na hora.
+const RECONNECTING_STATUS_DEBOUNCE_MS = 1500;
+
+// Intervalo de medição de latência via Ping — mesma ordem de grandeza de
+// heartbeats de apps reais (Slack RTM ~30s, Discord Gateway ~30-45s).
+const PING_INTERVAL_MS = 20_000;
 
 interface DeviceStatusChangedPayload {
 	deviceId: string;
@@ -73,11 +85,36 @@ export function useRealtimeListener(): void {
 	const telemetryDebounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 	const pendingTelemetryDevicesRef = useRef<Set<string>>(new Set());
 	const pendingTelemetryRoomsRef = useRef<Set<string>>(new Set());
+	const reconnectingDebounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
+	const pingIntervalRef = useRef<ReturnType<typeof setInterval>>(undefined);
 
 	useEffect(() => {
 		if (isLoading || !user) return;
 
 		const connection = createSignalRConnection();
+		const { setStatus, setLatencyMs } = useConnectionStatusStore.getState();
+
+		const clearReconnectingDebounce = () => {
+			clearTimeout(reconnectingDebounceRef.current);
+			reconnectingDebounceRef.current = undefined;
+		};
+
+		const measureLatency = () => {
+			if (connection.state !== HubConnectionState.Connected) return;
+
+			const startedAt = performance.now();
+			connection
+				.invoke("Ping")
+				.then(() => {
+					setLatencyMs(Math.round(performance.now() - startedAt));
+				})
+				.catch((error: unknown) => {
+					// Rede caiu bem no meio da medição — mantém a última latência
+					// conhecida em vez de zerar (não é uma leitura nova, é ausência
+					// de leitura).
+					Logger.warn("Falha ao medir latência via Ping SignalR", error);
+				});
+		};
 
 		connection.on(
 			"DeviceStatusChanged",
@@ -325,10 +362,22 @@ export function useRealtimeListener(): void {
 		// a conexão estava fora do ar.
 		connection.onreconnecting((error) => {
 			Logger.warn("Conexão SignalR caiu, tentando reconectar...", error);
+
+			// Não muda o status na hora — só depois de RECONNECTING_STATUS_DEBOUNCE_MS
+			// sem um onreconnected cancelando (ver clearReconnectingDebounce).
+			clearReconnectingDebounce();
+			reconnectingDebounceRef.current = setTimeout(() => {
+				setStatus("reconnecting");
+				setLatencyMs(null);
+			}, RECONNECTING_STATUS_DEBOUNCE_MS);
 		});
 
 		connection.onreconnected(() => {
 			Logger.info("Conexão SignalR restabelecida — reconciliando estado.");
+			clearReconnectingDebounce();
+			setStatus("connected");
+			measureLatency();
+
 			queryClient.invalidateQueries({ queryKey: devicesKeys.lists() });
 			queryClient.invalidateQueries({ queryKey: devicesKeys.medias() });
 			queryClient.invalidateQueries({
@@ -344,16 +393,32 @@ export function useRealtimeListener(): void {
 
 		connection.onclose((error) => {
 			Logger.error("Conexão SignalR encerrada definitivamente", error);
+			clearReconnectingDebounce();
+			setStatus("disconnected");
+			setLatencyMs(null);
 		});
 
 		connection
 			.start()
 			.then(() => {
 				Logger.info("Conexão SignalR iniciada com sucesso.");
+				setStatus("connected");
+				measureLatency();
 			})
 			.catch((error: unknown) => {
 				Logger.error("Falha ao conectar ao SignalR Hub", error);
+				// Falha na primeira tentativa de conexão (diferente de uma queda
+				// depois de já ter conectado) — a política de reconexão automática
+				// só entra em ação após um start() bem-sucedido, então sem isso o
+				// badge ficaria preso em "Reconectando" pra sempre.
+				setStatus("disconnected");
 			});
+
+		// Mede latência periodicamente enquanto a conexão existir — sempre
+		// verifica o estado real antes de invocar (mesmo guard usado por
+		// useThrottledHubInvoke) em vez de start/stop o interval a cada
+		// reconexão, então cai fora sozinho quando não está Connected.
+		pingIntervalRef.current = setInterval(measureLatency, PING_INTERVAL_MS);
 
 		// Exposta pra outros hooks (ex: useThrottledHubInvoke, usado pelo preview
 		// de arraste de slider) reaproveitarem a MESMA conexão, sem abrir um
@@ -363,6 +428,8 @@ export function useRealtimeListener(): void {
 
 		return () => {
 			clearTimeout(telemetryDebounceRef.current);
+			clearReconnectingDebounce();
+			clearInterval(pingIntervalRef.current);
 			pendingTelemetryDevicesRef.current.clear();
 			pendingTelemetryRoomsRef.current.clear();
 			setActiveHubConnection(null);

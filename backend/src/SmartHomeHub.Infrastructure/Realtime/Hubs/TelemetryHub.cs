@@ -13,6 +13,14 @@ namespace SmartHomeHub.Infrastructure.Realtime.Hubs;
 [Authorize]
 public class TelemetryHub : Hub
 {
+    /// <summary>
+    /// Eco trivial pro cliente medir round-trip de latência até o hub
+    /// (não existe ping ICMP de rede local possível a partir do browser —
+    /// ver `useRealtimeListener.ts`). Sem lógica: o valor está só no tempo
+    /// de ida-e-volta em si, cronometrado no cliente.
+    /// </summary>
+    public Task Ping() => Task.CompletedTask;
+
     public async Task StartDiscovery(int timeoutSeconds, IDeviceDiscoveryManager discoveryManager)
     {
         var firebaseUid = Context.User?.FindFirst("user_id")?.Value;

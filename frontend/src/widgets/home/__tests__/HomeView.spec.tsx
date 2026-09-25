@@ -358,7 +358,11 @@ describe("Home Page Components", () => {
 
 			expect(screen.getByText("Nexus Hub")).toBeInTheDocument();
 			expect(screen.getByText("Modo Cinema")).toBeInTheDocument();
-			expect(screen.getByText("Rede Residencial Ativa")).toBeInTheDocument();
+			// Estado inicial do status de conexão é "reconnecting" até o
+			// SignalR confirmar — ver useConnectionStatusStore.
+			expect(
+				screen.getByText("Rede Residencial Reconectando"),
+			).toBeInTheDocument();
 			expect(screen.getByText("Segurança & Alarme")).toBeInTheDocument();
 		});
 	});

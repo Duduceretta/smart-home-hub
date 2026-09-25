@@ -12,6 +12,8 @@ import { devicesKeys } from "@/features/devices/hooks/devices.keys";
 import type { Device } from "@/features/devices/types/devices.types";
 import { integrationsKeys } from "@/features/integrations/hooks/integrations.keys";
 import { roomsKeys } from "@/features/rooms/hooks/rooms.keys";
+import { HubConnectionState } from "@microsoft/signalr";
+import { useConnectionStatusStore } from "@/core/hooks/useConnectionStatusStore";
 import { useRealtimeListener } from "../useRealtimeListener";
 
 const mockConnection = {
@@ -22,6 +24,8 @@ const mockConnection = {
 	onclose: vi.fn(),
 	start: vi.fn().mockResolvedValue(undefined),
 	stop: vi.fn().mockResolvedValue(undefined),
+	invoke: vi.fn().mockResolvedValue(undefined),
+	state: HubConnectionState.Connected as HubConnectionState,
 };
 
 vi.mock("@/core/lib/signalr", async (importOriginal) => {
@@ -547,5 +551,204 @@ describe("useRealtimeListener — lifecycle & other SignalR events", () => {
 		expect(invalidateSpy).toHaveBeenCalledWith({
 			queryKey: dashboardKeys.automationsSummary(),
 		});
+	});
+});
+
+describe("useRealtimeListener — status de conexão e latência (Ping)", () => {
+	let queryClient: QueryClient;
+
+	beforeEach(() => {
+		vi.useFakeTimers();
+		queryClient = new QueryClient({
+			defaultOptions: { queries: { retry: false, gcTime: Infinity } },
+		});
+		useAuthStore.setState({ user: mockUser, isLoading: false });
+		useConnectionStatusStore.setState({ status: "reconnecting", latencyMs: null });
+		mockConnection.state = HubConnectionState.Connected;
+		vi.clearAllMocks();
+		mockConnection.start.mockResolvedValue(undefined);
+		mockConnection.invoke.mockResolvedValue(undefined);
+	});
+
+	afterEach(() => {
+		vi.useRealTimers();
+		vi.restoreAllMocks();
+	});
+
+	const wrapper = ({ children }: { children: React.ReactNode }) => (
+		<QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+	);
+
+	it("ConnectionStatus_OnSuccessfulStart_ShouldBecomeConnectedAndPingImmediately", async () => {
+		renderHook(() => useRealtimeListener(), { wrapper });
+
+		// start() é assíncrono — deixa a promise resolver.
+		await vi.waitFor(() => {
+			expect(useConnectionStatusStore.getState().status).toBe("connected");
+		});
+		expect(mockConnection.invoke).toHaveBeenCalledWith("Ping");
+	});
+
+	it("ConnectionStatus_StartFailure_ShouldBecomeDisconnected_NotStuckReconnecting", async () => {
+		mockConnection.start.mockRejectedValueOnce(new Error("Connection failed"));
+
+		renderHook(() => useRealtimeListener(), { wrapper });
+
+		await vi.waitFor(() => {
+			expect(useConnectionStatusStore.getState().status).toBe("disconnected");
+		});
+	});
+
+	it("ConnectionStatus_Reconnecting_ShouldNotFlipUntilDebounceElapses_AvoidsFlickerOnBlip", async () => {
+		renderHook(() => useRealtimeListener(), { wrapper });
+		await vi.waitFor(() =>
+			expect(useConnectionStatusStore.getState().status).toBe("connected"),
+		);
+
+		const reconnectingCb = mockConnection.onreconnecting.mock.calls[0][0];
+		reconnectingCb(new Error("blip"));
+
+		// Ainda dentro da janela de debounce: continua "connected", sem piscar.
+		vi.advanceTimersByTime(1499);
+		expect(useConnectionStatusStore.getState().status).toBe("connected");
+
+		vi.advanceTimersByTime(1);
+		expect(useConnectionStatusStore.getState().status).toBe("reconnecting");
+		// Latência antiga não deve continuar exibida como se fosse atual.
+		expect(useConnectionStatusStore.getState().latencyMs).toBeNull();
+	});
+
+	it("ConnectionStatus_ReconnectedBeforeDebounceExpires_ShouldCancelPendingFlipToReconnecting", async () => {
+		renderHook(() => useRealtimeListener(), { wrapper });
+		await vi.waitFor(() =>
+			expect(useConnectionStatusStore.getState().status).toBe("connected"),
+		);
+
+		const reconnectingCb = mockConnection.onreconnecting.mock.calls[0][0];
+		const reconnectedCb = mockConnection.onreconnected.mock.calls[0][0];
+
+		reconnectingCb(new Error("blip"));
+		vi.advanceTimersByTime(500);
+		reconnectedCb();
+
+		// O timer de debounce pendente foi cancelado — nunca deve virar
+		// "reconnecting" depois do fato.
+		vi.advanceTimersByTime(2000);
+		expect(useConnectionStatusStore.getState().status).toBe("connected");
+	});
+
+	it("ConnectionStatus_OnClose_ShouldBecomeDisconnectedAndCancelPendingReconnectingDebounce", async () => {
+		renderHook(() => useRealtimeListener(), { wrapper });
+		await vi.waitFor(() =>
+			expect(useConnectionStatusStore.getState().status).toBe("connected"),
+		);
+
+		const reconnectingCb = mockConnection.onreconnecting.mock.calls[0][0];
+		const closeCb = mockConnection.onclose.mock.calls[0][0];
+
+		reconnectingCb(new Error("blip"));
+		closeCb(new Error("gave up"));
+
+		expect(useConnectionStatusStore.getState().status).toBe("disconnected");
+		expect(useConnectionStatusStore.getState().latencyMs).toBeNull();
+
+		// O timer de debounce do reconnecting cancelado não pode reaparecer
+		// depois e sobrescrever "disconnected" com "reconnecting".
+		vi.advanceTimersByTime(5000);
+		expect(useConnectionStatusStore.getState().status).toBe("disconnected");
+	});
+
+	it("ConnectionStatus_OnReconnected_ShouldReturnToConnectedAndRefreshLatencyImmediately", async () => {
+		renderHook(() => useRealtimeListener(), { wrapper });
+		await vi.waitFor(() =>
+			expect(useConnectionStatusStore.getState().status).toBe("connected"),
+		);
+		mockConnection.invoke.mockClear();
+
+		const reconnectedCb = mockConnection.onreconnected.mock.calls[0][0];
+		reconnectedCb();
+
+		expect(useConnectionStatusStore.getState().status).toBe("connected");
+		await vi.waitFor(() => {
+			expect(mockConnection.invoke).toHaveBeenCalledWith("Ping");
+		});
+	});
+
+	it("Ping_PeriodicInterval_ShouldMeasureRoundTripAndStoreLatency", async () => {
+		let now = 1_000;
+		vi.spyOn(performance, "now").mockImplementation(() => now);
+
+		renderHook(() => useRealtimeListener(), { wrapper });
+		await vi.waitFor(() =>
+			expect(useConnectionStatusStore.getState().status).toBe("connected"),
+		);
+
+		mockConnection.invoke.mockClear();
+		// Próximo tick do intervalo de ping (20s).
+		now = 21_000;
+		let resolveInvoke: () => void = () => {};
+		mockConnection.invoke.mockImplementationOnce(
+			() =>
+				new Promise<void>((resolve) => {
+					resolveInvoke = resolve;
+				}),
+		);
+
+		await vi.advanceTimersByTimeAsync(20_000);
+		expect(mockConnection.invoke).toHaveBeenCalledWith("Ping");
+
+		now = 21_037;
+		resolveInvoke();
+		await vi.waitFor(() => {
+			expect(useConnectionStatusStore.getState().latencyMs).toBe(37);
+		});
+	});
+
+	it("Ping_WhenConnectionNotConnected_ShouldSkipInvokeWithoutThrowing", async () => {
+		renderHook(() => useRealtimeListener(), { wrapper });
+		await vi.waitFor(() =>
+			expect(useConnectionStatusStore.getState().status).toBe("connected"),
+		);
+
+		mockConnection.invoke.mockClear();
+		mockConnection.state = HubConnectionState.Reconnecting;
+
+		await vi.advanceTimersByTimeAsync(20_000);
+		expect(mockConnection.invoke).not.toHaveBeenCalled();
+	});
+
+	it("Ping_InvokeRejects_ShouldBeCaughtAndLeaveLastKnownLatencyUntouched", async () => {
+		renderHook(() => useRealtimeListener(), { wrapper });
+		await vi.waitFor(() =>
+			expect(useConnectionStatusStore.getState().status).toBe("connected"),
+		);
+		useConnectionStatusStore.getState().setLatencyMs(11);
+
+		mockConnection.invoke.mockClear();
+		mockConnection.invoke.mockRejectedValueOnce(new Error("hub unreachable"));
+
+		await expect(
+			vi.advanceTimersByTimeAsync(20_000),
+		).resolves.not.toThrow();
+		expect(useConnectionStatusStore.getState().latencyMs).toBe(11);
+	});
+
+	it("Cleanup_OnUnmount_ShouldClearPingIntervalAndPendingReconnectingDebounce", async () => {
+		const { unmount } = renderHook(() => useRealtimeListener(), { wrapper });
+		await vi.waitFor(() =>
+			expect(useConnectionStatusStore.getState().status).toBe("connected"),
+		);
+
+		const reconnectingCb = mockConnection.onreconnecting.mock.calls[0][0];
+		reconnectingCb(new Error("blip"));
+
+		unmount();
+		mockConnection.invoke.mockClear();
+
+		// Nem o debounce pendente nem o intervalo de ping devem disparar depois
+		// do unmount (vazamento de timer/estado após desmontar o componente).
+		await vi.advanceTimersByTimeAsync(30_000);
+		expect(useConnectionStatusStore.getState().status).toBe("connected");
+		expect(mockConnection.invoke).not.toHaveBeenCalled();
 	});
 });

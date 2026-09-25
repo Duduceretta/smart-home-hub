@@ -1,11 +1,36 @@
 import { Clock, CloudSun, Droplets, Sparkles, Wifi, Wind } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
+import {
+	type ConnectionStatus,
+	useConnectionStatus,
+} from "@/core/hooks/useConnectionStatus";
 import type { DashboardSummary } from "@/features/dashboard/types/dashboard.types";
 
 interface HomeClockHeroTileProps {
 	summary?: DashboardSummary;
 }
+
+const NETWORK_STATUS_STYLES: Record<
+	ConnectionStatus,
+	{ label: string; dotClass: string; pingClass: string }
+> = {
+	connected: {
+		label: "Rede Residencial Online",
+		dotClass: "bg-emerald-500",
+		pingClass: "bg-emerald-400",
+	},
+	reconnecting: {
+		label: "Rede Residencial Reconectando",
+		dotClass: "bg-warm",
+		pingClass: "bg-warm",
+	},
+	disconnected: {
+		label: "Rede Residencial Offline",
+		dotClass: "bg-alert",
+		pingClass: "bg-alert",
+	},
+};
 
 /**
  * Bento Tile Hero: Relógio Digital em Tempo Real, Clima e Próxima Rotina.
@@ -15,6 +40,7 @@ interface HomeClockHeroTileProps {
  */
 export function HomeClockHeroTile({ summary }: HomeClockHeroTileProps) {
 	const { i18n } = useTranslation();
+	const { status, latencyMs } = useConnectionStatus();
 	const [currentTime, setCurrentTime] = useState(() => new Date());
 
 	useEffect(() => {
@@ -42,6 +68,7 @@ export function HomeClockHeroTile({ summary }: HomeClockHeroTileProps) {
 	}, [currentTime, i18n.language]);
 
 	const temp = summary?.averageTemperatureCelsius ?? 23.0;
+	const networkStatusStyle = NETWORK_STATUS_STYLES[status];
 
 	return (
 		// Hero: único tile com padding maior e borda tingida de --primary — dá
@@ -55,16 +82,26 @@ export function HomeClockHeroTile({ summary }: HomeClockHeroTileProps) {
 			<div className="flex flex-wrap items-center justify-between gap-2 border-b border-border-subtle/50 pb-3">
 				<div className="flex items-center gap-2">
 					<span className="relative flex h-2 w-2">
-						<span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
-						<span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
+						{status !== "disconnected" && (
+							<span
+								className={`absolute inline-flex h-full w-full animate-ping rounded-full opacity-75 ${networkStatusStyle.pingClass}`}
+							/>
+						)}
+						<span
+							className={`relative inline-flex h-2 w-2 rounded-full ${networkStatusStyle.dotClass}`}
+						/>
 					</span>
 					<span className="font-mono text-xs font-medium uppercase tracking-wider text-muted-foreground">
-						Rede Residencial Ativa
+						{networkStatusStyle.label}
 					</span>
 					<span className="text-border-subtle">•</span>
 					<span className="flex items-center gap-1 font-mono text-xs text-muted-foreground">
-						<Wifi className="h-3 w-3 text-emerald-400" />
-						<span>12ms</span>
+						<Wifi className="h-3 w-3" />
+						<span>
+							{status === "connected" && latencyMs !== null
+								? `${latencyMs}ms`
+								: "—"}
+						</span>
 					</span>
 				</div>
 
