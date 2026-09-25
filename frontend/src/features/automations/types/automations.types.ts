@@ -45,6 +45,17 @@ export interface Automation {
  * uma query própria, independente da paginação da listagem, porque com
  * scroll infinito o cliente nunca tem a lista inteira em memória pra contar.
  */
+/**
+ * Espelha `NextScheduledAutomationDto` (backend) — lê o `NextExecution` já
+ * calculado pelo Hangfire pra automação Schedule ativa mais próxima do
+ * usuário, nunca recalcula cron no cliente.
+ */
+export interface NextScheduledAutomation {
+	automationId: string;
+	name: string;
+	nextRunUtc: string;
+}
+
 export interface AutomationFilterCounts {
 	total: number;
 	active: number;

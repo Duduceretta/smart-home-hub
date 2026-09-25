@@ -5,7 +5,9 @@ import {
 	type ConnectionStatus,
 	useConnectionStatus,
 } from "@/core/hooks/useConnectionStatus";
+import { useNextScheduledAutomation } from "@/features/automations/hooks/useNextScheduledAutomation";
 import type { DashboardSummary } from "@/features/dashboard/types/dashboard.types";
+import { formatNextRun } from "../utils/formatNextRun";
 
 interface HomeClockHeroTileProps {
 	summary?: DashboardSummary;
@@ -41,6 +43,7 @@ const NETWORK_STATUS_STYLES: Record<
 export function HomeClockHeroTile({ summary }: HomeClockHeroTileProps) {
 	const { i18n } = useTranslation();
 	const { status, latencyMs } = useConnectionStatus();
+	const { data: nextScheduledAutomation } = useNextScheduledAutomation();
 	const [currentTime, setCurrentTime] = useState(() => new Date());
 
 	useEffect(() => {
@@ -148,19 +151,33 @@ export function HomeClockHeroTile({ summary }: HomeClockHeroTileProps) {
 				</div>
 			</div>
 
-			{/* Rodapé: Próxima Automação Programada */}
+			{/* Rodapé: Próxima Automação Agendada (real, Schedule ativa mais próxima) */}
 			<div className="flex items-center justify-between gap-2 rounded-lg border border-border-subtle/60 bg-surface-container/40 px-3.5 py-2 text-xs text-muted-foreground">
-				<div className="flex items-center gap-2 truncate">
-					<Sparkles className="h-3.5 w-3.5 text-primary shrink-0" />
-					<span className="truncate font-medium text-foreground">
-						Próxima rotina:
-					</span>
-					<span className="truncate">Modo Noturno & Trancas</span>
-				</div>
-				<div className="flex items-center gap-1.5 shrink-0 font-mono text-xs text-primary">
-					<Clock className="h-3 w-3" />
-					<span>23:00</span>
-				</div>
+				{nextScheduledAutomation ? (
+					<>
+						<div className="flex items-center gap-2 truncate">
+							<Sparkles className="h-3.5 w-3.5 text-primary shrink-0" />
+							<span className="truncate font-medium text-foreground">
+								Próxima rotina:
+							</span>
+							<span className="truncate">{nextScheduledAutomation.name}</span>
+						</div>
+						<div className="flex items-center gap-1.5 shrink-0 font-mono text-xs text-primary">
+							<Clock className="h-3 w-3" />
+							<span>
+								{formatNextRun(
+									nextScheduledAutomation.nextRunUtc,
+									i18n.language,
+								)}
+							</span>
+						</div>
+					</>
+				) : (
+					<div className="flex items-center gap-2 truncate">
+						<Sparkles className="h-3.5 w-3.5 text-muted-foreground/60 shrink-0" />
+						<span className="truncate">Nenhuma rotina agendada</span>
+					</div>
+				)}
 			</div>
 		</section>
 	);

@@ -8,6 +8,7 @@ import type {
 	AutomationFilterCounts,
 	AutomationWeekdayExecutionCount,
 	CreateAutomationPayload,
+	NextScheduledAutomation,
 	UpdateAutomationPayload,
 } from "../types/automations.types";
 
@@ -64,6 +65,28 @@ export async function fetchAutomations(
  * sensor/rascunhos) — independente da paginação, usado pela trilha de
  * filtro e pela barra de resumo.
  */
+/**
+ * Fetches the closest upcoming Schedule automation (NextExecution já
+ * calculado pelo Hangfire no backend). `null` é o estado vazio esperado
+ * (nenhuma automação agendada) — nunca é tratado como erro.
+ */
+export async function fetchNextScheduledAutomation(
+	signal?: AbortSignal,
+): Promise<NextScheduledAutomation | null> {
+	try {
+		const { data } = await apiClient.get<NextScheduledAutomation | null>(
+			"/automations/next-scheduled",
+			{ signal },
+		);
+		return data;
+	} catch (error: unknown) {
+		throw handleApplicationError(
+			error,
+			"Não foi possível carregar a próxima rotina agendada.",
+		);
+	}
+}
+
 export async function fetchAutomationFilterCounts(
 	signal?: AbortSignal,
 ): Promise<AutomationFilterCounts> {

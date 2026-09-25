@@ -115,6 +115,7 @@ public static class DependencyInjection
         services.AddHostedService<AutomationExecutionWorker>();
         services.AddScoped<IAutomationActionDispatcher, AutomationActionDispatcher>();
         services.AddScoped<IAutomationSchedulerService, AutomationSchedulerService>();
+        services.AddScoped<IAutomationScheduleReader, AutomationScheduleReader>();
         services.AddScoped<IAutomationTimeTriggerJob, AutomationTimeTriggerJob>();
 
         services.AddHangfire(config =>

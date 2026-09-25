@@ -24,6 +24,7 @@ export const automationsKeys = {
 	list: (filters: AutomationsListFilters = {}) =>
 		[...automationsKeys.lists(), { filters }] as const,
 	filterCounts: () => [...automationsKeys.all, "filter-counts"] as const,
+	nextScheduled: () => [...automationsKeys.all, "next-scheduled"] as const,
 	details: () => [...automationsKeys.all, "detail"] as const,
 	detail: (id: string) => [...automationsKeys.details(), id] as const,
 	pickerDevices: () => [...automationsKeys.all, "picker-devices"] as const,

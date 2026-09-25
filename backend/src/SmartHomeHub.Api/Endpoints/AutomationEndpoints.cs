@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using Mediator;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 using SmartHomeHub.Api.Endpoints.Common;
 using SmartHomeHub.Api.Extensions;
 using SmartHomeHub.Application.Common.Pagination;
@@ -12,6 +13,7 @@ using SmartHomeHub.Application.Features.Automations.Queries.GetAutomationExecuti
 using SmartHomeHub.Application.Features.Automations.Queries.GetAutomationExecutionsByWeekday;
 using SmartHomeHub.Application.Features.Automations.Queries.GetAutomationFilterCounts;
 using SmartHomeHub.Application.Features.Automations.Queries.GetAutomations;
+using SmartHomeHub.Application.Features.Automations.Queries.GetNextScheduledAutomation;
 using SmartHomeHub.Application.Features.Dashboards.Queries.GetActivityLog;
 
 namespace SmartHomeHub.Api.Endpoints;
@@ -62,6 +64,43 @@ public static class AutomationEndpoints
                 "Retorna a lista paginada de automações cadastradas pelo usuário autenticado, com filtro por status/gatilho/rascunho, busca por nome e ordenação — tudo resolvido server-side."
             )
             .Produces<PagedResult<AutomationDto>>(StatusCodes.Status200OK);
+
+        app.MapGet(
+                "/api/automations/next-scheduled",
+                async (
+                    ClaimsPrincipal userToken,
+                    IMediator mediator,
+                    [FromServices] IOptions<Microsoft.AspNetCore.Http.Json.JsonOptions> jsonOptions,
+                    CancellationToken cancellationToken
+                ) =>
+                {
+                    var firebaseUid = userToken.GetFirebaseUid();
+
+                    if (string.IsNullOrEmpty(firebaseUid))
+                        return Results.Unauthorized();
+
+                    var query = new GetNextScheduledAutomationQuery(firebaseUid);
+                    var result = await mediator.Send(query, cancellationToken);
+
+                    // Results.Ok(null)/Results.Json(null) devolvem corpo vazio
+                    // (0 bytes) em vez do literal JSON "null" — comportamento
+                    // conhecido do Minimal API que quebraria response.json()
+                    // no frontend. Serializar manualmente com as mesmas
+                    // JsonOptions globais (camelCase) garante o corpo real.
+                    var json = System.Text.Json.JsonSerializer.Serialize(
+                        result,
+                        jsonOptions.Value.SerializerOptions
+                    );
+                    return Results.Content(json, "application/json");
+                }
+            )
+            .RequireAuthorization()
+            .WithTags("Automations")
+            .WithSummary("Busca a próxima automação agendada (tipo Schedule) do usuário")
+            .WithDescription(
+                "Lê o NextExecution já calculado pelo Hangfire pra cada Recurring Job Schedule ativo do usuário e retorna o mais próximo. Retorna 200 com corpo null quando não há nenhuma automação agendada — não é um erro, é o estado vazio esperado."
+            )
+            .Produces<NextScheduledAutomationDto?>(StatusCodes.Status200OK);
 
         app.MapGet(
                 "/api/automations/counts",
