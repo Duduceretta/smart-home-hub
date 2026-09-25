@@ -1,10 +1,10 @@
-import { Bot, LayoutDashboard, Router, Settings } from "lucide-react";
+import { Bot, LayoutDashboard, Menu, Router, Settings } from "lucide-react";
 import { Suspense, useEffect, useState } from "react";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import { RoutePendingFallback } from "@/app/RoutePendingFallback";
 import { PageErrorBoundary } from "@/core/components/feedback/PageErrorBoundary";
+import { Button } from "@/core/components/ui/button";
 import { cn } from "@/core/utils";
-import { Header } from "./Header";
 import { isRouteActive } from "./nav.types";
 import { MobileSidebarSheet, Sidebar } from "./Sidebar";
 
@@ -50,10 +50,19 @@ export function AppLayout() {
 
 			{/* Área Principal */}
 			<main className="flex-1 flex flex-col h-full min-w-0 relative bg-linear-to-b from-muted to-background">
-				<Header
-					onMenuClick={() => setIsMobileNavOpen(true)}
-					isMenuOpen={isMobileNavOpen}
-				/>
+				{/* Toggle Mobile flutuante — único jeito de abrir a Sidebar abaixo de md
+				 * agora que cada página tem seu próprio header (ou nenhum ainda). */}
+				<Button
+					variant="outline"
+					size="icon"
+					onClick={() => setIsMobileNavOpen(true)}
+					className="md:hidden fixed top-4 right-4 z-40 h-11 w-11 rounded-full border-border bg-card/80 backdrop-blur-xl text-muted-foreground hover:text-foreground shadow-lg"
+					aria-label="Abrir menu"
+					aria-expanded={isMobileNavOpen}
+					aria-controls="mobile-navigation-drawer"
+				>
+					<Menu className="w-5 h-5" />
+				</Button>
 
 				<MobileSidebarSheet
 					isOpen={isMobileNavOpen}
