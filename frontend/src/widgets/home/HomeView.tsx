@@ -14,6 +14,7 @@ import { HomeHeader } from "./components/HomeHeader";
 import { HomeMediaTile } from "./components/HomeMediaTile";
 import { HomeQuickActions } from "./components/HomeQuickActions";
 import { HomeSecurityTile } from "./components/HomeSecurityTile";
+import { useHomeNewAlerts } from "./hooks/useHomeNewAlerts";
 
 const DEVICES_PAGE_SIZE = 200;
 
@@ -45,8 +46,10 @@ export function HomeView() {
 	const { data: activityLogData, isLoading: isActivityLoading } =
 		useActivityLog(1, ACTIVITY_LOG_VISIBLE_ENTRIES_LIMIT);
 
+	const { count: newAlertsCount, dismiss: dismissNewAlerts } =
+		useHomeNewAlerts(activityLogData?.items);
+
 	const devices = devicesPage?.items ?? [];
-	const activeAlertsCount = overviewData?.summary.activeAlertsCount ?? 0;
 
 	// Total de atuadores ligados no momento
 	const activeDevicesCount = useMemo(
@@ -59,8 +62,8 @@ export function HomeView() {
 			{/* 1. Header (Saudação contextual, Seletor condicional de projeto, Status at-a-glance) */}
 			<HomeHeader activeDevicesCount={activeDevicesCount} />
 
-			{/* 2. Alerta Crítico em Destaque (se houver, no topo com largura total) */}
-			<HomeAlertBanner activeAlertsCount={activeAlertsCount} />
+			{/* 2. Alerta/Erro Novo em Destaque (só quando chega em tempo real, no topo com largura total) */}
+			<HomeAlertBanner count={newAlertsCount} onDismiss={dismissNewAlerts} />
 
 			{/* 3. Bento Grid Principal (12 colunas no desktop, fluxo natural no mobile).
 			 * Sem items-start: o stretch padrão do CSS Grid já iguala a altura dos

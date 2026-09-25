@@ -120,30 +120,45 @@ describe("Home Page Components", () => {
 		it("HomeAlertBanner_ZeroAlerts_ShouldReturnNull", () => {
 			const { container } = renderWithProviders(
 				<MemoryRouter>
-					<HomeAlertBanner activeAlertsCount={0} />
+					<HomeAlertBanner count={0} onDismiss={() => {}} />
 				</MemoryRouter>,
 			);
 			expect(container.firstChild).toBeNull();
 		});
 
-		it("HomeAlertBanner_ActiveAlerts_ShouldRenderProminentAlertAndNavigate", async () => {
+		it("HomeAlertBanner_NewAlerts_ShouldRenderProminentAlertAndNavigate", async () => {
 			const user = userEvent.setup();
 			mockNavigate.mockClear();
 
 			renderWithProviders(
 				<MemoryRouter>
-					<HomeAlertBanner activeAlertsCount={2} />
+					<HomeAlertBanner count={2} onDismiss={() => {}} />
 				</MemoryRouter>,
 			);
 
 			expect(screen.getByRole("alert")).toBeInTheDocument();
-			expect(screen.getByText(/2 alertas ativos/i)).toBeInTheDocument();
+			expect(screen.getByText(/2 novos alertas/i)).toBeInTheDocument();
 
 			const detailsButton = screen.getByRole("button", {
 				name: /ver detalhes/i,
 			});
 			await user.click(detailsButton);
 			expect(mockNavigate).toHaveBeenCalledWith("/history");
+		});
+
+		it("HomeAlertBanner_DismissClick_ShouldCallOnDismiss", async () => {
+			const user = userEvent.setup();
+			const onDismiss = vi.fn();
+
+			renderWithProviders(
+				<MemoryRouter>
+					<HomeAlertBanner count={1} onDismiss={onDismiss} />
+				</MemoryRouter>,
+			);
+
+			const dismissButton = screen.getByRole("button", { name: /fechar/i });
+			await user.click(dismissButton);
+			expect(onDismiss).toHaveBeenCalledTimes(1);
 		});
 	});
 

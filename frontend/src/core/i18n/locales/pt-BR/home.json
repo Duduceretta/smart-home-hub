@@ -35,9 +35,11 @@
 		"justNow": "Agora mesmo"
 	},
 	"alerts": {
-		"title_one": "{{count}} alerta ativo",
-		"title_other": "{{count}} alertas ativos",
-		"viewAll": "Ver detalhes"
+		"title_one": "{{count}} novo alerta",
+		"title_other": "{{count}} novos alertas",
+		"description": "Novo evento de alerta ou erro registrado no histórico.",
+		"viewAll": "Ver detalhes",
+		"dismiss": "Fechar"
 	},
 	"errors": {
 		"loadFailed": "Não foi possível carregar a Início",

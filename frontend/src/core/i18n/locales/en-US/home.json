@@ -35,9 +35,11 @@
 		"justNow": "Just now"
 	},
 	"alerts": {
-		"title_one": "{{count}} active alert",
-		"title_other": "{{count}} active alerts",
-		"viewAll": "View details"
+		"title_one": "{{count}} new alert",
+		"title_other": "{{count}} new alerts",
+		"description": "New alert or error event recorded in the history.",
+		"viewAll": "View details",
+		"dismiss": "Dismiss"
 	},
 	"errors": {
 		"loadFailed": "Couldn't load Home",
