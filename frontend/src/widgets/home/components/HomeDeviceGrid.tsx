@@ -14,16 +14,9 @@ interface HomeDeviceGridProps {
 	onRetry: () => void;
 }
 
-const SKELETON_KEYS = [
-	"sk-1",
-	"sk-2",
-	"sk-3",
-	"sk-4",
-	"sk-5",
-	"sk-6",
-	"sk-7",
-	"sk-8",
-];
+const HOME_DEVICE_GRID_VISIBLE_LIMIT = 4;
+
+const SKELETON_KEYS = ["sk-1", "sk-2", "sk-3", "sk-4"];
 
 function DeviceGridSkeleton() {
 	return (
@@ -88,6 +81,11 @@ export function HomeDeviceGrid({
 	const activeCount = useMemo(
 		() => devices.filter((d) => d.isOnline && d.isOn).length,
 		[devices],
+	);
+
+	const visibleDevices = filteredDevices.slice(
+		0,
+		HOME_DEVICE_GRID_VISIBLE_LIMIT,
 	);
 
 	return (
@@ -181,7 +179,7 @@ export function HomeDeviceGrid({
 				</div>
 			) : (
 				<div className="grid grid-cols-2 gap-3 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4">
-					{filteredDevices.map((device) => (
+					{visibleDevices.map((device) => (
 						<HomeDeviceCard key={device.id} device={device} />
 					))}
 				</div>
