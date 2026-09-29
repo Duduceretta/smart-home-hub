@@ -19,6 +19,7 @@ using SmartHomeHub.Infrastructure.Services;
 using SmartHomeHub.Infrastructure.Services.Auth;
 using SmartHomeHub.Infrastructure.Services.Email;
 using SmartHomeHub.Infrastructure.Tuya;
+using SmartHomeHub.Infrastructure.Weather;
 
 namespace SmartHomeHub.Infrastructure;
 
@@ -116,6 +117,24 @@ public static class DependencyInjection
         services.AddScoped<IAutomationActionDispatcher, AutomationActionDispatcher>();
         services.AddScoped<IAutomationSchedulerService, AutomationSchedulerService>();
         services.AddScoped<IAutomationScheduleReader, AutomationScheduleReader>();
+
+        services
+            .AddHttpClient<IWeatherProvider, OpenMeteoWeatherProvider>(client =>
+            {
+                client.BaseAddress = new Uri("https://api.open-meteo.com");
+            })
+            .AddStandardResilienceHandler(options =>
+            {
+                options.AttemptTimeout.Timeout = TimeSpan.FromSeconds(5);
+                options.TotalRequestTimeout.Timeout = TimeSpan.FromSeconds(10);
+                options.CircuitBreaker.SamplingDuration = TimeSpan.FromSeconds(20);
+                options.CircuitBreaker.FailureRatio = 0.5;
+                options.CircuitBreaker.MinimumThroughput = 5;
+                options.CircuitBreaker.BreakDuration = TimeSpan.FromSeconds(30);
+                options.Retry.MaxRetryAttempts = 2;
+                options.Retry.BackoffType = Polly.DelayBackoffType.Exponential;
+                options.Retry.Delay = TimeSpan.FromMilliseconds(500);
+            });
         services.AddScoped<IAutomationTimeTriggerJob, AutomationTimeTriggerJob>();
 
         services.AddHangfire(config =>

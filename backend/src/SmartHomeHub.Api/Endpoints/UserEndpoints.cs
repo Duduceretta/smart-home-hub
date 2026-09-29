@@ -3,6 +3,7 @@ using Mediator;
 using SmartHomeHub.Api.Endpoints.Common;
 using SmartHomeHub.Api.Extensions;
 using SmartHomeHub.Application.Features.Users.Commands.SyncUser;
+using SmartHomeHub.Application.Features.Users.Commands.UpdateUserLocation;
 
 namespace SmartHomeHub.Api.Endpoints;
 
@@ -58,5 +59,42 @@ public static class UserEndpoints
             .Produces<UserSyncResponseDto>(StatusCodes.Status200OK)
             .Produces<UserSyncResponseDto>(StatusCodes.Status201Created)
             .Produces(StatusCodes.Status401Unauthorized);
+
+        app.MapPut(
+                "/api/users/me/location",
+                async (
+                    UpdateUserLocationRequest request,
+                    ClaimsPrincipal userToken,
+                    IMediator mediator,
+                    CancellationToken cancellationToken
+                ) =>
+                {
+                    var firebaseUid = userToken.GetFirebaseUid();
+
+                    if (string.IsNullOrEmpty(firebaseUid))
+                        return Results.Unauthorized();
+
+                    var command = new UpdateUserLocationCommand(
+                        firebaseUid,
+                        request.Latitude,
+                        request.Longitude
+                    );
+                    var result = await mediator.Send(command, cancellationToken);
+
+                    return result.IsFailure
+                        ? result.ToProblemDetails()
+                        : Results.Ok();
+                }
+            )
+            .RequireAuthorization()
+            .WithTags("Users")
+            .WithSummary("Salva a localização da residência do usuário")
+            .WithDescription(
+                "Capturada uma única vez no frontend (geolocalização do navegador, com consentimento explícito) — fonte de verdade pro clima real do hero da Home. Nunca re-perguntada depois de salva."
+            )
+            .Produces(StatusCodes.Status200OK)
+            .ProducesValidationProblem();
     }
 }
+
+public record UpdateUserLocationRequest(double Latitude, double Longitude);

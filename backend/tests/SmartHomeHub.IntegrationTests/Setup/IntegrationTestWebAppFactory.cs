@@ -97,6 +97,15 @@ public class IntegrationTestWebAppFactory : WebApplicationFactory<Program>, IAsy
                 sp.GetRequiredService<TestDeviceProbeService>()
             );
 
+            // Clima: substitui a chamada HTTP real ao Open-Meteo por uma
+            // leitura configurável por coordenada, mesmo princípio acima —
+            // nunca bate na API externa de verdade em CI.
+            services.RemoveAll<IWeatherProvider>();
+            services.AddSingleton<TestWeatherProvider>();
+            services.AddSingleton<IWeatherProvider>(sp =>
+                sp.GetRequiredService<TestWeatherProvider>()
+            );
+
             // Controle de TVs: substitui os serviços de rede reais (WoL/ADB/Cast) por spies
             // NSubstitute, evitando handshakes de verdade em CI (mesmo princípio acima).
             services.RemoveAll<IWakeOnLanService>();

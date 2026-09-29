@@ -9,6 +9,16 @@ public class User : IAuditableEntity, ISoftDeletable
     public string Name { get; set; } = string.Empty;
     public string Email { get; set; } = string.Empty;
 
+    /// <summary>
+    /// Localização da residência, capturada uma única vez (geolocalização do
+    /// navegador, com consentimento explícito) e reusada pra sempre — nunca
+    /// re-perguntada nem regeolocalizada a cada carregamento (mesmo padrão
+    /// de app de casa inteligente real: a casa não se move, só quem abre o
+    /// dashboard). Null = localização ainda não configurada.
+    /// </summary>
+    public double? Latitude { get; set; }
+    public double? Longitude { get; set; }
+
     // Auditoria (IAuditableEntity)
     public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
     public DateTimeOffset? UpdatedAt { get; set; }

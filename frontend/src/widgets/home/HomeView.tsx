@@ -73,7 +73,7 @@ export function HomeView() {
 			<div className="grid grid-cols-1 gap-5 lg:grid-cols-12">
 				{/* Bento Tile 1: Relógio Digital, Clima e Próxima Rotina (8 colunas) */}
 				<div className="lg:col-span-8">
-					<HomeClockHeroTile summary={overviewData?.summary} />
+					<HomeClockHeroTile />
 				</div>
 
 				{/* Bento Tile 2: Perímetro de Segurança & Alarme (4 colunas) */}

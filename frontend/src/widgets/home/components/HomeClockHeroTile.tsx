@@ -1,17 +1,16 @@
-import { Clock, CloudSun, Droplets, Sparkles, Wifi, Wind } from "lucide-react";
+import { Clock, Droplets, MapPin, Sparkles, Wifi, Wind } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { Button } from "@/core/components/ui/button";
 import {
 	type ConnectionStatus,
 	useConnectionStatus,
 } from "@/core/hooks/useConnectionStatus";
 import { useNextScheduledAutomation } from "@/features/automations/hooks/useNextScheduledAutomation";
-import type { DashboardSummary } from "@/features/dashboard/types/dashboard.types";
+import { useCurrentWeather } from "@/features/weather/hooks/useCurrentWeather";
+import { useEnsureUserLocation } from "@/features/weather/hooks/useEnsureUserLocation";
+import { getWeatherConditionIcon } from "@/features/weather/lib/getWeatherConditionIcon";
 import { formatNextRun } from "../utils/formatNextRun";
-
-interface HomeClockHeroTileProps {
-	summary?: DashboardSummary;
-}
 
 const NETWORK_STATUS_STYLES: Record<
 	ConnectionStatus,
@@ -40,10 +39,13 @@ const NETWORK_STATUS_STYLES: Record<
  * Atualiza o horário a cada segundo com precisão de hardware e exibe
  * a previsão ambiental e a próxima automação agendada do hub.
  */
-export function HomeClockHeroTile({ summary }: HomeClockHeroTileProps) {
+export function HomeClockHeroTile() {
 	const { i18n } = useTranslation();
 	const { status, latencyMs } = useConnectionStatus();
 	const { data: nextScheduledAutomation } = useNextScheduledAutomation();
+	const { data: weatherResponse, isLoading: isWeatherLoading } = useCurrentWeather();
+	const { needsLocation, requestLocation, isSaving, permissionDenied } =
+		useEnsureUserLocation();
 	const [currentTime, setCurrentTime] = useState(() => new Date());
 
 	useEffect(() => {
@@ -70,8 +72,9 @@ export function HomeClockHeroTile({ summary }: HomeClockHeroTileProps) {
 		}).format(currentTime);
 	}, [currentTime, i18n.language]);
 
-	const temp = summary?.averageTemperatureCelsius ?? 23.0;
 	const networkStatusStyle = NETWORK_STATUS_STYLES[status];
+	const weather = weatherResponse?.weather ?? null;
+	const WeatherIcon = weather ? getWeatherConditionIcon(weather.condition) : null;
 
 	return (
 		// Hero: único tile com padding maior e borda tingida de --primary — dá
@@ -114,7 +117,7 @@ export function HomeClockHeroTile({ summary }: HomeClockHeroTileProps) {
 			</div>
 
 			{/* Miolo: Relógio Digital Grande e Clima */}
-			<div className="my-3 flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-4">
+			<div className="my-3 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
 				{/* Relógio Digital com Segundos Discretos */}
 				<div className="flex items-baseline gap-1 font-mono font-bold tracking-tight text-foreground">
 					<span className="text-5xl sm:text-6xl lg:text-7xl font-semibold">
@@ -125,30 +128,60 @@ export function HomeClockHeroTile({ summary }: HomeClockHeroTileProps) {
 					</span>
 				</div>
 
-				{/* Cápsula de Clima Detalhado */}
-				<div className="flex items-center gap-4 rounded-lg border border-border-subtle bg-surface-container/60 px-3.5 py-2">
-					<CloudSun className="h-6 w-6 text-warm" />
-					<div className="flex flex-col">
-						<div className="flex items-baseline gap-1.5">
-							<span className="text-lg font-semibold text-foreground">
-								{temp.toFixed(1)}°C
-							</span>
-							<span className="text-xs text-muted-foreground">
-								Sensação {Math.round(temp + 1)}°C
-							</span>
-						</div>
-						<div className="flex items-center gap-3 text-xs text-muted-foreground">
-							<span className="flex items-center gap-1">
-								<Droplets className="h-3 w-3 text-sky-400" />
-								<span>58%</span>
-							</span>
-							<span className="flex items-center gap-1">
-								<Wind className="h-3 w-3 text-cool" />
-								<span>14 km/h</span>
-							</span>
+				{/* Cápsula de Clima Detalhado — real (Open-Meteo), nunca placeholder */}
+				{isWeatherLoading ? (
+					<div
+						role="status"
+						aria-label="Carregando clima"
+						className="flex h-[52px] w-44 items-center gap-4 rounded-lg border border-border-subtle bg-surface-container/60 px-3.5 py-2 animate-pulse"
+					>
+						<div className="h-6 w-6 shrink-0 rounded-full bg-surface-high" />
+						<div className="flex flex-1 flex-col gap-1.5">
+							<div className="h-3.5 w-20 rounded bg-surface-high" />
+							<div className="h-3 w-28 rounded bg-surface-high" />
 						</div>
 					</div>
-				</div>
+				) : weather ? (
+					<div className="flex items-center gap-4 rounded-lg border border-border-subtle bg-surface-container/60 px-3.5 py-2">
+						{WeatherIcon && <WeatherIcon className="h-6 w-6 text-warm" />}
+						<div className="flex flex-col">
+							<div className="flex items-baseline gap-1.5">
+								<span className="text-lg font-semibold text-foreground">
+									{weather.temperatureCelsius.toFixed(1)}°C
+								</span>
+								<span className="text-xs text-muted-foreground">
+									Sensação {Math.round(weather.feelsLikeCelsius)}°C
+								</span>
+							</div>
+							<div className="flex items-center gap-3 text-xs text-muted-foreground">
+								<span className="flex items-center gap-1">
+									<Droplets className="h-3 w-3 text-sky-400" />
+									<span>{Math.round(weather.humidityPercent)}%</span>
+								</span>
+								<span className="flex items-center gap-1">
+									<Wind className="h-3 w-3 text-cool" />
+									<span>{Math.round(weather.windSpeedKmh)} km/h</span>
+								</span>
+							</div>
+						</div>
+					</div>
+				) : needsLocation ? (
+					<Button
+						type="button"
+						variant="outline"
+						size="sm"
+						onClick={requestLocation}
+						disabled={isSaving}
+						className="gap-2 text-muted-foreground"
+					>
+						<MapPin className="h-3.5 w-3.5" />
+						{isSaving
+							? "Salvando..."
+							: permissionDenied
+								? "Permissão bloqueada"
+								: "Ativar localização"}
+					</Button>
+				) : null}
 			</div>
 
 			{/* Rodapé: Próxima Automação Agendada (real, Schedule ativa mais próxima) */}
