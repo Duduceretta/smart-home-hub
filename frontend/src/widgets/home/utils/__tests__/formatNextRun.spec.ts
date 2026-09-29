@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { formatNextRun } from "../formatNextRun";
 
 // Constrói horários em hora LOCAL da máquina de teste (não UTC) — evita

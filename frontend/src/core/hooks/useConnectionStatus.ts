@@ -1,4 +1,9 @@
-import { useConnectionStatusStore } from "@/core/hooks/useConnectionStatusStore";
+import {
+	type ConnectionStatus,
+	useConnectionStatusStore,
+} from "@/core/hooks/useConnectionStatusStore";
+
+export type { ConnectionStatus };
 
 /**
  * Fachada somente-leitura sobre `useConnectionStatusStore` — nenhuma feature
