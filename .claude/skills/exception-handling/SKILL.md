@@ -1,624 +1,76 @@
 ---
 name: exception-handling
-description: Comprehensive exception handling patterns for ASP.NET Core Razor Pages applications. Covers global exception handling, ProblemDetails API, custom error pages, exception middleware, and graceful degradation strategies. Use when implementing error handling in Razor Pages applications, configuring global exception middleware, or creating user-friendly error pages and API error responses.
+description: Usar ao lançar, capturar ou mapear erros no backend do Nexus Hub — exceções de domínio, IExceptionHandler global, ProblemDetails em Minimal APIs, falha de dispositivo/integração externa, e loop de BackgroundService/worker que não pode morrer.
+paths:
+  - "backend/**/*.cs"
 ---
 
-You are a senior ASP.NET Core architect specializing in exception handling. When implementing error handling in Razor Pages applications, apply these patterns to ensure graceful failures, proper logging, and excellent user experience. Target .NET 8+ with nullable reference types enabled.
+# Tratamento de Erro — Nexus Hub
 
-## Rationale
+## Antes de escrever
+Falha esperada nova: olhar `ResultExtensions.ToProblemDetails()` e escolher/reaproveitar convenção de `Error.Code` — não criar exceção de domínio pra isso. Falha inesperada: já cai no `GlobalExceptionHandler` existente, nada a registrar.
 
-Proper exception handling is critical for production applications. Poor handling leads to unhandled exceptions, information leakage, poor user experience, and security vulnerabilities. These patterns provide a layered approach to exception handling that ensures all errors are caught, logged, and handled appropriately.
+## Dois caminhos — não misturar (Tratamento Híbrido, ver `backend/CLAUDE.md`)
+| Tipo de falha | Mecanismo | Onde o status é decidido |
+|---|---|---|
+| **Esperada** (não encontrado, conflito, regra de negócio violada) | `Result`/`Result<T>` (Result Pattern) retornado pelo handler | Endpoint chama `result.ToProblemDetails()` explicitamente |
+| **Inesperada** (bug, infra caindo, exceção não tratada) | `throw` normal, capturada pelo `GlobalExceptionHandler` | Sempre `500` genérico — não há switch por tipo de exceção |
 
-## Exception Handling Layers
+Handler não devolve `Result.Failure` **e** deixa algo lançar exceção pro mesmo erro — é um ou outro.
 
-| Layer | Purpose | Scope |
-|-------|---------|-------|
-| **Global Middleware** | Catch-all unhandled exceptions | Application-wide |
-| **Exception Filter** | Handle controller/page-specific exceptions | PageModel |
-| **Try-Catch Blocks** | Handle specific operations | Method level |
-| **Error Pages** | Display user-friendly errors | UI |
-
-## Pattern 1: Global Exception Handler Configuration
-
-### Program.cs Setup
-
+## Caminho 1: Result Pattern → `ResultExtensions.ToProblemDetails()`
+Handler retorna `Result.Failure(new Error(code, description))`. O endpoint (não um filtro/middleware central) chama a extensão explicitamente:
 ```csharp
-var builder = WebApplication.CreateBuilder(args);
-
-var app = builder.Build();
-
-// Configure exception handling middleware (order matters!)
-if (app.Environment.IsDevelopment())
-{
-    app.UseDeveloperExceptionPage(); // Detailed errors for dev
-}
-else
-{
-    app.UseExceptionHandler("/Error"); // Production error page
-    app.UseStatusCodePagesWithReExecute("/NotFound", "?statusCode={0}");
-}
-
-app.UseHttpsRedirection();
-app.UseStaticFiles();
-app.UseRouting();
-
-app.MapRazorPages();
+var result = await mediator.Send(command, cancellationToken);
+if (result.IsFailure)
+    return result.ToProblemDetails();
+return Results.Ok(...);
 ```
+`ToProblemDetails()` (`SmartHomeHub.Api/Extensions/ResultExtensions.cs`) mapeia por **substring do `Error.Code`**, não por tipo:
+- `Code` contém `"NotFound"` → `404`
+- `Code` contém `"Conflict"` → `409`
+- `Code` contém `"Forbidden"`/`"Unauthorized"` → `403`
+- `Code` contém `"Validation"` → `422`
+- qualquer outro → `400` (default)
 
-### Error Page Model
+Ao criar um `Error` novo para um handler, escolher o `Code` **com a palavra-chave certa** (ex.: `"Room.NotFound"`, não `"Room.Missing"`) — é assim que o status HTTP é decidido, não existe mapeamento por tipo C#.
 
+## Caminho 2: `GlobalExceptionHandler` — fallback genérico, não roteador de status
+`GlobalExceptionHandler.cs` (`SmartHomeHub.Api/Middlewares/`) implementa `IExceptionHandler` e **sempre devolve 500** — loga a exceção com `TraceIdentifier` e escreve um `ProblemDetails` genérico ("Erro Interno do Servidor"). Ele **não faz switch por tipo de exceção** para decidir 404/409/422: isso é papel do Caminho 1. Não criar exceções de domínio tipadas (`NotFoundException`, `ConflictException` etc.) esperando que o handler global as traduza — não existe esse mecanismo no repo. Se uma falha esperada precisa de status específico, ela é modelada como `Result.Failure`, não como exceção.
+- 500 nunca expõe stack/mensagem interna ao cliente — a resposta é sempre a mensagem genérica.
+- `TraceIdentifier` vai em `ProblemDetails.Instance`, correlaciona com o log (`Falha Crítica [{TraceId}]`).
+
+## `ValidationException` do FluentValidation — só quando a resposta não é `Result`
+`ValidationBehavior` (pipeline do Mediator) devolve `Result.Failure` quando `TResponse` é `Result`/`Result<T>` (caso comum, cai no Caminho 1 acima, vira `422`/`400` via `ToProblemDetails()`). Só lança `ValidationException` quando o handler **não** usa Result Pattern como retorno — nesse caso cai no Caminho 2 (`GlobalExceptionHandler`) e vira `500` genérico, **não** `400` — não presumir tradução automática pra `ValidationProblemDetails`.
+
+## Status é contrato com o frontend
+O frontend separa falha de rede, erro de auth e dependência fora do ar (banner sistêmico, `CardErrorFallback`, stale data). Já houve bug de card classificando falha de rede como erro de OAuth. Então:
+- Integração externa (Tuya, Spotify, ADB, MQTT) fora do ar → `Error.Code` com palavra-chave que caia em `503`/`504` se existir esse mapeamento, ou adicionar o caso em `ToProblemDetails()` — **nunca** `401` nem deixar cair no `500` genérico do Caminho 2 se a falha era esperada.
+- Token do provedor externo expirado/revogado → erro distinto (`Error.Code` próprio), não `"Unauthorized"` (que o front interpreta como sessão do usuário caindo em `403`).
+
+## Workers e loops de longa duração
 ```csharp
-[ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
-[IgnoreAntiforgeryToken]
-public class ErrorModel(ILogger<ErrorModel> logger, IWebHostEnvironment env) : PageModel
+while (!stoppingToken.IsCancellationRequested)
 {
-    public string? RequestId { get; set; }
-    public bool ShowRequestId => !string.IsNullOrEmpty(RequestId);
-    public string? ErrorMessage { get; set; }
-    public string? StackTrace { get; set; }
-    public int StatusCode { get; set; } = 500;
-
-    public void OnGet(int? statusCode = null)
+    try { await ProcessOnceAsync(stoppingToken); }
+    catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested) { break; }
+    catch (Exception ex)
     {
-        RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier;
-        StatusCode = statusCode ?? 500;
-
-        var exceptionHandlerPathFeature = HttpContext.Features.Get<IExceptionHandlerPathFeature>();
-        
-        if (exceptionHandlerPathFeature?.Error != null)
-        {
-            var ex = exceptionHandlerPathFeature.Error;
-            var path = exceptionHandlerPathFeature.Path;
-            
-            logger.LogError(ex, 
-                "Unhandled exception at {Path}. RequestId: {RequestId}", 
-                path, RequestId);
-
-            // Only expose details in development
-            if (env.IsDevelopment())
-            {
-                ErrorMessage = ex.Message;
-                StackTrace = ex.StackTrace;
-            }
-            else
-            {
-                ErrorMessage = "An unexpected error occurred. Please try again later.";
-            }
-        }
+        logger.LogError(ex, "Telemetry ingest iteration failed");
+        await Task.Delay(backoff, stoppingToken);
     }
 }
 ```
-
-### Error.cshtml
-
-```csharp
-@page
-@model ErrorModel
-@{
-    ViewData["Title"] = "Error";
-}
-
-<h1 class="text-danger">Error</h1>
-<h2 class="text-danger">An error occurred while processing your request.</h2>
-
-@if (Model.ShowRequestId)
-{
-    <p>
-        <strong>Request ID:</strong> <code>@Model.RequestId</code>
-    </p>
-    <p class="text-muted">
-        Please include this ID when contacting support.
-    </p>
-}
-
-@if (!string.IsNullOrEmpty(Model.ErrorMessage))
-{
-    <h3>Error Details</h3>
-    <p>@Model.ErrorMessage</p>
-    
-    @if (!string.IsNullOrEmpty(Model.StackTrace))
-    {
-        <pre class="alert alert-secondary">@Model.StackTrace</pre>
-    }
-}
-```
-
-## Pattern 2: Status Code Pages
-
-### NotFound Page Model
-
-```csharp
-[ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
-public class NotFoundModel : PageModel
-{
-    public int StatusCode { get; set; }
-    public string? OriginalPath { get; set; }
-
-    public void OnGet(int statusCode)
-    {
-        StatusCode = statusCode;
-        OriginalPath = HttpContext.Features.Get<IStatusCodeReExecuteFeature>()?.OriginalPath;
-    }
-}
-```
-
-### NotFound.cshtml
-
-```csharp
-@page
-@model NotFoundModel
-@{
-    ViewData["Title"] = "Not Found";
-}
-
-<div class="text-center">
-    <h1 class="display-1">@Model.StatusCode</h1>
-    <h2>Page Not Found</h2>
-    
-    @if (!string.IsNullOrEmpty(Model.OriginalPath))
-    {
-        <p>The page <code>@Model.OriginalPath</code> could not be found.</p>
-    }
-    
-    <a asp-page="/Index" class="btn btn-primary">Return to Home</a>
-</div>
-```
-
-## Pattern 3: Custom Exception Middleware
-
-For more control than the built-in exception handler, create custom middleware.
-
-```csharp
-public class GlobalExceptionHandlingMiddleware(RequestDelegate next, ILogger<GlobalExceptionHandlingMiddleware> logger)
-{
-    public async Task Invoke(HttpContext context)
-    {
-        try
-        {
-            await next(context);
-        }
-        catch (Exception ex)
-        {
-            await HandleExceptionAsync(context, ex);
-        }
-    }
-
-    private async Task HandleExceptionAsync(HttpContext context, Exception exception)
-    {
-        logger.LogError(exception, "Unhandled exception occurred");
-
-        context.Response.ContentType = "application/json";
-        
-        var response = exception switch
-        {
-            ValidationException ex => CreateValidationErrorResponse(context, ex),
-            NotFoundException ex => CreateNotFoundResponse(context, ex),
-            UnauthorizedAccessException ex => CreateUnauthorizedResponse(context, ex),
-            ConflictException ex => CreateConflictResponse(context, ex),
-            _ => CreateGenericErrorResponse(context, exception)
-        };
-
-        context.Response.StatusCode = response.Status ?? 500;
-        await context.Response.WriteAsJsonAsync(response);
-    }
-
-    private static ProblemDetails CreateValidationErrorResponse(HttpContext context, ValidationException ex)
-    {
-        return new ValidationProblemDetails(ex.Errors)
-        {
-            Status = StatusCodes.Status400BadRequest,
-            Type = "https://tools.ietf.org/html/rfc7231#section-6.5.1",
-            Title = "Validation Failed",
-            Detail = "One or more validation errors occurred",
-            Instance = context.Request.Path
-        };
-    }
-
-    private static ProblemDetails CreateNotFoundResponse(HttpContext context, NotFoundException ex)
-    {
-        return new ProblemDetails
-        {
-            Status = StatusCodes.Status404NotFound,
-            Type = "https://tools.ietf.org/html/rfc7231#section-6.5.4",
-            Title = "Not Found",
-            Detail = ex.Message,
-            Instance = context.Request.Path
-        };
-    }
-
-    private static ProblemDetails CreateUnauthorizedResponse(HttpContext context, UnauthorizedAccessException ex)
-    {
-        return new ProblemDetails
-        {
-            Status = StatusCodes.Status403Forbidden,
-            Type = "https://tools.ietf.org/html/rfc7231#section-6.5.3",
-            Title = "Forbidden",
-            Detail = "You do not have permission to perform this action",
-            Instance = context.Request.Path
-        };
-    }
-
-    private static ProblemDetails CreateConflictResponse(HttpContext context, ConflictException ex)
-    {
-        return new ProblemDetails
-        {
-            Status = StatusCodes.Status409Conflict,
-            Type = "https://tools.ietf.org/html/rfc7231#section-6.5.8",
-            Title = "Conflict",
-            Detail = ex.Message,
-            Instance = context.Request.Path
-        };
-    }
-
-    private static ProblemDetails CreateGenericErrorResponse(HttpContext context, Exception ex)
-    {
-        return new ProblemDetails
-        {
-            Status = StatusCodes.Status500InternalServerError,
-            Type = "https://tools.ietf.org/html/rfc7231#section-6.6.1",
-            Title = "Internal Server Error",
-            Detail = "An unexpected error occurred",
-            Instance = context.Request.Path
-        };
-    }
-}
-
-// Extension method
-public static class ExceptionHandlingExtensions
-{
-    public static IApplicationBuilder UseGlobalExceptionHandling(this IApplicationBuilder app)
-    {
-        return app.UseMiddleware<GlobalExceptionHandlingMiddleware>();
-    }
-}
-```
-
-## Pattern 4: Custom Exceptions
-
-Define domain-specific exceptions for different error scenarios.
-
-```csharp
-// Base exception
-public abstract class DomainException : Exception
-{
-    protected DomainException(string message) : base(message) { }
-    protected DomainException(string message, Exception inner) : base(message, inner) { }
-}
-
-// Not Found
-public class NotFoundException : DomainException
-{
-    public NotFoundException(string entityType, object id)
-        : base($"{entityType} with id '{id}' was not found.") { }
-
-    public NotFoundException(string message) : base(message) { }
-}
-
-// Validation
-public class ValidationException : DomainException
-{
-    public IReadOnlyDictionary<string, string[]> Errors { get; }
-
-    public ValidationException(IDictionary<string, string[]> errors)
-        : base("Validation failed")
-    {
-        Errors = new ReadOnlyDictionary<string, string[]>(errors);
-    }
-
-    public ValidationException(string propertyName, string errorMessage)
-        : base("Validation failed")
-    {
-        Errors = new ReadOnlyDictionary<string, string[]>(
-            new Dictionary<string, string[]> { [propertyName] = new[] { errorMessage } });
-    }
-}
-
-// Conflict
-public class ConflictException : DomainException
-{
-    public ConflictException(string message) : base(message) { }
-}
-
-// Business Rule Violation
-public class BusinessRuleException : DomainException
-{
-    public string RuleCode { get; }
-
-    public BusinessRuleException(string ruleCode, string message)
-        : base(message)
-    {
-        RuleCode = ruleCode;
-    }
-}
-```
-
-## Pattern 5: ProblemDetails API
-
-ASP.NET Core 7+ includes built-in ProblemDetails support.
-
-```csharp
-// Program.cs
-builder.Services.AddProblemDetails(options =>
-{
-    options.CustomizeProblemDetails = ctx =>
-    {
-        ctx.ProblemDetails.Instance = ctx.HttpContext.Request.Path;
-        ctx.ProblemDetails.Extensions["traceId"] = Activity.Current?.Id ?? ctx.HttpContext.TraceIdentifier;
-        ctx.ProblemDetails.Extensions["timestamp"] = DateTimeOffset.UtcNow;
-        
-        if (ctx.HttpContext.User.Identity?.IsAuthenticated == true)
-        {
-            ctx.ProblemDetails.Extensions["userId"] = ctx.HttpContext.User.Identity.Name;
-        }
-    };
-});
-
-var app = builder.Build();
-app.UseExceptionHandler();
-app.UseStatusCodePages();
-```
-
-### Custom ProblemDetails Factory
-
-```csharp
-public class CustomProblemDetailsFactory : ProblemDetailsFactory
-{
-    public override ProblemDetails CreateProblemDetails(
-        HttpContext httpContext,
-        int? statusCode = null,
-        string? title = null,
-        string? type = null,
-        string? detail = null,
-        string? instance = null)
-    {
-        var problemDetails = new ProblemDetails
-        {
-            Status = statusCode ?? 500,
-            Title = title,
-            Type = type,
-            Detail = detail,
-            Instance = instance ?? httpContext.Request.Path
-        };
-
-        // Add correlation ID
-        if (httpContext.Request.Headers.TryGetValue("X-Correlation-Id", out var correlationId))
-        {
-            problemDetails.Extensions["correlationId"] = correlationId.ToString();
-        }
-
-        return problemDetails;
-    }
-
-    public override ValidationProblemDetails CreateValidationProblemDetails(
-        HttpContext httpContext,
-        ModelStateDictionary modelStateDictionary,
-        int? statusCode = null,
-        string? title = null,
-        string? type = null,
-        string? detail = null,
-        string? instance = null)
-    {
-        var validationProblemDetails = new ValidationProblemDetails(modelStateDictionary)
-        {
-            Status = statusCode ?? 400,
-            Title = title ?? "Validation Failed",
-            Type = type,
-            Detail = detail,
-            Instance = instance ?? httpContext.Request.Path
-        };
-
-        return validationProblemDetails;
-    }
-}
-
-// Register
-builder.Services.AddSingleton<ProblemDetailsFactory, CustomProblemDetailsFactory>();
-```
-
-## Pattern 6: Handler-Level Exception Handling
-
-```csharp
-public abstract class SafePageModel : PageModel
-{
-    protected async Task<IActionResult> TryAsync(Func<Task<IActionResult>> action)
-    {
-        try
-        {
-            return await action();
-        }
-        catch (NotFoundException ex)
-        {
-            TempData["ErrorMessage"] = ex.Message;
-            return NotFound();
-        }
-        catch (ValidationException ex)
-        {
-            foreach (var error in ex.Errors)
-            {
-                ModelState.AddModelError(error.Key, string.Join(", ", error.Value));
-            }
-            return Page();
-        }
-        catch (ConflictException ex)
-        {
-            ModelState.AddModelError(string.Empty, ex.Message);
-            return Page();
-        }
-        catch (Exception ex)
-        {
-            // Log and return generic error
-            TempData["ErrorMessage"] = "An unexpected error occurred. Please try again.";
-            return RedirectToPage("/Error");
-        }
-    }
-}
-
-// Usage
-public class OrderDetailsModel(IOrderService orderService) : SafePageModel
-{
-    public Order? Order { get; set; }
-
-    public Task<IActionResult> OnGetAsync(Guid id)
-    {
-        return TryAsync(async () =>
-        {
-            Order = await orderService.GetAsync(id);
-            return Page();
-        });
-    }
-}
-```
-
-## Pattern 7: Background Service Exception Handling
-
-```csharp
-public class EmailOutboxProcessor(ILogger<EmailOutboxProcessor> logger) : BackgroundService
-{
-    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
-    {
-        while (!stoppingToken.IsCancellationRequested)
-        {
-            try
-            {
-                await ProcessOutboxAsync(stoppingToken);
-            }
-            catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
-            {
-                // Expected during shutdown
-                break;
-            }
-            catch (Exception ex)
-            {
-                logger.LogError(ex, "Error processing email outbox");
-                // Wait before retrying
-                await Task.Delay(TimeSpan.FromMinutes(1), stoppingToken);
-            }
-        }
-    }
-
-    private async Task ProcessOutboxAsync(CancellationToken ct)
-    {
-        // Processing logic here
-    }
-}
-```
-
-## Pattern 8: MediatR Exception Handling Behavior
-
-```csharp
-public class ExceptionHandlingBehavior<TRequest, TResponse>(ILogger<ExceptionHandlingBehavior<TRequest, TResponse>> logger)
-    : IPipelineBehavior<TRequest, TResponse>
-    where TRequest : IRequest<TResponse>
-{
-    public async Task<TResponse> Handle(
-        TRequest request,
-        RequestHandlerDelegate<TResponse> next,
-        CancellationToken cancellationToken)
-    {
-        try
-        {
-            return await next(cancellationToken);
-        }
-        catch (DomainException)
-        {
-            // Domain exceptions are expected - rethrow for handling upstream
-            throw;
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, 
-                "Unexpected error handling {RequestName}", 
-                typeof(TRequest).Name);
-            
-            throw new ApplicationException(
-                $"Error processing request {typeof(TRequest).Name}", ex);
-        }
-    }
-}
-```
-
-## Anti-Patterns
-
-### Swallowing Exceptions
-
-```csharp
-// ❌ BAD: Silent failure
-try
-{
-    await _service.DoWorkAsync();
-}
-catch (Exception)
-{
-    // Nothing logged, nothing thrown!
-}
-
-// ✅ GOOD: Log and either handle or rethrow
-catch (Exception ex)
-{
-    _logger.LogError(ex, "Failed to complete work");
-    throw; // Or handle gracefully
-}
-```
-
-### Catching Generic Exception Too Early
-
-```csharp
-// ❌ BAD: Catching generic exception too early prevents proper handling
-try
-{
-    var user = await _userService.GetAsync(id);
-    var order = await _orderService.CreateAsync(user, request);
-}
-catch (Exception ex) // Catches everything
-{
-    // Can't distinguish between user not found and order creation failure
-}
-
-// ✅ GOOD: Catch specific exceptions where they occur
-try
-{
-    var user = await _userService.GetAsync(id);
-}
-catch (NotFoundException ex)
-{
-    return NotFound(ex.Message);
-}
-
-try
-{
-    var order = await _orderService.CreateAsync(user, request);
-}
-catch (ValidationException ex)
-{
-    return BadRequest(ex.Errors);
-}
-```
-
-### Leaking Sensitive Information
-
-```csharp
-// ❌ BAD: Exposing internal details in production
-catch (Exception ex)
-{
-    return Content($"Database connection failed: {ex.StackTrace}");
-}
-
-// ✅ GOOD: Generic message in production, details in development
-catch (Exception ex)
-{
-    _logger.LogError(ex, "Internal error");
-    
-    if (_env.IsDevelopment())
-    {
-        return Content(ex.ToString());
-    }
-    
-    return Content("An error occurred");
-}
-```
-
-## References
-
-- Exception Handling: https://learn.microsoft.com/en-us/aspnet/core/fundamentals/error-handling
-- ProblemDetails: https://learn.microsoft.com/en-us/aspnet/core/fundamentals/minimal-apis/handle-errors
-- Status Code Pages: https://learn.microsoft.com/en-us/aspnet/core/fundamentals/error-handling#usestatuscodepages
+- Exceção não tratada em `BackgroundService` derruba o host (.NET 8+ default). Toda iteração protegida.
+- Falha de **um** dispositivo nunca para o processamento dos outros: isolar try/catch por item.
+- Hangfire: deixar a exceção subir para o retry nativo só se o job for idempotente (chave determinística); senão, capturar e registrar estado.
+
+## Anti-padrões
+- `catch (Exception) { }` silencioso.
+- `throw new Exception("...")` ou exceção de domínio tipada para regra de negócio esperada — isso é `Result.Failure`, não exceção.
+- `throw ex;` (perde stack) — usar `throw;`.
+- `try/catch` em endpoint para montar resposta — endpoint só chama `.ToProblemDetails()` no `Result`, nunca captura exceção.
+
+## Teste
+- Caminho 1 (Result → status específico): teste de integração via `WebApplicationFactory` provocando a falha esperada (ex.: recurso inexistente) e checando o status mapeado por `ToProblemDetails()`.
+- Caminho 2 (exceção → 500 genérico): teste de integração provocando uma falha inesperada (ex.: dependência quebrada via fake) e checando `500` + `ProblemDetails` genérico, nunca um status específico.

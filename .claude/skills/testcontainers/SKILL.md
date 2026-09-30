@@ -1,167 +1,64 @@
 ---
 name: testcontainers
-description: Patterns for using Testcontainers in .NET integration tests to spin up real dependencies like databases and message queues. Use when writing integration tests that require real databases, testing with message brokers like RabbitMQ or Kafka, or isolating test dependencies with Docker containers.
+description: Usar ao escrever teste de integração no backend do Nexus Hub — com banco real (TimescaleDB), broker MQTT real, app subindo via WebApplicationFactory, ou teste de DI/lifetimes (Singleton/Scoped/Transient, captive dependency). Reutiliza a infra de integração existente do repo.
+paths:
+  - "backend/**/*.cs"
 ---
 
-# Integration Testing with TestContainers
+# Testes de Integração — Nexus Hub
 
-## When to Use This Skill
+## Regra zero: reutilizar a infra existente
+O projeto de integração do Hub já tem fixture de containers + `WebApplicationFactory` (foi a referência copiada para outros projetos e pegou bugs reais de lifetime). **Antes de escrever teste, abrir essa infra e usar as fixtures/factory/helpers existentes.** Não criar factory, fixture ou container novo se já existe um equivalente.
 
-Use this skill when:
-- Writing integration tests that need real infrastructure (databases, caches, message queues)
-- Testing data access layers against actual databases
-- Verifying message queue integrations
-- Testing Redis caching behavior
-- Avoiding mocks for infrastructure components
-- Ensuring tests work against production-like environments
-- Testing database migrations and schema changes
+## Quando usar cada nível
+| Mudança | Teste |
+|---|---|
+| Lógica pura | Unit, sem Docker — não usar esta skill |
+| Query, migration, constraint, hypertable | Testcontainers TimescaleDB |
+| Endpoint, pipeline Mediator, middleware, auth, exception handler | `WebApplicationFactory<Program>` + containers |
+| Registro de DI / lifetime | Teste de container de DI (seção 4) |
+| Ingest MQTT → processamento | `WebApplicationFactory` + container Mosquitto |
 
-## Core Principles
+## 1. Containers
+- **Mesma imagem do banco de produção** (`timescale/timescaledb` com a tag do docker compose do deploy). Postgres puro não tem hypertable — teste passaria com schema diferente do real.
+- Container compartilhado por coleção de testes (fixture), não um por teste. Isolamento via reset de dados entre testes (truncate/Respawn — seguir o que o repo usa).
+- Schema via **as migrations reais** (`Database.MigrateAsync()`), nunca `EnsureCreated()` (pula SQL custom de Timescale).
+- Portas sempre aleatórias (`GetConnectionString()` / `GetMappedPublicPort`), nunca fixas.
+- Mosquitto (`eclipse-mosquitto`) só nos testes que exercitam MQTT de verdade.
 
-1. **Real Infrastructure Over Mocks** - Use actual databases/services in containers, not mocks
-2. **Test Isolation** - Each test gets fresh containers or fresh data
-3. **Automatic Cleanup** - TestContainers handles container lifecycle and cleanup
-4. **Fast Startup** - Reuse containers across tests in the same class when appropriate
-5. **CI/CD Compatible** - Works seamlessly in Docker-enabled CI environments
-6. **Port Randomization** - Containers use random ports to avoid conflicts
+## 2. WebApplicationFactory — composition root real
+**O teste passa pelo `Program.cs` real.** Nunca montar à mão os serviços que em produção vêm do container de DI — foi exatamente assim que bugs de lifetime escaparam em outro projeto.
 
-## Why TestContainers Over Mocks?
+Pode substituir, via `ConfigureTestServices`, apenas **fronteiras externas**:
+- Connection string → container.
+- Autenticação Firebase → test auth handler (scheme de teste com claims controladas).
+- Dispositivos físicos / rede local (UDP Tuya, ADB, Wake-on-LAN, Spotify HTTP) → fake da interface de borda.
+- Hangfire: storage de teste ou servidor desligado, conforme o repo já faz.
 
-### Problems with Mocking Infrastructure
+Não pode substituir: handlers, behaviors, repositórios/DbContext, serviços de domínio, hubs, lifetimes. Se o teste precisa trocar isso para passar, o teste está simplificando o mecanismo real — parar e reportar.
 
+## 3. Hosted services em teste
+- Worker que toca hardware/rede local: desligar ou apontar para fake de borda.
+- Worker que é o **objeto do teste** (ingest, engine de automação): manter ligado e dirigir por entrada real (publicar no Mosquitto, inserir no banco) e esperar efeito com polling com timeout — nunca `Task.Delay` fixo.
+
+## 4. Testes de DI e lifetime
+Obrigatório rodar ao mudar qualquer registro de DI.
 ```csharp
-// BAD: Mocking a database
-public class OrderRepositoryTests
+builder.UseDefaultServiceProvider(o =>
 {
-    private readonly Mock<IDbConnection> _mockDb = new();
-
-    [Fact]
-    public async Task GetOrder_ReturnsOrder()
-    {
-        // This doesn't test real SQL behavior, constraints, or performance
-        _mockDb.Setup(db => db.QueryAsync<Order>(It.IsAny<string>()))
-            .ReturnsAsync(new[] { new Order { Id = 1 } });
-
-        var repo = new OrderRepository(_mockDb.Object);
-        var order = await repo.GetOrderAsync(1);
-
-        Assert.NotNull(order);
-    }
-}
+    o.ValidateScopes = true;   // Scoped resolvido do root → falha
+    o.ValidateOnBuild = true;  // dependência faltando → falha no build
+});
 ```
+Cobrir:
+- Resolver **todo** `IHostedService` e Singleton registrado — falha em captive dependency (Singleton → Scoped).
+- Handlers do Mediator no lifetime configurado conseguem resolver suas dependências.
+- Estado compartilhado (semáforo por dispositivo, cache, registry) é a **mesma instância** entre dois escopos (pega `AddTransient`/`AddScoped` indevido).
+- Serviço Scoped é **instância diferente** entre dois escopos e igual dentro do mesmo.
+- Concorrência: N requests paralelos no endpoint que usa DbContext não geram erro de "second operation started on this context".
 
-Problems:
-- Doesn't test actual SQL queries
-- Misses database constraints, indexes, and performance
-- Can give false confidence
-- Doesn't catch SQL syntax errors or schema mismatches
-
-### Better: TestContainers with Real Database
-
-```csharp
-// GOOD: Testing against a real database
-public class OrderRepositoryTests : IAsyncLifetime
-{
-    private readonly TestcontainersContainer _dbContainer;
-    private IDbConnection _connection;
-
-    public OrderRepositoryTests()
-    {
-        _dbContainer = new TestcontainersBuilder<TestcontainersContainer>()
-            .WithImage("mcr.microsoft.com/mssql/server:2022-latest")
-            .WithEnvironment("ACCEPT_EULA", "Y")
-            .WithEnvironment("SA_PASSWORD", "Your_password123")
-            .WithPortBinding(1433, true)
-            .Build();
-    }
-
-    public async Task InitializeAsync()
-    {
-        await _dbContainer.StartAsync();
-
-        var port = _dbContainer.GetMappedPublicPort(1433);
-        var connectionString = $"Server=localhost,{port};Database=TestDb;User Id=sa;Password=Your_password123;TrustServerCertificate=true";
-
-        _connection = new SqlConnection(connectionString);
-        await _connection.OpenAsync();
-
-        // Run migrations
-        await RunMigrationsAsync(_connection);
-    }
-
-    public async Task DisposeAsync()
-    {
-        await _connection.DisposeAsync();
-        await _dbContainer.DisposeAsync();
-    }
-
-    [Fact]
-    public async Task GetOrder_WithRealDatabase_ReturnsOrder()
-    {
-        // Arrange: Insert real test data
-        await _connection.ExecuteAsync(
-            "INSERT INTO Orders (Id, CustomerId, Total) VALUES (1, 'CUST1', 100.00)");
-
-        var repo = new OrderRepository(_connection);
-
-        // Act: Execute against real database
-        var order = await repo.GetOrderAsync(1);
-
-        // Assert: Verify actual database behavior
-        Assert.NotNull(order);
-        Assert.Equal(1, order.Id);
-        Assert.Equal("CUST1", order.CustomerId);
-        Assert.Equal(100.00m, order.Total);
-    }
-}
-```
-
-Benefits:
-- Tests real SQL queries and database behavior
-- Catches constraint violations, index issues, and performance problems
-- Verifies migrations work correctly
-- Gives true confidence in data access layer
-
-## Required NuGet Packages
-
-```xml
-<ItemGroup>
-  <PackageReference Include="Testcontainers" Version="*" />
-  <PackageReference Include="xunit" Version="*" />
-  <PackageReference Include="xunit.runner.visualstudio" Version="*" />
-
-  <!-- Database-specific packages -->
-  <PackageReference Include="Microsoft.Data.SqlClient" Version="*" />
-  <PackageReference Include="Npgsql" Version="*" /> <!-- For PostgreSQL -->
-  <PackageReference Include="MySqlConnector" Version="*" /> <!-- For MySQL -->
-
-  <!-- Other infrastructure -->
-  <PackageReference Include="StackExchange.Redis" Version="*" /> <!-- For Redis -->
-  <PackageReference Include="RabbitMQ.Client" Version="*" /> <!-- For RabbitMQ -->
-</ItemGroup>
-```
-
-## Getting Started
-
-The Testcontainers library provides a simple API for managing Docker containers in your tests. Each test can spin up the infrastructure it needs, and Testcontainers handles the lifecycle automatically.
-
-## Reference Documentation
-
-For detailed patterns and examples, see the reference files:
-
-- **[Database Containers](./reference/database-containers.md)** - SQL Server, PostgreSQL, MySQL, and migration patterns
-- **[Message Broker Containers](./reference/message-broker-containers.md)** - RabbitMQ, Kafka, and Service Bus patterns
-- **[Advanced Patterns](./reference/advanced-patterns.md)** - Networks, volumes, wait strategies, cleanup, and performance optimization
-
-## Best Practices
-
-1. **Always Use IAsyncLifetime** - Proper async setup and teardown
-2. **Wait for Port Availability** - Use `WaitStrategy` to ensure containers are ready
-3. **Use Random Ports** - Let TestContainers assign ports automatically
-4. **Clean Data Between Tests** - Either use fresh containers or truncate tables
-5. **Reuse Containers When Possible** - Faster than creating new ones for each test
-6. **Test Real Queries** - Don't just test mocks; verify actual SQL behavior
-7. **Verify Constraints** - Test foreign keys, unique constraints, indexes
-8. **Test Transactions** - Verify rollback and commit behavior
-9. **Use Realistic Data** - Test with production-like data volumes
-10. **Handle Cleanup** - Always dispose containers in `DisposeAsync`
+## 5. Boas práticas
+- `IAsyncLifetime` para setup/teardown assíncrono.
+- Dados de teste criados pelo próprio teste (arrange explícito), sem depender de ordem de execução.
+- Assert no efeito observável (resposta HTTP, linha no banco, mensagem publicada, evento no hub), não em chamada interna.
+- Rodar com filtro durante o desenvolvimento; suíte completa antes do PR.
