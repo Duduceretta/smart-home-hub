@@ -152,7 +152,7 @@ A arquitetura abandona o carregamento bloqueante (spinners gigantes a cada troca
 |---|---|---|
 | Lista de Cômodos / Topologia | `5 minutos` | Quase estático. Navegar entre telas não dispara novos pedidos HTTP. |
 | Telemetria histórica (gráficos) | `30 segundos` | Revalida em background ao focar a aba. |
-| Estado online/offline de devices | `0` (sempre fresco) | Gerenciado exclusivamente via SignalR, não por polling HTTP. |
+| Lista de Dispositivos (`useDevices`) | `30 segundos` | Estado on/off/online sincronizado ao vivo via SignalR (`DeviceStatusChanged`); o `staleTime` só evita refetch redundante em navegação entre telas dentro da janela, não substitui o realtime. |
 
 **Deduplicação de Pedidos:** Se 5 widgets diferentes no Dashboard requisitarem os dados do usuário simultaneamente na montagem, o TanStack Query intercepta e envia apenas **um único pedido HTTP** ao C#, compartilhando o resultado com todos os componentes — protegendo o servidor de flooding e economizando largura de banda.
 

@@ -92,7 +92,7 @@ ORDER BY idx_scan ASC;
 
 ### 3.4. Pendência explícita: índice GIN trigram para busca textual (adiado)
 
-A primeira rodada da auditoria de banco (`backend/docs/database-audit.md`, Fase 3) propôs um índice GIN via `pg_trgm` para acelerar busca de texto livre em `SystemEvents` (campos `Description`/`DeviceName`), evitando *Seq Scan* em buscas do histórico de eventos:
+Uma rodada anterior de auditoria de banco propôs um índice GIN via `pg_trgm` para acelerar busca de texto livre em `SystemEvents` (campos `Description`/`DeviceName`), evitando *Seq Scan* em buscas do histórico de eventos:
 
 ```sql
 CREATE EXTENSION IF NOT EXISTS pg_trgm;

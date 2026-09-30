@@ -28,7 +28,7 @@ O projeto abandona a separação ultrapassada por tipo de arquivo (todas as tela
 
 > **Regra de ouro**: `features` nunca importam entre si diretamente. Se `dashboard` precisa saber o usuário logado, ele consome a store de `auth` — nunca importa um componente de dentro de `auth/components/`.
 
-**Sobre o `widgets/`**: crie esta pasta apenas quando o primeiro componente multi-feature aparecer de verdade. Colocar o componente no `core/` violaria o isolamento da base; colocá-lo em outra `feature/` criaria acoplamento horizontal proibido; colocá-lo em `pages/` sujaria a responsabilidade da camada de rota. O `widgets/` é o único terreno neutro para esses casos — hoje isso vive em `widgets/layout/` (`AppLayout.tsx`, `AuthLayout.tsx`, `Header.tsx`, `Sidebar.tsx`) e em `widgets/dashboard/` (`DashboardView.tsx`, `RoomDeviceSection.tsx`, `EditRoomPreviewModal.tsx` — compõem `devices`, `rooms` e `integrations` numa única tela).
+**Sobre o `widgets/`**: crie esta pasta apenas quando o primeiro componente multi-feature aparecer de verdade. Colocar o componente no `core/` violaria o isolamento da base; colocá-lo em outra `feature/` criaria acoplamento horizontal proibido; colocá-lo em `pages/` sujaria a responsabilidade da camada de rota. O `widgets/` é o único terreno neutro para esses casos — hoje isso vive em `widgets/layout/` (`AppLayout.tsx`, `AuthLayout.tsx`, `Sidebar.tsx` — sem `Header.tsx` global, removido: cada página tem seu próprio header, e o menu mobile é um botão flutuante no `AppLayout`) e em `widgets/dashboard/` (`DashboardView.tsx`, `RoomDeviceSection.tsx`, `EditRoomPreviewModal.tsx` — compõem `devices`, `rooms` e `integrations` numa única tela).
 
 **Exceção documentada: `features/dev`**. Os hooks de `features/dev/hooks/*.ts` (`useSeedMockHouse`, `useEmitTelemetry`, `useClearMockHouse`, `useToggleConnectivity`) importam query key factories de `dashboard`, `devices` e `rooms` direto (ex: `dashboardKeys`, `devicesKeys`, `roomsKeys`), sem passar por `widgets/` ou por uma store. Isso é aceito porque `dev` é uma ferramenta interna dev-only (seed de dados de teste, emissão manual de telemetria) que precisa invalidar o cache de várias features de propósito — não é uma fatia de domínio de produto que outras features consomem de volta. Não replique esse padrão fora de `features/dev`.
 
@@ -221,7 +221,7 @@ Para evitar vazamento de dados sensíveis em produção, qualquer rastro de exec
 
 ### 4.3. `<Link>` do `react-router-dom` vs. clique físico rápido repetido (v7.18.3)
 
-Investigação registrada em detalhe: `handoff.md` (raiz do repositório) e issue aberto em `remix-run/react-router`.
+Investigação registrada em detalhe em issue aberto em `remix-run/react-router`.
 
 **Sintoma**: cliques físicos reais e rápidos entre itens de navegação diferentes (não cliques sintéticos/programáticos) causavam travamento total da aba por 15–25s, sem erro no console e com CPU baixa — trace do Chrome Performance mostrou acúmulo de `RunTask` que sobrevivia ~16s além do fim do input.
 

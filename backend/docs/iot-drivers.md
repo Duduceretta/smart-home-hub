@@ -77,7 +77,7 @@ Quando um comando Tuya falha por IP desatualizado (DHCP mudou o IP do dispositiv
 
 **Pergunta original**: com uma sessão TCP autenticada (handshake de 3 vias completo, session key derivada) mantida **aberta** em vez de fechada após o comando, o dispositivo empurra sozinho um frame de status quando o estado muda por fora (interruptor físico, app SmartLife) — sem nenhum polling nosso? Esse é o mecanismo que bibliotecas do ecossistema Tuya-local (localtuya, tinytuya) usam pra atualização "quase instantânea" sem depender da nuvem Tuya. Diferente da via já descartada (broadcast UDP nas portas 6666/6667 não carrega `dps` — payload idêntico entre estados on/off, confirmado empiricamente; não repetir esse teste).
 
-**Ferramenta**: `backend/tools/bench/TuyaSpontaneousPushBench` (protocolo de uso em `backend/tools/bench/README.md`) — console app isolado fora de `SmartHomeHub.slnx`, reaproveita handshake/derivação de session key de `TuyaSessionProtocolClient`, mantém o socket aberto após o handshake e entra em escuta passiva.
+**Ferramenta**: console app isolado ad-hoc (fora de `SmartHomeHub.slnx`, não commitado no repo — usado só pontualmente para esta investigação e descartado depois), reaproveitando handshake/derivação de session key de `TuyaSessionProtocolClient`, mantendo o socket aberto após o handshake e entrando em escuta passiva.
 
 **Resultado 1 — mudança via app SmartLife: SIM, gera push espontâneo.** Rodada real contra dispositivo v3.5 de bancada, sessão aberta, sem nenhum comando nosso além da query de baseline inicial. Dois frames não solicitados chegaram no socket durante a janela de escuta passiva, cada um coincidindo com uma mudança de estado feita pelo app:
 

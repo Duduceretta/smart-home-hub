@@ -13,21 +13,7 @@
 - Estado (`isMobileNavOpen`) mora em `AppLayout`, que dispara o `Header`'s `onMenuClick` pra abrir, passa `isMenuOpen` pro botão hamburguer (`aria-expanded`, `aria-controls`) e `isOpen`/`onClose` pro drawer.
 - Fecha automaticamente ao navegar: `AppLayout` observa `location.pathname` num `useEffect` e força `setIsMobileNavOpen(false)` a cada mudança de rota (além do próprio `onClick={onClose}` em cada `Link` do drawer, por segurança).
 
-## 2. Header — prioridade de conteúdo em 375px
-
-Abaixo de `sm` (640px), o Header (`widgets/layout/Header.tsx`) colapsa o que é secundário e mantém sempre visível o que é essencial (botão de menu, avatar, ícones de ação):
-
-| Elemento | <640px (`sm`) | ≥640px |
-|---|---|---|
-| Botão hamburguer | ícone, sempre visível (só existe <768px) | — |
-| "Olá, {nome}" | visível, mas `truncate` num container `min-w-0` (nunca empurra o resto pra fora) | visível |
-| "Smart Home Control" (subtítulo) | oculto (`hidden sm:block`, já existia) | visível |
-| Badge "HUB 01 ONLINE" | oculto (`hidden lg:flex`, já existia — só reaparece em `lg`) | visível a partir de `lg` |
-| `LanguageSelector` | só ícone (texto do idioma escondido via `*:data-[slot=select-value]:hidden`) | ícone + texto ("PT-BR") |
-| Botão de notificações | ícone, sempre visível | ícone, sempre visível |
-| Divisor vertical | oculto (`hidden sm:block`, já existia) | visível |
-| `LogoutButton` | só ícone (label escondido via `hidden sm:inline` no `<span>`) | ícone + texto ("Sair") |
-| Avatar | sempre visível | sempre visível |
+> Seção antiga sobre o Header global ("prioridade de conteúdo em 375px") foi removida — `widgets/layout/Header.tsx` não existe mais (cada página tem seu próprio header, ver `AppLayout.tsx`). Pendente reescrever quando o padrão por página estiver consolidado.
 
 ## 3. Alvos de toque ≥44px (Header/Sidebar mobile)
 
