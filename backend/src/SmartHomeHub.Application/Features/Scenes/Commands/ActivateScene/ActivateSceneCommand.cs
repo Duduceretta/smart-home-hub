@@ -101,6 +101,16 @@ public class ActivateSceneCommandHandler(IAppDbContext dbContext, IServiceScopeF
                 new Error("Scene.NotFound", "Cena não encontrada ou sem permissão de acesso.")
             );
 
+        // Cena vazia (o último dispositivo foi apagado): não há o que aplicar. Recusa em vez de
+        // devolver 200 com 0 itens e gravar um evento "0 de 0" no histórico.
+        if (scene.Items.Count == 0)
+            return Result.Failure<SceneActivationResultDto>(
+                new Error(
+                    "Scene.Validation.NoDevices",
+                    "A cena não tem dispositivos. Adicione ao menos um para ativá-la."
+                )
+            );
+
         var snapshots = scene
             .Items.Select(item => new ItemSnapshot(
                 item.DeviceId,
