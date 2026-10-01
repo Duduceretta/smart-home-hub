@@ -23,6 +23,28 @@ This file provides guidance to Claude Code (claude.ai/code) when working in this
 
 ---
 
+## Faixas de Tamanho (declarar na 1ª mensagem de trabalho, uma linha)
+
+O processo abaixo escala com o tamanho da mudança. Na dúvida entre duas faixas, subir pra maior.
+
+| | Trivial | Normal | Grande |
+|---|---|---|---|
+| **Critério** | ≤ 2 arquivos, sem contrato/schema/migration, sem comportamento novo (fallback, texto, ajuste visual, bug local) | 3+ arquivos, ou muda contrato/query/comportamento | cruza backend+frontend, tem migration, ou depende de outro PR |
+| **Issue `NH`** | opcional — não criar issue nova só pra isso | obrigatória | Story + Sub-tasks |
+| **Branch / PR** | commit direto na `main`, sem PR | branch `<type>/NH-XXX-...` + PR | PRs empilhados (`stacked-pr-branches`) |
+| **Teste** | bug = RED primeiro (barato, mantém); rodar só o arquivo afetado | camada certa da `legacy-code-workflow` | unit + integração, backend antes do frontend |
+| **Skill** | só se a tabela bater de forma clara | carregar antes | carregar antes |
+| **Chrome** | só se for visual; 1 screenshot, sem zoom | idem | idem |
+| **Nota na issue** | 1–3 linhas (se houver issue) | o que foi feito, decisões, testes | idem + medições |
+| **Commit** | `type(scope): descrição` (`NH-XXX` só se houver issue) | `NH-XXX` obrigatório | `NH-XXX` obrigatório |
+
+Em todas as faixas:
+- Rodar só o teste/arquivo afetado; suíte e lint completos só em Normal+, uma vez no fim.
+- Ruído pré-existente (lint/format de arquivo não tocado): reportar em 1 linha, não investigar.
+- Resumo final: 1–3 frases.
+
+---
+
 ## Gestão de Tarefas (Hierarquia no Jira)
 - **Epic**: entregas maiores (ex: `[EPIC] Página de Início`).
 - **Story**: fatias verticais que entregam valor perceptível. Regra: **1 Story = 1 Pull Request** — exceção: quando a Story exige PRs dependentes (stacked), ver skill `stacked-pr-branches`.
@@ -61,6 +83,8 @@ Validação rápida no Chrome no fluxo afetado. Nada demorado, sem rodada de scr
 ---
 
 ## Checklist Antes de Commitar / Abrir PR
+
+Faixas Normal e Grande. **Trivial: só os itens 1 e 4** (build/typecheck do que mudou, depois commit).
 
 1. **Build 1x no fim do lote** de edições (`dotnet build`, `tsc`), não a cada edit.
 2. **Rebase**: `git fetch` + rebase da branch de trabalho sobre a `main` atual.
