@@ -6,4 +6,5 @@ public enum EventSource
     UserManual = 2,
     System = 3,
     DeviceGroup = 4,
+    Scene = 5,
 }
