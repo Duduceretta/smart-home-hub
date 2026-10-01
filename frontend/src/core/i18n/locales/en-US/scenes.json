@@ -1,0 +1,66 @@
+{
+	"title": "Scenes",
+	"header": {
+		"eyebrow": "Home atmospheres",
+		"subtitle": "One tap and the whole house changes mood. Each scene keeps the exact state of its devices.",
+		"addButton": "New scene"
+	},
+	"page": {
+		"loading": "Loading scenes...",
+		"retry": "Try again",
+		"loadError": "Could not load the scenes."
+	},
+	"card": {
+		"activate": "Activate scene {{name}}",
+		"menu": "Options for scene {{name}}",
+		"edit": "Edit",
+		"delete": "Delete",
+		"deviceCount_one": "{{count}} device",
+		"deviceCount_other": "{{count}} devices",
+		"turnsOn_one": "{{count}} turns on",
+		"turnsOn_other": "{{count}} turn on",
+		"turnsOff_one": "{{count}} turns off",
+		"turnsOff_other": "{{count}} turn off",
+		"neverActivated": "Never activated",
+		"lastActivated": "Activated {{when}}",
+		"empty": "No devices",
+		"emptyHint": "Add at least one device to be able to activate this scene.",
+		"emptyAction": "Add devices"
+	},
+	"newTile": {
+		"title": "New scene",
+		"subtitle": "Set the mood of a space"
+	},
+	"empty": {
+		"title": "Create your first scene",
+		"subtitle": "Start from a suggestion or build a scene from scratch. You choose the devices and the state of each one.",
+		"suggestionLabel": "Use suggestion {{name}}",
+		"scratch": "Start from scratch"
+	},
+	"suggestions": {
+		"goodMorning": "Good Morning",
+		"arriveHome": "Arrive Home",
+		"leaveHome": "Leave Home",
+		"goodNight": "Good Night"
+	},
+	"deleteDialog": {
+		"title": "Delete scene",
+		"description": "Are you sure you want to delete the scene \"{{name}}\"? Its devices will not be changed.",
+		"confirm": "Delete",
+		"cancel": "Cancel"
+	},
+	"icons": {
+		"clapperboard": "Cinema",
+		"sun": "Morning",
+		"moon": "Night",
+		"door-open": "Arrival",
+		"log-out": "Departure",
+		"sparkles": "Special",
+		"sofa": "Relax",
+		"utensils": "Dinner",
+		"party-popper": "Party",
+		"flame": "Cozy",
+		"music": "Music",
+		"book-open": "Reading"
+	}
+}

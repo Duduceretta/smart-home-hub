@@ -26,6 +26,7 @@ export function createSceneMock(overrides?: Partial<Scene>): Scene {
 		icon: "clapperboard",
 		lastActivatedAt: null,
 		items: [
+			// design-token-lint-ignore — cor de dado do usuário (colorHex), não token de design
 			createSceneItemMock({ brightness: 10, colorHex: "#FFAA00" }),
 			createSceneItemMock({
 				deviceId: "scene-dev-02",

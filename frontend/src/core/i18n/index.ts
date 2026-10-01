@@ -13,6 +13,7 @@ import enHome from "./locales/en-US/home.json";
 import enIntegrations from "./locales/en-US/integrations.json";
 import enLegal from "./locales/en-US/legal.json";
 import enRooms from "./locales/en-US/rooms.json";
+import enScenes from "./locales/en-US/scenes.json";
 import enSettings from "./locales/en-US/settings.json";
 import ptAuth from "./locales/pt-BR/auth.json";
 import ptAutomations from "./locales/pt-BR/automations.json";
@@ -25,6 +26,7 @@ import ptHome from "./locales/pt-BR/home.json";
 import ptIntegrations from "./locales/pt-BR/integrations.json";
 import ptLegal from "./locales/pt-BR/legal.json";
 import ptRooms from "./locales/pt-BR/rooms.json";
+import ptScenes from "./locales/pt-BR/scenes.json";
 import ptSettings from "./locales/pt-BR/settings.json";
 
 export const defaultNS = "common";
@@ -37,6 +39,7 @@ export const resources = {
 		home: ptHome,
 		rooms: ptRooms,
 		"device-groups": ptDeviceGroups,
+		scenes: ptScenes,
 		auth: ptAuth,
 		automations: ptAutomations,
 		history: ptHistory,
@@ -51,6 +54,7 @@ export const resources = {
 		home: enHome,
 		rooms: enRooms,
 		"device-groups": enDeviceGroups,
+		scenes: enScenes,
 		auth: enAuth,
 		automations: enAutomations,
 		history: enHistory,
@@ -74,6 +78,7 @@ i18n
 			"home",
 			"rooms",
 			"device-groups",
+			"scenes",
 			"auth",
 			"automations",
 			"history",

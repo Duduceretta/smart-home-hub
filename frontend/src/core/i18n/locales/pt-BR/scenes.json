@@ -1,0 +1,66 @@
+{
+	"title": "Cenas",
+	"header": {
+		"eyebrow": "Atmosferas da casa",
+		"subtitle": "Um toque e a casa inteira muda de clima. Cada cena guarda o estado exato dos dispositivos.",
+		"addButton": "Nova cena"
+	},
+	"page": {
+		"loading": "Carregando cenas...",
+		"retry": "Tentar novamente",
+		"loadError": "Não foi possível carregar as cenas."
+	},
+	"card": {
+		"activate": "Ativar cena {{name}}",
+		"menu": "Opções da cena {{name}}",
+		"edit": "Editar",
+		"delete": "Excluir",
+		"deviceCount_one": "{{count}} dispositivo",
+		"deviceCount_other": "{{count}} dispositivos",
+		"turnsOn_one": "{{count}} liga",
+		"turnsOn_other": "{{count}} ligam",
+		"turnsOff_one": "{{count}} desliga",
+		"turnsOff_other": "{{count}} desligam",
+		"neverActivated": "Nunca ativada",
+		"lastActivated": "Ativada {{when}}",
+		"empty": "Sem dispositivos",
+		"emptyHint": "Adicione ao menos um dispositivo para poder ativar esta cena.",
+		"emptyAction": "Adicionar dispositivos"
+	},
+	"newTile": {
+		"title": "Nova cena",
+		"subtitle": "Defina o clima de um ambiente"
+	},
+	"empty": {
+		"title": "Crie sua primeira cena",
+		"subtitle": "Comece por uma sugestão ou monte uma cena do zero. Você escolhe os dispositivos e o estado de cada um.",
+		"suggestionLabel": "Usar sugestão {{name}}",
+		"scratch": "Começar do zero"
+	},
+	"suggestions": {
+		"goodMorning": "Bom Dia",
+		"arriveHome": "Chegar em Casa",
+		"leaveHome": "Sair de Casa",
+		"goodNight": "Boa Noite"
+	},
+	"deleteDialog": {
+		"title": "Excluir cena",
+		"description": "Tem certeza que deseja excluir a cena \"{{name}}\"? Os dispositivos dela não serão alterados.",
+		"confirm": "Excluir",
+		"cancel": "Cancelar"
+	},
+	"icons": {
+		"clapperboard": "Cinema",
+		"sun": "Manhã",
+		"moon": "Noite",
+		"door-open": "Chegada",
+		"log-out": "Saída",
+		"sparkles": "Especial",
+		"sofa": "Relax",
+		"utensils": "Jantar",
+		"party-popper": "Festa",
+		"flame": "Aconchego",
+		"music": "Música",
+		"book-open": "Leitura"
+	}
+}
