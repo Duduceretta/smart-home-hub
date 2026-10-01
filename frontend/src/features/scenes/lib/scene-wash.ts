@@ -80,3 +80,21 @@ export function buildSceneWash(items: SceneWashItem[]): string {
 		)
 		.join(", ");
 }
+
+/**
+ * "Brilho residual" de uma cena que só apaga (ex: Boa Noite): em vez de um cartão
+ * chapado, uma luz fraca subindo da base, como o último reflexo de um ambiente que
+ * acabou de escurecer. Só token do tema, nunca cor fixa.
+ */
+export const SCENE_AFTERGLOW =
+	"radial-gradient(ellipse at 50% 125%, color-mix(in oklab, var(--primary) 16%, transparent) 0%, transparent 70%)";
+
+/**
+ * Fundo de uma cena: o light wash quando ela acende algo; o brilho residual quando só
+ * apaga; nada quando não tem item algum.
+ */
+export function buildSceneBackdrop(items: SceneWashItem[]): string {
+	if (items.length === 0) return "";
+
+	return buildSceneWash(items) || SCENE_AFTERGLOW;
+}

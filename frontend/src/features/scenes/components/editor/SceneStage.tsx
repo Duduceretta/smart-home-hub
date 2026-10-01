@@ -1,7 +1,7 @@
 import type { InputHTMLAttributes } from "react";
 import { useTranslation } from "react-i18next";
 import { getSceneIcon } from "../../constants/scenes.constants";
-import { buildSceneWash, type SceneWashItem } from "../../lib/scene-wash";
+import { buildSceneBackdrop, type SceneWashItem } from "../../lib/scene-wash";
 
 interface SceneStageProps {
 	/** Props do `register("name")` do react-hook-form. */
@@ -26,7 +26,7 @@ export function SceneStage({
 }: SceneStageProps) {
 	const { t } = useTranslation("scenes");
 	const Icon = getSceneIcon(iconId);
-	const wash = buildSceneWash(washItems);
+	const wash = buildSceneBackdrop(washItems);
 
 	return (
 		<div className="relative isolate flex min-h-44 flex-col justify-between gap-4 overflow-hidden rounded-2xl border border-border-subtle bg-surface-container p-4">

@@ -9,7 +9,7 @@ import {
 import { cn } from "@/core/utils";
 import { getSceneIcon } from "../../constants/scenes.constants";
 import { formatLastActivation } from "../../lib/format-last-activation";
-import { buildSceneWash, sceneItemTone } from "../../lib/scene-wash";
+import { buildSceneBackdrop, sceneItemTone } from "../../lib/scene-wash";
 import type { Scene } from "../../types/scenes.types";
 
 /** Pontinhos de estado por card: acima disso vira "+N" para o rodapé não quebrar. */
@@ -40,7 +40,7 @@ export function SceneCard({
 
 	const Icon = getSceneIcon(scene.icon);
 	const isEmpty = scene.items.length === 0;
-	const wash = buildSceneWash(scene.items);
+	const wash = buildSceneBackdrop(scene.items);
 	const turnsOn = scene.items.filter((item) => item.isOn).length;
 	const turnsOff = scene.items.length - turnsOn;
 	const lastActivation = formatLastActivation(
