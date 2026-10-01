@@ -230,7 +230,7 @@ describe("HomeClockHeroTile — clima real (Open-Meteo)", () => {
 		);
 	});
 
-	it("HomeClockHeroTile_LocationConfiguredButProviderDown_ShouldHideWeatherCapsule_NotShowBrokenNumbers", async () => {
+	it("HomeClockHeroTile_LocationConfiguredButProviderDown_ShouldShowUnavailableFallback_NotBrokenNumbersNorBlankSpace", async () => {
 		server.use(
 			http.get(WEATHER_URL, () =>
 				HttpResponse.json({ hasLocation: true, weather: null }),
@@ -239,11 +239,10 @@ describe("HomeClockHeroTile — clima real (Open-Meteo)", () => {
 
 		renderWithProviders(<HomeClockHeroTile />);
 
-		await waitFor(() => {
-			expect(
-				screen.queryByRole("button", { name: /ativar localização/i }),
-			).not.toBeInTheDocument();
-		});
+		expect(await screen.findByText(/clima indisponível/i)).toBeInTheDocument();
+		expect(
+			screen.queryByRole("button", { name: /ativar localização/i }),
+		).not.toBeInTheDocument();
 		expect(screen.queryByText(/°C/)).not.toBeInTheDocument();
 		expect(screen.queryByText("58%")).not.toBeInTheDocument();
 	});
@@ -268,7 +267,7 @@ describe("HomeClockHeroTile — clima real (Open-Meteo)", () => {
 		expect(screen.queryByText(/°C/)).not.toBeInTheDocument();
 	});
 
-	it("HomeClockHeroTile_WeatherRequestFails_ShouldHideGracefully_NeverCrashOrStickSkeletonForever", async () => {
+	it("HomeClockHeroTile_WeatherRequestFails_ShouldShowUnavailableFallbackWithRetry_NeverCrashBlankSpaceOrStickSkeleton", async () => {
 		// Backend desligado/inacessível — erro de rede de verdade, não um
 		// hasLocation:true/weather:null (esse é "provedor respondeu, mas sem
 		// leitura"; aqui a REQUEST em si falha).
@@ -278,17 +277,61 @@ describe("HomeClockHeroTile — clima real (Open-Meteo)", () => {
 
 		renderWithProviders(<HomeClockHeroTile />);
 
-		await waitFor(
-			() => {
-				expect(
-					screen.queryByRole("status", { name: /carregando clima/i }),
-				).not.toBeInTheDocument();
-			},
-			{ timeout: 5000 },
-		);
+		expect(
+			await screen.findByText(/clima indisponível/i, undefined, {
+				timeout: 5000,
+			}),
+		).toBeInTheDocument();
+		expect(
+			screen.queryByRole("status", { name: /carregando clima/i }),
+		).not.toBeInTheDocument();
+		expect(
+			screen.getByRole("button", { name: /tentar de novo/i }),
+		).toBeInTheDocument();
 		expect(
 			screen.queryByRole("button", { name: /ativar localização/i }),
 		).not.toBeInTheDocument();
 		expect(screen.queryByText(/°C/)).not.toBeInTheDocument();
+	});
+
+	it("HomeClockHeroTile_WeatherFallbackRetry_ShouldRefetchAndShowRealWeatherOnceApiIsBack", async () => {
+		let weatherCalls = 0;
+		server.use(
+			http.get(WEATHER_URL, () => {
+				weatherCalls += 1;
+				// useCurrentWeather tem retry: 1 — as 2 primeiras chamadas (inicial +
+				// retentativa automática) falham; só o clique no botão (3ª) tem sucesso.
+				if (weatherCalls <= 2) {
+					return HttpResponse.json(null, { status: 500 });
+				}
+				return HttpResponse.json({
+					hasLocation: true,
+					weather: {
+						temperatureCelsius: 24.5,
+						feelsLikeCelsius: 25.2,
+						humidityPercent: 60,
+						windSpeedKmh: 7,
+						condition: "Rain",
+					},
+				});
+			}),
+		);
+
+		renderWithProviders(<HomeClockHeroTile />);
+		const user = userEvent.setup();
+
+		await user.click(
+			await screen.findByRole(
+				"button",
+				{ name: /tentar de novo/i },
+				{ timeout: 5000 },
+			),
+		);
+
+		await waitFor(() => {
+			expect(screen.getByText("24.5°C")).toBeInTheDocument();
+		});
+		expect(screen.queryByText(/clima indisponível/i)).not.toBeInTheDocument();
+		expect(weatherCalls).toBe(3);
 	});
 });

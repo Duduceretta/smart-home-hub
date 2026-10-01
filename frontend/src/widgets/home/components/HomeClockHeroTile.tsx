@@ -1,6 +1,7 @@
 import { Clock, Droplets, MapPin, Sparkles, Wifi, Wind } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { CardErrorFallback } from "@/core/components/feedback/CardErrorFallback";
 import { Button } from "@/core/components/ui/button";
 import {
 	type ConnectionStatus,
@@ -43,7 +44,11 @@ export function HomeClockHeroTile() {
 	const { i18n } = useTranslation();
 	const { status, latencyMs } = useConnectionStatus();
 	const { data: nextScheduledAutomation } = useNextScheduledAutomation();
-	const { data: weatherResponse, isLoading: isWeatherLoading } = useCurrentWeather();
+	const {
+		data: weatherResponse,
+		isLoading: isWeatherLoading,
+		refetch: refetchWeather,
+	} = useCurrentWeather();
 	const { needsLocation, requestLocation, isSaving, permissionDenied } =
 		useEnsureUserLocation();
 	const [currentTime, setCurrentTime] = useState(() => new Date());
@@ -181,7 +186,16 @@ export function HomeClockHeroTile() {
 								? "Permissão bloqueada"
 								: "Ativar localização"}
 					</Button>
-				) : null}
+				) : (
+					// Restante dos casos: request falhou OU provedor respondeu sem leitura.
+					// Mesma altura do skeleton (h-[52px]) pra o relógio não refluir.
+					<CardErrorFallback
+						message="Clima indisponível"
+						retryLabel="Tentar de novo"
+						onRetry={() => refetchWeather()}
+						className="h-[52px] min-w-44 gap-3 bg-surface-container/60"
+					/>
+				)}
 			</div>
 
 			{/* Rodapé: Próxima Automação Agendada (real, Schedule ativa mais próxima) */}
