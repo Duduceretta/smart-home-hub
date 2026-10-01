@@ -9,6 +9,7 @@ import { useDeleteScene } from "../hooks/useDeleteScene";
 import { useScenes } from "../hooks/useScenes";
 import { useScenesUIStore } from "../store/scenes-ui.store";
 import type { Scene } from "../types/scenes.types";
+import { SceneEditorSheet } from "./editor/SceneEditorSheet";
 import { SceneEmptyState } from "./gallery/SceneEmptyState";
 import { SceneGallery } from "./gallery/SceneGallery";
 import { SceneGallerySkeleton } from "./gallery/scene-gallery.skeleton";
@@ -92,6 +93,8 @@ export function ScenesView() {
 					onCreate={() => openCreateEditor()}
 				/>
 			)}
+
+			<SceneEditorSheet />
 		</div>
 	);
 }
