@@ -3,6 +3,7 @@ using Mediator;
 using SmartHomeHub.Api.Endpoints.Common;
 using SmartHomeHub.Api.Extensions;
 using SmartHomeHub.Application.Common.Pagination;
+using SmartHomeHub.Application.Features.Scenes.Commands.ActivateScene;
 using SmartHomeHub.Application.Features.Scenes.Commands.CreateScene;
 using SmartHomeHub.Application.Features.Scenes.Commands.DeleteScene;
 using SmartHomeHub.Application.Features.Scenes.Commands.UpdateScene;
@@ -193,6 +194,40 @@ public static class SceneEndpoints
             .Produces(StatusCodes.Status204NoContent)
             .ProducesProblem(StatusCodes.Status401Unauthorized)
             .ProducesProblem(StatusCodes.Status404NotFound);
+
+        app.MapPost(
+                "/api/scenes/{id:guid}/activate",
+                async (
+                    Guid id,
+                    ClaimsPrincipal userToken,
+                    IMediator mediator,
+                    CancellationToken cancellationToken
+                ) =>
+                {
+                    var firebaseUid = userToken.GetFirebaseUid();
+
+                    if (string.IsNullOrEmpty(firebaseUid))
+                        return Results.Unauthorized();
+
+                    var result = await mediator.Send(
+                        new ActivateSceneCommand(id, firebaseUid),
+                        cancellationToken
+                    );
+
+                    return result.IsFailure ? result.ToProblemDetails() : Results.Ok(result.Value);
+                }
+            )
+            .RequireAuthorization()
+            .RequireRateLimiting("DeviceMutationRateLimit")
+            .WithTags("Scenes")
+            .WithSummary("Ativa uma cena")
+            .WithDescription(
+                "Aplica o estado desejado de cada dispositivo da cena. Não é transacional: dispositivo offline é pulado (`Skipped`) e falha em um dispositivo (`Failed`) não impede os demais. Responde **200** com o desfecho por dispositivo; o estado confirmado chega pelos eventos SignalR."
+            )
+            .Produces<SceneActivationResultDto>(StatusCodes.Status200OK)
+            .ProducesProblem(StatusCodes.Status401Unauthorized)
+            .ProducesProblem(StatusCodes.Status404NotFound)
+            .ProducesProblem(StatusCodes.Status429TooManyRequests);
     }
 }
 

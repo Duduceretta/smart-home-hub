@@ -1,5 +1,6 @@
 using SmartHomeHub.Domain.Entities;
 using SmartHomeHub.Domain.Enums;
+using SmartHomeHub.Domain.ValueObjects;
 using SmartHomeHub.Infrastructure.Persistence;
 
 namespace SmartHomeHub.IntegrationTests.Features.Scenes;
@@ -62,6 +63,60 @@ internal static class ScenesTestData
         db.Devices.Add(device);
         await db.SaveChangesAsync(cancellationToken);
         return device;
+    }
+
+    // Dispositivo Tuya local pronto para receber comando (local_key e IP configurados),
+    // com o ITuyaLocalControlService (NSubstitute) respondendo no lugar do hardware.
+    public static async Task<Device> SeedTuyaDeviceAsync(
+        AppDbContext db,
+        Guid userId,
+        DeviceType type,
+        string name,
+        bool isOnline = true,
+        bool isOn = false,
+        CancellationToken cancellationToken = default
+    )
+    {
+        var device = new Device
+        {
+            Id = Guid.NewGuid(),
+            UserId = userId,
+            Name = name,
+            Brand = "Tuya",
+            ExternalId = $"tuya-{Guid.NewGuid():N}",
+            Type = type,
+            IntegrationType = IntegrationType.TuyaLocal,
+            Configuration = new TuyaDeviceConfiguration
+            {
+                IpAddress = "192.168.1.50",
+                LocalKey = "local-key-123",
+            },
+            LiveState = new DeviceLiveState { IsOn = isOn, IsOnline = isOnline },
+        };
+
+        db.Devices.Add(device);
+        await db.SaveChangesAsync(cancellationToken);
+        return device;
+    }
+
+    public static async Task<Scene> SeedSceneWithItemsAsync(
+        AppDbContext db,
+        Guid userId,
+        string name,
+        List<SceneItem> items,
+        CancellationToken cancellationToken = default
+    )
+    {
+        var scene = new Scene
+        {
+            UserId = userId,
+            Name = name,
+            Items = items,
+        };
+
+        db.Scenes.Add(scene);
+        await db.SaveChangesAsync(cancellationToken);
+        return scene;
     }
 
     public static async Task<Scene> SeedSceneAsync(

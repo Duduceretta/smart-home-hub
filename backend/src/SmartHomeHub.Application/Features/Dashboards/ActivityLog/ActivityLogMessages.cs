@@ -109,4 +109,27 @@ public static class ActivityLogMessages
 
         return ($"{automationName} falhou", description);
     }
+
+    /// <summary>
+    /// Resumo de uma ativação de cena — os eventos por dispositivo continuam sendo
+    /// gerados pelos próprios comandos de dispositivo.
+    /// </summary>
+    public static (string Title, string Description) SceneActivated(
+        string sceneName,
+        int appliedCount,
+        int failedCount,
+        int skippedCount
+    )
+    {
+        var total = appliedCount + failedCount + skippedCount;
+        var title = $"Cena {sceneName} ativada";
+        var description = $"{appliedCount} de {total} dispositivos aplicados";
+
+        if (failedCount > 0)
+            description += $", {failedCount} com falha";
+        if (skippedCount > 0)
+            description += $", {skippedCount} offline";
+
+        return (title, description + ".");
+    }
 }

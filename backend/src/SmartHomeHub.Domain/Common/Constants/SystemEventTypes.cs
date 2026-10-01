@@ -18,4 +18,5 @@ public static class SystemEventTypes
     public const string DeviceMedia = "DeviceMedia";
     public const string Spotify = "Spotify";
     public const string AutomationExecuted = "AutomationExecuted";
+    public const string SceneActivated = "SceneActivated";
 }
