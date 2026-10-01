@@ -8,6 +8,7 @@ import {
 	LayoutDashboard,
 	Router,
 	Settings,
+	Sparkles,
 } from "lucide-react";
 
 export interface NavItem {
@@ -79,6 +80,12 @@ export const NAV_SECTIONS: NavSection[] = [
 		id: "automation",
 		title: "Automação",
 		items: [
+			{
+				id: "scenes",
+				name: "Cenas",
+				path: "/scenes",
+				icon: Sparkles,
+			},
 			{
 				id: "automations",
 				name: "Automações",

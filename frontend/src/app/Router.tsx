@@ -39,6 +39,7 @@ const RoomsPage = lazy(() => import("@/pages/rooms/RoomsPage"));
 const DeviceGroupsPage = lazy(
 	() => import("@/pages/device-groups/DeviceGroupsPage"),
 );
+const ScenesPage = lazy(() => import("@/pages/scenes/ScenesPage"));
 const AutomationsPage = lazy(
 	() => import("@/pages/automations/AutomationsPage"),
 );
@@ -107,6 +108,10 @@ export const router = createBrowserRouter([
 					{
 						path: "/device-groups",
 						element: <DeviceGroupsPage />,
+					},
+					{
+						path: "/scenes",
+						element: <ScenesPage />,
 					},
 					{
 						path: "/automations",
