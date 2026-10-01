@@ -103,7 +103,7 @@ Fluxo de branches/PRs dependentes (stacked): skill `stacked-pr-branches`.
 |---|---|
 | Alterar código existente ou implementar feature/fix | `legacy-code-workflow` |
 | PR que depende de outro ainda não mergeado | `stacked-pr-branches` |
-| Criar/editar componente visual React/Tailwind | `design-system` |
+| Criar/editar componente visual React/Tailwind | `nexus-design-system` |
 | Criar/editar endpoint, route group ou endpoint filter | `dotnet-minimal-apis` |
 | Validação de entrada (validators, options, pipeline do Mediator) | `validation-patterns` |
 | Tratamento de erro, ProblemDetails, middleware de exceção | `exception-handling` |

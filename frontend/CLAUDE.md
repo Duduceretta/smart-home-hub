@@ -64,7 +64,7 @@ Deploy: **Vercel** (`vercel.json`, rewrite `/(.*) → /index.html`, SPA puro). C
 
 **Server/Client state**: TanStack Query é o único que faz HTTP; Zustand só estado efêmero de UI (`[feature]-ui.store.ts`, exceção `auth` acima) — zero request dentro de uma store. Query Key Factory obrigatória (`[feature].keys.ts`, `as const`), proibido string solta em `queryKey`.
 
-**Theming**: tokens em `src/app/styles/index.css` (`@theme inline`), 5 presets via `data-theme` (gerenciado por `features/settings/store/theme-ui.store.ts`). Regras completas de superfície/espaçamento/raio/tipografia: skill `design-system`.
+**Theming**: tokens em `src/app/styles/index.css` (`@theme inline`), 5 presets via `data-theme` (gerenciado por `features/settings/store/theme-ui.store.ts`). Regras completas de superfície/espaçamento/raio/tipografia: skill `nexus-design-system`.
 
 **i18n**: `core/i18n/index.ts`, namespaces por feature em `core/i18n/locales/{pt-BR,en-US}/*.json`, `pt-BR` é o fallback.
 
@@ -88,5 +88,5 @@ Reutilizar módulo como referência: feature `rooms/` é a mais recente e mais a
 | Situação | Skill |
 |---|---|
 | Alterar código existente ou nova feature/fix | `legacy-code-workflow` |
-| Criar/editar componente visual (cores, espaçamento, raio, tipografia, tema) | `design-system` |
+| Criar/editar componente visual (cores, espaçamento, raio, tipografia, tema) | `nexus-design-system` |
 | SignalR (hook de conexão, evento, throttle de preview) | `signalr-integration` |

@@ -1,5 +1,5 @@
 ---
-name: design-system
+name: nexus-design-system
 description: Usar sempre que criar, editar ou revisar um componente visual React/Tailwind do Nexus Hub (cards, modais, pills, KPIs, listas, animações). Define escada de superfícies, espaçamento, raio, tipografia, temas alternativos e regras de animação.
 paths:
   - "frontend/src/**/*.tsx"
