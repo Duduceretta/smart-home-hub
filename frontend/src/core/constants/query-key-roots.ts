@@ -20,3 +20,4 @@ export const ROOMS_QUERY_ROOT = ["rooms"] as const;
 export const DASHBOARD_QUERY_ROOT = ["dashboard"] as const;
 export const DEVICES_QUERY_ROOT = ["devices"] as const;
 export const AUTOMATIONS_QUERY_ROOT = ["automations"] as const;
+export const SCENES_QUERY_ROOT = ["scenes"] as const;
