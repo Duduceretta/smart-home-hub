@@ -211,6 +211,7 @@ try
     app.MapDeviceEndpoints();
     app.MapDeviceGroupEndpoints();
     app.MapAutomationEndpoints();
+    app.MapSceneEndpoints();
     app.MapWeatherEndpoints();
     app.MapSpotifyEndpoints();
     app.MapDevEndpoints(app.Environment);

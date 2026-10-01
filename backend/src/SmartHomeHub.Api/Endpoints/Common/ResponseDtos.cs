@@ -10,11 +10,18 @@ public record DeviceGroupCreatedResponseDto(string Message, Guid GroupId);
 
 public record AutomationCreatedResponseDto(string Message, Guid AutomationId);
 
+public record SceneCreatedResponseDto(string Message, Guid SceneId);
+
 public record UserSyncResponseDto(string Message, Guid UserId);
 
 public record UpdatedRoomResponseDto(Guid Id, string Name, string Icon);
 
-public record UpdatedDeviceGroupResponseDto(Guid Id, string Name, string? Icon, List<Guid> DeviceIds);
+public record UpdatedDeviceGroupResponseDto(
+    Guid Id,
+    string Name,
+    string? Icon,
+    List<Guid> DeviceIds
+);
 
 public record UpdatedAutomationResponseDto(Guid Id, string Name, bool IsActive);
 
