@@ -5,7 +5,10 @@ import { isRouteActive, NAV_SECTIONS } from "../nav.types";
 import { MobileNavigationDrawer, Sidebar } from "../Sidebar";
 
 function LocationProbe() {
-	return <output data-testid="location">{useLocation().pathname}</output>;
+	const location = useLocation();
+	return (
+		<div data-testid="location">{location.pathname + location.search}</div>
+	);
 }
 
 describe("Scenes navigation", () => {
@@ -65,5 +68,49 @@ describe("Scenes navigation", () => {
 		expect(
 			screen.getByRole("button", { name: /^cenas$/i }),
 		).toBeInTheDocument();
+	});
+
+	it("Sidebar_ClickingScenesWhileInsideTheSceneEditor_ShouldGoBackToTheList", async () => {
+		const user = userEvent.setup();
+		renderWithProviders(
+			<MemoryRouter initialEntries={["/scenes/new"]}>
+				<Sidebar />
+				<LocationProbe />
+			</MemoryRouter>,
+		);
+
+		await user.click(screen.getByRole("button", { name: /^cenas$/i }));
+
+		expect(screen.getByTestId("location")).toHaveTextContent(/^\/scenes$/);
+	});
+
+	it("MobileNavigationDrawer_ClickingScenesWhileInsideTheSceneEditor_ShouldGoBackToTheList", async () => {
+		const user = userEvent.setup();
+		renderWithProviders(
+			<MemoryRouter initialEntries={["/scenes/scene-1/edit"]}>
+				<MobileNavigationDrawer isOpen={true} onClose={vi.fn()} />
+				<LocationProbe />
+			</MemoryRouter>,
+		);
+
+		await user.click(screen.getByRole("button", { name: /^cenas$/i }));
+
+		expect(screen.getByTestId("location")).toHaveTextContent(/^\/scenes$/);
+	});
+
+	it("Sidebar_ClickingTheActiveItemOnItsOwnRoute_ShouldNotNavigateAgain", async () => {
+		const user = userEvent.setup();
+		renderWithProviders(
+			<MemoryRouter initialEntries={["/scenes?scene=s2"]}>
+				<Sidebar />
+				<LocationProbe />
+			</MemoryRouter>,
+		);
+
+		await user.click(screen.getByRole("button", { name: /^cenas$/i }));
+
+		expect(screen.getByTestId("location")).toHaveTextContent(
+			"/scenes?scene=s2",
+		);
 	});
 });
