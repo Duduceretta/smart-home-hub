@@ -38,6 +38,17 @@ public class DeleteDeviceCommandHandler(IAppDbContext dbContext)
                 )
             );
 
+        // O soft-delete do Device nunca aciona a FK de SceneItem (a linha continua existindo),
+        // então os itens de cena que o referenciam são removidos aqui, em memória, igual ao
+        // DeleteRoomCommandHandler faz com Device.RoomId. IgnoreQueryFilters pega também os
+        // itens de cenas já apagadas, que o filtro padrão esconde.
+        var sceneItems = await dbContext
+            .SceneItems.IgnoreQueryFilters()
+            .Where(item => item.DeviceId == device.Id)
+            .ToListAsync(cancellationToken);
+
+        dbContext.SceneItems.RemoveRange(sceneItems);
+
         dbContext.Devices.Remove(device);
         await dbContext.SaveChangesAsync(cancellationToken);
 
