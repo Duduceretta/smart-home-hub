@@ -1,34 +1,20 @@
 import { create } from "zustand";
-import type { Scene } from "../types/scenes.types";
 
-/** Valores iniciais do editor ao partir de uma sugestão (nome e ícone). */
-export interface SceneEditorSeed {
-	name: string;
-	icon: string;
-}
+export type ScenesViewMode = "list" | "cards";
 
 interface ScenesUIState {
-	isEditorOpen: boolean;
-	/** Cena em edição; `null` no modo de criação. */
-	editingScene: Scene | null;
-	seed: SceneEditorSeed | null;
-	openCreateEditor: (seed?: SceneEditorSeed) => void;
-	openEditEditor: (scene: Scene) => void;
-	closeEditor: () => void;
+	/** Lista é o padrão; cards são uma opção de visualização. */
+	viewMode: ScenesViewMode;
+	setViewMode: (mode: ScenesViewMode) => void;
 }
 
 /**
- * Estado efêmero de UI da feature de cenas (visibilidade do editor). Nenhuma
- * requisição aqui: dados de servidor vivem no TanStack Query.
+ * Estado efêmero de UI da feature de cenas. Criar e editar são páginas (rotas
+ * `/scenes/new` e `/scenes/:id/edit`) e a cena selecionada vive na URL (`?scene=`),
+ * então aqui sobra só a preferência de visualização. Nenhuma requisição: dados de
+ * servidor vivem no TanStack Query.
  */
 export const useScenesUIStore = create<ScenesUIState>((set) => ({
-	isEditorOpen: false,
-	editingScene: null,
-	seed: null,
-	openCreateEditor: (seed) =>
-		set({ isEditorOpen: true, editingScene: null, seed: seed ?? null }),
-	openEditEditor: (scene) =>
-		set({ isEditorOpen: true, editingScene: scene, seed: null }),
-	closeEditor: () =>
-		set({ isEditorOpen: false, editingScene: null, seed: null }),
+	viewMode: "list",
+	setViewMode: (viewMode) => set({ viewMode }),
 }));

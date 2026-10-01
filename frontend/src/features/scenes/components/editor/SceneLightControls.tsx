@@ -31,7 +31,7 @@ interface AttributeSliderProps {
  * (rótulo "Não alterar"), número = valor que a cena aplica. Mexer no slider sai do
  * "não alterar"; o botão volta a ele.
  */
-function AttributeSlider({
+export function AttributeSlider({
 	groupLabel,
 	label,
 	hint,

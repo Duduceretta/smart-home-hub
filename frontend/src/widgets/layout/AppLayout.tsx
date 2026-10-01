@@ -31,6 +31,7 @@ export function AppLayout() {
 		void import("@/pages/rooms/RoomsPage");
 		void import("@/pages/device-groups/DeviceGroupsPage");
 		void import("@/pages/scenes/ScenesPage");
+		void import("@/pages/scenes/SceneEditorPage");
 		void import("@/pages/automations/AutomationsPage");
 		void import("@/pages/history/HistoryPage");
 		void import("@/pages/settings/SettingsPage");

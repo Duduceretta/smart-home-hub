@@ -47,3 +47,45 @@ export function orderItemsByDevices(
 			(position.get(b.deviceId) ?? Number.MAX_SAFE_INTEGER),
 	);
 }
+
+/**
+ * Item que DESLIGA o dispositivo não carrega atributos de luz: eles não têm efeito e só
+ * guardariam valor sem sentido.
+ */
+export function withoutAttributesWhenOff(item: SceneFormItem): SceneFormItem {
+	return item.isOn
+		? item
+		: { ...item, brightness: null, colorHex: null, colorTempPercent: null };
+}
+
+/**
+ * Itens prontos para ir à API: ordenados pela lista de dispositivos (corpo determinístico)
+ * e sem atributos de luz nos que desligam o dispositivo.
+ */
+export function toPayloadItems(
+	items: SceneFormItem[],
+	devices: SceneDevice[],
+): SceneFormItem[] {
+	return orderItemsByDevices(items, devices).map(withoutAttributesWhenOff);
+}
+
+/**
+ * Compara duas listas de itens como a API as enxerga (atributos de quem desliga não
+ * contam). Usada para saber se a edição rápida tem alteração a salvar.
+ */
+export function itemsEqual(a: SceneFormItem[], b: SceneFormItem[]): boolean {
+	if (a.length !== b.length) return false;
+
+	return a.every((item, index) => {
+		const left = withoutAttributesWhenOff(item);
+		const right = withoutAttributesWhenOff(b[index] as SceneFormItem);
+
+		return (
+			left.deviceId === right.deviceId &&
+			left.isOn === right.isOn &&
+			left.brightness === right.brightness &&
+			left.colorHex === right.colorHex &&
+			left.colorTempPercent === right.colorTempPercent
+		);
+	});
+}

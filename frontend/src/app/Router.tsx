@@ -40,6 +40,7 @@ const DeviceGroupsPage = lazy(
 	() => import("@/pages/device-groups/DeviceGroupsPage"),
 );
 const ScenesPage = lazy(() => import("@/pages/scenes/ScenesPage"));
+const SceneEditorPage = lazy(() => import("@/pages/scenes/SceneEditorPage"));
 const AutomationsPage = lazy(
 	() => import("@/pages/automations/AutomationsPage"),
 );
@@ -112,6 +113,14 @@ export const router = createBrowserRouter([
 					{
 						path: "/scenes",
 						element: <ScenesPage />,
+					},
+					{
+						path: "/scenes/new",
+						element: <SceneEditorPage />,
+					},
+					{
+						path: "/scenes/:id/edit",
+						element: <SceneEditorPage />,
 					},
 					{
 						path: "/automations",

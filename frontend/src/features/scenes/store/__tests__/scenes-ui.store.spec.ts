@@ -1,66 +1,20 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import { createSceneMock } from "@/testing/mocks/scenes.mock";
 import { useScenesUIStore } from "../scenes-ui.store";
 
 describe("useScenesUIStore", () => {
 	beforeEach(() => {
-		useScenesUIStore.setState({
-			isEditorOpen: false,
-			editingScene: null,
-			seed: null,
-		});
+		useScenesUIStore.setState({ viewMode: "list" });
 	});
 
-	it("openCreateEditor_WithoutSeed_ShouldOpenAnEmptyCreateEditor", () => {
-		useScenesUIStore.getState().openCreateEditor();
-
-		const state = useScenesUIStore.getState();
-		expect(state.isEditorOpen).toBe(true);
-		expect(state.editingScene).toBeNull();
-		expect(state.seed).toBeNull();
+	it("viewMode_Default_ShouldBeTheList", () => {
+		expect(useScenesUIStore.getInitialState().viewMode).toBe("list");
 	});
 
-	it("openCreateEditor_WithSuggestionSeed_ShouldKeepItToPrefillTheForm", () => {
-		useScenesUIStore
-			.getState()
-			.openCreateEditor({ name: "Boa Noite", icon: "moon" });
+	it("setViewMode_ShouldSwitchBetweenListAndCards", () => {
+		useScenesUIStore.getState().setViewMode("cards");
+		expect(useScenesUIStore.getState().viewMode).toBe("cards");
 
-		const state = useScenesUIStore.getState();
-		expect(state.isEditorOpen).toBe(true);
-		expect(state.editingScene).toBeNull();
-		expect(state.seed).toEqual({ name: "Boa Noite", icon: "moon" });
-	});
-
-	it("openEditEditor_ShouldOpenTheEditorOnTheGivenScene", () => {
-		const scene = createSceneMock();
-
-		useScenesUIStore.getState().openEditEditor(scene);
-
-		const state = useScenesUIStore.getState();
-		expect(state.isEditorOpen).toBe(true);
-		expect(state.editingScene).toEqual(scene);
-		expect(state.seed).toBeNull();
-	});
-
-	it("openCreateEditor_AfterEditing_ShouldDropThePreviousScene", () => {
-		useScenesUIStore.getState().openEditEditor(createSceneMock());
-
-		useScenesUIStore.getState().openCreateEditor();
-
-		expect(useScenesUIStore.getState().editingScene).toBeNull();
-	});
-
-	it("closeEditor_ShouldResetEverything", () => {
-		useScenesUIStore
-			.getState()
-			.openCreateEditor({ name: "Boa Noite", icon: "moon" });
-
-		useScenesUIStore.getState().closeEditor();
-
-		expect(useScenesUIStore.getState()).toMatchObject({
-			isEditorOpen: false,
-			editingScene: null,
-			seed: null,
-		});
+		useScenesUIStore.getState().setViewMode("list");
+		expect(useScenesUIStore.getState().viewMode).toBe("list");
 	});
 });

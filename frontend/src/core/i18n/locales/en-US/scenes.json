@@ -5,43 +5,62 @@
 		"subtitle": "One tap and the whole house changes mood. Each scene keeps the exact state of its devices.",
 		"addButton": "New scene"
 	},
+	"toolbar": {
+		"searchLabel": "Search scene or device",
+		"searchPlaceholder": "Search scene or device",
+		"viewLabel": "View",
+		"viewList": "List",
+		"viewCards": "Cards",
+		"roomLabel": "Room",
+		"allRooms": "All"
+	},
 	"page": {
 		"loading": "Loading scenes...",
 		"retry": "Try again",
-		"loadError": "Could not load the scenes."
+		"loadError": "Could not load the scenes.",
+		"notFound": "Scene not found. It may have been deleted.",
+		"backToScenes": "Back to Scenes"
 	},
-	"card": {
+	"list": {
+		"title": "Your scenes",
+		"hint": "Select a scene to edit it quickly",
+		"ariaLabel": "Scenes",
+		"noResults": "No scenes found."
+	},
+	"row": {
 		"activate": "Activate scene {{name}}",
-		"menu": "Options for scene {{name}}",
-		"edit": "Edit",
-		"delete": "Delete",
+		"select": "Select scene {{name}}",
 		"deviceCount_one": "{{count}} device",
 		"deviceCount_other": "{{count}} devices",
 		"turnsOn_one": "{{count}} turns on",
 		"turnsOn_other": "{{count}} turn on",
-		"turnsOff_one": "{{count}} turns off",
-		"turnsOff_other": "{{count}} turn off",
+		"turnsOffAll": "turns everything off",
 		"neverActivated": "Never activated",
 		"lastActivated": "Activated {{when}}",
 		"empty": "No devices",
-		"emptyHint": "Add at least one device to be able to activate this scene.",
-		"emptyAction": "Add devices"
+		"offline_one": "{{count}} offline",
+		"offline_other": "{{count}} offline"
 	},
-	"newTile": {
-		"title": "New scene",
-		"subtitle": "Set the mood of a space"
+	"quick": {
+		"title": "Quick edit",
+		"openEditor": "Open editor",
+		"selectPrompt": "Select a scene to quickly adjust its devices.",
+		"turnOn": "Turn on {{name}}",
+		"brightnessGroup": "Brightness of {{name}}",
+		"brightness": "Brightness",
+		"offline": "offline",
+		"save": "Save changes",
+		"discard": "Discard",
+		"delete": "Delete scene",
+		"emptyScene": "This scene has no devices.",
+		"addDevices": "Add devices",
+		"stateOn": "Turns on",
+		"stateOff": "Turns off"
 	},
 	"empty": {
 		"title": "Create your first scene",
-		"subtitle": "Start from a suggestion or build a scene from scratch. You choose the devices and the state of each one.",
-		"suggestionLabel": "Use suggestion {{name}}",
+		"subtitle": "Start from a preset or build a scene from scratch. You choose the devices and the state of each one.",
 		"scratch": "Start from scratch"
-	},
-	"suggestions": {
-		"goodMorning": "Good Morning",
-		"arriveHome": "Arrive Home",
-		"leaveHome": "Leave Home",
-		"goodNight": "Good Night"
 	},
 	"deleteDialog": {
 		"title": "Delete scene",
@@ -49,15 +68,73 @@
 		"confirm": "Delete",
 		"cancel": "Cancel"
 	},
+	"presets": {
+		"panelTitle": "Presets",
+		"panelHint": "Starting points. Nothing is saved until you confirm.",
+		"use": "Use",
+		"useLabel": "Use preset {{name}}",
+		"applied": "Preset {{name}} applied. Review and save.",
+		"noCompatible": "You have no devices compatible with the {{name}} preset.",
+		"replaceConfirm": {
+			"title": "Replace the current devices?",
+			"description": "Applying the {{name}} preset replaces the devices and states already selected in this scene.",
+			"confirm": "Replace",
+			"cancel": "Keep"
+		},
+		"goodMorning": {
+			"name": "Good Morning",
+			"description": "Lights at 80% in warm white"
+		},
+		"arriveHome": {
+			"name": "Arrive Home",
+			"description": "Lights at 70% in warm white and climate control on"
+		},
+		"leaveHome": {
+			"name": "Leave Home",
+			"description": "Turns off lights, TV and climate control (plugs stay as they are)"
+		},
+		"goodNight": {
+			"name": "Good Night",
+			"description": "Turns off lights and TV"
+		},
+		"relax": {
+			"name": "Relax",
+			"description": "Lights at 30% in amber and TV off"
+		},
+		"dinner": {
+			"name": "Dinner",
+			"description": "Lights at 60% in warm white"
+		},
+		"reading": {
+			"name": "Reading",
+			"description": "Lights at 100% in cool white"
+		},
+		"party": {
+			"name": "Party",
+			"description": "Lights at 100% in vivid colors and TV on"
+		}
+	},
 	"editor": {
+		"breadcrumbScenes": "Scenes",
 		"createTitle": "New scene",
-		"editTitle": "Edit scene",
-		"description": "Choose the devices and the state of each one. When the scene is activated, everything changes at once.",
+		"editTitle": "Edit {{name}}",
+		"unsaved": "Unsaved changes",
 		"nameLabel": "Scene name",
-		"namePlaceholder": "E.g. Movie Mode",
+		"namePlaceholder": "Scene name",
 		"iconLabel": "Icon",
 		"devicesLabel": "Devices",
-		"devicesHint": "Each device's current state is prefilled. Adjust what the scene should do.",
+		"devicesHint": "{{count}} in the scene. Each device's current state is prefilled.",
+		"deviceSearchLabel": "Search device",
+		"deviceSearchPlaceholder": "Search device or room",
+		"shortcuts": "Shortcuts",
+		"shortcutLights": "All lights",
+		"shortcutAllOff": "Turn everything off in the scene",
+		"shortcutClear": "Clear",
+		"includeRoom": "Select all",
+		"includeRoomLabel": "Select all in {{room}}",
+		"removeRoom": "Unselect all",
+		"removeRoomLabel": "Unselect all in {{room}}",
+		"noResults": "No devices found.",
 		"devicesLoading": "Loading devices...",
 		"devicesError": "Could not load the devices.",
 		"devicesEmpty": "No devices available. Register devices to build a scene.",
@@ -66,9 +143,22 @@
 		"turnOn": "Turn on {{name}}",
 		"turnsOn": "Turns on",
 		"turnsOff": "Turns off",
+		"currentState": "now: {{state}}",
+		"stateOn": "on",
+		"stateOff": "off",
 		"offline": "Offline",
+		"lightWithoutControl": "This bulb only turns on and off, with no brightness or color control.",
 		"selectedCount_one": "{{count}} device in the scene",
 		"selectedCount_other": "{{count}} devices in the scene",
+		"barEmpty": "Select at least one device to save",
+		"stage": {
+			"preview": "Scene preview",
+			"noName": "Unnamed",
+			"noDevices": "No devices yet",
+			"hint": "Select devices to see what the scene will do.",
+			"more_one": "+{{count}} device",
+			"more_other": "+{{count}} devices"
+		},
 		"lightControls": {
 			"brightnessGroup": "Brightness of {{name}}",
 			"brightness": "Brightness",
@@ -84,18 +174,21 @@
 		"colors": {
 			"none": "No color",
 			"amber": "Amber",
-			"red": "Red",
-			"green": "Green",
+			"warmWhite": "Warm white",
+			"white": "White",
+			"coolWhite": "Cool white",
 			"blue": "Blue",
 			"purple": "Purple",
 			"pink": "Pink",
+			"green": "Green",
+			"red": "Red",
 			"cyan": "Cyan",
-			"white": "White",
 			"custom": "Current color"
 		},
 		"cancel": "Cancel",
 		"save": "Save",
 		"saveAndTest": "Save and test",
+		"delete": "Delete scene",
 		"discard": {
 			"title": "Discard the changes made to this scene?",
 			"confirm": "Discard",

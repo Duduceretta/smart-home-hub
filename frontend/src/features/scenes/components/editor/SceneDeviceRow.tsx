@@ -8,6 +8,9 @@ import type { SceneFormItem } from "../../types/scene.schemas";
 import type { SceneDevice } from "../../types/scenes.types";
 import { SceneLightControls } from "./SceneLightControls";
 
+/** Valor do enum `DeviceType` do backend para luz. */
+const DEVICE_TYPE_LIGHT = 1;
+
 interface SceneDeviceRowProps {
 	device: SceneDevice;
 	/** Item da cena para este dispositivo; `undefined` quando ele não faz parte da cena. */
@@ -30,8 +33,13 @@ export function SceneDeviceRow({
 	const { t } = useTranslation("scenes");
 	const switchId = useId();
 	const isIncluded = item !== undefined;
-	const showLightControls =
-		isIncluded && item.isOn && supportsLightAttributes(device);
+	const canTuneLight = supportsLightAttributes(device);
+	const showLightControls = isIncluded && item.isOn && canTuneLight;
+	const showNoControlNote =
+		isIncluded &&
+		item.isOn &&
+		device.type === DEVICE_TYPE_LIGHT &&
+		!canTuneLight;
 
 	return (
 		<li
@@ -70,7 +78,7 @@ export function SceneDeviceRow({
 					)}
 				</label>
 
-				{isIncluded && (
+				{isIncluded ? (
 					<div className="flex shrink-0 items-center gap-2">
 						<label
 							htmlFor={switchId}
@@ -87,6 +95,12 @@ export function SceneDeviceRow({
 							}
 						/>
 					</div>
+				) : (
+					<span className="shrink-0 text-xs text-muted-foreground">
+						{t("editor.currentState", {
+							state: device.isOn ? t("editor.stateOn") : t("editor.stateOff"),
+						})}
+					</span>
 				)}
 			</div>
 
@@ -96,6 +110,12 @@ export function SceneDeviceRow({
 					value={item}
 					onChange={(patch) => onChangeItem(device.id, patch)}
 				/>
+			)}
+
+			{showNoControlNote && (
+				<p className="border-t border-border-subtle pt-4 text-xs text-muted-foreground">
+					{t("editor.lightWithoutControl")}
+				</p>
 			)}
 		</li>
 	);
