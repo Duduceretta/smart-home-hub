@@ -297,54 +297,74 @@ describe("ScenesView · busca, ambiente e visualização", () => {
 });
 
 describe("ScenesView · sem cenas", () => {
-	it("ScenesView_NoScenes_ShouldOfferTheEightPresets", async () => {
+	const GHOST_LABEL =
+		"Clique aqui para criar uma nova cena e ver as predefinições";
+
+	it("ScenesView_NoScenes_ShouldKeepTheSameLayoutWithAGhostButtonInTheList", async () => {
 		mockScenes([]);
 
 		renderView();
 
 		expect(
-			await screen.findByText("Crie sua primeira cena"),
+			await screen.findByRole("button", { name: GHOST_LABEL }),
 		).toBeInTheDocument();
-		for (const name of [
-			"Bom Dia",
-			"Chegar em Casa",
-			"Sair de Casa",
-			"Boa Noite",
-			"Relaxar",
-			"Jantar",
-			"Leitura",
-			"Festa",
-		]) {
-			expect(
-				screen.getByRole("button", { name: `Usar predefinição ${name}` }),
-			).toBeInTheDocument();
-		}
+		expect(
+			screen.getByRole("heading", { name: "Suas cenas" }),
+		).toBeInTheDocument();
+		expect(
+			screen.getByRole("button", { name: "Nova cena" }),
+		).toBeInTheDocument();
 	});
 
-	it("ScenesView_ClickingAPreset_ShouldGoToTheCreationPageWithThatPreset", async () => {
+	it("ScenesView_NoScenes_ShouldShowTheQuickEditColumnEmptyInsteadOfListingPresets", async () => {
+		mockScenes([]);
+
+		renderView();
+		await screen.findByRole("button", { name: GHOST_LABEL });
+
+		expect(
+			within(quickPanel()).getByText(
+				"Suas cenas aparecem aqui. Crie a primeira para ajustá-la rápido.",
+			),
+		).toBeInTheDocument();
+		expect(
+			screen.queryByRole("button", { name: /Usar predefinição/ }),
+		).not.toBeInTheDocument();
+		expect(
+			screen.queryByText("Crie sua primeira cena"),
+		).not.toBeInTheDocument();
+	});
+
+	it("ScenesView_ClickingTheGhostButton_ShouldGoToTheCreationPage", async () => {
 		mockScenes([]);
 		const user = userEvent.setup();
 		renderView();
 
-		await user.click(
-			await screen.findByRole("button", { name: "Usar predefinição Relaxar" }),
-		);
-
-		expect(screen.getByTestId("location")).toHaveTextContent(
-			"/scenes/new?preset=relax",
-		);
-	});
-
-	it("ScenesView_StartFromScratch_ShouldGoToTheCreationPage", async () => {
-		mockScenes([]);
-		const user = userEvent.setup();
-		renderView();
-
-		await user.click(
-			await screen.findByRole("button", { name: "Começar do zero" }),
-		);
+		await user.click(await screen.findByRole("button", { name: GHOST_LABEL }));
 
 		expect(screen.getByTestId("location")).toHaveTextContent("/scenes/new");
+	});
+
+	it("ScenesView_NoScenes_ShouldNotShowTheSelectASceneHint", async () => {
+		mockScenes([]);
+
+		renderView();
+		await screen.findByRole("button", { name: GHOST_LABEL });
+
+		expect(
+			screen.queryByText("Selecione uma cena para editar rápido"),
+		).not.toBeInTheDocument();
+	});
+
+	it("ScenesView_NoScenes_ShouldNotShowRoomChips", async () => {
+		mockScenes([]);
+
+		renderView();
+		await screen.findByRole("button", { name: GHOST_LABEL });
+
+		expect(
+			screen.queryByRole("group", { name: "Ambiente" }),
+		).not.toBeInTheDocument();
 	});
 });
 

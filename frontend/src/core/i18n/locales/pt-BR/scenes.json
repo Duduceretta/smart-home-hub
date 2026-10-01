@@ -44,6 +44,7 @@
 	"quick": {
 		"title": "Edição rápida",
 		"openEditor": "Abrir editor",
+		"emptyHint": "Suas cenas aparecem aqui. Crie a primeira para ajustá-la rápido.",
 		"selectPrompt": "Selecione uma cena para ajustar rápido os dispositivos dela.",
 		"turnOn": "Ligar {{name}}",
 		"brightnessGroup": "Brilho de {{name}}",
@@ -58,9 +59,7 @@
 		"stateOff": "Desliga"
 	},
 	"empty": {
-		"title": "Crie sua primeira cena",
-		"subtitle": "Comece por uma predefinição ou monte uma cena do zero. Você escolhe os dispositivos e o estado de cada um.",
-		"scratch": "Começar do zero"
+		"ghost": "Clique aqui para criar uma nova cena e ver as predefinições"
 	},
 	"deleteDialog": {
 		"title": "Excluir cena",

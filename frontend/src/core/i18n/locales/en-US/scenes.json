@@ -44,6 +44,7 @@
 	"quick": {
 		"title": "Quick edit",
 		"openEditor": "Open editor",
+		"emptyHint": "Your scenes show up here. Create the first one to adjust it quickly.",
 		"selectPrompt": "Select a scene to quickly adjust its devices.",
 		"turnOn": "Turn on {{name}}",
 		"brightnessGroup": "Brightness of {{name}}",
@@ -58,9 +59,7 @@
 		"stateOff": "Turns off"
 	},
 	"empty": {
-		"title": "Create your first scene",
-		"subtitle": "Start from a preset or build a scene from scratch. You choose the devices and the state of each one.",
-		"scratch": "Start from scratch"
+		"ghost": "Click here to create a new scene and see the presets"
 	},
 	"deleteDialog": {
 		"title": "Delete scene",

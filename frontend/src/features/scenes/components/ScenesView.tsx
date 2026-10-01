@@ -11,7 +11,6 @@ import { useActivateScene } from "../hooks/useActivateScene";
 import { useDeleteScene } from "../hooks/useDeleteScene";
 import { useSceneDevices } from "../hooks/useSceneDevices";
 import { useScenes } from "../hooks/useScenes";
-import type { ScenePreset } from "../lib/scene-presets";
 import {
 	countOfflineDevices,
 	filterScenes,
@@ -21,8 +20,8 @@ import {
 import { useScenesUIStore } from "../store/scenes-ui.store";
 import type { Scene } from "../types/scenes.types";
 import { SceneQuickEdit } from "./list/SceneQuickEdit";
+import { SceneQuickEditPlaceholder } from "./list/SceneQuickEditPlaceholder";
 import { SceneRow } from "./list/SceneRow";
-import { ScenesEmptyState } from "./list/ScenesEmptyState";
 import { SceneTile } from "./list/SceneTile";
 import { ScenesListSkeleton } from "./list/scenes-list.skeleton";
 
@@ -87,9 +86,6 @@ export function ScenesView() {
 
 	const openEditor = (scene: Scene) => navigate(`/scenes/${scene.id}/edit`);
 
-	const usePreset = (preset: ScenePreset) =>
-		navigate(`${NEW_SCENE_PATH}?preset=${preset.id}`);
-
 	const handleDelete = async (scene: Scene) => {
 		const confirmed = await confirm({
 			title: t("deleteDialog.title"),
@@ -134,15 +130,6 @@ export function ScenesView() {
 
 		if (isLoading) return <ScenesListSkeleton />;
 
-		if (scenes.length === 0) {
-			return (
-				<ScenesEmptyState
-					onUsePreset={usePreset}
-					onStartFromScratch={() => navigate(NEW_SCENE_PATH)}
-				/>
-			);
-		}
-
 		return (
 			<div className="flex flex-col gap-4">
 				{rooms.length > 0 && (
@@ -179,12 +166,23 @@ export function ScenesView() {
 							<h2 className="text-sm font-semibold text-foreground">
 								{t("list.title")}
 							</h2>
-							<span className="text-xs text-muted-foreground">
-								{t("list.hint")}
-							</span>
+							{scenes.length > 0 && (
+								<span className="text-xs text-muted-foreground">
+									{t("list.hint")}
+								</span>
+							)}
 						</div>
 
-						{visibleScenes.length === 0 ? (
+						{scenes.length === 0 ? (
+							<button
+								type="button"
+								onClick={() => navigate(NEW_SCENE_PATH)}
+								className="flex min-h-24 w-full cursor-pointer items-center justify-center gap-2 rounded-xl border border-dashed border-border-subtle px-6 py-4 text-center text-sm text-muted-foreground outline-none transition-colors hover:border-primary/40 hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/50"
+							>
+								<Plus className="h-4 w-4 shrink-0" aria-hidden />
+								{t("empty.ghost")}
+							</button>
+						) : visibleScenes.length === 0 ? (
 							<p className="rounded-xl border border-dashed border-border-subtle p-6 text-center text-sm text-muted-foreground">
 								{t("list.noResults")}
 							</p>
@@ -212,9 +210,13 @@ export function ScenesView() {
 								onDelete={handleDelete}
 							/>
 						) : (
-							<p className="rounded-xl border border-dashed border-border-subtle p-6 text-sm text-muted-foreground">
-								{t("quick.selectPrompt")}
-							</p>
+							<SceneQuickEditPlaceholder
+								message={
+									scenes.length === 0
+										? t("quick.emptyHint")
+										: t("quick.selectPrompt")
+								}
+							/>
 						)}
 					</aside>
 				</div>
