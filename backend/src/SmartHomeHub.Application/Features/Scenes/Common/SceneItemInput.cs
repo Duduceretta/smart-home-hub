@@ -111,7 +111,12 @@ public static class SceneItemsSynchronizer
         var devices = await dbContext
             .Devices.AsNoTracking()
             .Where(device => deviceIds.Contains(device.Id) && device.UserId == userId)
-            .Select(device => new { device.Id, device.Type })
+            .Select(device => new
+            {
+                device.Id,
+                device.Type,
+                device.IntegrationType,
+            })
             .ToListAsync(cancellationToken);
 
         if (devices.Count != deviceIds.Count)
@@ -122,11 +127,12 @@ public static class SceneItemsSynchronizer
                 )
             );
 
-        var typeById = devices.ToDictionary(device => device.Id, device => device.Type);
+        var deviceById = devices.ToDictionary(device => device.Id);
 
         foreach (var input in inputs)
         {
-            var type = typeById[input.DeviceId];
+            var device = deviceById[input.DeviceId];
+            var type = device.Type;
 
             if (UnsupportedTypes.Contains(type))
                 return Result.Failure(
@@ -141,11 +147,17 @@ public static class SceneItemsSynchronizer
                 || input.ColorHex is not null
                 || input.ColorTempPercent is not null;
 
-            if (hasLightAttributes && type != DeviceType.Light)
+            // Mesma condição de SetDeviceBrightness/Color/ColorTemp: só luz Tuya local
+            // aceita esses comandos. Barrar aqui evita salvar uma cena que a ativação
+            // nunca conseguiria aplicar.
+            var supportsLightAttributes =
+                type == DeviceType.Light && device.IntegrationType == IntegrationType.TuyaLocal;
+
+            if (hasLightAttributes && !supportsLightAttributes)
                 return Result.Failure(
                     new Error(
                         "Scene.Validation.UnsupportedAttributes",
-                        "Brilho e cor só podem ser definidos para luzes."
+                        "Brilho, cor e temperatura de cor só podem ser definidos para luzes Tuya com controle local."
                     )
                 );
         }

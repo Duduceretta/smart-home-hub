@@ -44,7 +44,8 @@ internal static class ScenesTestData
         Guid userId,
         DeviceType type = DeviceType.Light,
         string name = "Dispositivo",
-        CancellationToken cancellationToken = default
+        CancellationToken cancellationToken = default,
+        IntegrationType integrationType = IntegrationType.TuyaLocal
     )
     {
         var device = new Device
@@ -56,6 +57,7 @@ internal static class ScenesTestData
             ExternalId = $"ext-{Guid.NewGuid():N}",
             Type = type,
         };
+        device.ChangeIntegrationType(integrationType);
 
         db.Devices.Add(device);
         await db.SaveChangesAsync(cancellationToken);
