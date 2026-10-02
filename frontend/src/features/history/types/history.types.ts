@@ -6,7 +6,8 @@ export type EventSourceName =
 	| "Automation"
 	| "UserManual"
 	| "System"
-	| "DeviceGroup";
+	| "DeviceGroup"
+	| "Scene";
 
 /**
  * Event severity levels, mirroring the backend C# enum (EventSeverity) contract,

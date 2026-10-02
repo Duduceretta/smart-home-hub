@@ -48,7 +48,8 @@
 			"Automation": "Automation",
 			"UserManual": "User",
 			"System": "System",
-			"DeviceGroup": "Device Group"
+			"DeviceGroup": "Device Group",
+			"Scene": "Scene"
 		},
 		"severities": {
 			"all": "All severities",
