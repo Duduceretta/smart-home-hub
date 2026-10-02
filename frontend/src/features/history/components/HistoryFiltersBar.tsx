@@ -154,6 +154,9 @@ export function HistoryFiltersBar() {
 							>
 								{t("filters.sources.DeviceGroup", "Grupo")}
 							</option>
+							<option value="Scene" className="bg-popover text-foreground">
+								{t("filters.sources.Scene", "Cena")}
+							</option>
 							<option value="UserManual" className="bg-popover text-foreground">
 								{t("filters.sources.UserManual", "Usuário")}
 							</option>
