@@ -87,3 +87,18 @@ export interface SceneDevice {
 	colorHex: string | null;
 	colorTempPercent: number | null;
 }
+
+/**
+ * Métricas de uso das cenas exibidas na coluna lateral. O contrato definitivo vem do
+ * backend (NH-58); enquanto isso o painel aceita `null` e mostra o estado vazio.
+ */
+export interface SceneMetrics {
+	/** Ativações por dia nos últimos 7 dias, do mais antigo para o mais recente. */
+	activationsPerDay: number[];
+	activationsTotal: number;
+	/** Porcentagem (0-100) de ativações sem falha nem dispositivo offline; `null` sem ativações. */
+	successRate: number | null;
+	topScenes: { sceneId: string; name: string; activations: number }[];
+	/** Horário de pico no formato "HH:mm"; `null` sem ativações. */
+	peakHour: string | null;
+}

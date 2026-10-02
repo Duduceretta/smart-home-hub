@@ -61,6 +61,18 @@
 	"empty": {
 		"ghost": "Clique aqui para criar uma nova cena e ver as predefinições"
 	},
+	"metrics": {
+		"title": "Desempenho",
+		"period": "últimos 7 dias",
+		"activations": "Ativações",
+		"activationsChart": "Ativações por dia nos últimos 7 dias: {{values}}",
+		"successRate": "Taxa de sucesso",
+		"topScenes": "Mais ativadas",
+		"activationCount_one": "{{count}} ativação",
+		"activationCount_other": "{{count}} ativações",
+		"peakHour": "Horário de pico",
+		"emptyHint": "Ainda não há dados para mostrar. As métricas de uso aparecem aqui."
+	},
 	"deleteDialog": {
 		"title": "Excluir cena",
 		"description": "Tem certeza que deseja excluir a cena \"{{name}}\"? Os dispositivos dela não serão alterados.",

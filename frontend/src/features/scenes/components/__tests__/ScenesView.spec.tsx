@@ -225,6 +225,46 @@ describe("ScenesView · lista", () => {
 	});
 });
 
+describe("ScenesView · métricas", () => {
+	const metricsPanel = () => screen.getByRole("region", { name: "Desempenho" });
+
+	it("ScenesView_WithScenes_ShouldShowThePerformancePanelBelowTheQuickEdit", async () => {
+		mockScenes([cinema, night]);
+
+		renderView();
+		await findRow("Modo Cinema");
+
+		expect(
+			within(metricsPanel()).getByText("Taxa de sucesso"),
+		).toBeInTheDocument();
+		expect(
+			within(metricsPanel()).getByText(
+				"Ainda não há dados para mostrar. As métricas de uso aparecem aqui.",
+			),
+		).toBeInTheDocument();
+		const order = [quickPanel(), metricsPanel()].map((element) =>
+			element.compareDocumentPosition(metricsPanel()),
+		);
+		expect(order[0]).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
+	});
+
+	it("ScenesView_NoScenes_ShouldStillShowThePerformancePanelWithItsEmptyState", async () => {
+		mockScenes([]);
+
+		renderView();
+		await screen.findByRole("button", {
+			name: "Clique aqui para criar uma nova cena e ver as predefinições",
+		});
+
+		expect(
+			within(metricsPanel()).getByText("Mais ativadas"),
+		).toBeInTheDocument();
+		expect(
+			within(metricsPanel()).getAllByText("—").length,
+		).toBeGreaterThanOrEqual(3);
+	});
+});
+
 describe("ScenesView · busca, ambiente e visualização", () => {
 	it("ScenesView_Search_ShouldFilterBySceneNameOrDeviceName", async () => {
 		mockScenes([cinema, night]);

@@ -19,6 +19,7 @@ import {
 } from "../lib/scene-view";
 import { useScenesUIStore } from "../store/scenes-ui.store";
 import type { Scene } from "../types/scenes.types";
+import { SceneMetricsPanel } from "./list/SceneMetricsPanel";
 import { SceneQuickEdit } from "./list/SceneQuickEdit";
 import { SceneQuickEditPlaceholder } from "./list/SceneQuickEditPlaceholder";
 import { SceneRow } from "./list/SceneRow";
@@ -200,7 +201,7 @@ export function ScenesView() {
 						)}
 					</div>
 
-					<aside className="xl:sticky xl:top-4">
+					<aside className="flex flex-col gap-4 xl:sticky xl:top-4">
 						{selected ? (
 							<SceneQuickEdit
 								key={selected.id}
@@ -218,6 +219,8 @@ export function ScenesView() {
 								}
 							/>
 						)}
+						{/* Sem dados até a NH-58 entregar o endpoint de métricas: mostra o estado vazio. */}
+						<SceneMetricsPanel metrics={null} />
 					</aside>
 				</div>
 			</div>

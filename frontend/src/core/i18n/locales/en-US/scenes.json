@@ -61,6 +61,18 @@
 	"empty": {
 		"ghost": "Click here to create a new scene and see the presets"
 	},
+	"metrics": {
+		"title": "Performance",
+		"period": "last 7 days",
+		"activations": "Activations",
+		"activationsChart": "Activations per day in the last 7 days: {{values}}",
+		"successRate": "Success rate",
+		"topScenes": "Most activated",
+		"activationCount_one": "{{count}} activation",
+		"activationCount_other": "{{count}} activations",
+		"peakHour": "Peak hour",
+		"emptyHint": "There is no data to show yet. Usage metrics will appear here."
+	},
 	"deleteDialog": {
 		"title": "Delete scene",
 		"description": "Are you sure you want to delete the scene \"{{name}}\"? Its devices will not be changed.",
