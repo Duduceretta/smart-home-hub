@@ -64,14 +64,17 @@
 	"metrics": {
 		"title": "Performance",
 		"period": "last 7 days",
+		"empty": "No data yet",
 		"activations": "Activations",
+		"activationsUnit": "activations",
 		"activationsChart": "Activations per day in the last 7 days: {{values}}",
 		"successRate": "Success rate",
+		"successChart": "Success rate: {{value}}%",
 		"topScenes": "Most activated",
 		"activationCount_one": "{{count}} activation",
 		"activationCount_other": "{{count}} activations",
 		"peakHour": "Peak hour",
-		"emptyHint": "There is no data to show yet. Usage metrics will appear here."
+		"peakHint": "when most scenes are activated"
 	},
 	"deleteDialog": {
 		"title": "Delete scene",

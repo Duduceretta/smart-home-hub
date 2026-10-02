@@ -227,28 +227,31 @@ describe("ScenesView · lista", () => {
 
 describe("ScenesView · métricas", () => {
 	const metricsPanel = () => screen.getByRole("region", { name: "Desempenho" });
+	const TITLES = [
+		"Ativações",
+		"Taxa de sucesso",
+		"Mais ativadas",
+		"Horário de pico",
+	];
 
-	it("ScenesView_WithScenes_ShouldShowThePerformancePanelBelowTheQuickEdit", async () => {
+	it("ScenesView_WithScenes_ShouldShowTheFourMetricCardsBelowTheQuickEdit", async () => {
 		mockScenes([cinema, night]);
 
 		renderView();
 		await findRow("Modo Cinema");
 
+		for (const title of TITLES) {
+			expect(
+				within(metricsPanel()).getByRole("region", { name: title }),
+			).toBeInTheDocument();
+		}
 		expect(
-			within(metricsPanel()).getByText("Taxa de sucesso"),
-		).toBeInTheDocument();
-		expect(
-			within(metricsPanel()).getByText(
-				"Ainda não há dados para mostrar. As métricas de uso aparecem aqui.",
-			),
-		).toBeInTheDocument();
-		const order = [quickPanel(), metricsPanel()].map((element) =>
-			element.compareDocumentPosition(metricsPanel()),
-		);
-		expect(order[0]).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
+			quickPanel().compareDocumentPosition(metricsPanel()) &
+				Node.DOCUMENT_POSITION_FOLLOWING,
+		).toBeTruthy();
 	});
 
-	it("ScenesView_NoScenes_ShouldStillShowThePerformancePanelWithItsEmptyState", async () => {
+	it("ScenesView_NoScenes_ShouldStillShowTheMetricCardsEachWithItsEmptyState", async () => {
 		mockScenes([]);
 
 		renderView();
@@ -256,12 +259,13 @@ describe("ScenesView · métricas", () => {
 			name: "Clique aqui para criar uma nova cena e ver as predefinições",
 		});
 
-		expect(
-			within(metricsPanel()).getByText("Mais ativadas"),
-		).toBeInTheDocument();
-		expect(
-			within(metricsPanel()).getAllByText("—").length,
-		).toBeGreaterThanOrEqual(3);
+		for (const title of TITLES) {
+			expect(
+				within(
+					within(metricsPanel()).getByRole("region", { name: title }),
+				).getByText("Ainda não há dados"),
+			).toBeInTheDocument();
+		}
 	});
 });
 

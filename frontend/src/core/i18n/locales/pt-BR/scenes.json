@@ -64,14 +64,17 @@
 	"metrics": {
 		"title": "Desempenho",
 		"period": "últimos 7 dias",
+		"empty": "Ainda não há dados",
 		"activations": "Ativações",
+		"activationsUnit": "ativações",
 		"activationsChart": "Ativações por dia nos últimos 7 dias: {{values}}",
 		"successRate": "Taxa de sucesso",
+		"successChart": "Taxa de sucesso: {{value}}%",
 		"topScenes": "Mais ativadas",
 		"activationCount_one": "{{count}} ativação",
 		"activationCount_other": "{{count}} ativações",
 		"peakHour": "Horário de pico",
-		"emptyHint": "Ainda não há dados para mostrar. As métricas de uso aparecem aqui."
+		"peakHint": "quando mais cenas são ativadas"
 	},
 	"deleteDialog": {
 		"title": "Excluir cena",
