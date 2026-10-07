@@ -10,8 +10,8 @@ import {
 import type { SceneMetrics } from "../../../types/scenes.types";
 import { MetricCard, MetricEmpty } from "./MetricCard";
 
-/** Altura de cada barra do ranking, rótulo incluído. */
-const ROW_HEIGHT = 36;
+/** Altura de cada barra do ranking, rótulo incluído: 3 barras ocupam o h-24 do corpo, igual ao estado vazio. */
+const ROW_HEIGHT = 32;
 
 interface TopScenesCardProps {
 	scenes: SceneMetrics["topScenes"];
@@ -33,7 +33,7 @@ export function TopScenesCard({ scenes }: TopScenesCardProps) {
 			{scenes.length === 0 ? (
 				<MetricEmpty className="h-24" />
 			) : (
-				<>
+				<div className="h-24">
 					<figure
 						className="m-0 w-full"
 						style={{ height: scenes.length * ROW_HEIGHT }}
@@ -84,7 +84,7 @@ export function TopScenesCard({ scenes }: TopScenesCardProps) {
 							</li>
 						))}
 					</ul>
-				</>
+				</div>
 			)}
 		</MetricCard>
 	);

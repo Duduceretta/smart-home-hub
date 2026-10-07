@@ -49,7 +49,10 @@ function VariationBadge({
 	);
 }
 
-/** Ativações dos últimos 7 dias: o total em destaque e uma barra por dia (hoje em destaque). */
+/**
+ * Ativações dos últimos 7 dias: o total em destaque e uma barra por dia (hoje em destaque).
+ * O corpo tem a mesma altura (h-32) com e sem dados, para o card não crescer ao receber dados.
+ */
 export function ActivationsCard({
 	perDay,
 	total,
@@ -64,9 +67,9 @@ export function ActivationsCard({
 	return (
 		<MetricCard title={t("metrics.activations")} hint={t("metrics.period")}>
 			{hasData ? (
-				<>
-					<div className="flex items-baseline gap-2">
-						<span className="text-3xl font-semibold tabular-nums text-foreground">
+				<div className="flex h-32 flex-col gap-2">
+					<div className="flex h-8 items-baseline gap-2">
+						<span className="text-2xl font-semibold leading-8 tabular-nums text-foreground">
 							{total}
 						</span>
 						<span className="text-xs text-muted-foreground">
@@ -78,7 +81,7 @@ export function ActivationsCard({
 						aria-label={t("metrics.activationsChart", {
 							values: perDay.join(", "),
 						})}
-						className="m-0 h-32 w-full"
+						className="m-0 min-h-0 w-full flex-1"
 					>
 						<div aria-hidden className="h-full w-full">
 							<ResponsiveContainer width="100%" height="100%" debounce={200}>
@@ -123,7 +126,7 @@ export function ActivationsCard({
 							</ResponsiveContainer>
 						</div>
 					</figure>
-				</>
+				</div>
 			) : (
 				<MetricEmpty className="h-32" />
 			)}
