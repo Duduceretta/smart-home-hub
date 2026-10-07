@@ -237,7 +237,7 @@ export function ScenesView() {
 					</fieldset>
 				)}
 
-				<div className="grid grid-cols-1 items-start gap-6 xl:grid-cols-12">
+				<div className="grid grid-cols-1 items-stretch gap-6 xl:grid-cols-12">
 					<div className="flex min-w-0 flex-col gap-3 xl:col-span-8">
 						<div className="flex items-center justify-between gap-2">
 							<div className="flex items-center gap-2">
@@ -303,8 +303,8 @@ export function ScenesView() {
 									"transition-opacity duration-150",
 									isPlaceholderData && "opacity-60",
 									viewMode === "cards"
-										? "grid grid-cols-1 content-start gap-3 sm:grid-cols-2 xl:min-h-[calc(5*11rem+4*0.75rem)]"
-										: "flex flex-col gap-3 xl:min-h-[calc(11*4.625rem+10*0.75rem)]",
+										? "grid grid-cols-1 content-start gap-3 sm:grid-cols-2 xl:min-h-[calc(5*11rem+4*0.75rem)] xl:flex-1"
+										: "flex flex-col gap-3 xl:min-h-[calc(11*4.625rem+10*0.75rem)] xl:flex-1",
 								)}
 							>
 								{renderItems()}

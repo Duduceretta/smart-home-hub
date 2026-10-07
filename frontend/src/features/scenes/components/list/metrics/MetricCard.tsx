@@ -8,17 +8,27 @@ interface MetricCardProps {
 	/** Complemento curto ao lado do título (ex: o período). */
 	hint?: string;
 	children: ReactNode;
+	/** Ex.: `flex-1` para o card absorver a altura que sobrar na coluna. */
+	className?: string;
 }
 
 /**
  * Casca de um card de métrica: título em caixa alta e conteúdo. Cada métrica é um card
  * próprio (e não uma lista de linhas) porque cada uma tem o seu gráfico.
  */
-export function MetricCard({ title, hint, children }: MetricCardProps) {
+export function MetricCard({
+	title,
+	hint,
+	children,
+	className,
+}: MetricCardProps) {
 	return (
 		<section
 			aria-label={title}
-			className="flex min-w-0 flex-col gap-3 rounded-xl border border-border-subtle bg-surface-container p-4"
+			className={cn(
+				"flex min-w-0 flex-col gap-3 rounded-xl border border-border-subtle bg-surface-container p-4",
+				className,
+			)}
 		>
 			<header className="flex items-baseline justify-between gap-2">
 				<h4 className="text-xs font-medium uppercase tracking-wider text-muted-foreground">

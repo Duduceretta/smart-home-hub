@@ -36,7 +36,10 @@ export function SceneMetricsPanel({
 		Array.from({ length: DAYS_IN_CHART }, () => 0);
 
 	return (
-		<section aria-label={t("metrics.title")} className="flex flex-col gap-4">
+		<section
+			aria-label={t("metrics.title")}
+			className="flex flex-1 flex-col gap-4"
+		>
 			{isError && onRetry && (
 				<CardErrorFallback
 					message={t("metrics.loadError")}

@@ -66,14 +66,14 @@ export function TopScenesCard({ scenes }: TopScenesCardProps) {
 	}));
 
 	return (
-		<MetricCard title={t("metrics.topScenes")}>
+		<MetricCard title={t("metrics.topScenes")} className="flex-1">
 			{scenes.length === 0 ? (
-				<MetricEmpty className="h-24" />
+				<MetricEmpty className="min-h-24 flex-1" />
 			) : (
-				<div className="h-24">
+				<div className="min-h-24 flex-1">
 					<figure
-						className="m-0 w-full"
-						style={{ height: scenes.length * ROW_HEIGHT }}
+						className="m-0 h-full w-full"
+						style={{ minHeight: scenes.length * ROW_HEIGHT }}
 						aria-label={t("metrics.topScenes")}
 					>
 						<div aria-hidden className="h-full w-full">
