@@ -346,7 +346,7 @@ export function ScenesView() {
 						)}
 					</div>
 
-					<aside className="flex flex-col gap-4 xl:sticky xl:top-4 xl:col-span-4">
+					<aside className="flex flex-col gap-4 xl:col-span-4">
 						{selected ? (
 							<SceneQuickEdit
 								key={selected.id}
