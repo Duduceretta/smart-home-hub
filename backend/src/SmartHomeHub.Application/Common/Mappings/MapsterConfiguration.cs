@@ -27,7 +27,7 @@ public static class MapsterConfiguration
                         : ((TuyaDeviceConfiguration)src.Configuration).SupportsColor
             )
             .Map(dest => dest.Category, src => src.Type.ToString())
-            .Map(dest => dest.Room, src => src.Room != null ? src.Room.Name : "Sem cômodo")
+            .Map(dest => dest.Room, src => src.Room != null ? src.Room.Name : RoomNames.NoRoom)
             .Map(dest => dest.IsOnline, src => src.LiveState != null && src.LiveState.IsOnline)
             .Map(dest => dest.IsOn, src => src.LiveState != null && src.LiveState.IsOn)
             .Map(
