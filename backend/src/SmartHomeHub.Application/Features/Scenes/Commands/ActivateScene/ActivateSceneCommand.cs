@@ -163,7 +163,8 @@ public class ActivateSceneCommandHandler(IAppDbContext dbContext, IServiceScopeF
 
                 Title = title,
                 Description = description,
-                Severity = failed > 0 ? EventSeverity.Warning : EventSeverity.Info,
+                // Aplicar só parte dos dispositivos (falha ou offline pulado) é alerta, não ativação normal.
+                Severity = failed > 0 || skipped > 0 ? EventSeverity.Warning : EventSeverity.Info,
                 Source = EventSource.Scene,
                 IsAlert = false,
                 TraceId = traceId,

@@ -260,6 +260,13 @@ public class ActivateSceneTests(IntegrationTestWebAppFactory factory) : BaseInte
                 Arg.Any<bool>(),
                 Arg.Any<CancellationToken>()
             );
+
+        // Cena que não aplicou tudo (dispositivo offline pulado) é um alerta no histórico,
+        // não uma ativação normal: é o que a taxa de sucesso das métricas conta como problema.
+        DbContext.ChangeTracker.Clear();
+        (await DbContext.SystemEvents.SingleAsync(e => e.EventType == "SceneActivated", ct))
+            .Severity.Should()
+            .Be(EventSeverity.Warning);
     }
 
     [Fact]
