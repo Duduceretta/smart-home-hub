@@ -9,6 +9,7 @@ using SmartHomeHub.Application.Features.Scenes.Commands.DeleteScene;
 using SmartHomeHub.Application.Features.Scenes.Commands.UpdateScene;
 using SmartHomeHub.Application.Features.Scenes.Common;
 using SmartHomeHub.Application.Features.Scenes.Queries.GetSceneById;
+using SmartHomeHub.Application.Features.Scenes.Queries.GetSceneRooms;
 using SmartHomeHub.Application.Features.Scenes.Queries.GetScenes;
 
 namespace SmartHomeHub.Api.Endpoints;
@@ -24,7 +25,9 @@ public static class SceneEndpoints
                     IMediator mediator,
                     CancellationToken cancellationToken,
                     int page = 1,
-                    int pageSize = 10
+                    int pageSize = 10,
+                    string? search = null,
+                    string? room = null
                 ) =>
                 {
                     var firebaseUid = userToken.GetFirebaseUid();
@@ -33,7 +36,7 @@ public static class SceneEndpoints
                         return Results.Unauthorized();
 
                     var scenes = await mediator.Send(
-                        new GetScenesQuery(firebaseUid, page, pageSize),
+                        new GetScenesQuery(firebaseUid, page, pageSize, search, room),
                         cancellationToken
                     );
 
@@ -44,9 +47,40 @@ public static class SceneEndpoints
             .WithTags("Scenes")
             .WithSummary("Lista as cenas do usuário")
             .WithDescription(
-                "Retorna as cenas do usuário autenticado, ordenadas por nome, com o estado desejado de cada dispositivo."
+                "Retorna as cenas do usuário autenticado, ordenadas por nome, com o estado desejado de cada dispositivo. `search` filtra pelo nome da cena ou de qualquer dispositivo dela (sem distinguir caixa nem acento) e `room` pelo nome do ambiente de algum dispositivo (`Sem cômodo` para dispositivo sem ambiente); a paginação vale sobre o resultado filtrado."
             )
             .Produces<PagedResult<SceneDto>>(StatusCodes.Status200OK)
+            .ProducesProblem(StatusCodes.Status400BadRequest)
+            .ProducesProblem(StatusCodes.Status401Unauthorized);
+
+        app.MapGet(
+                "/api/scenes/rooms",
+                async (
+                    ClaimsPrincipal userToken,
+                    IMediator mediator,
+                    CancellationToken cancellationToken
+                ) =>
+                {
+                    var firebaseUid = userToken.GetFirebaseUid();
+
+                    if (string.IsNullOrEmpty(firebaseUid))
+                        return Results.Unauthorized();
+
+                    var rooms = await mediator.Send(
+                        new GetSceneRoomsQuery(firebaseUid),
+                        cancellationToken
+                    );
+
+                    return Results.Ok(rooms);
+                }
+            )
+            .RequireAuthorization()
+            .WithTags("Scenes")
+            .WithSummary("Lista os ambientes das cenas")
+            .WithDescription(
+                "Retorna, em ordem alfabética, os ambientes que aparecem em alguma cena do usuário (`Sem cômodo` para dispositivo fora de ambiente). Serve ao filtro por ambiente da lista, independente da página."
+            )
+            .Produces<List<string>>(StatusCodes.Status200OK)
             .ProducesProblem(StatusCodes.Status401Unauthorized);
 
         app.MapGet(
