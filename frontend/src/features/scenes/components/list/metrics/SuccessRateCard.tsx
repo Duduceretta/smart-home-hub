@@ -66,7 +66,7 @@ export function SuccessRateCard({
 							{rate}%
 						</span>
 					</figure>
-					<p className="m-0 h-4 shrink-0 truncate text-xs leading-4 text-muted-foreground">
+					<p className="m-0 h-4 shrink-0 truncate text-center text-xs leading-4 text-muted-foreground">
 						{lastProblem && problemWhen
 							? t("metrics.lastProblem", {
 									scene:
