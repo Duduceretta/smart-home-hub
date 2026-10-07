@@ -92,7 +92,8 @@
 		"variationDown": "−{{value}}% vs. last week",
 		"variationSame": "same as last week",
 		"lastProblem": "Last alert: {{scene}} · {{when}}",
-		"lastProblemUnknownScene": "a scene"
+		"lastProblemUnknownScene": "a scene",
+		"loadError": "Couldn't load the metrics."
 	},
 	"deleteDialog": {
 		"title": "Delete scene",

@@ -1,4 +1,5 @@
 import { LayoutGrid, List, Plus, Search, Trash2 } from "lucide-react";
+import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
 import { Trans, useTranslation } from "react-i18next";
 import { useNavigate, useSearchParams } from "react-router-dom";
@@ -18,6 +19,7 @@ import { useSceneDevices } from "../hooks/useSceneDevices";
 import { useSceneRooms } from "../hooks/useSceneRooms";
 import { useSceneStats } from "../hooks/useSceneStats";
 import { useScenes } from "../hooks/useScenes";
+import { scenesKeys } from "../hooks/scenes.keys";
 import { countOfflineDevices, toDeviceIndex } from "../lib/scene-view";
 import { useScenesUIStore } from "../store/scenes-ui.store";
 import type { Scene } from "../types/scenes.types";
@@ -54,6 +56,7 @@ export function ScenesView() {
 	const navigate = useNavigate();
 	const [searchParams, setSearchParams] = useSearchParams();
 	const confirm = useConfirm();
+	const queryClient = useQueryClient();
 
 	const viewMode = useScenesUIStore((s) => s.viewMode);
 	const setViewMode = useScenesUIStore((s) => s.setViewMode);
@@ -78,14 +81,30 @@ export function ScenesView() {
 		data: pageData,
 		isLoading,
 		isError,
+		isPending,
+		fetchStatus,
 		isPlaceholderData,
-		refetch,
 	} = useScenes({ page, pageSize, search: searchTerm, room });
 	const scenes = useMemo(() => pageData?.items ?? [], [pageData]);
 	const totalCount = pageData?.totalCount ?? 0;
 	const totalPages = pageData?.totalPages ?? 0;
-		const roomsQuery = useSceneRooms();
+	const roomsQuery = useSceneRooms();
 	const statsQuery = useSceneStats();
+
+	// Consulta pausada sem dados (o React Query pausa a nova tentativa quando o navegador está
+	// "offline" ou a janela sem foco): não está carregando nem em erro, mas também não é "sem
+	// cenas". Tratar como falha de carga evita mostrar a lista vazia sem aviso.
+	const listFailed =
+		!pageData && (isError || (isPending && fetchStatus === "paused"));
+	// "Tentar novamente" recomeça do zero: refetch() numa consulta pausada só continua a tentativa
+	// pausada, que segue dependendo do foco e da rede; resetar cria uma busca nova.
+	const retryLoad = () =>
+		queryClient.resetQueries({ queryKey: scenesKeys.all });
+
+	const statsFailed =
+		!statsQuery.data &&
+		(statsQuery.isError ||
+			(statsQuery.isPending && statsQuery.fetchStatus === "paused"));
 
 	const rooms = roomsQuery.data ?? [];
 
@@ -172,12 +191,12 @@ export function ScenesView() {
 		});
 
 	const renderBody = () => {
-		if (isError && !pageData) {
+		if (listFailed) {
 			return (
 				<CardErrorFallback
 					message={t("page.loadError")}
 					retryLabel={t("page.retry")}
-					onRetry={() => refetch()}
+					onRetry={retryLoad}
 					className="flex-col justify-center gap-4 rounded-xl bg-surface-low/50 p-6 text-center text-sm"
 				/>
 			);
@@ -346,7 +365,11 @@ export function ScenesView() {
 							/>
 						)}
 						{/* Carregando, em erro ou sem ativações: o painel mostra o estado vazio. */}
-						<SceneMetricsPanel metrics={statsQuery.data ?? null} />
+						<SceneMetricsPanel
+							metrics={statsQuery.data ?? null}
+							isError={statsFailed}
+							onRetry={retryLoad}
+						/>
 					</aside>
 				</div>
 			</div>

@@ -92,7 +92,8 @@
 		"variationDown": "−{{value}}% vs. semana anterior",
 		"variationSame": "igual à semana anterior",
 		"lastProblem": "Último alerta: {{scene}} · {{when}}",
-		"lastProblemUnknownScene": "uma cena"
+		"lastProblemUnknownScene": "uma cena",
+		"loadError": "Não foi possível carregar as métricas."
 	},
 	"deleteDialog": {
 		"title": "Excluir cena",

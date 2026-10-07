@@ -1,5 +1,10 @@
-import { describe, expect, it } from "vitest";
-import { renderWithProviders, screen, within } from "@/testing/test-utils";
+import { describe, expect, it, vi } from "vitest";
+import {
+	renderWithProviders,
+	screen,
+	userEvent,
+	within,
+} from "@/testing/test-utils";
 import type { SceneMetrics } from "../../../types/scenes.types";
 import { SceneMetricsPanel } from "../SceneMetricsPanel";
 
@@ -246,6 +251,30 @@ describe("SceneMetricsPanel", () => {
 			expect(
 				within(card("Taxa de sucesso")).queryByText(/Último alerta/),
 			).not.toBeInTheDocument();
+		});
+	});
+
+	describe("falha ao carregar", () => {
+		it("SceneMetricsPanel_Error_ShouldShowTheMessageAndCallRetry", async () => {
+			const onRetry = vi.fn();
+			renderWithProviders(
+				<SceneMetricsPanel metrics={null} isError onRetry={onRetry} />,
+			);
+
+			const alert = within(panel()).getByRole("alert");
+			expect(alert).toHaveTextContent("Não foi possível carregar as métricas.");
+
+			await userEvent.click(
+				within(alert).getByRole("button", { name: "Tentar novamente" }),
+			);
+
+			expect(onRetry).toHaveBeenCalledTimes(1);
+		});
+
+		it("SceneMetricsPanel_NoError_ShouldNotShowTheAlert", () => {
+			renderWithProviders(<SceneMetricsPanel metrics={null} />);
+
+			expect(within(panel()).queryByRole("alert")).not.toBeInTheDocument();
 		});
 	});
 });

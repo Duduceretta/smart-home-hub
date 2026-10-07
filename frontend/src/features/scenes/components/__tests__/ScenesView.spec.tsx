@@ -1,18 +1,16 @@
+import { onlineManager } from "@tanstack/react-query";
 import { HttpResponse, http } from "msw";
 import { MemoryRouter, useLocation } from "react-router-dom";
 import { toast } from "sonner";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { useScenesUIStore } from "@/features/scenes/store/scenes-ui.store";
-import type {
-	Scene,
-	SceneMetrics,
-} from "@/features/scenes/types/scenes.types";
+import type { Scene, SceneMetrics } from "@/features/scenes/types/scenes.types";
 import { mockScenesApi } from "@/testing/mocks/scenes-api.mock";
 import {
 	createSceneActivationResultMock,
 	createSceneDeviceMock,
 	createSceneItemMock,
-		createSceneMock,
+	createSceneMock,
 	createSceneStatsMock,
 } from "@/testing/mocks/scenes.mock";
 import { server } from "@/testing/mocks/server";
@@ -139,7 +137,7 @@ beforeEach(() => {
 describe("ScenesView · lista", () => {
 	it("ScenesView_ScenesStillLoading_ShouldRenderTheLoadingSkeleton", () => {
 		server.use(
-						http.get("*/api/scenes/rooms", () => HttpResponse.json([])),
+			http.get("*/api/scenes/rooms", () => HttpResponse.json([])),
 			http.get("*/api/scenes/stats", () => new Promise(() => {})),
 			http.get("*/api/scenes", () => new Promise(() => {})),
 		);
@@ -267,12 +265,18 @@ describe("ScenesView · métricas", () => {
 		const panel = screen.getByRole("region", { name: "Desempenho" });
 		const card = (name: string) => within(panel).getByRole("region", { name });
 
-		expect(await within(card("Ativações")).findByText("12")).toBeInTheDocument();
+		expect(
+			await within(card("Ativações")).findByText("12"),
+		).toBeInTheDocument();
 		expect(
 			within(card("Ativações")).getByText("+20% vs. semana anterior"),
 		).toBeInTheDocument();
-		expect(within(card("Taxa de sucesso")).getByText("91.7%")).toBeInTheDocument();
-		expect(within(card("Horário de pico")).getByText("20:00")).toBeInTheDocument();
+		expect(
+			within(card("Taxa de sucesso")).getByText("91.7%"),
+		).toBeInTheDocument();
+		expect(
+			within(card("Horário de pico")).getByText("20:00"),
+		).toBeInTheDocument();
 		expect(
 			within(card("Mais ativadas")).getByText("Modo Cinema"),
 		).toBeInTheDocument();
@@ -289,26 +293,53 @@ describe("ScenesView · métricas", () => {
 		);
 	});
 
-	it("ScenesView_StatsRequestFails_ShouldKeepTheCardsEmptyAndTheListWorking", async () => {
+	it("ScenesView_StatsRequestFails_ShouldShowAnErrorNotAnEmptyStateAndRetry", async () => {
+		const stats = createSceneStatsMock({ activationsTotal: 12 });
 		mockScenes([cinema]);
+		let calls = 0;
 		server.use(
-			http.get("*/api/scenes/stats", () =>
-				HttpResponse.json({ title: "Boom", status: 500 }, { status: 500 }),
-			),
+			http.get("*/api/scenes/stats", () => {
+				calls += 1;
+				return calls <= 2
+					? HttpResponse.json({ title: "Boom", status: 500 }, { status: 500 })
+					: HttpResponse.json(stats);
+			}),
 		);
+		const user = userEvent.setup();
 		renderView();
 
+		// A lista funciona mesmo com as métricas fora do ar.
 		expect(await findRow("Modo Cinema")).toBeInTheDocument();
 		const panel = screen.getByRole("region", { name: "Desempenho" });
-		await waitFor(
-			() =>
-				expect(
-					within(
-						within(panel).getByRole("region", { name: "Ativações" }),
-					).getByText("Ainda não há dados"),
-				).toBeInTheDocument(),
-			{ timeout: 4000 },
+		const alert = await within(panel).findByRole("alert", undefined, {
+			timeout: 4000,
+		});
+		expect(alert).toHaveTextContent("Não foi possível carregar as métricas.");
+
+		await user.click(
+			within(alert).getByRole("button", { name: "Tentar novamente" }),
 		);
+
+		expect(
+			await within(
+				within(panel).getByRole("region", { name: "Ativações" }),
+			).findByText("12"),
+		).toBeInTheDocument();
+		expect(within(panel).queryByRole("alert")).not.toBeInTheDocument();
+	});
+
+	it("ScenesView_StatsStillLoading_ShouldNotShowAnError", async () => {
+		mockScenes([cinema]);
+		server.use(http.get("*/api/scenes/stats", () => new Promise(() => {})));
+		renderView();
+
+		await findRow("Modo Cinema");
+
+		expect(
+			within(screen.getByRole("region", { name: "Desempenho" })).queryByRole(
+				"alert",
+			),
+		).not.toBeInTheDocument();
 	});
 
 	const metricsPanel = () => screen.getByRole("region", { name: "Desempenho" });
@@ -910,11 +941,40 @@ describe("ScenesView · paginação, busca e ambiente no servidor", () => {
 	});
 });
 
+describe("ScenesView · consulta pausada (rede ou foco)", () => {
+	// Com o navegador "offline" (ou a janela sem foco) o React Query PAUSA a consulta depois
+	// da falha: ela não está carregando, não está em erro e não tem dados. A tela não pode
+	// tratar isso como "você não tem cenas".
+	afterEach(() => onlineManager.setOnline(true));
+
+	it("ScenesView_QueriesPausedBeforeAnyData_ShouldShowTheLoadErrorNotTheEmptyList", async () => {
+		mockScenes([cinema]);
+		onlineManager.setOnline(false);
+		const user = userEvent.setup();
+		renderView();
+
+		const alert = await screen.findByRole("alert");
+		expect(alert).toHaveTextContent("Não foi possível carregar as cenas.");
+		expect(
+			screen.queryByRole("button", {
+				name: "Clique aqui para criar uma nova cena e ver as predefinições",
+			}),
+		).not.toBeInTheDocument();
+
+		onlineManager.setOnline(true);
+		await user.click(
+			within(alert).getByRole("button", { name: "Tentar novamente" }),
+		);
+
+		expect(await findRow("Modo Cinema")).toBeInTheDocument();
+	});
+});
+
 describe("ScenesView · erro", () => {
 	it("ScenesView_ListFails_ShouldShowTheErrorFallbackAndRetry", async () => {
 		let calls = 0;
 		server.use(
-						http.get("*/api/scenes/rooms", () => HttpResponse.json([])),
+			http.get("*/api/scenes/rooms", () => HttpResponse.json([])),
 			http.get("*/api/scenes/stats", () => new Promise(() => {})),
 			http.get("*/api/scenes", () => {
 				calls += 1;
