@@ -23,26 +23,76 @@ function unwrapItems<T>(data: PagedResponse<T> | T[] | undefined): T[] {
 	return Array.isArray(data) ? data : [];
 }
 
+export interface FetchScenesParams {
+	page: number;
+	pageSize: number;
+	/** Texto livre: nome da cena ou de qualquer dispositivo dela. */
+	search?: string;
+	/** Nome do ambiente (ou "Sem cômodo"): só cenas com algum dispositivo nele. */
+	room?: string | null;
+}
+
 /**
- * Busca as cenas do usuário autenticado (ordenadas por nome pela API).
+ * Busca uma página das cenas do usuário autenticado (ordenadas por nome pela API).
+ * Busca e ambiente filtram no servidor, sobre todas as cenas, e a paginação vale
+ * sobre o resultado filtrado. Filtro em branco não é enviado.
  */
 export async function fetchScenes(
-	page = 1,
-	pageSize = 200,
+	{ page, pageSize, search, room }: FetchScenesParams,
 	signal?: AbortSignal,
-): Promise<Scene[]> {
-	try {
-		const { data } = await apiClient.get<PagedResponse<Scene> | Scene[]>(
-			"/scenes",
-			{ params: { page, pageSize }, signal },
-		);
+): Promise<PagedResponse<Scene>> {
+	const trimmedSearch = search?.trim();
 
-		return unwrapItems(data);
+	try {
+		const { data } = await apiClient.get<PagedResponse<Scene>>("/scenes", {
+			params: {
+				page,
+				pageSize,
+				...(trimmedSearch ? { search: trimmedSearch } : {}),
+				...(room ? { room } : {}),
+			},
+			signal,
+		});
+
+		return data;
 	} catch (error: unknown) {
 		throw handleApplicationError(
 			error,
 			"Não foi possível carregar a lista de cenas.",
 		);
+	}
+}
+
+/**
+ * Ambientes que aparecem em alguma cena (inclui "Sem cômodo"), em ordem alfabética,
+ * independente da página carregada. Alimenta o filtro de ambiente da lista.
+ */
+export async function fetchSceneRooms(signal?: AbortSignal): Promise<string[]> {
+	try {
+		const { data } = await apiClient.get<string[]>("/scenes/rooms", { signal });
+
+		return Array.isArray(data) ? data : [];
+	} catch (error: unknown) {
+		throw handleApplicationError(
+			error,
+			"Não foi possível carregar os ambientes das cenas.",
+		);
+	}
+}
+
+/**
+ * Busca uma cena pelo id (cena selecionada fora da página atual, tela de edição).
+ */
+export async function fetchScene(
+	id: string,
+	signal?: AbortSignal,
+): Promise<Scene> {
+	try {
+		const { data } = await apiClient.get<Scene>(`/scenes/${id}`, { signal });
+
+		return data;
+	} catch (error: unknown) {
+		throw handleApplicationError(error, "Não foi possível carregar a cena.");
 	}
 }
 

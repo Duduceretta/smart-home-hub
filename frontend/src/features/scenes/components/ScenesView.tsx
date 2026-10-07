@@ -1,23 +1,23 @@
 import { LayoutGrid, List, Plus, Search, Trash2 } from "lucide-react";
-import { useMemo, useState } from "react";
-import { useTranslation } from "react-i18next";
+import { useEffect, useMemo, useState } from "react";
+import { Trans, useTranslation } from "react-i18next";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { CardErrorFallback } from "@/core/components/feedback/CardErrorFallback";
 import { StaleDataIndicator } from "@/core/components/feedback/StaleDataIndicator";
+import { ListPager } from "@/core/components/layouts/ListPager";
 import { useConfirm } from "@/core/components/providers/ConfirmDialogProvider";
 import { Button } from "@/core/components/ui/button";
+import { useDebouncedValue } from "@/core/hooks/useDebouncedValue";
+import { useUrlPagination } from "@/core/hooks/useUrlPagination";
 import { cn } from "@/core/utils";
 import { COLOR_AMBER } from "../constants/scene-colors";
 import { useActivateScene } from "../hooks/useActivateScene";
 import { useDeleteScene } from "../hooks/useDeleteScene";
+import { useScene } from "../hooks/useScene";
 import { useSceneDevices } from "../hooks/useSceneDevices";
+import { useSceneRooms } from "../hooks/useSceneRooms";
 import { useScenes } from "../hooks/useScenes";
-import {
-	countOfflineDevices,
-	filterScenes,
-	listRoomsInScenes,
-	toDeviceIndex,
-} from "../lib/scene-view";
+import { countOfflineDevices, toDeviceIndex } from "../lib/scene-view";
 import { useScenesUIStore } from "../store/scenes-ui.store";
 import type { Scene } from "../types/scenes.types";
 import { SceneMetricsPanel } from "./list/SceneMetricsPanel";
@@ -25,7 +25,7 @@ import { SceneQuickEdit } from "./list/SceneQuickEdit";
 import { SceneQuickEditPlaceholder } from "./list/SceneQuickEditPlaceholder";
 import { SceneRow } from "./list/SceneRow";
 import { SceneTile } from "./list/SceneTile";
-import { ScenesPager } from "./list/ScenesPager";
+
 import { ScenesListSkeleton } from "./list/scenes-list.skeleton";
 
 const NEW_SCENE_PATH = "/scenes/new";
@@ -34,6 +34,11 @@ const NEW_SCENE_PATH = "/scenes/new";
 // 11rem por card, mais o gap), pra última página não encolher a tela.
 const PAGE_SIZE_LIST = 11;
 const PAGE_SIZE_CARDS = 10;
+
+// Espera o usuário parar de digitar antes de buscar no servidor.
+const SEARCH_DEBOUNCE_MS = 300;
+
+const URL_FILTERS = ["q", "room"] as const;
 
 const CHIP_CLASSNAME =
 	"h-8 cursor-pointer rounded-lg border px-4 text-xs font-medium outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring/50";
@@ -49,16 +54,48 @@ export function ScenesView() {
 	const [searchParams, setSearchParams] = useSearchParams();
 	const confirm = useConfirm();
 
-	const { data: scenesData, isLoading, isError, refetch } = useScenes();
-	const scenes = useMemo(() => scenesData ?? [], [scenesData]);
+	const viewMode = useScenesUIStore((s) => s.viewMode);
+	const setViewMode = useScenesUIStore((s) => s.setViewMode);
+	const pageSize = viewMode === "cards" ? PAGE_SIZE_CARDS : PAGE_SIZE_LIST;
+
+	// Página, busca e ambiente vivem na URL e são resolvidos no servidor, sobre todas as cenas.
+	const { page, setPage, filters, setFilter } = useUrlPagination(URL_FILTERS);
+	const searchTerm = filters.q;
+	const room = filters.room || null;
+	const hasFilters = Boolean(searchTerm || room);
+
+	const [searchInput, setSearchInput] = useState(searchTerm);
+	const debouncedSearch = useDebouncedValue(
+		searchInput,
+		SEARCH_DEBOUNCE_MS,
+	).trim();
+	useEffect(() => {
+		if (debouncedSearch !== searchTerm) setFilter("q", debouncedSearch);
+	}, [debouncedSearch, searchTerm, setFilter]);
+
+	const {
+		data: pageData,
+		isLoading,
+		isError,
+		isPlaceholderData,
+		refetch,
+	} = useScenes({ page, pageSize, search: searchTerm, room });
+	const scenes = useMemo(() => pageData?.items ?? [], [pageData]);
+	const totalCount = pageData?.totalCount ?? 0;
+	const totalPages = pageData?.totalPages ?? 0;
+	const roomsQuery = useSceneRooms();
+	const rooms = roomsQuery.data ?? [];
+
+	// Página além da última (URL antiga, cenas apagadas): volta para a última que existe.
+	useEffect(() => {
+		if (!isPlaceholderData && totalPages > 0 && page > totalPages) {
+			setPage(totalPages);
+		}
+	}, [isPlaceholderData, page, totalPages, setPage]);
+
 	const devicesQuery = useSceneDevices();
 	const devices = useMemo(() => devicesQuery.data ?? [], [devicesQuery.data]);
 	const deviceIndex = useMemo(() => toDeviceIndex(devices), [devices]);
-
-	const viewMode = useScenesUIStore((s) => s.viewMode);
-	const setViewMode = useScenesUIStore((s) => s.setViewMode);
-	const [query, setQuery] = useState("");
-	const [room, setRoom] = useState<string | null>(null);
 
 	const activateScene = useActivateScene();
 	const deleteScene = useDeleteScene();
@@ -66,34 +103,23 @@ export function ScenesView() {
 		? (activateScene.variables ?? null)
 		: null;
 
-	const rooms = useMemo(
-		() => listRoomsInScenes(scenes, deviceIndex),
-		[scenes, deviceIndex],
-	);
-	const visibleScenes = useMemo(
-		() => filterScenes(scenes, deviceIndex, { query, room }),
-		[scenes, deviceIndex, query, room],
-	);
+	const handleViewMode = (mode: typeof viewMode) => {
+		setViewMode(mode);
+		setPage(1);
+	};
 
-	// Paginação no cliente: a lista é pequena e já vem inteira da API. A página volta
-	// pra 0 quando busca, ambiente ou modo de visão mudam (chave do filtro).
-	const pageSize = viewMode === "cards" ? PAGE_SIZE_CARDS : PAGE_SIZE_LIST;
-	const filterKey = `${query}|${room}|${viewMode}`;
-	const [pager, setPager] = useState({ key: filterKey, page: 0 });
-	const lastPage = Math.max(0, Math.ceil(visibleScenes.length / pageSize) - 1);
-	const page = pager.key === filterKey ? Math.min(pager.page, lastPage) : 0;
-	const pageScenes = useMemo(
-		() => visibleScenes.slice(page * pageSize, (page + 1) * pageSize),
-		[visibleScenes, page, pageSize],
-	);
-	const goToPage = (next: number) => setPager({ key: filterKey, page: next });
-
-	// A cena selecionada vive na URL (`?scene=`); sem seleção válida, vale a primeira visível.
+	// A cena selecionada vive na URL (`?scene=`). Se ela não está na página atual, busca por
+	// id para a edição rápida; sem seleção válida, vale a primeira da página.
 	const selectedId = searchParams.get("scene");
+	const selectedOnPage = scenes.find((scene) => scene.id === selectedId);
+	const selectedElsewhere = useScene(
+		selectedId && !selectedOnPage ? selectedId : null,
+	);
 	const selected =
-		visibleScenes.find((scene) => scene.id === selectedId) ??
-		visibleScenes[0] ??
-		null;
+		selectedOnPage ??
+		(selectedId && !selectedElsewhere.isError
+			? (selectedElsewhere.data ?? null)
+			: (scenes[0] ?? null));
 
 	const selectScene = (sceneId: string) =>
 		setSearchParams(
@@ -120,7 +146,7 @@ export function ScenesView() {
 	};
 
 	const renderItems = () =>
-		pageScenes.map((scene) => {
+		scenes.map((scene) => {
 			const props = {
 				scene,
 				isSelected: selected?.id === scene.id,
@@ -143,7 +169,7 @@ export function ScenesView() {
 		});
 
 	const renderBody = () => {
-		if (isError && !scenesData) {
+		if (isError && !pageData) {
 			return (
 				<CardErrorFallback
 					message={t("page.loadError")}
@@ -172,7 +198,7 @@ export function ScenesView() {
 								key={entry ?? "all"}
 								type="button"
 								aria-pressed={room === entry}
-								onClick={() => setRoom(entry)}
+								onClick={() => setFilter("room", entry)}
 								style={
 									room === entry ? { backgroundColor: COLOR_AMBER } : undefined
 								}
@@ -197,7 +223,7 @@ export function ScenesView() {
 									{t("list.title")}
 								</h2>
 								<span className="rounded-md border border-border-subtle bg-surface-high px-2 py-1 text-xs font-bold uppercase text-muted-foreground">
-									{t("list.count", { count: scenes.length })}
+									{t("list.count", { count: totalCount })}
 								</span>
 							</div>
 							<div className="flex items-center gap-4">
@@ -219,7 +245,7 @@ export function ScenesView() {
 											type="button"
 											aria-pressed={viewMode === mode}
 											aria-label={t(labelKey)}
-											onClick={() => setViewMode(mode)}
+											onClick={() => handleViewMode(mode)}
 											className={cn(
 												"flex h-6 w-7 cursor-pointer items-center justify-center rounded-md outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring/50",
 												viewMode === mode
@@ -234,7 +260,7 @@ export function ScenesView() {
 							</div>
 						</div>
 
-						{scenes.length === 0 ? (
+						{scenes.length === 0 && !hasFilters && !isPlaceholderData ? (
 							<button
 								type="button"
 								onClick={() => navigate(NEW_SCENE_PATH)}
@@ -243,14 +269,17 @@ export function ScenesView() {
 								<Plus className="h-4 w-4 shrink-0" aria-hidden />
 								{t("empty.ghost")}
 							</button>
-						) : visibleScenes.length === 0 ? (
+						) : scenes.length === 0 ? (
 							<p className="rounded-xl border border-dashed border-border-subtle p-6 text-center text-sm text-muted-foreground">
 								{t("list.noResults")}
 							</p>
 						) : (
 							<ul
 								aria-label={t("list.ariaLabel")}
+								aria-busy={isPlaceholderData}
 								className={cn(
+									"transition-opacity duration-150",
+									isPlaceholderData && "opacity-60",
 									viewMode === "cards"
 										? "grid grid-cols-1 content-start gap-3 sm:grid-cols-2 xl:min-h-[calc(5*11rem+4*0.75rem)]"
 										: "flex flex-col gap-3 xl:min-h-[calc(11*4.625rem+10*0.75rem)]",
@@ -260,14 +289,37 @@ export function ScenesView() {
 							</ul>
 						)}
 
-						{visibleScenes.length > 0 && (
-							<ScenesPager
+						{scenes.length > 0 && (
+							<ListPager
 								page={page}
-								lastPage={lastPage}
-								from={page * pageSize + 1}
-								to={Math.min((page + 1) * pageSize, visibleScenes.length)}
-								total={visibleScenes.length}
-								onChange={goToPage}
+								totalPages={totalPages}
+								onPageChange={setPage}
+								activeStyle={{ backgroundColor: COLOR_AMBER }}
+								summary={
+									<Trans
+										t={t}
+										i18nKey="list.pageRange"
+										count={totalCount}
+										values={{
+											from: (page - 1) * pageSize + 1,
+											to: (page - 1) * pageSize + scenes.length,
+											total: totalCount,
+										}}
+										components={{
+											strong: (
+												<strong className="font-semibold text-foreground" />
+											),
+										}}
+									/>
+								}
+								labels={{
+									nav: t("list.pagination"),
+									first: t("list.firstPage"),
+									previous: t("list.prevPage"),
+									next: t("list.nextPage"),
+									last: t("list.lastPage"),
+									goToPage: (target) => t("list.goToPage", { page: target }),
+								}}
 							/>
 						)}
 					</div>
@@ -284,7 +336,7 @@ export function ScenesView() {
 						) : (
 							<SceneQuickEditPlaceholder
 								message={
-									scenes.length === 0
+									scenes.length === 0 && !hasFilters
 										? t("quick.emptyHint")
 										: t("quick.selectPrompt")
 								}
@@ -304,7 +356,7 @@ export function ScenesView() {
 				<div className="flex min-w-0 flex-col gap-2">
 					<h1 className="flex items-center gap-2 text-3xl font-semibold leading-none tracking-tight text-foreground">
 						{t("title")}
-						{isError && scenesData && <StaleDataIndicator />}
+						{isError && pageData && <StaleDataIndicator />}
 					</h1>
 					<p className="truncate text-sm text-muted-foreground">
 						{t("header.subtitle")}
@@ -318,8 +370,8 @@ export function ScenesView() {
 							type="search"
 							aria-label={t("toolbar.searchLabel")}
 							placeholder={t("toolbar.searchPlaceholder")}
-							value={query}
-							onChange={(event) => setQuery(event.target.value)}
+							value={searchInput}
+							onChange={(event) => setSearchInput(event.target.value)}
 							className="w-full bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground"
 						/>
 					</label>

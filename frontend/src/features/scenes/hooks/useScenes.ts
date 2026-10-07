@@ -1,16 +1,20 @@
-import { useQuery } from "@tanstack/react-query";
-import { fetchScenes } from "../api/scenes.api";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
+import type { PagedResponse } from "@/core/types/pagination.types";
+import { type FetchScenesParams, fetchScenes } from "../api/scenes.api";
 import type { Scene } from "../types/scenes.types";
 import { scenesKeys } from "./scenes.keys";
 
 /**
- * Busca e mantém em cache as cenas do usuário (stale time de 5 minutos).
+ * Uma página das cenas do usuário, já filtrada no servidor (stale time de 5 minutos).
+ * `placeholderData: keepPreviousData` mantém a página anterior na tela enquanto a
+ * próxima carrega, em vez de piscar o esqueleto a cada troca de página ou de filtro.
  */
-export function useScenes() {
-	return useQuery<Scene[], Error>({
-		queryKey: scenesKeys.lists(),
-		queryFn: ({ signal }) => fetchScenes(undefined, undefined, signal),
+export function useScenes(params: FetchScenesParams) {
+	return useQuery<PagedResponse<Scene>, Error>({
+		queryKey: scenesKeys.page(params),
+		queryFn: ({ signal }) => fetchScenes(params, signal),
 		staleTime: 1000 * 60 * 5,
 		retry: 1,
+		placeholderData: keepPreviousData,
 	});
 }

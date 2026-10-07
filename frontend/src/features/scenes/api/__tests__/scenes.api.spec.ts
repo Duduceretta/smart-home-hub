@@ -10,44 +10,78 @@ import {
 	activateSceneRequest,
 	createSceneRequest,
 	deleteSceneRequest,
+	fetchScene,
 	fetchSceneDevices,
+	fetchSceneRooms,
 	fetchScenes,
 	updateSceneRequest,
 } from "../scenes.api";
 
 describe("scenes.api", () => {
 	describe("fetchScenes", () => {
-		it("fetchScenes_PagedResponse_ShouldReturnItems", async () => {
+		const pagedResponse = (scenes: unknown[], overrides = {}) => ({
+			items: scenes,
+			page: 1,
+			pageSize: 10,
+			totalCount: scenes.length,
+			totalPages: 1,
+			hasNextPage: false,
+			hasPreviousPage: false,
+			...overrides,
+		});
+
+		it("fetchScenes_PagedResponse_ShouldReturnThePageWithItsTotals", async () => {
 			const scene = createSceneMock();
 			server.use(
 				http.get("*/api/scenes", () =>
-					HttpResponse.json({
-						items: [scene],
-						page: 1,
-						pageSize: 200,
-						totalCount: 1,
-						totalPages: 1,
-						hasNextPage: false,
-						hasPreviousPage: false,
-					}),
+					HttpResponse.json(
+						pagedResponse([scene], { totalCount: 27, totalPages: 3 }),
+					),
 				),
 			);
 
-			await expect(fetchScenes()).resolves.toEqual([scene]);
+			const page = await fetchScenes({ page: 1, pageSize: 10 });
+
+			expect(page.items).toEqual([scene]);
+			expect(page.totalCount).toBe(27);
+			expect(page.totalPages).toBe(3);
 		});
 
-		it("fetchScenes_AskForALargePage_ShouldSendPageSize200", async () => {
-			let receivedPageSize: string | null = null;
+		it("fetchScenes_WithFilters_ShouldSendPageSearchAndRoom", async () => {
+			const received: { params: URLSearchParams | null } = { params: null };
 			server.use(
 				http.get("*/api/scenes", ({ request }) => {
-					receivedPageSize = new URL(request.url).searchParams.get("pageSize");
-					return HttpResponse.json({ items: [] });
+					received.params = new URL(request.url).searchParams;
+					return HttpResponse.json(pagedResponse([]));
 				}),
 			);
 
-			await fetchScenes();
+			await fetchScenes({
+				page: 2,
+				pageSize: 11,
+				search: "luz",
+				room: "Sala",
+			});
 
-			expect(receivedPageSize).toBe("200");
+			expect(received.params?.get("page")).toBe("2");
+			expect(received.params?.get("pageSize")).toBe("11");
+			expect(received.params?.get("search")).toBe("luz");
+			expect(received.params?.get("room")).toBe("Sala");
+		});
+
+		it("fetchScenes_BlankFilters_ShouldNotSendThem", async () => {
+			const received: { params: URLSearchParams | null } = { params: null };
+			server.use(
+				http.get("*/api/scenes", ({ request }) => {
+					received.params = new URL(request.url).searchParams;
+					return HttpResponse.json(pagedResponse([]));
+				}),
+			);
+
+			await fetchScenes({ page: 1, pageSize: 10, search: "  ", room: null });
+
+			expect(received.params?.has("search")).toBe(false);
+			expect(received.params?.has("room")).toBe(false);
 		});
 
 		it("fetchScenes_ServerError_ShouldThrowAppErrorWithFallbackMessage", async () => {
@@ -57,7 +91,57 @@ describe("scenes.api", () => {
 				),
 			);
 
-			await expect(fetchScenes()).rejects.toThrow();
+			await expect(fetchScenes({ page: 1, pageSize: 10 })).rejects.toThrow();
+		});
+	});
+
+	describe("fetchSceneRooms", () => {
+		it("fetchSceneRooms_ApiReturnsNames_ShouldReturnThemInOrder", async () => {
+			server.use(
+				http.get("*/api/scenes/rooms", () =>
+					HttpResponse.json(["Quarto", "Sala", "Sem cômodo"]),
+				),
+			);
+
+			await expect(fetchSceneRooms()).resolves.toEqual([
+				"Quarto",
+				"Sala",
+				"Sem cômodo",
+			]);
+		});
+
+		it("fetchSceneRooms_ServerError_ShouldThrow", async () => {
+			server.use(
+				http.get("*/api/scenes/rooms", () =>
+					HttpResponse.json({ title: "Boom", status: 500 }, { status: 500 }),
+				),
+			);
+
+			await expect(fetchSceneRooms()).rejects.toThrow();
+		});
+	});
+
+	describe("fetchScene", () => {
+		it("fetchScene_ExistingId_ShouldReturnTheScene", async () => {
+			const scene = createSceneMock({ id: "scene-9" });
+			server.use(
+				http.get("*/api/scenes/scene-9", () => HttpResponse.json(scene)),
+			);
+
+			await expect(fetchScene("scene-9")).resolves.toEqual(scene);
+		});
+
+		it("fetchScene_UnknownId_ShouldThrow", async () => {
+			server.use(
+				http.get("*/api/scenes/nope", () =>
+					HttpResponse.json(
+						{ title: "Not found", status: 404 },
+						{ status: 404 },
+					),
+				),
+			);
+
+			await expect(fetchScene("nope")).rejects.toThrow();
 		});
 	});
 

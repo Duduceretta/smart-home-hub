@@ -15,12 +15,13 @@ import { FormGlobalError } from "@/core/components/forms/FormGlobalError";
 import { FormSection } from "@/core/components/forms/FormSection";
 import { useConfirm } from "@/core/components/providers/ConfirmDialogProvider";
 import { Button } from "@/core/components/ui/button";
+import { AppError } from "@/core/errors/app.errors";
 import { DEFAULT_SCENE_ICON_ID } from "../../constants/scenes.constants";
 import { useActivateScene } from "../../hooks/useActivateScene";
 import { useCreateScene } from "../../hooks/useCreateScene";
 import { useDeleteScene } from "../../hooks/useDeleteScene";
 import { useSceneDevices } from "../../hooks/useSceneDevices";
-import { useScenes } from "../../hooks/useScenes";
+import { useScene } from "../../hooks/useScene";
 import { useUpdateScene } from "../../hooks/useUpdateScene";
 import {
 	createItemFromDevice,
@@ -71,11 +72,11 @@ export function SceneEditorPage() {
 
 	const mode: "create" | "edit" = id ? "edit" : "create";
 
-	const scenesQuery = useScenes();
-	const scene = useMemo(
-		() => scenesQuery.data?.find((entry) => entry.id === id),
-		[scenesQuery.data, id],
-	);
+	// A cena de edição vem por id (GET /scenes/{id}), sem depender da página da lista.
+	const sceneQuery = useScene(id);
+	const scene = sceneQuery.data;
+	const sceneNotFound =
+		sceneQuery.error instanceof AppError && sceneQuery.error.status === 404;
 	const devicesQuery = useSceneDevices();
 	const devices = useMemo(() => devicesQuery.data ?? [], [devicesQuery.data]);
 
@@ -330,20 +331,20 @@ export function SceneEditorPage() {
 		</nav>
 	);
 
-	if (mode === "edit" && scenesQuery.isError && !scenesQuery.data) {
+	if (mode === "edit" && sceneQuery.isError && !sceneNotFound && !scene) {
 		return (
 			<div className="flex flex-col gap-6">
 				{breadcrumb}
 				<CardErrorFallback
 					message={t("page.loadError")}
 					retryLabel={t("page.retry")}
-					onRetry={() => scenesQuery.refetch()}
+					onRetry={() => sceneQuery.refetch()}
 				/>
 			</div>
 		);
 	}
 
-	if (mode === "edit" && scenesQuery.isSuccess && !scene) {
+	if (mode === "edit" && sceneNotFound) {
 		return (
 			<div className="flex flex-col items-start gap-4">
 				{breadcrumb}

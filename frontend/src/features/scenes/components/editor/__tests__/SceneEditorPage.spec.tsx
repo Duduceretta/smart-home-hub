@@ -65,9 +65,18 @@ function mockDevices(devices = [lamp, plug, tv, mqttLight, sensor, lock]) {
 	);
 }
 
-function mockScenes(scenes: unknown[]) {
+function mockScenes(scenes: { id: string }[]) {
 	server.use(
-		http.get("*/api/scenes", () => HttpResponse.json({ items: scenes })),
+		http.get("*/api/scenes/:id", ({ params }) => {
+			const scene = scenes.find((entry) => entry.id === params.id);
+
+			return scene
+				? HttpResponse.json(scene)
+				: HttpResponse.json(
+						{ title: "Not found", status: 404 },
+						{ status: 404 },
+					);
+		}),
 	);
 }
 
@@ -331,6 +340,44 @@ describe("SceneEditorPage · criar", () => {
 });
 
 describe("SceneEditorPage · editar", () => {
+	it("SceneEditorPage_EditModeWithUnknownScene_ShouldShowNotFoundAndLinkBackToTheList", async () => {
+		mockScenes([savedScene]);
+
+		renderEditor("/scenes/does-not-exist/edit");
+
+		expect(
+			await screen.findByText(
+				"Cena não encontrada. Ela pode ter sido excluída.",
+			),
+		).toBeInTheDocument();
+		expect(
+			screen.getByRole("button", { name: "Voltar para Cenas" }),
+		).toBeInTheDocument();
+	});
+
+	it("SceneEditorPage_EditModeWhenTheSceneRequestFails_ShouldShowTheErrorFallbackAndRetry", async () => {
+		let calls = 0;
+		server.use(
+			http.get("*/api/scenes/:id", () => {
+				calls += 1;
+				return calls === 1
+					? HttpResponse.json({ title: "Boom", status: 500 }, { status: 500 })
+					: HttpResponse.json(savedScene);
+			}),
+		);
+		const user = userEvent.setup();
+		renderEditor(`/scenes/${savedScene.id}/edit`);
+
+		const retry = await screen.findByRole("button", {
+			name: "Tentar novamente",
+		});
+		await user.click(retry);
+
+		expect(await screen.findByLabelText("Nome da cena")).toHaveValue(
+			savedScene.name,
+		);
+	});
+
 	it("SceneEditorPage_EditMode_ShouldLoadTheSceneAndPutTheChanges", async () => {
 		mockScenes([savedScene]);
 		const calls = captureCalls();

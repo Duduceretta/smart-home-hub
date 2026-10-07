@@ -3,6 +3,8 @@ import { MemoryRouter, useLocation } from "react-router-dom";
 import { toast } from "sonner";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { useScenesUIStore } from "@/features/scenes/store/scenes-ui.store";
+import type { Scene } from "@/features/scenes/types/scenes.types";
+import { mockScenesApi } from "@/testing/mocks/scenes-api.mock";
 import {
 	createSceneActivationResultMock,
 	createSceneDeviceMock,
@@ -85,9 +87,19 @@ const night = createSceneMock({
 	items: [itemOf(bedLamp, { isOn: false }), itemOf(hallLamp, { isOn: false })],
 });
 
-function mockScenes(scenes: unknown[]) {
-	server.use(
-		http.get("*/api/scenes", () => HttpResponse.json({ items: scenes })),
+// Servidor de mentira fiel ao contrato real (paginação, search e room no servidor).
+function mockScenes(scenes: Scene[]) {
+	return mockScenesApi(scenes, DEVICES);
+}
+
+// Várias cenas, para exercitar a paginação (nomes em ordem alfabética estável).
+function manyScenes(count: number): Scene[] {
+	return Array.from({ length: count }, (_, index) =>
+		createSceneMock({
+			id: `many-${String(index + 1).padStart(2, "0")}`,
+			name: `Cena ${String(index + 1).padStart(2, "0")}`,
+			items: [itemOf(lamp, { isOn: true })],
+		}),
 	);
 }
 
@@ -122,7 +134,10 @@ beforeEach(() => {
 
 describe("ScenesView · lista", () => {
 	it("ScenesView_ScenesStillLoading_ShouldRenderTheLoadingSkeleton", () => {
-		server.use(http.get("*/api/scenes", () => new Promise(() => {})));
+		server.use(
+			http.get("*/api/scenes/rooms", () => HttpResponse.json([])),
+			http.get("*/api/scenes", () => new Promise(() => {})),
+		);
 
 		renderView();
 
@@ -203,16 +218,17 @@ describe("ScenesView · lista", () => {
 		renderView();
 		await findRow("Modo Cinema");
 
-		expect(within(quickPanel()).getByText("Modo Cinema")).toBeInTheDocument();
+		// Sem seleção na URL, vale a primeira da página (o servidor ordena por nome).
+		expect(within(quickPanel()).getByText("Boa Noite")).toBeInTheDocument();
 
 		await user.click(
-			screen.getByRole("button", { name: "Selecionar cena Boa Noite" }),
+			screen.getByRole("button", { name: "Selecionar cena Modo Cinema" }),
 		);
 
 		expect(screen.getByTestId("location")).toHaveTextContent(
-			"/scenes?scene=s2",
+			"/scenes?scene=s1",
 		);
-		expect(within(quickPanel()).getByText("Boa Noite")).toBeInTheDocument();
+		expect(within(quickPanel()).getByText("Modo Cinema")).toBeInTheDocument();
 	});
 
 	it("ScenesView_SceneInTheUrl_ShouldStartSelected", async () => {
@@ -281,16 +297,20 @@ describe("ScenesView · busca, ambiente e visualização", () => {
 			"corredor",
 		);
 
+		await waitFor(() =>
+			expect(
+				screen.queryByRole("button", { name: "Selecionar cena Modo Cinema" }),
+			).not.toBeInTheDocument(),
+		);
 		expect(
 			screen.getByRole("button", { name: "Selecionar cena Boa Noite" }),
 		).toBeInTheDocument();
-		expect(
-			screen.queryByRole("button", { name: "Selecionar cena Modo Cinema" }),
-		).not.toBeInTheDocument();
 
 		await user.clear(screen.getByLabelText("Buscar cena ou dispositivo"));
 		await user.type(screen.getByLabelText("Buscar cena ou dispositivo"), "zzz");
-		expect(screen.getByText("Nenhuma cena encontrada.")).toBeInTheDocument();
+		expect(
+			await screen.findByText("Nenhuma cena encontrada."),
+		).toBeInTheDocument();
 	});
 
 	it("ScenesView_RoomChips_ShouldListTheRoomsOfTheSceneDevicesAndFilter", async () => {
@@ -310,12 +330,14 @@ describe("ScenesView · busca, ambiente e visualização", () => {
 
 		await user.click(within(rooms).getByRole("button", { name: "Sala" }));
 
+		await waitFor(() =>
+			expect(
+				screen.queryByRole("button", { name: "Selecionar cena Boa Noite" }),
+			).not.toBeInTheDocument(),
+		);
 		expect(
 			screen.getByRole("button", { name: "Selecionar cena Modo Cinema" }),
 		).toBeInTheDocument();
-		expect(
-			screen.queryByRole("button", { name: "Selecionar cena Boa Noite" }),
-		).not.toBeInTheDocument();
 	});
 
 	it("ScenesView_CardsOption_ShouldSwitchTheViewAndKeepRowActions", async () => {
@@ -635,15 +657,208 @@ describe("ScenesView · edição rápida", () => {
 	});
 });
 
+describe("ScenesView · paginação, busca e ambiente no servidor", () => {
+	const pager = () =>
+		screen.getByRole("navigation", { name: "Paginação das cenas" });
+	const lastRequest = (requests: URL[]) => requests[requests.length - 1];
+
+	it("ScenesView_ManyScenes_ShouldAskTheServerForTheFirstPageOnly", async () => {
+		const { requests } = mockScenes(manyScenes(27));
+
+		renderView();
+
+		expect(await findRow("Cena 01")).toBeInTheDocument();
+		expect(await findRow("Cena 11")).toBeInTheDocument();
+		expect(
+			screen.queryByRole("button", { name: "Selecionar cena Cena 12" }),
+		).not.toBeInTheDocument();
+		expect(requests[0]?.searchParams.get("page")).toBe("1");
+		expect(requests[0]?.searchParams.get("pageSize")).toBe("11");
+		expect(pager()).toHaveTextContent("Mostrando 1–11 de 27 cenas");
+		expect(screen.getByText("27 cenas")).toBeInTheDocument();
+	});
+
+	it("ScenesView_SingleScene_ShouldUseTheSingularInThePagerSummary", async () => {
+		mockScenes([cinema]);
+
+		renderView();
+
+		await findRow("Modo Cinema");
+		expect(pager()).toHaveTextContent("Mostrando 1–1 de 1 cena");
+		expect(pager()).not.toHaveTextContent("1 cenas");
+	});
+
+	it("ScenesView_NextPage_ShouldRequestItAndPutItInTheUrl", async () => {
+		const { requests } = mockScenes(manyScenes(27));
+		const user = userEvent.setup();
+		renderView();
+		await findRow("Cena 01");
+
+		await user.click(
+			within(pager()).getByRole("button", { name: "Próxima página" }),
+		);
+
+		expect(await findRow("Cena 12")).toBeInTheDocument();
+		expect(lastRequest(requests)?.searchParams.get("page")).toBe("2");
+		expect(screen.getByTestId("location")).toHaveTextContent("page=2");
+		expect(pager()).toHaveTextContent("Mostrando 12–22 de 27 cenas");
+	});
+
+	it("ScenesView_PageInTheUrl_ShouldStartOnThatPage", async () => {
+		mockScenes(manyScenes(27));
+
+		renderView("/scenes?page=3");
+
+		expect(await findRow("Cena 23")).toBeInTheDocument();
+		expect(pager()).toHaveTextContent("Mostrando 23–27 de 27 cenas");
+	});
+
+	it("ScenesView_PageBeyondTheLastOne_ShouldFallBackToTheLastPage", async () => {
+		mockScenes(manyScenes(27));
+
+		renderView("/scenes?page=9");
+
+		expect(await findRow("Cena 23")).toBeInTheDocument();
+		await waitFor(() =>
+			expect(screen.getByTestId("location")).toHaveTextContent("page=3"),
+		);
+	});
+
+	it("ScenesView_CardsView_ShouldUseASmallerPageSize", async () => {
+		useScenesUIStore.setState({ viewMode: "cards" });
+		const { requests } = mockScenes(manyScenes(27));
+
+		renderView();
+
+		expect(await findRow("Cena 10")).toBeInTheDocument();
+		expect(requests[0]?.searchParams.get("pageSize")).toBe("10");
+		expect(
+			screen.queryByRole("button", { name: "Selecionar cena Cena 11" }),
+		).not.toBeInTheDocument();
+	});
+
+	it("ScenesView_TypingASearch_ShouldSendOneDebouncedRequestAndBackToFirstPage", async () => {
+		const { requests } = mockScenes(manyScenes(27));
+		const user = userEvent.setup();
+		renderView("/scenes?page=2");
+		await findRow("Cena 12");
+		const before = requests.length;
+
+		await user.type(
+			screen.getByLabelText("Buscar cena ou dispositivo"),
+			"cena 2",
+		);
+
+		await waitFor(() =>
+			expect(lastRequest(requests)?.searchParams.get("search")).toBe("cena 2"),
+		);
+		expect(lastRequest(requests)?.searchParams.get("page")).toBe("1");
+		// Sete teclas, uma única requisição: a busca espera o usuário parar de digitar.
+		expect(requests.length - before).toBe(1);
+		expect(screen.getByTestId("location")).toHaveTextContent("q=cena+2");
+		expect(screen.getByTestId("location")).not.toHaveTextContent("page=");
+	});
+
+	it("ScenesView_SearchInTheUrl_ShouldFillTheFieldAndFilterOnTheServer", async () => {
+		const { requests } = mockScenes(manyScenes(27));
+
+		renderView("/scenes?q=cena+27");
+
+		expect(await findRow("Cena 27")).toBeInTheDocument();
+		expect(screen.getByLabelText("Buscar cena ou dispositivo")).toHaveValue(
+			"cena 27",
+		);
+		expect(requests[0]?.searchParams.get("search")).toBe("cena 27");
+	});
+
+	it("ScenesView_RoomFilter_ShouldSendTheRoomToTheServerAndKeepAllChips", async () => {
+		const { requests } = mockScenes([cinema, night]);
+		const user = userEvent.setup();
+		renderView();
+		await findRow("Modo Cinema");
+		const rooms = await screen.findByRole("group", { name: "Ambientes" });
+		await waitFor(() =>
+			expect(within(rooms).getAllByRole("button")).toHaveLength(4),
+		);
+
+		await user.click(within(rooms).getByRole("button", { name: "Quarto" }));
+
+		await waitFor(() =>
+			expect(lastRequest(requests)?.searchParams.get("room")).toBe("Quarto"),
+		);
+		expect(await findRow("Boa Noite")).toBeInTheDocument();
+		// As pílulas vêm do endpoint de ambientes: filtrar não faz as outras sumirem.
+		expect(within(rooms).getAllByRole("button")).toHaveLength(4);
+		expect(
+			within(rooms).getByRole("button", { name: "Quarto" }),
+		).toHaveAttribute("aria-pressed", "true");
+	});
+
+	it("ScenesView_SelectedSceneOutsideTheCurrentPage_ShouldBeFetchedByIdForTheQuickEdit", async () => {
+		mockScenes(manyScenes(27));
+
+		renderView("/scenes?scene=many-20");
+
+		await findRow("Cena 01");
+		expect(
+			await within(quickPanel()).findByText("Cena 20"),
+		).toBeInTheDocument();
+		expect(
+			screen.queryByRole("button", { name: "Selecionar cena Cena 20" }),
+		).not.toBeInTheDocument();
+	});
+
+	it("ScenesView_SelectedSceneThatNoLongerExists_ShouldFallBackToTheFirstOnThePage", async () => {
+		mockScenes(manyScenes(5));
+
+		renderView("/scenes?scene=deleted-scene");
+
+		await findRow("Cena 01");
+		expect(
+			await within(quickPanel()).findByText("Cena 01"),
+		).toBeInTheDocument();
+	});
+
+	it("ScenesView_FilteredWithNoResult_ShouldShowTheMessageAndKeepTheChips", async () => {
+		mockScenes([cinema, night]);
+		const user = userEvent.setup();
+		renderView();
+		await findRow("Modo Cinema");
+
+		await user.type(screen.getByLabelText("Buscar cena ou dispositivo"), "zzz");
+
+		expect(
+			await screen.findByText("Nenhuma cena encontrada."),
+		).toBeInTheDocument();
+		expect(
+			screen.getByRole("group", { name: "Ambientes" }),
+		).toBeInTheDocument();
+		expect(
+			screen.queryByRole("button", {
+				name: "Clique aqui para criar uma nova cena e ver as predefinições",
+			}),
+		).not.toBeInTheDocument();
+	});
+});
+
 describe("ScenesView · erro", () => {
 	it("ScenesView_ListFails_ShouldShowTheErrorFallbackAndRetry", async () => {
 		let calls = 0;
 		server.use(
+			http.get("*/api/scenes/rooms", () => HttpResponse.json([])),
 			http.get("*/api/scenes", () => {
 				calls += 1;
 				return calls <= 2
 					? HttpResponse.json({ title: "Boom", status: 500 }, { status: 500 })
-					: HttpResponse.json({ items: [cinema] });
+					: HttpResponse.json({
+							items: [cinema],
+							page: 1,
+							pageSize: 11,
+							totalCount: 1,
+							totalPages: 1,
+							hasNextPage: false,
+							hasPreviousPage: false,
+						});
 			}),
 		);
 		const user = userEvent.setup();

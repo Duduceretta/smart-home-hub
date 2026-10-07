@@ -1,4 +1,5 @@
 import { SCENES_QUERY_ROOT } from "@/core/constants/query-key-roots";
+import type { FetchScenesParams } from "../api/scenes.api";
 
 /**
  * Factory for deterministic TanStack Query cache keys.
@@ -9,5 +10,11 @@ import { SCENES_QUERY_ROOT } from "@/core/constants/query-key-roots";
 export const scenesKeys = {
 	all: SCENES_QUERY_ROOT,
 	lists: () => [...scenesKeys.all, "list"] as const,
+	// Tudo que é leitura de cena mora sob `lists()`: criar, apagar e ativar invalidam
+	// esse prefixo e levam junto páginas, ambientes e cena avulsa.
+	page: (params: FetchScenesParams) =>
+		[...scenesKeys.lists(), "page", params] as const,
+	rooms: () => [...scenesKeys.lists(), "rooms"] as const,
+	detail: (id: string) => [...scenesKeys.lists(), "detail", id] as const,
 	devices: () => [...scenesKeys.all, "devices"] as const,
 };
