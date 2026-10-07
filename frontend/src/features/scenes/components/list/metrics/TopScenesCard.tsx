@@ -13,6 +13,43 @@ import { MetricCard, MetricEmpty } from "./MetricCard";
 /** Altura de cada barra do ranking, rótulo incluído: 3 barras ocupam o h-24 do corpo, igual ao estado vazio. */
 const ROW_HEIGHT = 32;
 
+/** Largura reservada aos nomes à esquerda das barras. */
+const LABEL_WIDTH = 96;
+const MAX_LABEL_CHARS = 14;
+
+interface LeftAlignedTickProps {
+	y?: number;
+	payload?: { value: string };
+}
+
+/**
+  * Nome da cena alinhado à esquerda (o eixo do Recharts alinha à direita). A área de rótulos
+ * começa em x=0 do gráfico (sem margem à esquerda), então o texto parte dali.
+
+ * Nome longo é cortado com reticências; o nome inteiro fica no `<title>`.
+ */
+function LeftAlignedTick({ y = 0, payload }: LeftAlignedTickProps) {
+	const full = payload?.value ?? "";
+	const label =
+		full.length > MAX_LABEL_CHARS
+			? `${full.slice(0, MAX_LABEL_CHARS - 1)}…`
+			: full;
+
+	return (
+		<text
+			x={0}
+			y={y}
+			textAnchor="start"
+			dominantBaseline="central"
+			fill="var(--color-foreground)"
+			fontSize={12}
+		>
+			<title>{full}</title>
+			{label}
+		</text>
+	);
+}
+
 interface TopScenesCardProps {
 	scenes: SceneMetrics["topScenes"];
 }
@@ -50,9 +87,8 @@ export function TopScenesCard({ scenes }: TopScenesCardProps) {
 									<YAxis
 										type="category"
 										dataKey="name"
-										width={96}
-										stroke="var(--color-foreground)"
-										fontSize={12}
+										width={LABEL_WIDTH}
+										tick={<LeftAlignedTick />}
 										tickLine={false}
 										axisLine={false}
 									/>
