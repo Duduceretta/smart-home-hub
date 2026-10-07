@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using SmartHomeHub.Application.Common.Interfaces;
+using SmartHomeHub.Application.Common.Search;
 using SmartHomeHub.Domain.Common.Interfaces;
 using SmartHomeHub.Domain.Entities;
 using SmartHomeHub.Domain.ValueObjects;
@@ -84,6 +85,19 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
     {
         base.OnModelCreating(modelBuilder);
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
+
+        // Busca sem acento (SearchExtensions.ApplySearch): o EF traduz SearchFunctions.Unaccent
+        // para a função unaccent() da extensão homônima do PostgreSQL.
+        modelBuilder.HasPostgresExtension("unaccent");
+        modelBuilder
+            .HasDbFunction(
+                typeof(SearchFunctions).GetMethod(
+                    nameof(SearchFunctions.Unaccent),
+                    [typeof(string)]
+                )!
+            )
+            .HasName("unaccent")
+            .IsBuiltIn(false);
     }
 
     protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
