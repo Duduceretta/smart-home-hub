@@ -7,6 +7,7 @@ import { StaleDataIndicator } from "@/core/components/feedback/StaleDataIndicato
 import { useConfirm } from "@/core/components/providers/ConfirmDialogProvider";
 import { Button } from "@/core/components/ui/button";
 import { cn } from "@/core/utils";
+import { COLOR_AMBER } from "../constants/scene-colors";
 import { useActivateScene } from "../hooks/useActivateScene";
 import { useDeleteScene } from "../hooks/useDeleteScene";
 import { useSceneDevices } from "../hooks/useSceneDevices";
@@ -24,12 +25,18 @@ import { SceneQuickEdit } from "./list/SceneQuickEdit";
 import { SceneQuickEditPlaceholder } from "./list/SceneQuickEditPlaceholder";
 import { SceneRow } from "./list/SceneRow";
 import { SceneTile } from "./list/SceneTile";
+import { ScenesPager } from "./list/ScenesPager";
 import { ScenesListSkeleton } from "./list/scenes-list.skeleton";
 
 const NEW_SCENE_PATH = "/scenes/new";
 
+// A lista reserva a altura de uma página cheia (xl:min-h no <ul>, 4.625rem por linha e
+// 11rem por card, mais o gap), pra última página não encolher a tela.
+const PAGE_SIZE_LIST = 11;
+const PAGE_SIZE_CARDS = 10;
+
 const CHIP_CLASSNAME =
-	"h-7 cursor-pointer rounded-full border px-3 text-xs font-medium outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring/50";
+	"h-8 cursor-pointer rounded-lg border px-4 text-xs font-medium outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring/50";
 
 /**
  * Tela de Cenas. Lista larga com a "faixa de luz" de cada cena (ou cards, como opção),
@@ -68,6 +75,19 @@ export function ScenesView() {
 		[scenes, deviceIndex, query, room],
 	);
 
+	// Paginação no cliente: a lista é pequena e já vem inteira da API. A página volta
+	// pra 0 quando busca, ambiente ou modo de visão mudam (chave do filtro).
+	const pageSize = viewMode === "cards" ? PAGE_SIZE_CARDS : PAGE_SIZE_LIST;
+	const filterKey = `${query}|${room}|${viewMode}`;
+	const [pager, setPager] = useState({ key: filterKey, page: 0 });
+	const lastPage = Math.max(0, Math.ceil(visibleScenes.length / pageSize) - 1);
+	const page = pager.key === filterKey ? Math.min(pager.page, lastPage) : 0;
+	const pageScenes = useMemo(
+		() => visibleScenes.slice(page * pageSize, (page + 1) * pageSize),
+		[visibleScenes, page, pageSize],
+	);
+	const goToPage = (next: number) => setPager({ key: filterKey, page: next });
+
 	// A cena selecionada vive na URL (`?scene=`); sem seleção válida, vale a primeira visível.
 	const selectedId = searchParams.get("scene");
 	const selected =
@@ -100,7 +120,7 @@ export function ScenesView() {
 	};
 
 	const renderItems = () =>
-		visibleScenes.map((scene) => {
+		pageScenes.map((scene) => {
 			const props = {
 				scene,
 				isSelected: selected?.id === scene.id,
@@ -113,7 +133,12 @@ export function ScenesView() {
 			return viewMode === "cards" ? (
 				<SceneTile key={scene.id} {...props} />
 			) : (
-				<SceneRow key={scene.id} {...props} />
+				<SceneRow
+					key={scene.id}
+					{...props}
+					onEdit={openEditor}
+					onDelete={handleDelete}
+				/>
 			);
 		});
 
@@ -134,13 +159,13 @@ export function ScenesView() {
 		return (
 			<div className="flex flex-col gap-4">
 				{rooms.length > 0 && (
-					<fieldset className="m-0 flex min-w-0 flex-wrap items-center gap-2 border-0 p-0">
+					<fieldset className="m-0 -mx-4 flex min-w-0 flex-wrap items-center gap-2 border-0 border-y border-border-subtle bg-surface-container px-4 py-4 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8">
 						<legend className="sr-only">{t("toolbar.roomLabel")}</legend>
 						<span
 							aria-hidden
-							className="text-xs font-medium uppercase tracking-wider text-muted-foreground"
+							className="mr-2 text-xs font-medium uppercase tracking-wider text-muted-foreground"
 						>
-							{t("toolbar.roomLabel")}
+							{t("toolbar.roomLabel")}:
 						</span>
 						{[null, ...rooms].map((entry) => (
 							<button
@@ -148,11 +173,14 @@ export function ScenesView() {
 								type="button"
 								aria-pressed={room === entry}
 								onClick={() => setRoom(entry)}
+								style={
+									room === entry ? { backgroundColor: COLOR_AMBER } : undefined
+								}
 								className={cn(
 									CHIP_CLASSNAME,
 									room === entry
-										? "border-transparent bg-primary text-primary-foreground"
-										: "border-border-subtle text-muted-foreground hover:text-foreground",
+										? "border-transparent text-primary-foreground"
+										: "border-border-subtle bg-surface-high text-foreground hover:bg-surface-highest",
 								)}
 							>
 								{entry ?? t("toolbar.allRooms")}
@@ -161,17 +189,49 @@ export function ScenesView() {
 					</fieldset>
 				)}
 
-				<div className="grid grid-cols-1 items-start gap-6 xl:grid-cols-[minmax(0,1fr)_21rem]">
-					<div className="flex min-w-0 flex-col gap-3">
-						<div className="flex items-baseline justify-between gap-2">
-							<h2 className="text-sm font-semibold text-foreground">
-								{t("list.title")}
-							</h2>
-							{scenes.length > 0 && (
-								<span className="text-xs text-muted-foreground">
-									{t("list.hint")}
+				<div className="grid grid-cols-1 items-start gap-6 xl:grid-cols-12">
+					<div className="flex min-w-0 flex-col gap-3 xl:col-span-8">
+						<div className="flex items-center justify-between gap-2">
+							<div className="flex items-center gap-2">
+								<h2 className="text-xs font-bold uppercase tracking-wider text-foreground">
+									{t("list.title")}
+								</h2>
+								<span className="rounded-md border border-border-subtle bg-surface-high px-2 py-1 text-xs font-bold uppercase text-muted-foreground">
+									{t("list.count", { count: scenes.length })}
 								</span>
-							)}
+							</div>
+							<div className="flex items-center gap-4">
+								{scenes.length > 0 && (
+									<span className="text-xs text-muted-foreground">
+										{t("list.hint")}
+									</span>
+								)}
+								<fieldset className="m-0 inline-flex gap-1 rounded-lg border border-border-subtle bg-surface-container p-1">
+									<legend className="sr-only">{t("toolbar.viewLabel")}</legend>
+									{(
+										[
+											["list", List, "toolbar.viewList"],
+											["cards", LayoutGrid, "toolbar.viewCards"],
+										] as const
+									).map(([mode, Icon, labelKey]) => (
+										<button
+											key={mode}
+											type="button"
+											aria-pressed={viewMode === mode}
+											aria-label={t(labelKey)}
+											onClick={() => setViewMode(mode)}
+											className={cn(
+												"flex h-6 w-7 cursor-pointer items-center justify-center rounded-md outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring/50",
+												viewMode === mode
+													? "bg-surface-highest text-foreground"
+													: "text-muted-foreground hover:text-foreground",
+											)}
+										>
+											<Icon className="h-4 w-4" />
+										</button>
+									))}
+								</fieldset>
+							</div>
 						</div>
 
 						{scenes.length === 0 ? (
@@ -192,16 +252,27 @@ export function ScenesView() {
 								aria-label={t("list.ariaLabel")}
 								className={cn(
 									viewMode === "cards"
-										? "grid grid-cols-1 gap-3 sm:grid-cols-2 2xl:grid-cols-3"
-										: "divide-y divide-border-subtle overflow-hidden rounded-xl border border-border-subtle bg-surface-container",
+										? "grid grid-cols-1 content-start gap-3 sm:grid-cols-2 xl:min-h-[calc(5*11rem+4*0.75rem)]"
+										: "flex flex-col gap-3 xl:min-h-[calc(11*4.625rem+10*0.75rem)]",
 								)}
 							>
 								{renderItems()}
 							</ul>
 						)}
+
+						{visibleScenes.length > 0 && (
+							<ScenesPager
+								page={page}
+								lastPage={lastPage}
+								from={page * pageSize + 1}
+								to={Math.min((page + 1) * pageSize, visibleScenes.length)}
+								total={visibleScenes.length}
+								onChange={goToPage}
+							/>
+						)}
 					</div>
 
-					<aside className="flex flex-col gap-4 xl:sticky xl:top-4">
+					<aside className="flex flex-col gap-4 xl:sticky xl:top-4 xl:col-span-4">
 						{selected ? (
 							<SceneQuickEdit
 								key={selected.id}
@@ -229,16 +300,13 @@ export function ScenesView() {
 
 	return (
 		<div className="flex flex-col gap-6 motion-safe:animate-in motion-safe:fade-in motion-safe:duration-300">
-			<header className="flex flex-wrap items-end justify-between gap-4">
-				<div className="flex flex-col gap-1">
-					<span className="text-xs font-medium uppercase tracking-wider text-primary">
-						{t("header.eyebrow")}
-					</span>
-					<h1 className="flex items-center gap-2 text-3xl font-semibold tracking-tight text-foreground">
+			<header className="flex flex-wrap items-center justify-between gap-4">
+				<div className="flex min-w-0 flex-col gap-2">
+					<h1 className="flex items-center gap-2 text-3xl font-semibold leading-none tracking-tight text-foreground">
 						{t("title")}
 						{isError && scenesData && <StaleDataIndicator />}
 					</h1>
-					<p className="max-w-xl text-sm text-muted-foreground">
+					<p className="truncate text-sm text-muted-foreground">
 						{t("header.subtitle")}
 					</p>
 				</div>
@@ -255,32 +323,6 @@ export function ScenesView() {
 							className="w-full bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground"
 						/>
 					</label>
-
-					<fieldset className="m-0 inline-flex gap-1 rounded-lg border border-border-subtle bg-surface-container p-1">
-						<legend className="sr-only">{t("toolbar.viewLabel")}</legend>
-						{(
-							[
-								["list", List, "toolbar.viewList"],
-								["cards", LayoutGrid, "toolbar.viewCards"],
-							] as const
-						).map(([mode, Icon, labelKey]) => (
-							<button
-								key={mode}
-								type="button"
-								aria-pressed={viewMode === mode}
-								aria-label={t(labelKey)}
-								onClick={() => setViewMode(mode)}
-								className={cn(
-									"flex h-6 w-7 cursor-pointer items-center justify-center rounded-md outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring/50",
-									viewMode === mode
-										? "bg-primary text-primary-foreground"
-										: "text-muted-foreground hover:text-foreground",
-								)}
-							>
-								<Icon className="h-4 w-4" />
-							</button>
-						))}
-					</fieldset>
 
 					<Button onClick={() => navigate(NEW_SCENE_PATH)}>
 						<Plus />

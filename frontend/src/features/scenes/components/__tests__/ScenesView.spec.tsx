@@ -299,13 +299,13 @@ describe("ScenesView · busca, ambiente e visualização", () => {
 		renderView();
 		await findRow("Modo Cinema");
 
-		const rooms = await screen.findByRole("group", { name: "Ambiente" });
+		const rooms = await screen.findByRole("group", { name: "Ambientes" });
 		await waitFor(() =>
 			expect(
 				within(rooms)
 					.getAllByRole("button")
 					.map((button) => button.textContent),
-			).toEqual(["Todos", "Corredor", "Quarto", "Sala"]),
+			).toEqual(["Todas as cenas", "Corredor", "Quarto", "Sala"]),
 		);
 
 		await user.click(within(rooms).getByRole("button", { name: "Sala" }));
@@ -353,7 +353,7 @@ describe("ScenesView · sem cenas", () => {
 			await screen.findByRole("button", { name: GHOST_LABEL }),
 		).toBeInTheDocument();
 		expect(
-			screen.getByRole("heading", { name: "Suas cenas" }),
+			screen.getByRole("heading", { name: "Painel operacional de cenas" }),
 		).toBeInTheDocument();
 		expect(
 			screen.getByRole("button", { name: "Nova cena" }),
@@ -407,7 +407,7 @@ describe("ScenesView · sem cenas", () => {
 		await screen.findByRole("button", { name: GHOST_LABEL });
 
 		expect(
-			screen.queryByRole("group", { name: "Ambiente" }),
+			screen.queryByRole("group", { name: "Ambientes" }),
 		).not.toBeInTheDocument();
 	});
 });
@@ -451,14 +451,17 @@ describe("ScenesView · edição rápida", () => {
 		).not.toBeChecked();
 	});
 
-	it("ScenesView_QuickEditWithoutChanges_ShouldNotOfferToSave", async () => {
+	it("ScenesView_QuickEditWithoutChanges_ShouldShowSaveAndDiscardDisabled", async () => {
 		mockScenes([lampScene]);
 		renderView();
 		await findRow("Cena Rápida");
 
 		expect(
-			within(quickPanel()).queryByRole("button", { name: "Salvar alterações" }),
-		).not.toBeInTheDocument();
+			within(quickPanel()).getByRole("button", { name: "Salvar alterações" }),
+		).toBeDisabled();
+		expect(
+			within(quickPanel()).getByRole("button", { name: "Descartar" }),
+		).toBeDisabled();
 	});
 
 	it("ScenesView_TogglingADeviceInTheQuickEdit_ShouldOfferToSaveAndPutTheNewState", async () => {
@@ -548,8 +551,8 @@ describe("ScenesView · edição rápida", () => {
 			within(quickPanel()).getByRole("switch", { name: "Ligar Smart-TV-Pro" }),
 		).not.toBeChecked();
 		expect(
-			within(quickPanel()).queryByRole("button", { name: "Salvar alterações" }),
-		).not.toBeInTheDocument();
+			within(quickPanel()).getByRole("button", { name: "Salvar alterações" }),
+		).toBeDisabled();
 		expect(calls).toHaveLength(0);
 	});
 

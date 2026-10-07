@@ -11,8 +11,8 @@
 		"viewLabel": "Visualização",
 		"viewList": "Lista",
 		"viewCards": "Cards",
-		"roomLabel": "Ambiente",
-		"allRooms": "Todos"
+		"roomLabel": "Ambientes",
+		"allRooms": "Todas as cenas"
 	},
 	"page": {
 		"loading": "Carregando cenas...",
@@ -22,13 +22,23 @@
 		"backToScenes": "Voltar para Cenas"
 	},
 	"list": {
-		"title": "Suas cenas",
+		"title": "Painel operacional de cenas",
+		"count_one": "{{count}} cena",
+		"count_other": "{{count}} cenas",
 		"hint": "Selecione uma cena para editar rápido",
 		"ariaLabel": "Cenas",
-		"noResults": "Nenhuma cena encontrada."
+		"noResults": "Nenhuma cena encontrada.",
+		"pageRange": "Mostrando <strong>{{from}}–{{to}}</strong> de <strong>{{total}}</strong> cenas",
+		"pagination": "Paginação das cenas",
+		"firstPage": "Primeira página",
+		"lastPage": "Última página",
+		"goToPage": "Ir para a página {{page}}",
+		"prevPage": "Página anterior",
+		"nextPage": "Próxima página"
 	},
 	"row": {
 		"activate": "Ativar cena {{name}}",
+		"moreOptions": "Mais opções de {{name}}",
 		"select": "Selecionar cena {{name}}",
 		"deviceCount_one": "{{count}} dispositivo",
 		"deviceCount_other": "{{count}} dispositivos",
@@ -55,6 +65,8 @@
 		"delete": "Excluir cena",
 		"emptyScene": "Esta cena não tem dispositivos.",
 		"addDevices": "Adicionar dispositivos",
+		"addDevice": "Adicionar dispositivo",
+		"addDeviceHint": "Abra o editor para incluir na cena",
 		"stateOn": "Liga",
 		"stateOff": "Desliga"
 	},
@@ -130,6 +142,16 @@
 	},
 	"editor": {
 		"breadcrumbScenes": "Cenas",
+		"createDescription": "Dê um nome, escolha os dispositivos e confira antes de salvar.",
+		"editDescription": "Ajuste o nome, o ícone e os dispositivos desta cena.",
+		"stepsLabel": "Passos",
+		"steps": {
+			"start": "Começar",
+			"devices": "Dispositivos",
+			"review": "Revisar"
+		},
+		"next": "Próximo",
+		"back": "Voltar",
 		"createTitle": "Nova cena",
 		"editTitle": "Editar {{name}}",
 		"unsaved": "Alterações não salvas",

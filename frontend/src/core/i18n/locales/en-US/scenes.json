@@ -11,8 +11,8 @@
 		"viewLabel": "View",
 		"viewList": "List",
 		"viewCards": "Cards",
-		"roomLabel": "Room",
-		"allRooms": "All"
+		"roomLabel": "Rooms",
+		"allRooms": "All scenes"
 	},
 	"page": {
 		"loading": "Loading scenes...",
@@ -22,13 +22,23 @@
 		"backToScenes": "Back to Scenes"
 	},
 	"list": {
-		"title": "Your scenes",
+		"title": "Scenes control panel",
+		"count_one": "{{count}} scene",
+		"count_other": "{{count}} scenes",
 		"hint": "Select a scene to edit it quickly",
 		"ariaLabel": "Scenes",
-		"noResults": "No scenes found."
+		"noResults": "No scenes found.",
+		"pageRange": "Showing <strong>{{from}}–{{to}}</strong> of <strong>{{total}}</strong> scenes",
+		"pagination": "Scenes pagination",
+		"firstPage": "First page",
+		"lastPage": "Last page",
+		"goToPage": "Go to page {{page}}",
+		"prevPage": "Previous page",
+		"nextPage": "Next page"
 	},
 	"row": {
 		"activate": "Activate scene {{name}}",
+		"moreOptions": "More options for {{name}}",
 		"select": "Select scene {{name}}",
 		"deviceCount_one": "{{count}} device",
 		"deviceCount_other": "{{count}} devices",
@@ -55,6 +65,8 @@
 		"delete": "Delete scene",
 		"emptyScene": "This scene has no devices.",
 		"addDevices": "Add devices",
+		"addDevice": "Add device",
+		"addDeviceHint": "Open the editor to add one to the scene",
 		"stateOn": "Turns on",
 		"stateOff": "Turns off"
 	},
@@ -130,6 +142,16 @@
 	},
 	"editor": {
 		"breadcrumbScenes": "Scenes",
+		"createDescription": "Name it, pick the devices and review before saving.",
+		"editDescription": "Adjust the name, icon and devices of this scene.",
+		"stepsLabel": "Steps",
+		"steps": {
+			"start": "Start",
+			"devices": "Devices",
+			"review": "Review"
+		},
+		"next": "Next",
+		"back": "Back",
 		"createTitle": "New scene",
 		"editTitle": "Edit {{name}}",
 		"unsaved": "Unsaved changes",

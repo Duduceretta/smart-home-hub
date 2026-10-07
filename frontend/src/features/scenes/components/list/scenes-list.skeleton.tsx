@@ -9,9 +9,9 @@ export function ScenesListSkeleton() {
 		<div
 			role="status"
 			aria-busy="true"
-			className="grid animate-pulse grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1fr)_21rem]"
+			className="grid animate-pulse grid-cols-1 gap-6 xl:grid-cols-12"
 		>
-			<div className="divide-y divide-border-subtle overflow-hidden rounded-xl border border-border-subtle bg-surface-container">
+			<div className="xl:col-span-8 divide-y divide-border-subtle overflow-hidden rounded-xl border border-border-subtle bg-surface-container">
 				{SKELETON_ROW_IDS.map((id) => (
 					<div key={id} className="flex items-center gap-4 px-4 py-3">
 						<div className="h-8 w-8 rounded-full bg-surface-high" />
@@ -24,7 +24,7 @@ export function ScenesListSkeleton() {
 					</div>
 				))}
 			</div>
-			<div className="hidden h-72 rounded-xl border border-border-subtle bg-surface-container xl:block" />
+			<div className="hidden h-72 xl:col-span-4 rounded-xl border border-border-subtle bg-surface-container xl:block" />
 		</div>
 	);
 }

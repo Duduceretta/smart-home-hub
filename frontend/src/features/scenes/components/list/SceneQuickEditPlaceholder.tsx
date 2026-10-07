@@ -1,4 +1,6 @@
 import { useTranslation } from "react-i18next";
+import { cn } from "@/core/utils";
+import { QUICK_EDIT_BODY_CLASSNAME } from "./SceneQuickEdit";
 
 interface SceneQuickEditPlaceholderProps {
 	message: string;
@@ -23,7 +25,14 @@ export function SceneQuickEditPlaceholder({
 					{t("quick.title")}
 				</span>
 			</header>
-			<p className="p-4 text-sm text-muted-foreground">{message}</p>
+			<p
+				className={cn(
+					"flex items-center p-4 text-sm text-muted-foreground",
+					QUICK_EDIT_BODY_CLASSNAME,
+				)}
+			>
+				{message}
+			</p>
 		</section>
 	);
 }
