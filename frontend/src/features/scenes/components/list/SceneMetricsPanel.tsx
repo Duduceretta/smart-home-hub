@@ -8,7 +8,7 @@ import { TopScenesCard } from "./metrics/TopScenesCard";
 const DAYS_IN_CHART = 7;
 
 interface SceneMetricsPanelProps {
-	/** `null` enquanto não há dados (ou o backend ainda não os fornece): cada card mostra o estado vazio. */
+	/** `null` enquanto carrega, em erro ou sem dados: cada card mostra o estado vazio. */
 	metrics: SceneMetrics | null;
 	/** Relógio injetável para os rótulos dos dias nos testes. */
 	now?: number;
@@ -31,12 +31,15 @@ export function SceneMetricsPanel({ metrics, now }: SceneMetricsPanelProps) {
 			<ActivationsCard
 				perDay={perDay}
 				total={metrics?.activationsTotal ?? 0}
+				previousTotal={metrics?.previousActivationsTotal ?? 0}
 				hasData={hasData}
 				now={now}
 			/>
 			<div className="grid grid-cols-2 gap-4">
 				<SuccessRateCard
 					rate={hasData ? (metrics?.successRate ?? null) : null}
+					lastProblem={hasData ? (metrics?.lastProblem ?? null) : null}
+					now={now}
 				/>
 				<PeakHourCard hour={hasData ? (metrics?.peakHour ?? null) : null} />
 			</div>

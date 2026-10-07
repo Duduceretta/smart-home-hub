@@ -87,7 +87,12 @@
 		"activationCount_one": "{{count}} activation",
 		"activationCount_other": "{{count}} activations",
 		"peakHour": "Peak hour",
-		"peakHint": "when most scenes are activated"
+		"peakHint": "when most scenes are activated",
+		"variationUp": "+{{value}}% vs. last week",
+		"variationDown": "−{{value}}% vs. last week",
+		"variationSame": "same as last week",
+		"lastProblem": "Last alert: {{scene}} · {{when}}",
+		"lastProblemUnknownScene": "a scene"
 	},
 	"deleteDialog": {
 		"title": "Delete scene",

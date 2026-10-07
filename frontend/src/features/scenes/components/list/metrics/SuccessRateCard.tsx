@@ -5,16 +5,28 @@ import {
 	RadialBarChart,
 	ResponsiveContainer,
 } from "recharts";
+import { formatLastActivation } from "../../../lib/format-last-activation";
+import type { SceneLastProblem } from "../../../types/scenes.types";
 import { MetricCard, MetricEmpty } from "./MetricCard";
 
 interface SuccessRateCardProps {
 	/** Porcentagem 0-100; `null` quando não há ativações. */
 	rate: number | null;
+	/** Última ativação com alerta, mostrada embaixo do anel quando existe. */
+	lastProblem?: SceneLastProblem | null;
+	now?: number;
 }
 
 /** Taxa de sucesso como um anel (gauge): ativações sem falha nem dispositivo offline. */
-export function SuccessRateCard({ rate }: SuccessRateCardProps) {
-	const { t } = useTranslation("scenes");
+export function SuccessRateCard({
+	rate,
+	lastProblem = null,
+	now,
+}: SuccessRateCardProps) {
+	const { t, i18n } = useTranslation("scenes");
+	const problemWhen = lastProblem
+		? formatLastActivation(lastProblem.timestamp, i18n.language, now)
+		: null;
 
 	return (
 		<MetricCard title={t("metrics.successRate")}>
@@ -49,6 +61,15 @@ export function SuccessRateCard({ rate }: SuccessRateCardProps) {
 						{rate}%
 					</span>
 				</figure>
+			)}
+			{rate !== null && lastProblem && problemWhen && (
+				<p className="m-0 mt-2 truncate text-xs text-muted-foreground">
+					{t("metrics.lastProblem", {
+						scene:
+							lastProblem.sceneName ?? t("metrics.lastProblemUnknownScene"),
+						when: problemWhen,
+					})}
+				</p>
 			)}
 		</MetricCard>
 	);

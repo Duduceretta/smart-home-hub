@@ -3,13 +3,17 @@ import { MemoryRouter, useLocation } from "react-router-dom";
 import { toast } from "sonner";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { useScenesUIStore } from "@/features/scenes/store/scenes-ui.store";
-import type { Scene } from "@/features/scenes/types/scenes.types";
+import type {
+	Scene,
+	SceneMetrics,
+} from "@/features/scenes/types/scenes.types";
 import { mockScenesApi } from "@/testing/mocks/scenes-api.mock";
 import {
 	createSceneActivationResultMock,
 	createSceneDeviceMock,
 	createSceneItemMock,
-	createSceneMock,
+		createSceneMock,
+	createSceneStatsMock,
 } from "@/testing/mocks/scenes.mock";
 import { server } from "@/testing/mocks/server";
 import {
@@ -88,8 +92,8 @@ const night = createSceneMock({
 });
 
 // Servidor de mentira fiel ao contrato real (paginação, search e room no servidor).
-function mockScenes(scenes: Scene[]) {
-	return mockScenesApi(scenes, DEVICES);
+function mockScenes(scenes: Scene[], stats?: SceneMetrics) {
+	return mockScenesApi(scenes, DEVICES, stats);
 }
 
 // Várias cenas, para exercitar a paginação (nomes em ordem alfabética estável).
@@ -135,7 +139,8 @@ beforeEach(() => {
 describe("ScenesView · lista", () => {
 	it("ScenesView_ScenesStillLoading_ShouldRenderTheLoadingSkeleton", () => {
 		server.use(
-			http.get("*/api/scenes/rooms", () => HttpResponse.json([])),
+						http.get("*/api/scenes/rooms", () => HttpResponse.json([])),
+			http.get("*/api/scenes/stats", () => new Promise(() => {})),
 			http.get("*/api/scenes", () => new Promise(() => {})),
 		);
 
@@ -242,6 +247,70 @@ describe("ScenesView · lista", () => {
 });
 
 describe("ScenesView · métricas", () => {
+	it("ScenesView_StatsFromTheServer_ShouldFillTheMetricCards", async () => {
+		mockScenes(
+			[cinema, night],
+			createSceneStatsMock({
+				activationsTotal: 12,
+				previousActivationsTotal: 10,
+				successRate: 91.7,
+				peakHour: "20:00",
+				topScenes: [
+					{ sceneId: "s1", name: "Modo Cinema", activations: 7 },
+					{ sceneId: "s2", name: "Boa Noite", activations: 5 },
+				],
+			}),
+		);
+		renderView();
+		await findRow("Modo Cinema");
+
+		const panel = screen.getByRole("region", { name: "Desempenho" });
+		const card = (name: string) => within(panel).getByRole("region", { name });
+
+		expect(await within(card("Ativações")).findByText("12")).toBeInTheDocument();
+		expect(
+			within(card("Ativações")).getByText("+20% vs. semana anterior"),
+		).toBeInTheDocument();
+		expect(within(card("Taxa de sucesso")).getByText("91.7%")).toBeInTheDocument();
+		expect(within(card("Horário de pico")).getByText("20:00")).toBeInTheDocument();
+		expect(
+			within(card("Mais ativadas")).getByText("Modo Cinema"),
+		).toBeInTheDocument();
+	});
+
+	it("ScenesView_Stats_ShouldAskForTheBrowserTimeZone", async () => {
+		const { statsRequests } = mockScenes([cinema]);
+		renderView();
+		await findRow("Modo Cinema");
+
+		await waitFor(() => expect(statsRequests.length).toBeGreaterThan(0));
+		expect(statsRequests[0]?.searchParams.get("timeZone")).toBe(
+			Intl.DateTimeFormat().resolvedOptions().timeZone,
+		);
+	});
+
+	it("ScenesView_StatsRequestFails_ShouldKeepTheCardsEmptyAndTheListWorking", async () => {
+		mockScenes([cinema]);
+		server.use(
+			http.get("*/api/scenes/stats", () =>
+				HttpResponse.json({ title: "Boom", status: 500 }, { status: 500 }),
+			),
+		);
+		renderView();
+
+		expect(await findRow("Modo Cinema")).toBeInTheDocument();
+		const panel = screen.getByRole("region", { name: "Desempenho" });
+		await waitFor(
+			() =>
+				expect(
+					within(
+						within(panel).getByRole("region", { name: "Ativações" }),
+					).getByText("Ainda não há dados"),
+				).toBeInTheDocument(),
+			{ timeout: 4000 },
+		);
+	});
+
 	const metricsPanel = () => screen.getByRole("region", { name: "Desempenho" });
 	const TITLES = [
 		"Ativações",
@@ -845,7 +914,8 @@ describe("ScenesView · erro", () => {
 	it("ScenesView_ListFails_ShouldShowTheErrorFallbackAndRetry", async () => {
 		let calls = 0;
 		server.use(
-			http.get("*/api/scenes/rooms", () => HttpResponse.json([])),
+						http.get("*/api/scenes/rooms", () => HttpResponse.json([])),
+			http.get("*/api/scenes/stats", () => new Promise(() => {})),
 			http.get("*/api/scenes", () => {
 				calls += 1;
 				return calls <= 2

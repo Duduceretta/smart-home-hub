@@ -4,6 +4,7 @@ import {
 	createSceneActivationResultMock,
 	createSceneDeviceMock,
 	createSceneMock,
+	createSceneStatsMock,
 } from "@/testing/mocks/scenes.mock";
 import { server } from "@/testing/mocks/server";
 import {
@@ -13,6 +14,7 @@ import {
 	fetchScene,
 	fetchSceneDevices,
 	fetchSceneRooms,
+	fetchSceneStats,
 	fetchScenes,
 	updateSceneRequest,
 } from "../scenes.api";
@@ -92,6 +94,34 @@ describe("scenes.api", () => {
 			);
 
 			await expect(fetchScenes({ page: 1, pageSize: 10 })).rejects.toThrow();
+		});
+	});
+
+	describe("fetchSceneStats", () => {
+		it("fetchSceneStats_Ok_ShouldSendTheTimeZoneAndReturnTheStats", async () => {
+			const received: { params: URLSearchParams | null } = { params: null };
+			const stats = createSceneStatsMock({ activationsTotal: 5 });
+			server.use(
+				http.get("*/api/scenes/stats", ({ request }) => {
+					received.params = new URL(request.url).searchParams;
+					return HttpResponse.json(stats);
+				}),
+			);
+
+			await expect(fetchSceneStats("America/Sao_Paulo")).resolves.toEqual(
+				stats,
+			);
+			expect(received.params?.get("timeZone")).toBe("America/Sao_Paulo");
+		});
+
+		it("fetchSceneStats_ServerError_ShouldThrow", async () => {
+			server.use(
+				http.get("*/api/scenes/stats", () =>
+					HttpResponse.json({ title: "Boom", status: 500 }, { status: 500 }),
+				),
+			);
+
+			await expect(fetchSceneStats("UTC")).rejects.toThrow();
 		});
 	});
 

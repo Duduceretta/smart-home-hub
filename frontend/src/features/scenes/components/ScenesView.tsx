@@ -16,6 +16,7 @@ import { useDeleteScene } from "../hooks/useDeleteScene";
 import { useScene } from "../hooks/useScene";
 import { useSceneDevices } from "../hooks/useSceneDevices";
 import { useSceneRooms } from "../hooks/useSceneRooms";
+import { useSceneStats } from "../hooks/useSceneStats";
 import { useScenes } from "../hooks/useScenes";
 import { countOfflineDevices, toDeviceIndex } from "../lib/scene-view";
 import { useScenesUIStore } from "../store/scenes-ui.store";
@@ -83,7 +84,9 @@ export function ScenesView() {
 	const scenes = useMemo(() => pageData?.items ?? [], [pageData]);
 	const totalCount = pageData?.totalCount ?? 0;
 	const totalPages = pageData?.totalPages ?? 0;
-	const roomsQuery = useSceneRooms();
+		const roomsQuery = useSceneRooms();
+	const statsQuery = useSceneStats();
+
 	const rooms = roomsQuery.data ?? [];
 
 	// Página além da última (URL antiga, cenas apagadas): volta para a última que existe.
@@ -342,8 +345,8 @@ export function ScenesView() {
 								}
 							/>
 						)}
-						{/* Sem dados até a NH-58 entregar o endpoint de métricas: mostra o estado vazio. */}
-						<SceneMetricsPanel metrics={null} />
+						{/* Carregando, em erro ou sem ativações: o painel mostra o estado vazio. */}
+						<SceneMetricsPanel metrics={statsQuery.data ?? null} />
 					</aside>
 				</div>
 			</div>

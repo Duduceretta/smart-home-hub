@@ -3,6 +3,7 @@ import type {
 	SceneActivationResult,
 	SceneDevice,
 	SceneItem,
+	SceneMetrics,
 } from "@/features/scenes/types/scenes.types";
 
 export function createSceneItemMock(overrides?: Partial<SceneItem>): SceneItem {
@@ -83,6 +84,25 @@ export function createSceneActivationResultMock(
 				reason: null,
 			},
 		],
+	};
+
+	return { ...defaultMock, ...overrides };
+}
+
+export function createSceneStatsMock(
+	overrides?: Partial<SceneMetrics>,
+): SceneMetrics {
+	const defaultMock: SceneMetrics = {
+		activationsPerDay: [0, 1, 0, 2, 0, 1, 3],
+		activationsTotal: 7,
+		previousActivationsTotal: 5,
+		successRate: 85.7,
+		topScenes: [
+			{ sceneId: "scene-1", name: "Modo Cinema", activations: 4 },
+			{ sceneId: "scene-2", name: "Boa Noite", activations: 3 },
+		],
+		peakHour: "20:00",
+		lastProblem: null,
 	};
 
 	return { ...defaultMock, ...overrides };

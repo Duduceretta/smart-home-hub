@@ -15,6 +15,8 @@ export const scenesKeys = {
 	page: (params: FetchScenesParams) =>
 		[...scenesKeys.lists(), "page", params] as const,
 	rooms: () => [...scenesKeys.lists(), "rooms"] as const,
+	stats: (timeZone: string) =>
+		[...scenesKeys.lists(), "stats", timeZone] as const,
 	detail: (id: string) => [...scenesKeys.lists(), "detail", id] as const,
 	devices: () => [...scenesKeys.all, "devices"] as const,
 };

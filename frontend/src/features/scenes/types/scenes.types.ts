@@ -89,16 +89,28 @@ export interface SceneDevice {
 }
 
 /**
- * Métricas de uso das cenas exibidas na coluna lateral. O contrato definitivo vem do
- * backend (NH-58); enquanto isso o painel aceita `null` e mostra o estado vazio.
+ * Estatísticas das ativações de cena (GET /scenes/stats), calculadas no servidor no fuso do
+ * usuário. O painel de desempenho da coluna lateral mostra o estado vazio quando não há dados.
  */
 export interface SceneMetrics {
 	/** Ativações por dia nos últimos 7 dias, do mais antigo para o mais recente. */
 	activationsPerDay: number[];
 	activationsTotal: number;
+	/** Ativações dos 7 dias anteriores, para a variação; 0 quando não houve. */
+	previousActivationsTotal: number;
 	/** Porcentagem (0-100) de ativações sem falha nem dispositivo offline; `null` sem ativações. */
 	successRate: number | null;
 	topScenes: { sceneId: string; name: string; activations: number }[];
 	/** Horário de pico no formato "HH:mm"; `null` sem ativações. */
 	peakHour: string | null;
+	/** Última ativação com alerta (falha ou dispositivo offline) nas duas semanas; `null` se não houve. */
+	lastProblem: SceneLastProblem | null;
+}
+
+export interface SceneLastProblem {
+	/** `null` quando o evento é anterior ao registro da cena. */
+	sceneId: string | null;
+	sceneName: string | null;
+	timestamp: string;
+	description: string;
 }

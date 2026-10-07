@@ -6,12 +6,14 @@ import { beforeEach, describe, expect, it } from "vitest";
 import {
 	createSceneDeviceMock,
 	createSceneMock,
+	createSceneStatsMock,
 } from "@/testing/mocks/scenes.mock";
 import { server } from "@/testing/mocks/server";
 import { createTestQueryClient } from "@/testing/test-utils";
 import { useScene } from "../useScene";
 import { useSceneDevices } from "../useSceneDevices";
 import { useSceneRooms } from "../useSceneRooms";
+import { useSceneStats } from "../useSceneStats";
 import { useScenes } from "../useScenes";
 
 describe("scene read hooks", () => {
@@ -137,6 +139,39 @@ describe("scene read hooks", () => {
 
 		await waitFor(() => expect(result.current.isSuccess).toBe(true));
 		expect(result.current.data).toEqual(["Quarto", "Sala"]);
+	});
+
+	it("useSceneStats_ApiReturnsStats_ShouldExposeThemAndSendTheBrowserTimeZone", async () => {
+		const stats = createSceneStatsMock({ activationsTotal: 9 });
+		let receivedTimeZone: string | null = null;
+		server.use(
+			http.get("*/api/scenes/stats", ({ request }) => {
+				receivedTimeZone = new URL(request.url).searchParams.get("timeZone");
+				return HttpResponse.json(stats);
+			}),
+		);
+
+		const { result } = renderHook(() => useSceneStats(), { wrapper });
+
+		await waitFor(() => expect(result.current.isSuccess).toBe(true));
+		expect(result.current.data).toEqual(stats);
+		expect(receivedTimeZone).toBe(
+			Intl.DateTimeFormat().resolvedOptions().timeZone,
+		);
+	});
+
+	it("useSceneStats_ApiFails_ShouldExposeErrorState", async () => {
+		server.use(
+			http.get("*/api/scenes/stats", () =>
+				HttpResponse.json({ title: "Boom", status: 500 }, { status: 500 }),
+			),
+		);
+
+		const { result } = renderHook(() => useSceneStats(), { wrapper });
+
+		await waitFor(() => expect(result.current.isError).toBe(true), {
+			timeout: 4000,
+		});
 	});
 
 	it("useScene_WithoutId_ShouldNotRequestAnything", async () => {

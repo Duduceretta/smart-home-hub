@@ -6,6 +6,7 @@ import { SceneMetricsPanel } from "../SceneMetricsPanel";
 const metrics: SceneMetrics = {
 	activationsPerDay: [2, 4, 1, 5, 3, 6, 2],
 	activationsTotal: 23,
+	previousActivationsTotal: 20,
 	successRate: 96,
 	topScenes: [
 		{ sceneId: "s1", name: "Boa Noite", activations: 9 },
@@ -13,14 +14,17 @@ const metrics: SceneMetrics = {
 		{ sceneId: "s3", name: "Bom Dia", activations: 5 },
 	],
 	peakHour: "07:15",
+	lastProblem: null,
 };
 
 const noActivity: SceneMetrics = {
 	activationsPerDay: [0, 0, 0, 0, 0, 0, 0],
 	activationsTotal: 0,
+	previousActivationsTotal: 0,
 	successRate: null,
 	topScenes: [],
 	peakHour: null,
+	lastProblem: null,
 };
 
 const panel = () => screen.getByRole("region", { name: "Desempenho" });
@@ -144,5 +148,104 @@ describe("SceneMetricsPanel", () => {
 			within(card("Horário de pico")).getByText("Ainda não há dados"),
 		).toBeInTheDocument();
 		expect(within(card("Ativações")).getByText("23")).toBeInTheDocument();
+	});
+
+	describe("variação sobre a semana anterior", () => {
+		const withTotals = (total: number, previous: number) => ({
+			...metrics,
+			activationsTotal: total,
+			previousActivationsTotal: previous,
+		});
+
+		it("SceneMetricsPanel_MoreThanLastWeek_ShouldShowThePercentageUp", () => {
+			renderWithProviders(<SceneMetricsPanel metrics={withTotals(23, 20)} />);
+
+			expect(
+				within(card("Ativações")).getByText("+15% vs. semana anterior"),
+			).toBeInTheDocument();
+		});
+
+		it("SceneMetricsPanel_LessThanLastWeek_ShouldShowThePercentageDown", () => {
+			renderWithProviders(<SceneMetricsPanel metrics={withTotals(18, 20)} />);
+
+			expect(
+				within(card("Ativações")).getByText("−10% vs. semana anterior"),
+			).toBeInTheDocument();
+		});
+
+		it("SceneMetricsPanel_SameAsLastWeek_ShouldSaySo", () => {
+			renderWithProviders(<SceneMetricsPanel metrics={withTotals(20, 20)} />);
+
+			expect(
+				within(card("Ativações")).getByText("igual à semana anterior"),
+			).toBeInTheDocument();
+		});
+
+		it("SceneMetricsPanel_NothingLastWeek_ShouldNotInventAPercentage", () => {
+			renderWithProviders(<SceneMetricsPanel metrics={withTotals(23, 0)} />);
+
+			expect(
+				within(card("Ativações")).queryByText(/semana anterior/),
+			).not.toBeInTheDocument();
+		});
+	});
+
+	describe("última ativação com problema", () => {
+		const NOW = Date.parse("2026-10-06T12:00:00Z");
+		const twoDaysAgo = new Date(NOW - 2 * 24 * 60 * 60 * 1000).toISOString();
+
+		it("SceneMetricsPanel_WithAProblem_ShouldNameTheSceneAndWhen", () => {
+			renderWithProviders(
+				<SceneMetricsPanel
+					now={NOW}
+					metrics={{
+						...metrics,
+						lastProblem: {
+							sceneId: "s1",
+							sceneName: "Modo Cinema",
+							timestamp: twoDaysAgo,
+							description: "1 offline",
+						},
+					}}
+				/>,
+			);
+
+			expect(
+				within(card("Taxa de sucesso")).getByText(
+					"Último alerta: Modo Cinema · anteontem",
+				),
+			).toBeInTheDocument();
+		});
+
+		it("SceneMetricsPanel_ProblemOfADeletedScene_ShouldStillShowWhen", () => {
+			renderWithProviders(
+				<SceneMetricsPanel
+					now={NOW}
+					metrics={{
+						...metrics,
+						lastProblem: {
+							sceneId: null,
+							sceneName: null,
+							timestamp: twoDaysAgo,
+							description: "",
+						},
+					}}
+				/>,
+			);
+
+			expect(
+				within(card("Taxa de sucesso")).getByText(
+					"Último alerta: uma cena · anteontem",
+				),
+			).toBeInTheDocument();
+		});
+
+		it("SceneMetricsPanel_NoProblem_ShouldNotShowTheLine", () => {
+			renderWithProviders(<SceneMetricsPanel metrics={metrics} />);
+
+			expect(
+				within(card("Taxa de sucesso")).queryByText(/Último alerta/),
+			).not.toBeInTheDocument();
+		});
 	});
 });

@@ -14,14 +14,46 @@ import { CHART_TOOLTIP_STYLE, MetricCard, MetricEmpty } from "./MetricCard";
 interface ActivationsCardProps {
 	perDay: number[];
 	total: number;
+	/** Ativações dos 7 dias anteriores; com 0 não há base para uma variação em %. */
+	previousTotal: number;
 	hasData: boolean;
 	now?: number;
+}
+
+/** Variação sobre a semana anterior; sem base (semana anterior zerada) não mostra nada. */
+function VariationBadge({
+	total,
+	previousTotal,
+}: {
+	total: number;
+	previousTotal: number;
+}) {
+	const { t } = useTranslation("scenes");
+
+	if (previousTotal <= 0) return null;
+
+	const value = Math.round(
+		(Math.abs(total - previousTotal) / previousTotal) * 100,
+	);
+	const direction =
+		total === previousTotal || value === 0
+			? "variationSame"
+			: total > previousTotal
+				? "variationUp"
+				: "variationDown";
+
+	return (
+		<span className="ml-auto text-xs text-muted-foreground">
+			{t(`metrics.${direction}`, { value })}
+		</span>
+	);
 }
 
 /** Ativações dos últimos 7 dias: o total em destaque e uma barra por dia (hoje em destaque). */
 export function ActivationsCard({
 	perDay,
 	total,
+	previousTotal,
 	hasData,
 	now,
 }: ActivationsCardProps) {
@@ -40,6 +72,7 @@ export function ActivationsCard({
 						<span className="text-xs text-muted-foreground">
 							{t("metrics.activationsUnit")}
 						</span>
+						<VariationBadge total={total} previousTotal={previousTotal} />
 					</div>
 					<figure
 						aria-label={t("metrics.activationsChart", {

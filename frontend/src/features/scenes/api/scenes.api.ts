@@ -7,6 +7,7 @@ import type {
 	Scene,
 	SceneActivationResult,
 	SceneDevice,
+	SceneMetrics,
 	UpdateScenePayload,
 } from "../types/scenes.types";
 
@@ -76,6 +77,29 @@ export async function fetchSceneRooms(signal?: AbortSignal): Promise<string[]> {
 		throw handleApplicationError(
 			error,
 			"Não foi possível carregar os ambientes das cenas.",
+		);
+	}
+}
+
+/**
+ * Estatísticas das ativações de cena dos últimos 7 dias. O fuso (id IANA, ex.:
+ * "America/Sao_Paulo") define a virada do dia e o horário de pico, então vai sempre junto.
+ */
+export async function fetchSceneStats(
+	timeZone: string,
+	signal?: AbortSignal,
+): Promise<SceneMetrics> {
+	try {
+		const { data } = await apiClient.get<SceneMetrics>("/scenes/stats", {
+			params: { timeZone },
+			signal,
+		});
+
+		return data;
+	} catch (error: unknown) {
+		throw handleApplicationError(
+			error,
+			"Não foi possível carregar as métricas das cenas.",
 		);
 	}
 }
