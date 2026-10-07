@@ -11,6 +11,7 @@ using SmartHomeHub.Application.Features.Scenes.Common;
 using SmartHomeHub.Application.Features.Scenes.Queries.GetSceneById;
 using SmartHomeHub.Application.Features.Scenes.Queries.GetSceneRooms;
 using SmartHomeHub.Application.Features.Scenes.Queries.GetScenes;
+using SmartHomeHub.Application.Features.Scenes.Queries.GetSceneStats;
 
 namespace SmartHomeHub.Api.Endpoints;
 
@@ -81,6 +82,38 @@ public static class SceneEndpoints
                 "Retorna, em ordem alfabética, os ambientes que aparecem em alguma cena do usuário (`Sem cômodo` para dispositivo fora de ambiente). Serve ao filtro por ambiente da lista, independente da página."
             )
             .Produces<List<string>>(StatusCodes.Status200OK)
+            .ProducesProblem(StatusCodes.Status401Unauthorized);
+
+        app.MapGet(
+                "/api/scenes/stats",
+                async (
+                    ClaimsPrincipal userToken,
+                    IMediator mediator,
+                    CancellationToken cancellationToken,
+                    string? timeZone = null
+                ) =>
+                {
+                    var firebaseUid = userToken.GetFirebaseUid();
+
+                    if (string.IsNullOrEmpty(firebaseUid))
+                        return Results.Unauthorized();
+
+                    var result = await mediator.Send(
+                        new GetSceneStatsQuery(firebaseUid, timeZone),
+                        cancellationToken
+                    );
+
+                    return result.IsFailure ? result.ToProblemDetails() : Results.Ok(result.Value);
+                }
+            )
+            .RequireAuthorization()
+            .WithTags("Scenes")
+            .WithSummary("Estatísticas das ativações de cena")
+            .WithDescription(
+                "Retorna as ativações de cena dos últimos 7 dias (por dia, total e variação sobre a semana anterior), a taxa de sucesso (ativações sem falha nem dispositivo offline), as 3 cenas mais ativadas, o horário de pico e a última ativação com problema. `timeZone` é um identificador IANA (ex.: `America/Sao_Paulo`) e define a virada do dia e a hora de pico; sem ele vale UTC."
+            )
+            .Produces<SceneStatsDto>(StatusCodes.Status200OK)
+            .ProducesProblem(StatusCodes.Status400BadRequest)
             .ProducesProblem(StatusCodes.Status401Unauthorized);
 
         app.MapGet(

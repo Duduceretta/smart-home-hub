@@ -120,6 +120,94 @@ public class ActivateSceneTests(IntegrationTestWebAppFactory factory) : BaseInte
         summary.Severity.Should().Be(EventSeverity.Info);
         summary.Title.Should().Contain("Modo Cinema");
         summary.TraceId.Should().NotBeNullOrEmpty();
+        summary.SceneId.Should().Be(scene.Id);
+        summary.SceneName.Should().Be("Modo Cinema");
+    }
+
+    [Fact]
+    public async Task ActivateScene_SceneRenamedAfterwards_ShouldKeepTheNameOfTheMomentInTheEvent()
+    {
+        _tuya.ClearSubstitute(ClearOptions.All);
+        var ct = TestContext.Current.CancellationToken;
+        var user = await ScenesTestData.SeedUserAsync(
+            DbContext,
+            ScenesTestData.LoggedFirebaseUid,
+            ct
+        );
+        var plug = await ScenesTestData.SeedTuyaDeviceAsync(
+            DbContext,
+            user.Id,
+            DeviceType.Switch,
+            "Tomada TV",
+            isOn: true,
+            cancellationToken: ct
+        );
+        var scene = await ScenesTestData.SeedSceneWithItemsAsync(
+            DbContext,
+            user.Id,
+            "Nome antigo",
+            [new SceneItem { DeviceId = plug.Id, IsOn = false }],
+            ct
+        );
+        StubTuyaPowerSuccess(plug, false);
+
+        (await Client.PostAsync($"/api/scenes/{scene.Id}/activate", null, ct))
+            .StatusCode.Should()
+            .Be(HttpStatusCode.OK);
+
+        DbContext.ChangeTracker.Clear();
+        var tracked = await DbContext.Scenes.SingleAsync(s => s.Id == scene.Id, ct);
+        tracked.Name = "Nome novo";
+        await DbContext.SaveChangesAsync(ct);
+
+        DbContext.ChangeTracker.Clear();
+        var activation = await DbContext.SystemEvents.SingleAsync(
+            e => e.EventType == "SceneActivated",
+            ct
+        );
+        activation.SceneId.Should().Be(scene.Id);
+        activation.SceneName.Should().Be("Nome antigo");
+    }
+
+    [Fact]
+    public async Task ActivateScene_SceneLaterSoftDeleted_ShouldKeepTheEventIdentifiable()
+    {
+        _tuya.ClearSubstitute(ClearOptions.All);
+        var ct = TestContext.Current.CancellationToken;
+        var user = await ScenesTestData.SeedUserAsync(
+            DbContext,
+            ScenesTestData.LoggedFirebaseUid,
+            ct
+        );
+        var plug = await ScenesTestData.SeedTuyaDeviceAsync(
+            DbContext,
+            user.Id,
+            DeviceType.Switch,
+            "Tomada TV",
+            isOn: true,
+            cancellationToken: ct
+        );
+        var scene = await ScenesTestData.SeedSceneWithItemsAsync(
+            DbContext,
+            user.Id,
+            "Apagada depois",
+            [new SceneItem { DeviceId = plug.Id, IsOn = false }],
+            ct
+        );
+        StubTuyaPowerSuccess(plug, false);
+        await Client.PostAsync($"/api/scenes/{scene.Id}/activate", null, ct);
+
+        (await Client.DeleteAsync($"/api/scenes/{scene.Id}", ct))
+            .StatusCode.Should()
+            .Be(HttpStatusCode.NoContent);
+
+        DbContext.ChangeTracker.Clear();
+        var activation = await DbContext.SystemEvents.SingleAsync(
+            e => e.EventType == "SceneActivated",
+            ct
+        );
+        activation.SceneId.Should().Be(scene.Id);
+        activation.SceneName.Should().Be("Apagada depois");
     }
 
     [Fact]
@@ -172,6 +260,13 @@ public class ActivateSceneTests(IntegrationTestWebAppFactory factory) : BaseInte
                 Arg.Any<bool>(),
                 Arg.Any<CancellationToken>()
             );
+
+        // Cena que não aplicou tudo (dispositivo offline pulado) é um alerta no histórico,
+        // não uma ativação normal: é o que a taxa de sucesso das métricas conta como problema.
+        DbContext.ChangeTracker.Clear();
+        (await DbContext.SystemEvents.SingleAsync(e => e.EventType == "SceneActivated", ct))
+            .Severity.Should()
+            .Be(EventSeverity.Warning);
     }
 
     [Fact]
@@ -232,6 +327,12 @@ public class ActivateSceneTests(IntegrationTestWebAppFactory factory) : BaseInte
         (await DbContext.DeviceLiveStates.SingleAsync(s => s.DeviceId == good.Id, ct))
             .IsOn.Should()
             .BeTrue();
+        var failedActivation = await DbContext.SystemEvents.SingleAsync(
+            e => e.EventType == "SceneActivated",
+            ct
+        );
+        failedActivation.SceneId.Should().NotBeNull();
+        failedActivation.SceneName.Should().NotBeNullOrEmpty();
         (await DbContext.SystemEvents.SingleAsync(e => e.EventType == "SceneActivated", ct))
             .Severity.Should()
             .Be(EventSeverity.Warning);
