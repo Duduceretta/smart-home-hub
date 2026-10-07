@@ -158,6 +158,9 @@ public class ActivateSceneCommandHandler(IAppDbContext dbContext, IServiceScopeF
             {
                 UserId = user.Id,
                 EventType = SystemEventTypes.SceneActivated,
+                SceneId = scene.Id,
+                SceneName = scene.Name,
+
                 Title = title,
                 Description = description,
                 Severity = failed > 0 ? EventSeverity.Warning : EventSeverity.Info,
