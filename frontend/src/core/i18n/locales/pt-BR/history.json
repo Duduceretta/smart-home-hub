@@ -48,7 +48,8 @@
 			"Automation": "Automação",
 			"UserManual": "Usuário",
 			"System": "Sistema",
-			"DeviceGroup": "Grupo de Dispositivos"
+			"DeviceGroup": "Grupo de Dispositivos",
+			"Scene": "Cena"
 		},
 		"severities": {
 			"all": "Todas as severidades",

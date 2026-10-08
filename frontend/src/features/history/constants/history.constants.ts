@@ -6,6 +6,7 @@ import {
 	Music,
 	Power,
 	Radio,
+	Sparkles,
 	User,
 	WifiOff,
 	Zap,
@@ -20,6 +21,7 @@ export const EVENT_SOURCE_ICON: Record<string, ElementType> = {
 	UserManual: User,
 	System: Cpu,
 	DeviceGroup: Layers,
+	Scene: Sparkles,
 	Device: Radio,
 	Default: Activity,
 };
@@ -35,6 +37,7 @@ export const EVENT_TYPE_ICON: Record<string, ElementType> = {
 	DeviceOnline: Radio,
 	Alert: AlertTriangle,
 	AutomationTriggered: Zap,
+	SceneActivated: Sparkles,
 	DeviceStatus: Power,
 	DeviceMedia: Music,
 	Spotify: Music,
@@ -86,6 +89,10 @@ export const EVENT_SOURCE_STYLES: Record<
 	DeviceGroup: {
 		badge: "bg-warm/10 text-warm border-warm/20",
 		iconColor: "text-warm",
+	},
+	Scene: {
+		badge: "bg-cool/10 text-cool border-cool/20",
+		iconColor: "text-cool",
 	},
 	UserManual: {
 		badge: "bg-surface-high text-foreground border-border-subtle",
