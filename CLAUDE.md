@@ -45,6 +45,17 @@ Em todas as faixas:
 
 ---
 
+## Pesquisa de Padrão (antes de codar feature nova)
+
+Faixas Normal e Grande, feature nova ou contrato novo (**Trivial: dispensado**). Antes de implementar, mesmo que a issue já esteja planejada:
+
+1. Pesquisar na web como big techs e a documentação oficial resolvem o mesmo problema (arquitetura, API, dados, UX). Preferir fonte oficial a blog.
+2. Comparar com o plano da issue e dizer o que bate, o que falta e o que ajustar. Se o plano já segue o padrão, dizer isso em 1 linha.
+3. Registrar o resultado na issue `NH` (1–3 linhas com os links) e só então começar o código.
+4. Se a pesquisa não achar referência útil, dizer isso, em vez de inventar padrão.
+
+---
+
 ## Gestão de Tarefas (Hierarquia no Jira)
 - **Epic**: entregas maiores (ex: `[EPIC] Página de Início`).
 - **Story**: fatias verticais que entregam valor perceptível. Regra: **1 Story = 1 Pull Request** — exceção: quando a Story exige PRs dependentes (stacked), ver skill `stacked-pr-branches`.

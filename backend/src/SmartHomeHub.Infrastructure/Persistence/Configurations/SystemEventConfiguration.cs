@@ -22,6 +22,8 @@ public class SystemEventConfiguration : IEntityTypeConfiguration<SystemEvent>
         builder.Property(events => events.DeviceName).HasMaxLength(100);
         builder.Property(events => events.RoomName).HasMaxLength(100);
         builder.Property(events => events.DeviceGroupName).HasMaxLength(100);
+        builder.Property(events => events.SceneName).HasMaxLength(100);
+
         builder.Property(events => events.OldValue).HasMaxLength(255);
         builder.Property(events => events.NewValue).HasMaxLength(255);
         builder.Property(events => events.TraceId).HasMaxLength(64);
@@ -75,6 +77,12 @@ public class SystemEventConfiguration : IEntityTypeConfiguration<SystemEvent>
             .HasOne(events => events.DeviceGroup)
             .WithMany()
             .HasForeignKey(events => events.DeviceGroupId)
+            .OnDelete(DeleteBehavior.SetNull);
+
+        builder
+            .HasOne(events => events.Scene)
+            .WithMany()
+            .HasForeignKey(events => events.SceneId)
             .OnDelete(DeleteBehavior.SetNull);
 
         builder

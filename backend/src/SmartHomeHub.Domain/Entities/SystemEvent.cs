@@ -11,6 +11,7 @@ public class SystemEvent
     public Guid? AutomationId { get; set; }
     public Guid? RoomId { get; set; }
     public Guid? DeviceGroupId { get; set; }
+    public Guid? SceneId { get; set; }
 
     public string EventType { get; set; } = string.Empty;
 
@@ -42,6 +43,13 @@ public class SystemEvent
     /// </summary>
     public string? DeviceGroupName { get; set; }
 
+    /// <summary>
+    /// Snapshot desnormalizado do nome da cena no momento do evento — nunca resolvido via
+    /// join com Scenes, para não alterar o histórico caso a cena seja renomeada ou apagada
+    /// depois. Eventos anteriores à coluna ficam sem cena (null).
+    /// </summary>
+    public string? SceneName { get; set; }
+
     public string? OldValue { get; set; }
     public string? NewValue { get; set; }
 
@@ -61,4 +69,5 @@ public class SystemEvent
     public Automation? Automation { get; set; }
     public Room? Room { get; set; }
     public DeviceGroup? DeviceGroup { get; set; }
+    public Scene? Scene { get; set; }
 }
