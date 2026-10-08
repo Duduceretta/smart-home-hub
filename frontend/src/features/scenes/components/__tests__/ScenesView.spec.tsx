@@ -941,6 +941,204 @@ describe("ScenesView · paginação, busca e ambiente no servidor", () => {
 	});
 });
 
+describe("ScenesView · edição rápida: slots fixos, vazios e troca de cena", () => {
+	// A edição rápida tem sempre 3 slots (um por dispositivo) para o cartão não mudar de
+	// altura de uma cena para outra; o primeiro slot livre vira o botão "Adicionar".
+	const slotList = () => quickPanel().querySelector("ul") as HTMLUListElement;
+	const slotCount = () => slotList().children.length;
+	const sceneOf = (id: string, name: string, devices: (typeof lamp)[]) =>
+		createSceneMock({
+			id,
+			name,
+			items: devices.map((device) => itemOf(device, { isOn: true })),
+		});
+	const addDeviceButton = () =>
+		within(quickPanel()).queryByRole("button", {
+			name: /^Adicionar dispositivo/,
+		});
+
+	it("ScenesView_QuickEditWithOneDevice_ShouldKeepThreeSlotsWithAGhostInTheFirstFreeOne", async () => {
+		mockScenes([sceneOf("s-one", "Uma só", [lamp])]);
+		renderView();
+		await findRow("Uma só");
+
+		expect(slotCount()).toBe(3);
+		expect(addDeviceButton()).toBeInTheDocument();
+		// 1 slot com dispositivo + 1 com o botão + 1 vazio e escondido de leitor de tela
+		expect(
+			slotList().querySelectorAll(':scope > li[aria-hidden="true"]'),
+		).toHaveLength(1);
+		expect(
+			within(quickPanel()).getAllByRole("button", {
+				name: /^Adicionar dispositivo/,
+			}),
+		).toHaveLength(1);
+	});
+
+	it("ScenesView_QuickEditWithTwoDevices_ShouldKeepThreeSlotsWithAGhostInTheLastOne", async () => {
+		mockScenes([sceneOf("s-two", "Duas", [lamp, tv])]);
+		renderView();
+		await findRow("Duas");
+
+		expect(slotCount()).toBe(3);
+		expect(addDeviceButton()).toBeInTheDocument();
+		expect(
+			slotList().querySelectorAll(':scope > li[aria-hidden="true"]'),
+		).toHaveLength(0);
+	});
+
+	it("ScenesView_QuickEditWithThreeDevices_ShouldFillTheSlotsWithoutGhost", async () => {
+		mockScenes([sceneOf("s-three", "Três", [lamp, tv, bedLamp])]);
+		renderView();
+		await findRow("Três");
+
+		expect(slotCount()).toBe(3);
+		expect(addDeviceButton()).not.toBeInTheDocument();
+	});
+
+	it("ScenesView_QuickEditWithMoreThanThreeDevices_ShouldShowOnlyTheFirstThree", async () => {
+		mockScenes([sceneOf("s-four", "Quatro", [lamp, tv, bedLamp, hallLamp])]);
+		renderView();
+		await findRow("Quatro");
+
+		expect(slotCount()).toBe(3);
+		expect(within(quickPanel()).getByText("Luz do Quarto")).toBeInTheDocument();
+		expect(
+			within(quickPanel()).queryByText("Lâmpada do Corredor"),
+		).not.toBeInTheDocument();
+		expect(addDeviceButton()).not.toBeInTheDocument();
+	});
+
+	it("ScenesView_GhostAddDeviceButton_ShouldOpenTheSceneEditor", async () => {
+		mockScenes([sceneOf("s-one", "Uma só", [lamp])]);
+		const user = userEvent.setup();
+		renderView();
+		await findRow("Uma só");
+
+		await user.click(addDeviceButton() as HTMLElement);
+
+		expect(screen.getByTestId("location")).toHaveTextContent(
+			"/scenes/s-one/edit",
+		);
+	});
+
+	it("ScenesView_QuickEditHeader_ShouldPutTitleAndSceneNameOnTheSameLine", async () => {
+		mockScenes([sceneOf("s-one", "Uma só", [lamp])]);
+		renderView();
+		await findRow("Uma só");
+
+		const header = quickPanel().querySelector("header") as HTMLElement;
+		expect(header).toHaveTextContent(/Edição rápida\s*·\s*Uma só/);
+	});
+
+	it("ScenesView_QuickEditSlot_ShouldShowDeviceAndRoomSideBySideAndTheOfflineFlag", async () => {
+		mockScenes([sceneOf("s-rooms", "Ambientes", [lamp, hallLamp])]);
+		renderView();
+		await findRow("Ambientes");
+
+		expect(within(quickPanel()).getByText("· Sala")).toBeInTheDocument();
+		expect(
+			within(quickPanel()).getByText("· Corredor · offline"),
+		).toBeInTheDocument();
+	});
+
+	it("ScenesView_BrightnessInTheQuickEdit_ShouldOpenWhenTheDeviceTurnsOnAndCloseWhenItTurnsOff", async () => {
+		mockScenes([
+			createSceneMock({
+				id: "s-bright",
+				name: "Luzes",
+				items: [
+					itemOf(bedLamp, { isOn: false, brightness: 30 }),
+					itemOf(hallLamp, { isOn: true }),
+				],
+			}),
+		]);
+		const user = userEvent.setup();
+		renderView();
+		await findRow("Luzes");
+		const brightness = () =>
+			within(quickPanel()).queryByRole("group", {
+				name: "Brilho de Luz do Quarto",
+			});
+
+		// desligada: o brilho está fechado (escondido de leitor de tela, sem foco)
+		expect(brightness()).not.toBeInTheDocument();
+
+		await user.click(
+			within(quickPanel()).getByRole("switch", { name: "Ligar Luz do Quarto" }),
+		);
+		expect(brightness()).toBeInTheDocument();
+
+		await user.click(
+			within(quickPanel()).getByRole("switch", { name: "Ligar Luz do Quarto" }),
+		);
+		expect(brightness()).not.toBeInTheDocument();
+
+		// dispositivo sem controle de brilho (MQTT) nunca abre, mesmo ligado
+		expect(
+			within(quickPanel()).queryByRole("group", {
+				name: "Brilho de Lâmpada do Corredor",
+			}),
+		).not.toBeInTheDocument();
+	});
+
+	it("ScenesView_SwitchingScene_ShouldDropTheUnsavedChangesOfThePreviousOne", async () => {
+		const first = createSceneMock({
+			id: "q2",
+			name: "Aaa Outra",
+			items: [itemOf(bedLamp, { isOn: false })],
+		});
+		mockScenes([
+			first,
+			createSceneMock({
+				id: "q1",
+				name: "Cena Rápida",
+				items: [itemOf(lamp, { isOn: true }), itemOf(tv, { isOn: false })],
+			}),
+		]);
+		const user = userEvent.setup();
+		renderView();
+		await findRow("Cena Rápida");
+
+		// a primeira da página (por nome) vem selecionada
+		expect(within(quickPanel()).getByText("Aaa Outra")).toBeInTheDocument();
+
+		await user.click(await findRow("Cena Rápida"));
+		await user.click(
+			within(quickPanel()).getByRole("switch", { name: "Ligar Smart-TV-Pro" }),
+		);
+		expect(
+			within(quickPanel()).getByRole("button", { name: "Salvar alterações" }),
+		).toBeEnabled();
+
+		await user.click(await findRow("Aaa Outra"));
+		expect(within(quickPanel()).getByText("Aaa Outra")).toBeInTheDocument();
+		expect(
+			within(quickPanel()).getByRole("button", { name: "Salvar alterações" }),
+		).toBeDisabled();
+
+		await user.click(await findRow("Cena Rápida"));
+		expect(
+			within(quickPanel()).getByRole("switch", { name: "Ligar Smart-TV-Pro" }),
+		).not.toBeChecked();
+		expect(
+			within(quickPanel()).getByRole("button", { name: "Salvar alterações" }),
+		).toBeDisabled();
+	});
+
+	it("ScenesView_QuickEditContent_ShouldEnterWithAMotionSafeFade", async () => {
+		mockScenes([sceneOf("s-one", "Uma só", [lamp])]);
+		renderView();
+		await findRow("Uma só");
+
+		// Só o conteúdo anima na troca de cena (a moldura do cartão fica parada), e só para
+		// quem não pediu movimento reduzido.
+		expect(slotList().className).toContain("motion-safe:animate-in");
+		expect(slotList().className).toContain("motion-safe:fade-in");
+		expect(quickPanel().className).not.toContain("animate-in");
+	});
+});
+
 describe("ScenesView · consulta pausada (rede ou foco)", () => {
 	// Com o navegador "offline" (ou a janela sem foco) o React Query PAUSA a consulta depois
 	// da falha: ela não está carregando, não está em erro e não tem dados. A tela não pode
