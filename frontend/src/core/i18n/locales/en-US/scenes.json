@@ -1,0 +1,255 @@
+{
+	"title": "Scenes",
+	"header": {
+		"eyebrow": "Home atmospheres",
+		"subtitle": "One tap and the whole house changes mood. Each scene keeps the exact state of its devices.",
+		"addButton": "New scene"
+	},
+	"toolbar": {
+		"searchLabel": "Search scene or device",
+		"searchPlaceholder": "Search scene or device",
+		"viewLabel": "View",
+		"viewList": "List",
+		"viewCards": "Cards",
+		"roomLabel": "Rooms",
+		"allRooms": "All scenes"
+	},
+	"page": {
+		"loading": "Loading scenes...",
+		"retry": "Try again",
+		"loadError": "Could not load the scenes.",
+		"notFound": "Scene not found. It may have been deleted.",
+		"backToScenes": "Back to Scenes"
+	},
+	"list": {
+		"title": "Scenes control panel",
+		"count_one": "{{count}} scene",
+		"count_other": "{{count}} scenes",
+		"hint": "Select a scene to edit it quickly",
+		"ariaLabel": "Scenes",
+		"noResults": "No scenes found.",
+		"pageRange_one": "Showing <strong>{{from}}–{{to}}</strong> of <strong>{{total}}</strong> scene",
+		"pageRange_other": "Showing <strong>{{from}}–{{to}}</strong> of <strong>{{total}}</strong> scenes",
+		"pagination": "Scenes pagination",
+		"firstPage": "First page",
+		"lastPage": "Last page",
+		"goToPage": "Go to page {{page}}",
+		"prevPage": "Previous page",
+		"nextPage": "Next page"
+	},
+	"row": {
+		"activate": "Activate scene {{name}}",
+		"moreOptions": "More options for {{name}}",
+		"select": "Select scene {{name}}",
+		"deviceCount_one": "{{count}} device",
+		"deviceCount_other": "{{count}} devices",
+		"turnsOn_one": "{{count}} turns on",
+		"turnsOn_other": "{{count}} turn on",
+		"turnsOffAll": "turns everything off",
+		"neverActivated": "Never activated",
+		"lastActivated": "Activated {{when}}",
+		"empty": "No devices",
+		"offline_one": "{{count}} offline",
+		"offline_other": "{{count}} offline"
+	},
+	"quick": {
+		"title": "Quick edit",
+		"openEditor": "Open editor",
+		"emptyHint": "Your scenes show up here. Create the first one to adjust it quickly.",
+		"selectPrompt": "Select a scene to quickly adjust its devices.",
+		"turnOn": "Turn on {{name}}",
+		"brightnessGroup": "Brightness of {{name}}",
+		"brightness": "Brightness",
+		"offline": "offline",
+		"save": "Save changes",
+		"discard": "Discard",
+		"delete": "Delete scene",
+		"emptyScene": "This scene has no devices.",
+		"addDevices": "Add devices",
+		"addDevice": "Add device",
+		"addDeviceHint": "Open the editor to add one to the scene",
+		"stateOn": "Turns on",
+		"stateOff": "Turns off"
+	},
+	"empty": {
+		"ghost": "Click here to create a new scene and see the presets"
+	},
+	"metrics": {
+		"title": "Performance",
+		"period": "last 7 days",
+		"empty": "No data yet",
+		"activations": "Activations",
+		"activationsUnit": "activations",
+		"activationsChart": "Activations per day in the last 7 days: {{values}}",
+		"successRate": "Success rate",
+		"successChart": "Success rate: {{value}}%",
+		"topScenes": "Most activated",
+		"activationCount_one": "{{count}} activation",
+		"activationCount_other": "{{count}} activations",
+		"peakHour": "Peak hour",
+		"peakHint": "when most scenes are activated",
+		"variationUp": "+{{value}}% vs. last week",
+		"variationDown": "−{{value}}% vs. last week",
+		"variationSame": "same as last week",
+		"lastProblem": "Last alert: {{scene}} · {{when}}",
+		"lastProblemUnknownScene": "a scene",
+		"loadError": "Couldn't load the metrics."
+	},
+	"deleteDialog": {
+		"title": "Delete scene",
+		"description": "Are you sure you want to delete the scene \"{{name}}\"? Its devices will not be changed.",
+		"confirm": "Delete",
+		"cancel": "Cancel"
+	},
+	"presets": {
+		"panelTitle": "Presets",
+		"panelHint": "Starting points. Nothing is saved until you confirm.",
+		"use": "Use",
+		"useLabel": "Use preset {{name}}",
+		"applied": "Preset {{name}} applied. Review and save.",
+		"noCompatible": "You have no devices compatible with the {{name}} preset.",
+		"replaceConfirm": {
+			"title": "Replace the current devices?",
+			"description": "Applying the {{name}} preset replaces the devices and states already selected in this scene.",
+			"confirm": "Replace",
+			"cancel": "Keep"
+		},
+		"goodMorning": {
+			"name": "Good Morning",
+			"description": "Lights at 80% in warm white"
+		},
+		"arriveHome": {
+			"name": "Arrive Home",
+			"description": "Lights at 70% in warm white and climate control on"
+		},
+		"leaveHome": {
+			"name": "Leave Home",
+			"description": "Turns off lights, TV and climate control (plugs stay as they are)"
+		},
+		"goodNight": {
+			"name": "Good Night",
+			"description": "Turns off lights and TV"
+		},
+		"relax": {
+			"name": "Relax",
+			"description": "Lights at 30% in amber and TV off"
+		},
+		"dinner": {
+			"name": "Dinner",
+			"description": "Lights at 60% in warm white"
+		},
+		"reading": {
+			"name": "Reading",
+			"description": "Lights at 100% in cool white"
+		},
+		"party": {
+			"name": "Party",
+			"description": "Lights at 100% in vivid colors and TV on"
+		}
+	},
+	"editor": {
+		"breadcrumbScenes": "Scenes",
+		"createDescription": "Name it, pick the devices and review before saving.",
+		"editDescription": "Adjust the name, icon and devices of this scene.",
+		"stepsLabel": "Steps",
+		"steps": {
+			"start": "Start",
+			"devices": "Devices",
+			"review": "Review"
+		},
+		"next": "Next",
+		"back": "Back",
+		"createTitle": "New scene",
+		"editTitle": "Edit {{name}}",
+		"unsaved": "Unsaved changes",
+		"nameLabel": "Scene name",
+		"namePlaceholder": "Scene name",
+		"iconLabel": "Icon",
+		"devicesLabel": "Devices",
+		"devicesHint": "{{count}} in the scene. Each device's current state is prefilled.",
+		"deviceSearchLabel": "Search device",
+		"deviceSearchPlaceholder": "Search device or room",
+		"shortcuts": "Shortcuts",
+		"shortcutLights": "All lights",
+		"shortcutAllOff": "Turn everything off in the scene",
+		"shortcutClear": "Clear",
+		"includeRoom": "Select all",
+		"includeRoomLabel": "Select all in {{room}}",
+		"removeRoom": "Unselect all",
+		"removeRoomLabel": "Unselect all in {{room}}",
+		"noResults": "No devices found.",
+		"devicesLoading": "Loading devices...",
+		"devicesError": "Could not load the devices.",
+		"devicesEmpty": "No devices available. Register devices to build a scene.",
+		"noRoom": "No room",
+		"include": "Include {{name}}",
+		"turnOn": "Turn on {{name}}",
+		"turnsOn": "Turns on",
+		"turnsOff": "Turns off",
+		"currentState": "now: {{state}}",
+		"stateOn": "on",
+		"stateOff": "off",
+		"offline": "Offline",
+		"lightWithoutControl": "This bulb only turns on and off, with no brightness or color control.",
+		"selectedCount_one": "{{count}} device in the scene",
+		"selectedCount_other": "{{count}} devices in the scene",
+		"barEmpty": "Select at least one device to save",
+		"stage": {
+			"preview": "Scene preview",
+			"noName": "Unnamed",
+			"noDevices": "No devices yet",
+			"hint": "Select devices to see what the scene will do.",
+			"more_one": "+{{count}} device",
+			"more_other": "+{{count}} devices"
+		},
+		"lightControls": {
+			"brightnessGroup": "Brightness of {{name}}",
+			"brightness": "Brightness",
+			"colorTempGroup": "Color temperature of {{name}}",
+			"colorTemp": "Temperature",
+			"colorTempWarm": "Warm",
+			"colorTempCool": "Cool",
+			"colorGroup": "Color of {{name}}",
+			"color": "Color",
+			"unchanged": "Leave as is",
+			"keepUnchanged": "Leave as is"
+		},
+		"colors": {
+			"none": "No color",
+			"amber": "Amber",
+			"warmWhite": "Warm white",
+			"white": "White",
+			"coolWhite": "Cool white",
+			"blue": "Blue",
+			"purple": "Purple",
+			"pink": "Pink",
+			"green": "Green",
+			"red": "Red",
+			"cyan": "Cyan",
+			"custom": "Current color"
+		},
+		"cancel": "Cancel",
+		"save": "Save",
+		"saveAndTest": "Save and test",
+		"delete": "Delete scene",
+		"discard": {
+			"title": "Discard the changes made to this scene?",
+			"confirm": "Discard",
+			"cancel": "Go back"
+		}
+	},
+	"icons": {
+		"clapperboard": "Cinema",
+		"sun": "Morning",
+		"moon": "Night",
+		"door-open": "Arrival",
+		"log-out": "Departure",
+		"sparkles": "Special",
+		"sofa": "Relax",
+		"utensils": "Dinner",
+		"party-popper": "Party",
+		"flame": "Cozy",
+		"music": "Music",
+		"book-open": "Reading"
+	}
+}

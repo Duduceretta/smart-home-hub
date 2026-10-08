@@ -1,0 +1,255 @@
+{
+	"title": "Cenas",
+	"header": {
+		"eyebrow": "Atmosferas da casa",
+		"subtitle": "Um toque e a casa inteira muda de clima. Cada cena guarda o estado exato dos dispositivos.",
+		"addButton": "Nova cena"
+	},
+	"toolbar": {
+		"searchLabel": "Buscar cena ou dispositivo",
+		"searchPlaceholder": "Buscar cena ou dispositivo",
+		"viewLabel": "Visualização",
+		"viewList": "Lista",
+		"viewCards": "Cards",
+		"roomLabel": "Ambientes",
+		"allRooms": "Todas as cenas"
+	},
+	"page": {
+		"loading": "Carregando cenas...",
+		"retry": "Tentar novamente",
+		"loadError": "Não foi possível carregar as cenas.",
+		"notFound": "Cena não encontrada. Ela pode ter sido excluída.",
+		"backToScenes": "Voltar para Cenas"
+	},
+	"list": {
+		"title": "Painel operacional de cenas",
+		"count_one": "{{count}} cena",
+		"count_other": "{{count}} cenas",
+		"hint": "Selecione uma cena para editar rápido",
+		"ariaLabel": "Cenas",
+		"noResults": "Nenhuma cena encontrada.",
+		"pageRange_one": "Mostrando <strong>{{from}}–{{to}}</strong> de <strong>{{total}}</strong> cena",
+		"pageRange_other": "Mostrando <strong>{{from}}–{{to}}</strong> de <strong>{{total}}</strong> cenas",
+		"pagination": "Paginação das cenas",
+		"firstPage": "Primeira página",
+		"lastPage": "Última página",
+		"goToPage": "Ir para a página {{page}}",
+		"prevPage": "Página anterior",
+		"nextPage": "Próxima página"
+	},
+	"row": {
+		"activate": "Ativar cena {{name}}",
+		"moreOptions": "Mais opções de {{name}}",
+		"select": "Selecionar cena {{name}}",
+		"deviceCount_one": "{{count}} dispositivo",
+		"deviceCount_other": "{{count}} dispositivos",
+		"turnsOn_one": "{{count}} liga",
+		"turnsOn_other": "{{count}} ligam",
+		"turnsOffAll": "desliga tudo",
+		"neverActivated": "Nunca ativada",
+		"lastActivated": "Ativada {{when}}",
+		"empty": "Sem dispositivos",
+		"offline_one": "{{count}} offline",
+		"offline_other": "{{count}} offline"
+	},
+	"quick": {
+		"title": "Edição rápida",
+		"openEditor": "Abrir editor",
+		"emptyHint": "Suas cenas aparecem aqui. Crie a primeira para ajustá-la rápido.",
+		"selectPrompt": "Selecione uma cena para ajustar rápido os dispositivos dela.",
+		"turnOn": "Ligar {{name}}",
+		"brightnessGroup": "Brilho de {{name}}",
+		"brightness": "Brilho",
+		"offline": "offline",
+		"save": "Salvar alterações",
+		"discard": "Descartar",
+		"delete": "Excluir cena",
+		"emptyScene": "Esta cena não tem dispositivos.",
+		"addDevices": "Adicionar dispositivos",
+		"addDevice": "Adicionar dispositivo",
+		"addDeviceHint": "Abra o editor para incluir na cena",
+		"stateOn": "Liga",
+		"stateOff": "Desliga"
+	},
+	"empty": {
+		"ghost": "Clique aqui para criar uma nova cena e ver as predefinições"
+	},
+	"metrics": {
+		"title": "Desempenho",
+		"period": "últimos 7 dias",
+		"empty": "Ainda não há dados",
+		"activations": "Ativações",
+		"activationsUnit": "ativações",
+		"activationsChart": "Ativações por dia nos últimos 7 dias: {{values}}",
+		"successRate": "Taxa de sucesso",
+		"successChart": "Taxa de sucesso: {{value}}%",
+		"topScenes": "Mais ativadas",
+		"activationCount_one": "{{count}} ativação",
+		"activationCount_other": "{{count}} ativações",
+		"peakHour": "Horário de pico",
+		"peakHint": "quando mais cenas são ativadas",
+		"variationUp": "+{{value}}% vs. semana anterior",
+		"variationDown": "−{{value}}% vs. semana anterior",
+		"variationSame": "igual à semana anterior",
+		"lastProblem": "Último alerta: {{scene}} · {{when}}",
+		"lastProblemUnknownScene": "uma cena",
+		"loadError": "Não foi possível carregar as métricas."
+	},
+	"deleteDialog": {
+		"title": "Excluir cena",
+		"description": "Tem certeza que deseja excluir a cena \"{{name}}\"? Os dispositivos dela não serão alterados.",
+		"confirm": "Excluir",
+		"cancel": "Cancelar"
+	},
+	"presets": {
+		"panelTitle": "Predefinições",
+		"panelHint": "Pontos de partida. Nada é salvo até você confirmar.",
+		"use": "Usar",
+		"useLabel": "Usar predefinição {{name}}",
+		"applied": "Predefinição {{name}} aplicada. Revise e salve.",
+		"noCompatible": "Você não tem dispositivos compatíveis com a predefinição {{name}}.",
+		"replaceConfirm": {
+			"title": "Substituir os dispositivos atuais?",
+			"description": "Aplicar a predefinição {{name}} troca os dispositivos e estados já marcados nesta cena.",
+			"confirm": "Substituir",
+			"cancel": "Manter"
+		},
+		"goodMorning": {
+			"name": "Bom Dia",
+			"description": "Luzes a 80% em branco quente"
+		},
+		"arriveHome": {
+			"name": "Chegar em Casa",
+			"description": "Luzes a 70% em branco quente e climatização ligada"
+		},
+		"leaveHome": {
+			"name": "Sair de Casa",
+			"description": "Desliga luzes, TV e climatização (tomadas ficam como estão)"
+		},
+		"goodNight": {
+			"name": "Boa Noite",
+			"description": "Desliga luzes e TV"
+		},
+		"relax": {
+			"name": "Relaxar",
+			"description": "Luzes a 30% em âmbar e TV desligada"
+		},
+		"dinner": {
+			"name": "Jantar",
+			"description": "Luzes a 60% em branco quente"
+		},
+		"reading": {
+			"name": "Leitura",
+			"description": "Luzes a 100% em branco frio"
+		},
+		"party": {
+			"name": "Festa",
+			"description": "Luzes a 100% em cores vivas e TV ligada"
+		}
+	},
+	"editor": {
+		"breadcrumbScenes": "Cenas",
+		"createDescription": "Dê um nome, escolha os dispositivos e confira antes de salvar.",
+		"editDescription": "Ajuste o nome, o ícone e os dispositivos desta cena.",
+		"stepsLabel": "Passos",
+		"steps": {
+			"start": "Começar",
+			"devices": "Dispositivos",
+			"review": "Revisar"
+		},
+		"next": "Próximo",
+		"back": "Voltar",
+		"createTitle": "Nova cena",
+		"editTitle": "Editar {{name}}",
+		"unsaved": "Alterações não salvas",
+		"nameLabel": "Nome da cena",
+		"namePlaceholder": "Nome da cena",
+		"iconLabel": "Ícone",
+		"devicesLabel": "Dispositivos",
+		"devicesHint": "{{count}} na cena. O estado atual de cada dispositivo vem pré-preenchido.",
+		"deviceSearchLabel": "Buscar dispositivo",
+		"deviceSearchPlaceholder": "Buscar dispositivo ou ambiente",
+		"shortcuts": "Atalhos",
+		"shortcutLights": "Todas as luzes",
+		"shortcutAllOff": "Desligar tudo na cena",
+		"shortcutClear": "Limpar",
+		"includeRoom": "Marcar todos",
+		"includeRoomLabel": "Marcar todos de {{room}}",
+		"removeRoom": "Desmarcar todos",
+		"removeRoomLabel": "Desmarcar todos de {{room}}",
+		"noResults": "Nenhum dispositivo encontrado.",
+		"devicesLoading": "Carregando dispositivos...",
+		"devicesError": "Não foi possível carregar os dispositivos.",
+		"devicesEmpty": "Nenhum dispositivo disponível. Cadastre dispositivos para montar uma cena.",
+		"noRoom": "Sem ambiente",
+		"include": "Incluir {{name}}",
+		"turnOn": "Ligar {{name}}",
+		"turnsOn": "Liga",
+		"turnsOff": "Desliga",
+		"currentState": "agora: {{state}}",
+		"stateOn": "ligado",
+		"stateOff": "desligado",
+		"offline": "Offline",
+		"lightWithoutControl": "Esta lâmpada só liga e desliga, sem controle de brilho ou cor.",
+		"selectedCount_one": "{{count}} dispositivo na cena",
+		"selectedCount_other": "{{count}} dispositivos na cena",
+		"barEmpty": "Marque ao menos um dispositivo para salvar",
+		"stage": {
+			"preview": "Prévia da cena",
+			"noName": "Sem nome",
+			"noDevices": "Nenhum dispositivo ainda",
+			"hint": "Marque dispositivos para ver o que a cena fará.",
+			"more_one": "+{{count}} dispositivo",
+			"more_other": "+{{count}} dispositivos"
+		},
+		"lightControls": {
+			"brightnessGroup": "Brilho de {{name}}",
+			"brightness": "Brilho",
+			"colorTempGroup": "Temperatura de cor de {{name}}",
+			"colorTemp": "Temperatura",
+			"colorTempWarm": "Quente",
+			"colorTempCool": "Fria",
+			"colorGroup": "Cor de {{name}}",
+			"color": "Cor",
+			"unchanged": "Não alterar",
+			"keepUnchanged": "Deixar como está"
+		},
+		"colors": {
+			"none": "Sem cor",
+			"amber": "Âmbar",
+			"warmWhite": "Branco quente",
+			"white": "Branco",
+			"coolWhite": "Branco frio",
+			"blue": "Azul",
+			"purple": "Roxo",
+			"pink": "Rosa",
+			"green": "Verde",
+			"red": "Vermelho",
+			"cyan": "Ciano",
+			"custom": "Cor atual"
+		},
+		"cancel": "Cancelar",
+		"save": "Salvar",
+		"saveAndTest": "Salvar e testar",
+		"delete": "Excluir cena",
+		"discard": {
+			"title": "Descartar as alterações feitas nesta cena?",
+			"confirm": "Descartar",
+			"cancel": "Voltar"
+		}
+	},
+	"icons": {
+		"clapperboard": "Cinema",
+		"sun": "Manhã",
+		"moon": "Noite",
+		"door-open": "Chegada",
+		"log-out": "Saída",
+		"sparkles": "Especial",
+		"sofa": "Relax",
+		"utensils": "Jantar",
+		"party-popper": "Festa",
+		"flame": "Aconchego",
+		"music": "Música",
+		"book-open": "Leitura"
+	}
+}

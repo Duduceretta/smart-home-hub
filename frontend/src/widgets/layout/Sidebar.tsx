@@ -49,13 +49,16 @@ interface NavItemDesktopProps {
 function NavItemDesktop({ item, isActive, isCollapsed }: NavItemDesktopProps) {
 	const { ripples, createRipple, removeRipple } = useRipple();
 	const navigate = useNavigate();
+	const location = useLocation();
 
 	return (
 		<NavTooltip enabled={isCollapsed} content={item.name}>
 			<button
 				type="button"
 				onClick={() => {
-					if (!isActive) navigate(item.path);
+					// Compara a rota exata, não só "ativo": numa sub-rota (ex: /scenes/new) o item
+					// continua marcado como ativo, mas o clique precisa levar de volta à raiz dele.
+					if (location.pathname !== item.path) navigate(item.path);
 				}}
 				onPointerDown={createRipple}
 				aria-label={isCollapsed ? item.name : undefined}
@@ -363,12 +366,14 @@ interface NavItemMobileProps {
 function NavItemMobile({ item, isActive, onClose }: NavItemMobileProps) {
 	const { ripples, createRipple, removeRipple } = useRipple();
 	const navigate = useNavigate();
+	const location = useLocation();
 
 	// Elemento nativo (`<button>` em vez de `<Link>` do react-router-dom) —
 	// ver `NavItemDesktop` para o racional completo (causa raiz confirmada
 	// do travamento em navegação rápida).
 	const handleClick = () => {
-		if (!isActive) navigate(item.path);
+		// Rota exata, pelo mesmo motivo do item desktop (sub-rotas contam como ativas).
+		if (location.pathname !== item.path) navigate(item.path);
 		setTimeout(() => {
 			onClose();
 		}, 160);
